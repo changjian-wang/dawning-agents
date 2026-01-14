@@ -14,7 +14,7 @@ Tools are the **hands and eyes** of an AI agent, allowing it to:
 - **Perform actions** (send emails, create files, execute code)
 - **Retrieve information** (search, lookup, query)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Tool System Architecture                    │
 ├─────────────────────────────────────────────────────────────────┤

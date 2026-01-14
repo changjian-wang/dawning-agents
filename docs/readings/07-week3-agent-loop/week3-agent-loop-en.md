@@ -11,7 +11,7 @@
 
 The core of any AI agent is its execution loop. This follows a fundamental pattern:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Agent Execution Loop                         │
 ├─────────────────────────────────────────────────────────────────┤
@@ -128,10 +128,11 @@ Thought:"""
 ### 3. ReAct Pattern Deep Dive
 
 The ReAct (Reasoning + Acting) pattern interleaves:
+
 - **Reasoning traces**: Verbal explanations of the agent's thought process
 - **Actions**: Interactions with external tools or environments
 
-```
+```text
 Question: What is the capital of the country where the Eiffel Tower is located?
 
 Thought 1: I need to find where the Eiffel Tower is located.
@@ -605,7 +606,7 @@ public partial class ReActAgent : AgentBase
 
 #### Effective System Prompt Structure
 
-```
+```text
 [Role Definition]
 You are [specific role] that [primary function].
 
@@ -875,7 +876,7 @@ var prompt = new FewShotPromptBuilder()
 
 ### Week 3 Deliverables
 
-```
+```text
 src/DawningAgents.Core/
 ├── Agents/
 │   ├── IAgent.cs              # Agent interface
@@ -894,7 +895,7 @@ src/DawningAgents.Core/
 ### Key Concepts Learned
 
 | Concept | Description |
-|---------|-------------|
+| --------- | ------------- |
 | **Agent Loop** | Observe → Think → Act cycle |
 | **ReAct Pattern** | Interleaved reasoning and actions |
 | **Scratchpad** | Accumulated history of steps |
@@ -903,6 +904,7 @@ src/DawningAgents.Core/
 ### Next: Week 4
 
 Week 4 will cover:
+
 - Conversation memory management
 - Token counting and context windows
 - Agent state machine implementation

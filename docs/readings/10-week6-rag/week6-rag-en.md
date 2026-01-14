@@ -11,7 +11,7 @@
 
 **Retrieval-Augmented Generation (RAG)** enhances LLM responses by providing relevant context from external knowledge bases.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        RAG Pipeline                              │
 ├─────────────────────────────────────────────────────────────────┤

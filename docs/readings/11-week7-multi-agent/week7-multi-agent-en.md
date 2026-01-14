@@ -14,7 +14,7 @@ Single agents have limitations:
 - Long-running tasks benefit from parallelization
 - Separation of concerns improves maintainability
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Multi-Agent Benefits                          │
 ├─────────────────────────────────────────────────────────────────┤

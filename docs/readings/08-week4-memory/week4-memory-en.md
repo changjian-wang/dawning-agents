@@ -15,7 +15,7 @@ Agents need memory to:
 - **Track task progress** over time
 - **Avoid repetition** and inconsistency
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Memory Types in Agents                        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -673,7 +673,7 @@ public class SummaryMemory : IConversationMemory
 
 Agents go through various states during execution:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Agent State Machine                           │
 ├─────────────────────────────────────────────────────────────────┤
@@ -1069,7 +1069,7 @@ public class InMemoryAgentStateStore : IAgentStateStore
 
 ### Week 4 Deliverables
 
-```
+```text
 src/DawningAgents.Core/
 ├── Memory/
 │   ├── IConversationMemory.cs    # Memory interface

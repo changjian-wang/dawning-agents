@@ -1,6 +1,6 @@
 # Building Effective Agents
 
-> Source: https://www.anthropic.com/research/building-effective-agents
+> Source: <https://www.anthropic.com/research/building-effective-agents>
 > Published: Dec 19, 2024
 
 We've worked with dozens of teams building LLM agents across industries. Consistently, the most successful implementations use simple, composable patterns rather than complex frameworks.
