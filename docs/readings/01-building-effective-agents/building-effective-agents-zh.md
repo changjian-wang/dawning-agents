@@ -48,7 +48,7 @@
 
 我们建议开发者**从直接使用 LLM API 开始**：许多模式可以用几行代码实现。如果你确实使用框架，请确保你理解底层代码。对底层实现的错误假设是客户错误的常见来源。
 
-请参阅我们的 cookbook 获取一些示例实现。
+请参阅我们的 [Anthropic Cookbook](https://github.com/anthropics/anthropic-cookbook) 获取一些示例实现，其中包括 [Tool Use 示例](https://github.com/anthropics/anthropic-cookbook/tree/main/tool_use) 和 [Agent 官方文档](https://docs.anthropic.com/en/docs/agents)。
 
 ---
 
@@ -71,7 +71,17 @@
 
 ### 工作流：提示链（Prompt Chaining）
 
-提示链将任务分解为一系列步骤，其中每个 LLM 调用处理前一个调用的输出。你可以在任何中间步骤上添加编程检查（见下图中的"门"）以确保流程仍在正轨上。
+提示链将任务分解为一系列步骤，其中每个 LLM 调用处理前一个调用的输出。你可以在任何中间步骤上添加编程检查（即“门/Gate”——用于验证流程是否正常的检查点）以确保流程仍在正轨上。
+
+```mermaid
+flowchart LR
+    A[LLM 调用1] --> B{Gate<br/>检查}
+    B -->|通过| C[LLM 调用2]
+    B -->|失败| D[停止/重试]
+    C --> E{Gate<br/>检查}
+    E -->|通过| F[输出]
+    E -->|失败| G[停止/重试]
+```
 
 **何时使用此工作流：** 此工作流非常适合任务可以轻松、干净地分解为固定子任务的情况。主要目标是通过使每个 LLM 调用成为更简单的任务来**用延迟换取更高的准确性**。
 

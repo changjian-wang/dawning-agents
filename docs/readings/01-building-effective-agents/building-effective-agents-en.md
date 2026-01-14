@@ -43,7 +43,7 @@ These frameworks make it easy to get started by simplifying standard low-level t
 
 We suggest that developers start by using LLM APIs directly: many patterns can be implemented in a few lines of code. If you do use a framework, ensure you understand the underlying code. Incorrect assumptions about what's under the hood are a common source of customer error.
 
-See our cookbook for some sample implementations.
+See our [Anthropic Cookbook](https://github.com/anthropics/anthropic-cookbook) for some sample implementations, including [Tool Use examples](https://github.com/anthropics/anthropic-cookbook/tree/main/tool_use) and [Agent documentation](https://docs.anthropic.com/en/docs/agents).
 
 ---
 
@@ -61,7 +61,17 @@ For the remainder of this post, we'll assume each LLM call has access to these a
 
 ### Workflow: Prompt chaining
 
-Prompt chaining decomposes a task into a sequence of steps, where each LLM call processes the output of the previous one. You can add programmatic checks (see "gate" in the diagram below) on any intermediate steps to ensure that the process is still on track.
+Prompt chaining decomposes a task into a sequence of steps, where each LLM call processes the output of the previous one. You can add programmatic checks (called "gates"—checkpoints that validate whether the process is proceeding correctly) on any intermediate steps to ensure that the process is still on track.
+
+```mermaid
+flowchart LR
+    A[LLM Call 1] --> B{Gate<br/>Check}
+    B -->|Pass| C[LLM Call 2]
+    B -->|Fail| D[Stop/Retry]
+    C --> E{Gate<br/>Check}
+    E -->|Pass| F[Output]
+    E -->|Fail| G[Stop/Retry]
+```
 
 **When to use this workflow:** This workflow is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks. The main goal is to trade off latency for higher accuracy, by making each LLM call an easier task.
 
