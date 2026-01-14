@@ -1,485 +1,526 @@
-# Agent Framework Comparison: LangChain vs Semantic Kernel vs AutoGen
+# Week 0D: Framework Comparison & dawning-agents Design Decisions
 
-> A comprehensive comparison of three major AI agent frameworks
-> Day 5-7 Learning Material: Open Source Project Overview
+> Phase 0: Framework Analysis
+> Synthesizing learnings into design decisions for dawning-agents
 
 ---
 
 ## Overview
 
-This document compares three popular frameworks for building AI agents:
-
-| Framework | Organization | Primary Language | Focus |
-|-----------|--------------|------------------|-------|
-| **LangChain** | LangChain AI | Python, JS/TS | Agent applications & LLM integration |
-| **Semantic Kernel** | Microsoft | C#, Python, Java | Enterprise AI orchestration |
-| **AutoGen** | Microsoft | Python | Multi-agent conversations |
+After analyzing LangChain, Semantic Kernel, and AutoGen, this document synthesizes the learnings and establishes the design principles for dawning-agents.
 
 ---
 
-## 1. LangChain
-
-### Introduction
-
-LangChain is an open-source framework with a pre-built agent architecture and integrations for any model or tool — so you can build agents that adapt as fast as the ecosystem evolves.
-
-LangChain is the easiest way to start building agents and applications powered by LLMs. With under 10 lines of code, you can connect to OpenAI, Anthropic, Google, and more.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        LangChain Ecosystem                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐   │
-│   │  LangChain  │   │  LangGraph  │   │     LangSmith       │   │
-│   │   (Agent)   │   │  (Workflow) │   │    (Observability)  │   │
-│   └─────────────┘   └─────────────┘   └─────────────────────┘   │
-│         │                 │                     │               │
-│         └────────────┬────┘                     │               │
-│                      ▼                          ▼               │
-│              ┌──────────────────────────────────────┐           │
-│              │        Integrations (100+)           │           │
-│              │  (Models, Tools, Retrievers, etc.)   │           │
-│              └──────────────────────────────────────┘           │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Core Benefits
-
-| Benefit | Description |
-|---------|-------------|
-| **Standard Model Interface** | Different providers have unique APIs. LangChain standardizes how you interact with models so you can seamlessly swap providers and avoid lock-in. |
-| **Easy to Use, Highly Flexible** | Build a simple agent in under 10 lines of code. But also flexible enough for complex context engineering. |
-| **Built on LangGraph** | Agents are built on LangGraph, providing durable execution, human-in-the-loop support, persistence, and more. |
-| **Debug with LangSmith** | Gain deep visibility into complex agent behavior with visualization tools that trace execution paths. |
-
-### Quick Start Example
-
-```python
-# pip install -qU langchain "langchain[anthropic]"
-from langchain.agents import create_agent
-
-def get_weather(city: str) -> str:
-    """Get weather for a given city."""
-    return f"It's always sunny in {city}!"
-
-agent = create_agent(
-    model="claude-sonnet-4-5-20250929",
-    tools=[get_weather],
-    system_prompt="You are a helpful assistant",
-)
-
-# Run the agent
-agent.invoke(
-    {"messages": [{"role": "user", "content": "what is the weather in sf"}]}
-)
-```
-
-### Key Components
-
-| Component | Purpose |
-|-----------|---------|
-| **Models** | Chat models, LLMs, embeddings |
-| **Prompts** | Prompt templates, few-shot examples |
-| **Chains** | Composable sequences of calls |
-| **Agents** | Autonomous decision-makers with tools |
-| **Tools** | Functions the agent can call |
-| **Memory** | Conversation history management |
-| **Retrievers** | Document retrieval for RAG |
-
-### LangGraph for Advanced Workflows
-
-When you have more advanced needs that require:
-- Combination of deterministic and agentic workflows
-- Heavy customization
-- Carefully controlled latency
-
-LangGraph provides low-level agent orchestration with:
-- State machines
-- Cycles and branches
-- Persistence
-- Human-in-the-loop
-
-### Pros and Cons
-
-| Pros | Cons |
-|------|------|
-| ✅ Largest ecosystem & integrations | ❌ Fast-changing API (breaking changes) |
-| ✅ Excellent documentation | ❌ Can be over-abstracted for simple use cases |
-| ✅ Active community | ❌ Python-centric (JS/TS catching up) |
-| ✅ Quick to prototype | ❌ Performance overhead for production |
-
----
-
-## 2. Semantic Kernel
-
-### Introduction
-
-Semantic Kernel is a lightweight, open-source development kit that lets you easily build AI agents and integrate the latest AI models into your C#, Python, or Java codebase. It serves as an efficient middleware that enables rapid delivery of enterprise-grade solutions.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Semantic Kernel                             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌──────────────────────────────────────────────────────────┐  │
-│   │                       Kernel                              │  │
-│   │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  │
-│   │  │  Plugins │  │ Planners │  │  Memory  │  │Connectors│ │  │
-│   │  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │  │
-│   └──────────────────────────────────────────────────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
-│   ┌──────────────────────────────────────────────────────────┐  │
-│   │                   AI Services                             │  │
-│   │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  │
-│   │  │  OpenAI  │  │  Azure   │  │  Google  │  │  Local   │ │  │
-│   │  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │  │
-│   └──────────────────────────────────────────────────────────┘  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Enterprise Ready Features
-
-| Feature | Description |
-|---------|-------------|
-| **Security** | Telemetry support, hooks and filters for responsible AI |
-| **Multi-Language** | Version 1.0+ support across C#, Python, and Java |
-| **Stable API** | Committed to non-breaking changes |
-| **Future Proof** | Easily swap models without rewriting codebase |
-| **Extensible** | OpenAPI specifications (like Microsoft 365 Copilot) |
-
-### Key Concepts
-
-#### Plugins
-Your existing code can be exposed to AI models:
-
-```csharp
-public class WeatherPlugin
-{
-    [KernelFunction, Description("Get weather for a city")]
-    public string GetWeather(string city)
-    {
-        return $"It's sunny in {city}!";
-    }
-}
-```
-
-#### Kernel
-The central orchestrator:
-
-```csharp
-var builder = Kernel.CreateBuilder();
-builder.AddAzureOpenAIChatCompletion(
-    deploymentName: "gpt-4",
-    endpoint: "https://your-resource.openai.azure.com/",
-    apiKey: "your-api-key"
-);
-builder.Plugins.AddFromType<WeatherPlugin>();
-
-var kernel = builder.Build();
-```
-
-#### Automatic Function Calling
-```csharp
-var settings = new OpenAIPromptExecutionSettings
-{
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-};
-
-var result = await kernel.InvokePromptAsync(
-    "What's the weather in Seattle?",
-    new KernelArguments(settings)
-);
-```
-
-### Automating Business Processes
-
-Semantic Kernel combines prompts with existing APIs to perform actions:
-
-1. When a request is made, the model calls a function
-2. Semantic Kernel translates the model's request to a function call
-3. Results are passed back to the model
-
-### Pros and Cons
-
-| Pros | Cons |
-|------|------|
-| ✅ First-class C# support | ❌ Smaller community than LangChain |
-| ✅ Enterprise-grade features | ❌ Fewer integrations |
-| ✅ Microsoft backing & Azure integration | ❌ Learning curve for non-.NET developers |
-| ✅ Stable API with versioning | ❌ Less documentation/examples |
-
----
-
-## 3. AutoGen
-
-### Introduction
-
-AutoGen is an open-source programming framework for building AI agents and facilitating cooperation among multiple agents to solve tasks. AutoGen aims to provide an easy-to-use and flexible framework for accelerating development and research on agentic AI, like PyTorch for Deep Learning.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      AutoGen Framework                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌──────────────────────────────────────────────────────────┐  │
-│   │              Multi-Agent Conversation                     │  │
-│   │                                                           │  │
-│   │   ┌─────────┐    ┌─────────┐    ┌─────────────────────┐  │  │
-│   │   │Assistant│◄──►│  User   │◄──►│  Custom Agents      │  │  │
-│   │   │  Agent  │    │  Proxy  │    │  (Group Chat, etc.) │  │  │
-│   │   └─────────┘    └─────────┘    └─────────────────────┘  │  │
-│   │         │              │               │                  │  │
-│   │         └──────────────┼───────────────┘                  │  │
-│   │                        ▼                                  │  │
-│   │   ┌────────────────────────────────────────────────────┐ │  │
-│   │   │              Conversation Patterns                  │ │  │
-│   │   │  • Two-agent chat    • Group chat                  │ │  │
-│   │   │  • Sequential        • Hierarchical                │ │  │
-│   │   └────────────────────────────────────────────────────┘ │  │
-│   └──────────────────────────────────────────────────────────┘  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Main Features
-
-| Feature | Description |
-|---------|-------------|
-| **Multi-Agent Conversations** | Build next-gen LLM applications with minimal effort |
-| **Diverse Conversation Patterns** | Customizable for complex workflows |
-| **Conversation Autonomy** | Configure number of agents and topology |
-| **Working Systems** | Collection of examples from various domains |
-
-### Quick Start
-
-```python
-import os
-from autogen import AssistantAgent, UserProxyAgent
-
-llm_config = {
-    "config_list": [
-        {"model": "gpt-4", "api_key": os.environ.get("OPENAI_API_KEY")}
-    ]
-}
-
-assistant = AssistantAgent("assistant", llm_config=llm_config)
-user_proxy = UserProxyAgent("user_proxy", code_execution_config=False)
-
-# Start the chat
-user_proxy.initiate_chat(
-    assistant,
-    message="Tell me a joke about NVDA and TESLA stock prices.",
-)
-```
-
-### Multi-Agent Conversation Framework
-
-AutoGen offers customizable and conversable agents which integrate:
-- LLMs
-- Tools
-- Humans
-
-By automating chat among multiple capable agents, one can easily make them collectively perform tasks autonomously or with human feedback.
-
-### Conversation Patterns
-
-```
-Two-Agent Chat:           Group Chat:
-┌─────────┐              ┌─────────┐
-│  Agent  │              │  Agent  │
-│    A    │◄────────────►│    A    │
-└─────────┘              └────┬────┘
-     ▲                        │
-     │                   ┌────▼────┐
-     ▼                   │ Manager │
-┌─────────┐              └────┬────┘
-│  Agent  │              ┌────▼────┐
-│    B    │◄────────────►│  Agent  │
-└─────────┘              │    B    │
-                         └─────────┘
-
-Sequential:              Hierarchical:
-A → B → C → D            ┌─────────┐
-                         │ Manager │
-                         └────┬────┘
-                    ┌─────────┼─────────┐
-                    ▼         ▼         ▼
-               ┌───────┐ ┌───────┐ ┌───────┐
-               │ Agent │ │ Agent │ │ Agent │
-               │   A   │ │   B   │ │   C   │
-               └───────┘ └───────┘ └───────┘
-```
-
-### Agent Types
-
-| Agent Type | Description |
-|------------|-------------|
-| **AssistantAgent** | AI assistant powered by LLM |
-| **UserProxyAgent** | Represents human user, can execute code |
-| **GroupChatManager** | Orchestrates multi-agent group conversations |
-| **Custom Agents** | Create your own specialized agents |
-
-### Pros and Cons
-
-| Pros | Cons |
-|------|------|
-| ✅ Built for multi-agent scenarios | ❌ Python only |
-| ✅ Simple conversation abstraction | ❌ Less mature than LangChain |
-| ✅ Code execution support | ❌ Smaller ecosystem |
-| ✅ Academic research backing | ❌ Rapid version changes |
-
----
-
-## 4. Comparison Summary
-
-### Feature Matrix
-
-| Feature | LangChain | Semantic Kernel | AutoGen |
-|---------|-----------|-----------------|---------|
-| **Primary Language** | Python, JS | C#, Python, Java | Python |
-| **Agent Focus** | Single & Multi | Single & Plugins | Multi-Agent |
-| **Tool Integration** | Excellent | Good | Good |
-| **Memory/State** | Built-in | Built-in | Conversation-based |
-| **RAG Support** | Excellent | Good | Basic |
-| **Enterprise Ready** | Moderate | Excellent | Moderate |
-| **Learning Curve** | Medium | Medium-High | Low-Medium |
-| **Community Size** | Largest | Growing | Growing |
-
-### Use Case Recommendations
-
-| Use Case | Recommended Framework |
-|----------|----------------------|
-| Quick prototyping with LLMs | LangChain |
-| Enterprise C# applications | Semantic Kernel |
-| Multi-agent collaboration | AutoGen |
-| RAG applications | LangChain |
-| Azure ecosystem integration | Semantic Kernel |
-| Research & experimentation | AutoGen |
-| Production Python apps | LangChain + LangGraph |
+## Part 1: Three-Framework Comparison
 
 ### Architecture Comparison
 
+```mermaid
+graph TB
+    subgraph "LangChain"
+        LC1[Runnable Interface]
+        LC2[LCEL Composition]
+        LC3[AgentExecutor Loop]
+        LC1 --> LC2 --> LC3
+    end
+    
+    subgraph "Semantic Kernel"
+        SK1[Kernel + DI]
+        SK2[Plugin/Function System]
+        SK3[AgentGroupChat]
+        SK1 --> SK2 --> SK3
+    end
+    
+    subgraph "AutoGen"
+        AG1[Agent Protocol]
+        AG2[AgentRuntime]
+        AG3[Team Abstraction]
+        AG1 --> AG2 --> AG3
+    end
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                     Framework Architecture Comparison                 │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│  LangChain:                                                           │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐                        │
-│  │  Model   │───►│  Chain   │───►│  Agent   │                        │
-│  └──────────┘    └──────────┘    └──────────┘                        │
-│       │               │               │                               │
-│       └───────────────┴───────────────┘                               │
-│                       │                                               │
-│                  [Tools/Memory/Retriever]                             │
-│                                                                       │
-│  Semantic Kernel:                                                     │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐                        │
-│  │  Kernel  │───►│  Plugin  │───►│  Planner │                        │
-│  └──────────┘    └──────────┘    └──────────┘                        │
-│       │               │               │                               │
-│       └───────────────┴───────────────┘                               │
-│                       │                                               │
-│                  [AI Services/Connectors]                             │
-│                                                                       │
-│  AutoGen:                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐                        │
-│  │  Agent A │◄──►│  Agent B │◄──►│  Agent C │                        │
-│  └──────────┘    └──────────┘    └──────────┘                        │
-│       │               │               │                               │
-│       └───────────────┴───────────────┘                               │
-│                       │                                               │
-│              [Conversation Manager]                                   │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
-```
+
+### Feature Matrix
+
+| Feature | LangChain | Semantic Kernel | AutoGen | dawning-agents Goal |
+|---------|-----------|-----------------|---------|---------------------|
+| **Language** | Python-first | .NET-first | Python-first | **.NET-first** |
+| **Composition** | `\|` operator | DI + Invoke | Message passing | **Fluent + DI** |
+| **Agent Loop** | AgentExecutor | Agent class | on_messages | **IAgent interface** |
+| **Multi-Agent** | Basic | AgentGroupChat | Team + Handoff | **Rich patterns** |
+| **Tools** | @tool decorator | [KernelFunction] | Tool class | **[Tool] attribute** |
+| **Memory** | BaseMemory | Plugin-based | Chat history | **IMemory interface** |
+| **Streaming** | stream() method | IAsyncEnumerable | on_messages_stream | **IAsyncEnumerable** |
+| **Human-in-loop** | External | External | Built-in | **Built-in** |
+| **Observability** | Callbacks | Filters | Events | **Filters + Events** |
+
+### Design Philosophy Comparison
+
+| Aspect | LangChain | Semantic Kernel | AutoGen |
+|--------|-----------|-----------------|---------|
+| **Core Idea** | Everything is Runnable | Kernel is the hub | Agents communicate via messages |
+| **Composition Style** | Operator chaining | Service injection | Actor model |
+| **Abstraction Level** | Very high | High | Medium (two-layer) |
+| **Flexibility** | Very flexible | Enterprise structured | Research-oriented |
+| **Simplicity** | Magic can confuse | Verbose but clear | Complex for simple cases |
 
 ---
 
-## 5. Choosing for dawning-agents
+## Part 2: Key Learnings
 
-For the `dawning-agents` project (C#/.NET focus), consider:
+### From LangChain
 
-### Recommended Approach
+✅ **Take:**
+- Runnable interface with `invoke`, `stream`, `batch` is elegant
+- Callbacks/handlers for observability
+- Composition is powerful
 
-1. **Primary Inspiration**: Semantic Kernel
-   - Native C# support
-   - Enterprise-ready features
-   - Plugin architecture
+❌ **Avoid:**
+- Too much magic (hard to debug)
+- Frequent breaking changes
+- Python-specific patterns
 
-2. **Multi-Agent Patterns**: AutoGen concepts
-   - Conversation patterns
-   - Agent collaboration modes
+### From Semantic Kernel
 
-3. **Integration Ideas**: LangChain
-   - Tool/function design patterns
-   - Memory abstractions
+✅ **Take:**
+- Native .NET with strong typing
+- DI integration is essential
+- Filter/interceptor pattern
+- Attribute-based tool discovery
+- Clean Plugin/Function model
 
-### Implementation Strategy
+❌ **Avoid:**
+- Overly verbose for simple cases
+- Agent system still immature
+- Some abstractions feel forced
+
+### From AutoGen
+
+✅ **Take:**
+- Actor model for agents (message-passing)
+- Two-layer architecture (high/low level)
+- Handoff pattern for agent delegation
+- Rich termination conditions
+- Human-in-the-loop is first-class
+
+❌ **Avoid:**
+- Breaking changes between versions
+- Python-specific patterns
+- Overly complex for simple use cases
+
+---
+
+## Part 3: dawning-agents Design Principles
+
+### Principle 1: .NET-First with Strong Typing
 
 ```csharp
-// dawning-agents architecture inspired by all three
-namespace DawningAgents.Core
+// All interfaces strongly typed
+public interface IAgent<TInput, TOutput>
 {
-    // Semantic Kernel style - Kernel as orchestrator
-    public interface IAgentKernel
+    Task<TOutput> InvokeAsync(TInput input, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<TOutput> StreamAsync(TInput input, CancellationToken cancellationToken = default);
+}
+
+// Generic constraints for type safety
+public interface IChatAgent : IAgent<ChatMessage, ChatResponse> { }
+```
+
+### Principle 2: Dependency Injection as Foundation
+
+```csharp
+// Integrate with Microsoft.Extensions.DependencyInjection
+var services = new ServiceCollection();
+
+services.AddDawningAgents(options =>
+{
+    options.AddOpenAI(config => 
     {
-        Task<AgentResponse> ExecuteAsync(AgentRequest request);
+        config.ApiKey = "...";
+        config.Model = "gpt-4";
+    });
+    
+    options.AddAgent<ResearchAgent>();
+    options.AddAgent<WriterAgent>();
+    
+    options.AddTool<WebSearchTool>();
+    options.AddTool<FileSystemTool>();
+});
+
+var provider = services.BuildServiceProvider();
+var agent = provider.GetRequiredService<ResearchAgent>();
+```
+
+### Principle 3: Two-Layer Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    High-Level API                            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
+│  │ChatAgent │  │TaskAgent │  │CodeAgent │  │ TeamBuilder  │ │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│                    Core Abstractions                         │
+│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐ │
+│  │ IAgent │  │ ITool  │  │IMemory │  │IRuntime│  │IChannel│ │
+│  └────────┘  └────────┘  └────────┘  └────────┘  └────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Principle 4: Message-Passing for Multi-Agent
+
+```csharp
+// Agents communicate via messages (like AutoGen)
+public interface IAgentRuntime
+{
+    Task<TResponse> SendAsync<TMessage, TResponse>(
+        AgentId recipient,
+        TMessage message,
+        CancellationToken cancellationToken = default);
+    
+    Task PublishAsync<TMessage>(
+        TopicId topic,
+        TMessage message,
+        CancellationToken cancellationToken = default);
+    
+    Task<AgentId> RegisterAsync<TAgent>(
+        string name,
+        Func<TAgent> factory) where TAgent : IAgent;
+}
+```
+
+### Principle 5: Attribute-Based Discovery
+
+```csharp
+// Like Semantic Kernel's approach
+public class WebTools
+{
+    [Tool("Search the web")]
+    public async Task<string> SearchAsync(
+        [Description("Search query")] string query,
+        [Description("Max results")] int maxResults = 10)
+    {
+        // Implementation
     }
     
-    // LangChain style - Tools as first-class citizens
-    public interface ITool
+    [Tool("Fetch webpage content")]
+    public async Task<string> FetchPageAsync(
+        [Description("URL to fetch")] string url)
     {
-        string Name { get; }
-        string Description { get; }
-        Task<ToolResult> ExecuteAsync(ToolInput input);
+        // Implementation
     }
-    
-    // AutoGen style - Multi-agent conversations
-    public interface IConversableAgent
+}
+
+// Auto-discovery
+services.AddToolsFromAssembly(typeof(WebTools).Assembly);
+```
+
+### Principle 6: Fluent Team Building
+
+```csharp
+// Inspired by AutoGen's teams
+var team = Team.Create()
+    .WithAgent(researchAgent, role: "Researcher")
+    .WithAgent(writerAgent, role: "Writer")
+    .WithAgent(reviewerAgent, role: "Reviewer")
+    .WithSelectionStrategy<RoundRobinSelection>()
+    .WithTermination(conditions => conditions
+        .MaxMessages(50)
+        .Or()
+        .TextContains("TASK_COMPLETE")
+        .Or()
+        .Handoff("Human"))
+    .WithHumanInTheLoop(humanProxy)
+    .Build();
+
+var result = await team.RunAsync("Write an article about AI agents");
+```
+
+### Principle 7: Rich Observability
+
+```csharp
+// Combined Filters (like SK) + Events (like AutoGen)
+public interface IAgentFilter
+{
+    Task OnAgentInvokingAsync(AgentInvocationContext context, Func<Task> next);
+    Task OnAgentInvokedAsync(AgentInvocationContext context);
+}
+
+public interface IToolFilter
+{
+    Task OnToolInvokingAsync(ToolInvocationContext context, Func<Task> next);
+    Task OnToolInvokedAsync(ToolInvocationContext context);
+}
+
+// Event-based for external consumers
+public interface IAgentEvents
+{
+    event EventHandler<AgentMessageEventArgs> MessageReceived;
+    event EventHandler<ToolCallEventArgs> ToolCalled;
+    event EventHandler<HandoffEventArgs> HandoffOccurred;
+}
+```
+
+### Principle 8: First-Class Handoffs
+
+```csharp
+// Like AutoGen's handoff pattern
+public class ResearchAgent : ChatAgent
+{
+    [Handoff("Writer", "Hand off to writer when research is complete")]
+    [Handoff("Human", "Escalate to human when uncertain")]
+    public override async Task<ChatResponse> InvokeAsync(
+        ChatMessage message,
+        CancellationToken cancellationToken = default)
     {
-        Task SendAsync(IConversableAgent recipient, Message message);
-        Task<Message> ReceiveAsync(IConversableAgent sender, Message message);
+        // Agent can trigger handoff via tool call
     }
 }
 ```
 
 ---
 
-## 6. Resources
+## Part 4: Core Interfaces (Draft)
 
-### Official Documentation
+### IAgent
 
-| Framework | Links |
-|-----------|-------|
-| **LangChain** | [Docs](https://docs.langchain.com) • [GitHub](https://github.com/langchain-ai/langchain) • [LangGraph](https://docs.langchain.com/oss/python/langgraph/overview) |
-| **Semantic Kernel** | [Docs](https://learn.microsoft.com/semantic-kernel) • [GitHub](https://github.com/microsoft/semantic-kernel) |
-| **AutoGen** | [Docs](https://microsoft.github.io/autogen) • [GitHub](https://github.com/microsoft/autogen) |
+```csharp
+namespace DawningAgents.Core;
 
-### Learning Resources
+public interface IAgent
+{
+    string Id { get; }
+    string Name { get; }
+    string Description { get; }
+    AgentMetadata Metadata { get; }
+}
 
-- LangChain Academy: https://academy.langchain.com/
-- Semantic Kernel Samples: https://github.com/microsoft/semantic-kernel/tree/main/samples
-- AutoGen Notebooks: https://microsoft.github.io/autogen/docs/notebooks
+public interface IAgent<TInput, TOutput> : IAgent
+{
+    Task<TOutput> InvokeAsync(
+        TInput input,
+        AgentContext context,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<TOutput> StreamAsync(
+        TInput input,
+        AgentContext context,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IChatAgent : IAgent<IEnumerable<ChatMessage>, ChatResponse>
+{
+    IReadOnlyList<ITool> Tools { get; }
+    IReadOnlyList<Handoff> Handoffs { get; }
+}
+```
+
+### ITool
+
+```csharp
+namespace DawningAgents.Core;
+
+public interface ITool
+{
+    string Name { get; }
+    string Description { get; }
+    ToolSchema Schema { get; }  // JSON Schema for parameters
+    
+    Task<ToolResult> InvokeAsync(
+        ToolInput input,
+        CancellationToken cancellationToken = default);
+}
+
+// Attribute for easy tool creation
+[AttributeUsage(AttributeTargets.Method)]
+public class ToolAttribute : Attribute
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+}
+```
+
+### IMemory
+
+```csharp
+namespace DawningAgents.Core;
+
+public interface IMemory
+{
+    Task SaveAsync(MemoryEntry entry, CancellationToken cancellationToken = default);
+    
+    Task<IEnumerable<MemoryEntry>> RecallAsync(
+        string query,
+        MemoryRecallOptions? options = null,
+        CancellationToken cancellationToken = default);
+    
+    Task ClearAsync(CancellationToken cancellationToken = default);
+}
+
+public interface IChatMemory : IMemory
+{
+    Task AddMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatMessage>> GetHistoryAsync(int? limit = null, CancellationToken cancellationToken = default);
+}
+```
+
+### IAgentRuntime
+
+```csharp
+namespace DawningAgents.Core;
+
+public interface IAgentRuntime
+{
+    Task<AgentId> RegisterAsync<TAgent>(
+        string type,
+        Func<IServiceProvider, TAgent> factory,
+        IEnumerable<Subscription>? subscriptions = null)
+        where TAgent : IAgent;
+    
+    Task<TAgent> GetAgentAsync<TAgent>(AgentId id)
+        where TAgent : IAgent;
+    
+    Task<TResponse> SendMessageAsync<TMessage, TResponse>(
+        AgentId recipient,
+        TMessage message,
+        AgentId? sender = null,
+        CancellationToken cancellationToken = default);
+    
+    Task PublishMessageAsync<TMessage>(
+        TopicId topic,
+        TMessage message,
+        AgentId? sender = null,
+        CancellationToken cancellationToken = default);
+}
+```
+
+### ITeam
+
+```csharp
+namespace DawningAgents.Core;
+
+public interface ITeam
+{
+    IReadOnlyList<IAgent> Participants { get; }
+    ISelectionStrategy SelectionStrategy { get; }
+    ITerminationCondition TerminationCondition { get; }
+    
+    Task<TeamResult> RunAsync(
+        string task,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<TeamEvent> RunStreamAsync(
+        string task,
+        CancellationToken cancellationToken = default);
+}
+
+public interface ISelectionStrategy
+{
+    Task<IAgent?> SelectNextAsync(
+        IReadOnlyList<IAgent> participants,
+        IReadOnlyList<ChatMessage> history,
+        CancellationToken cancellationToken = default);
+}
+
+public interface ITerminationCondition
+{
+    Task<bool> ShouldTerminateAsync(
+        IReadOnlyList<ChatMessage> history,
+        CancellationToken cancellationToken = default);
+}
+```
+
+---
+
+## Part 5: Project Structure (Proposed)
+
+```text
+dawning-agents/
+├── src/
+│   ├── DawningAgents.Abstractions/     # Core interfaces
+│   │   ├── IAgent.cs
+│   │   ├── ITool.cs
+│   │   ├── IMemory.cs
+│   │   ├── IAgentRuntime.cs
+│   │   └── ITeam.cs
+│   │
+│   ├── DawningAgents.Core/             # Core implementations
+│   │   ├── Agents/
+│   │   │   ├── ChatAgent.cs
+│   │   │   └── TaskAgent.cs
+│   │   ├── Runtime/
+│   │   │   └── SingleThreadedRuntime.cs
+│   │   ├── Teams/
+│   │   │   ├── RoundRobinTeam.cs
+│   │   │   └── SelectorTeam.cs
+│   │   └── Memory/
+│   │       ├── BufferMemory.cs
+│   │       └── SummaryMemory.cs
+│   │
+│   ├── DawningAgents.OpenAI/           # OpenAI integration
+│   ├── DawningAgents.Anthropic/        # Anthropic integration
+│   ├── DawningAgents.Azure/            # Azure OpenAI integration
+│   └── DawningAgents.Tools/            # Built-in tools
+│
+├── samples/
+│   ├── SimpleChat/
+│   ├── MultiAgent/
+│   └── CodeGeneration/
+│
+├── tests/
+│   ├── DawningAgents.Tests/
+│   └── DawningAgents.IntegrationTests/
+│
+└── docs/
+```
+
+---
+
+## Part 6: Implementation Roadmap
+
+### Phase 1: Foundation (Week 1-2)
+- [ ] Core interfaces (IAgent, ITool, IMemory)
+- [ ] Single-threaded runtime
+- [ ] OpenAI integration
+- [ ] Basic ChatAgent
+
+### Phase 2: Tools & Memory (Week 3-4)
+- [ ] Attribute-based tool discovery
+- [ ] Tool execution
+- [ ] Buffer memory
+- [ ] Summary memory
+
+### Phase 3: Multi-Agent (Week 5-6)
+- [ ] Team abstraction
+- [ ] Selection strategies
+- [ ] Termination conditions
+- [ ] Handoff support
+
+### Phase 4: Advanced Features (Week 7-8)
+- [ ] Human-in-the-loop
+- [ ] Streaming support
+- [ ] Filters & observability
+- [ ] Error handling & retry
+
+### Phase 5: Polish (Week 9-10)
+- [ ] Additional LLM providers
+- [ ] Built-in tools
+- [ ] Comprehensive tests
+- [ ] Documentation
 
 ---
 
 ## Summary
 
-| Framework | Best For | Key Strength |
-|-----------|----------|--------------|
-| **LangChain** | Quick prototyping & Python apps | Ecosystem & integrations |
-| **Semantic Kernel** | Enterprise C#/.NET apps | Stability & Azure integration |
-| **AutoGen** | Multi-agent research & experiments | Conversation patterns |
+| Framework | Key Takeaway |
+|-----------|--------------|
+| **LangChain** | Composition elegance, but avoid magic |
+| **Semantic Kernel** | .NET patterns, DI, filters, attributes |
+| **AutoGen** | Actor model, teams, handoffs, termination |
 
-All three frameworks are actively developed and can be excellent choices depending on your specific needs. For `dawning-agents`, combining concepts from all three while building natively in C# provides the best of all worlds.
+**dawning-agents** will combine:
+- 🎯 .NET-first with strong typing (from SK)
+- 🔌 DI integration and filters (from SK)
+- 🔗 Clean interfaces like Runnable (inspired by LC)
+- 📬 Message-passing for multi-agent (from AutoGen)
+- 👥 Rich team/handoff patterns (from AutoGen)
+- 👁️ First-class observability (from all three)
