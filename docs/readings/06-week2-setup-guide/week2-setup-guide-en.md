@@ -89,7 +89,10 @@ python --version
 pip --version
 
 # Install useful packages for learning
-pip install langchain openai autogen-agentchat
+pip install langchain langgraph openai openai-agents
+
+# Microsoft Agent Framework (optional, for reference)
+pip install agent-framework
 ```
 
 ### 4. Configure Git Environment
@@ -188,8 +191,8 @@ cd src/DawningAgents.Core
 dotnet add package Azure.AI.OpenAI --version 2.0.0
 dotnet add package OpenAI --version 2.0.0
 
-# Semantic Kernel (optional, for reference)
-dotnet add package Microsoft.SemanticKernel --version 1.25.0
+# Microsoft Agent Framework (optional, for reference)
+dotnet add package Microsoft.Agents.AI --prerelease
 
 # JSON handling
 dotnet add package System.Text.Json
