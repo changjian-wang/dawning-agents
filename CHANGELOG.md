@@ -23,6 +23,12 @@
 
 ### 更新的文档
 
+#### `LEARNING_PLAN.md`
+- **Week 1 Day 5-7**: Semantic Kernel/AutoGen → MS Agent Framework/OpenAI Agents SDK
+- **Week 5**: SK Plugins → OpenAI Agents SDK `@function_tool` + MS Agent Framework `ai_function`
+- **Week 7**: AutoGen 源码 → MS Agent Framework HandoffBuilder + OpenAI Agents SDK Handoff
+- **资源列表**: 更新必读源码（新增 LangGraph、MS Agent Framework、OpenAI Agents SDK）
+
 #### `docs/readings/05-framework-comparison/`
 - **三框架对比**: LangChain/LangGraph, MS Agent Framework, OpenAI Agents SDK
 - **新增双编排模式**: 

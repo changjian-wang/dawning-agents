@@ -41,10 +41,12 @@ Phase 6 (Week 11-12) : 优化、测试与发布
 
 #### Day 5-7: 开源项目概览
 
-- [ ] **浏览**: LangChain 官方文档 (<https://docs.langchain.com>)
-- [ ] **浏览**: Semantic Kernel 文档 (<https://learn.microsoft.com/semantic-kernel>)
-- [ ] **浏览**: AutoGen 文档 (<https://microsoft.github.io/autogen>)
+- [ ] **浏览**: LangChain / LangGraph 文档 (<https://docs.langchain.com>)
+- [ ] **浏览**: Microsoft Agent Framework 文档 (<https://github.com/microsoft/agent-framework>)
+- [ ] **浏览**: OpenAI Agents SDK 文档 (<https://github.com/openai/openai-agents-python>)
 - [ ] **笔记**: 对比三个框架的设计理念
+
+> ⚠️ **注意**: 微软已将 Semantic Kernel 和 AutoGen 整合为 Microsoft Agent Framework (2025年11月)
 
 ### Week 2: 开发环境准备
 
@@ -182,8 +184,9 @@ src/DawningAgents.Core/
 #### Day 1-2: 理解 Function Calling
 
 - [ ] **阅读**: OpenAI Function Calling 文档
-- [ ] **阅读**: Semantic Kernel Plugins 设计
-  - `semantic-kernel/dotnet/src/Functions/`
+- [ ] **阅读**: OpenAI Agents SDK `@function_tool` 设计
+  - `openai-agents-python/src/agents/tool.py`
+- [ ] **阅读**: MS Agent Framework `ai_function` 设计
 - [ ] **笔记**: 工具定义规范 (JSON Schema)
 
 #### Day 3-4: 实现工具系统
@@ -268,13 +271,15 @@ src/DawningAgents.Core/
 
 #### Day 1-2: 深度学习开源实现
 
-- [ ] **阅读**: AutoGen 源码
-  - `autogen/agentchat/groupchat.py`
-  - `autogen/agentchat/conversable_agent.py`
+- [ ] **阅读**: MS Agent Framework HandoffBuilder 源码
+  - `agent-framework/python/packages/agent-framework/handoffs/`
+  - `agent-framework/dotnet/src/Microsoft.Agents.AI/`
+- [ ] **阅读**: OpenAI Agents SDK Handoff 源码
+  - `openai-agents-python/src/agents/handoffs.py`
 - [ ] **阅读**: CrewAI 源码
   - `crewai/crew.py`
   - `crewai/task.py`
-- [ ] **笔记**: 协作模式设计对比
+- [ ] **笔记**: 协作模式设计对比（Workflow 编排 vs 状态机编排）
 
 #### Day 3-4: 顺序执行模式
 
@@ -509,7 +514,7 @@ dawning-agents/
 | 主题 | 平台 | 内容 |
 | ------ | ------ | ------ |
 | LangChain 教程 | YouTube | LangChain 官方教程系列 |
-| AutoGen 教程 | YouTube | Microsoft AutoGen 入门 |
+| OpenAI Agents | YouTube | OpenAI Agents SDK 入门 |
 | Agent 架构 | YouTube | AI Agent Architecture Deep Dive |
 
 ### 必读源码
@@ -517,8 +522,9 @@ dawning-agents/
 | 项目 | 重点目录 | 学习内容 |
 | ------ | ------ | ------ |
 | LangChain | `agents/`, `tools/` | Agent模式、工具系统 |
-| AutoGen | `agentchat/` | 多Agent对话 |
-| Semantic Kernel | `Functions/`, `Agents/` | 插件架构 |
+| LangGraph | `langgraph/graph/` | 状态机编排 |
+| MS Agent Framework | `handoffs/`, `workflows/` | Handoff 工作流 |
+| OpenAI Agents SDK | `agents/` | 四个核心原语 |
 | CrewAI | `crewai/` | 任务分解 |
 | MetaGPT | `roles/` | 角色设计 |
 
