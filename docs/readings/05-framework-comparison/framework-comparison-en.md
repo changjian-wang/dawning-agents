@@ -1,13 +1,18 @@
 # Week 0D: Framework Comparison & dawning-agents Design Decisions
 
-> Phase 0: Framework Analysis
+> Phase 0: Framework Analysis (Updated January 2026)
 > Synthesizing learnings into design decisions for dawning-agents
 
 ---
 
 ## Overview
 
-After analyzing LangChain, Semantic Kernel, and AutoGen, this document synthesizes the learnings and establishes the design principles for dawning-agents.
+This document compares the three major AI Agent frameworks currently in use:
+- **LangChain / LangGraph** - The leader in the Python ecosystem
+- **Microsoft Agent Framework** - Microsoft's unified Agent framework (consolidating Semantic Kernel and AutoGen)
+- **OpenAI Agents SDK** - OpenAI's official lightweight Agent SDK
+
+> ⚠️ **Important Update (November 2025):** Microsoft has consolidated Semantic Kernel and AutoGen into the unified **Microsoft Agent Framework**, with migration guides available from SK/AutoGen.
 
 ---
 
@@ -17,115 +22,389 @@ After analyzing LangChain, Semantic Kernel, and AutoGen, this document synthesiz
 
 ```mermaid
 graph TB
-    subgraph "LangChain"
+    subgraph "LangChain / LangGraph"
         LC1[Runnable Interface]
         LC2[LCEL Composition]
-        LC3[AgentExecutor Loop]
+        LC3[LangGraph State Machine]
         LC1 --> LC2 --> LC3
     end
     
-    subgraph "Semantic Kernel"
-        SK1[Kernel + DI]
-        SK2[Plugin/Function System]
-        SK3[AgentGroupChat]
-        SK1 --> SK2 --> SK3
+    subgraph "Microsoft Agent Framework"
+        MS1[ChatAgent / AIAgent]
+        MS2[Workflow Orchestration]
+        MS3[Handoff Workflows]
+        MS1 --> MS2 --> MS3
     end
     
-    subgraph "AutoGen"
-        AG1[Agent Protocol]
-        AG2[AgentRuntime]
-        AG3[Team Abstraction]
-        AG1 --> AG2 --> AG3
+    subgraph "OpenAI Agents SDK"
+        OA1[Agent Primitives]
+        OA2[Tools + Handoffs]
+        OA3[Guardrails + Tracing]
+        OA1 --> OA2 --> OA3
     end
 ```
 
 ### Feature Matrix
 
-| Feature | LangChain | Semantic Kernel | AutoGen | dawning-agents Goal |
-|---------|-----------|-----------------|---------|---------------------|
-| **Language** | Python-first | .NET-first | Python-first | **.NET-first** |
-| **Composition** | `\|` operator | DI + Invoke | Message passing | **Fluent + DI** |
-| **Agent Loop** | AgentExecutor | Agent class | on_messages | **IAgent interface** |
-| **Multi-Agent** | Basic | AgentGroupChat | Team + Handoff | **Rich patterns** |
-| **Tools** | @tool decorator | [KernelFunction] | Tool class | **[Tool] attribute** |
-| **Memory** | BaseMemory | Plugin-based | Chat history | **IMemory interface** |
-| **Streaming** | stream() method | IAsyncEnumerable | on_messages_stream | **IAsyncEnumerable** |
-| **Human-in-loop** | External | External | Built-in | **Built-in** |
-| **Observability** | Callbacks | Filters | Events | **Filters + Events** |
+| Feature | LangChain/LangGraph | MS Agent Framework | OpenAI Agents SDK | dawning-agents Goal |
+|---------|---------------------|-------------------|-------------------|---------------------|
+| **Language** | Python-first | Python + .NET | Python + TypeScript | **.NET-first** |
+| **Installation** | `pip install langchain` | `pip install agent-framework` / `dotnet add Microsoft.Agents.AI` | `pip install openai-agents` | **NuGet packages** |
+| **Core Primitives** | Runnable, Chain, Graph | Agent, Workflow, Executor | Agent, Tool, Handoff, Guardrail | **IAgent, ITool, IHandoff** |
+| **Multi-Agent** | LangGraph state machine | HandoffBuilder, Workflow | Handoffs delegation | **HandoffBuilder** |
+| **Tools** | @tool decorator | ai_function decorator | function_tool decorator | **[Tool] attribute** |
+| **Handoffs** | Requires custom | Built-in HandoffBuilder | Built-in Handoff primitive | **Built-in** |
+| **Guardrails** | Requires custom | Via middleware | Built-in Guardrails | **Built-in IGuardrail** |
+| **Observability** | LangSmith | ExecutorInvokedEvent | Built-in Tracing | **Built-in Tracing** |
+| **Human-in-loop** | Via nodes | human_in_loop mode | Via Guardrails | **Built-in** |
+| **Streaming** | stream() | run_stream() | run_streamed() | **IAsyncEnumerable** |
+| **Session Management** | Requires custom | AgentThread | Built-in Sessions | **Built-in ISession** |
+| **LLM Support** | 100+ models | Azure OpenAI first | 100+ via LiteLLM | **Multi-model support** |
 
 ### Design Philosophy Comparison
 
-| Aspect | LangChain | Semantic Kernel | AutoGen |
-|--------|-----------|-----------------|---------|
-| **Core Idea** | Everything is Runnable | Kernel is the hub | Agents communicate via messages |
-| **Composition Style** | Operator chaining | Service injection | Actor model |
-| **Abstraction Level** | Very high | High | Medium (two-layer) |
-| **Flexibility** | Very flexible | Enterprise structured | Research-oriented |
-| **Simplicity** | Magic can confuse | Verbose but clear | Complex for simple cases |
+| Aspect | LangChain/LangGraph | MS Agent Framework | OpenAI Agents SDK |
+|--------|---------------------|-------------------|-------------------|
+| **Core Idea** | Everything is Runnable, Graph is Workflow | Workflow is the orchestration core | Four primitives solve everything |
+| **Abstraction Level** | High (LCEL) + Medium (Graph) | Medium (two-layer architecture) | Low (minimalism) |
+| **Flexibility** | Very flexible | Enterprise structured | Simple and direct |
+| **Learning Curve** | Steep | Medium | Gentle |
+| **Production Ready** | LangGraph v1.0 (2025) | Preview (late 2025) | Production ready (March 2025) |
+| **Enterprise Features** | LangSmith (paid) | Azure integration | OpenAI platform integration |
 
 ---
 
-## Part 2: Key Learnings
+## Part 2: Detailed Framework Analysis
 
-### From LangChain
+### LangChain / LangGraph
+
+**Overview:** LangChain is the most mature Agent framework. In May 2025, LangGraph reached v1.0, providing long-running stateful Agent orchestration.
+
+**Core Concepts:**
+```python
+# LangGraph state machine example
+from langgraph.graph import StateGraph, END
+
+workflow = StateGraph(AgentState)
+workflow.add_node("research", research_node)
+workflow.add_node("write", write_node)
+workflow.add_edge("research", "write")
+workflow.add_edge("write", END)
+
+app = workflow.compile()
+result = await app.ainvoke({"task": "Write an article"})
+```
+
+**Pros:**
+- ✅ Most mature ecosystem, active community
+- ✅ LangGraph provides powerful state machine orchestration
+- ✅ LangSmith provides enterprise-grade observability
+- ✅ Supports 100+ LLM models
+- ✅ Rich documentation and tutorials
+
+**Cons:**
+- ❌ Too many abstraction layers, hard to debug
+- ❌ Frequent version iterations, many breaking changes
+- ❌ Python-first, weak .NET support
+- ❌ Overkill for simple tasks
+
+---
+
+### Microsoft Agent Framework
+
+**Overview:** Microsoft released the unified Agent Framework in November 2025, consolidating the best features of Semantic Kernel and AutoGen, with support for both Python and .NET.
+
+**Core Concepts:**
+```python
+# Python example
+from agent_framework import HandoffBuilder, ChatAgent
+from agent_framework.azure import AzureOpenAIChatClient
+
+client = AzureOpenAIChatClient(credential=AzureCliCredential())
+
+# Create Agents
+triage = client.create_agent(name="triage", instructions="...")
+billing = client.create_agent(name="billing", instructions="...")
+support = client.create_agent(name="support", instructions="...")
+
+# Build Handoff workflow
+workflow = (
+    HandoffBuilder(participants=[triage, billing, support])
+    .with_start_agent(triage)
+    .add_handoff(triage, [billing, support])
+    .with_autonomous_mode(turn_limits={"billing": 10})
+    .build()
+)
+
+# Run
+async for event in workflow.run_stream(messages):
+    print(event)
+```
+
+```csharp
+// .NET example
+var workflow = AgentWorkflowBuilder
+    .CreateHandoffBuilderWith(triageAgent)
+    .WithHandoff(triageAgent, billingAgent, "Handle billing issues")
+    .WithHandoff(triageAgent, supportAgent, "Handle technical support")
+    .Build();
+
+await foreach (var update in workflow.RunStreamingAsync(messages))
+{
+    Console.WriteLine(update);
+}
+```
+
+**Pros:**
+- ✅ First-class support for both Python and .NET
+- ✅ Deep integration with Azure AI Foundry
+- ✅ Built-in Handoff workflow pattern
+- ✅ Supports MCP, A2A, and other open standards
+- ✅ Migration guides from SK/AutoGen available
+
+**Cons:**
+- ❌ Still in Preview stage
+- ❌ Documentation still being improved
+- ❌ Ecosystem still being built
+
+---
+
+### OpenAI Agents SDK
+
+**Overview:** Released in March 2025, this is the production-ready version of the Swarm project. It adopts a minimalist design with only four core primitives.
+
+**Four Core Primitives:**
+
+1. **Agent** - LLM configured with instructions and tools
+2. **Tool** - Functions the Agent can call
+3. **Handoff** - Task delegation between Agents
+4. **Guardrail** - Input/output validation
+
+```python
+from agents import Agent, Runner, function_tool, handoff
+
+@function_tool
+def search_web(query: str) -> str:
+    """Search the web for information"""
+    return f"Search results: {query}"
+
+research_agent = Agent(
+    name="Researcher",
+    instructions="You are a research assistant",
+    tools=[search_web],
+)
+
+writer_agent = Agent(
+    name="Writer",
+    instructions="You are a writing assistant",
+    handoffs=[research_agent],  # Can hand back to researcher
+)
+
+triage_agent = Agent(
+    name="Triage",
+    instructions="Analyze user needs and assign tasks",
+    handoffs=[research_agent, writer_agent],
+)
+
+# Run
+result = await Runner.run(triage_agent, "Help me write an article about AI")
+print(result.final_output)
+```
+
+**Guardrails Example:**
+```python
+from agents import Agent, InputGuardrail, GuardrailFunctionOutput
+
+async def content_filter(ctx, agent, input):
+    # Check if input contains sensitive content
+    is_safe = check_content(input)
+    return GuardrailFunctionOutput(
+        output_info={"safe": is_safe},
+        tripwire_triggered=not is_safe,
+    )
+
+agent = Agent(
+    name="SafeAgent",
+    instructions="...",
+    input_guardrails=[InputGuardrail(guardrail_function=content_filter)],
+)
+```
+
+**Pros:**
+- ✅ Minimalist design, gentle learning curve
+- ✅ Built-in Tracing (OpenAI dashboard visualization)
+- ✅ Supports both Python and TypeScript
+- ✅ Provider-agnostic (supports 100+ LLMs)
+- ✅ Production-ready
+
+**Cons:**
+- ❌ No built-in vector memory/RAG
+- ❌ No graph/state machine workflow engine
+- ❌ Complex orchestration requires custom implementation
+- ❌ No .NET support
+
+---
+
+## Part 3: Key Learnings
+
+### From LangChain/LangGraph
 
 ✅ **Take:**
-- Runnable interface with `invoke`, `stream`, `batch` is elegant
-- Callbacks/handlers for observability
-- Composition is powerful
+- State machine orchestration pattern (LangGraph)
+- Composable Runnable interface design
+- Comprehensive observability system
 
 ❌ **Avoid:**
-- Too much magic (hard to debug)
+- Too many abstraction layers
 - Frequent breaking changes
-- Python-specific patterns
+- Python-specific magic syntax
 
-### From Semantic Kernel
-
-✅ **Take:**
-- Native .NET with strong typing
-- DI integration is essential
-- Filter/interceptor pattern
-- Attribute-based tool discovery
-- Clean Plugin/Function model
-
-❌ **Avoid:**
-- Overly verbose for simple cases
-- Agent system still immature
-- Some abstractions feel forced
-
-### From AutoGen
+### From Microsoft Agent Framework
 
 ✅ **Take:**
-- Actor model for agents (message-passing)
-- Two-layer architecture (high/low level)
-- Handoff pattern for agent delegation
-- Rich termination conditions
-- Human-in-the-loop is first-class
+- Native .NET support with strong typing
+- HandoffBuilder fluent API
+- Workflow orchestration pattern
+- Two-layer architecture (high-level API + core abstractions)
+- Azure service integration
 
 ❌ **Avoid:**
-- Breaking changes between versions
-- Python-specific patterns
-- Overly complex for simple use cases
+- Over-dependence on Azure ecosystem
+- Unstable Preview-stage APIs
+
+### From OpenAI Agents SDK
+
+✅ **Take:**
+- Minimalist design with four core primitives
+- Built-in Guardrails (input/output validation)
+- Built-in Tracing (observability)
+- Handoffs as first-class citizens
+- Session management
+
+❌ **Avoid:**
+- Lack of complex workflow support
+- No vector memory layer
 
 ---
 
-## Part 3: dawning-agents Design Principles
+## Part 4: dawning-agents Design Principles
 
-### Principle 1: .NET-First with Strong Typing
+### Principle 1: Four Core Primitives + Workflow
+
+Inspired by OpenAI Agents SDK, but with added workflow support:
+
+```csharp
+// Core primitives
+public interface IAgent { }      // Agent - LLM + instructions + tools
+public interface ITool { }       // Tool - callable functionality
+public interface IHandoff { }    // Handoff - delegation between agents
+public interface IGuardrail { }  // Guardrail - input/output validation
+
+// Additional workflow support (inspired by MS Agent Framework)
+public interface IWorkflow { }   // Workflow - orchestrate multiple agents
+```
+
+### Principle 2: .NET-First with Strong Typing
 
 ```csharp
 // All interfaces strongly typed
-public interface IAgent<TInput, TOutput>
+public interface IAgent<TContext>
 {
-    Task<TOutput> InvokeAsync(TInput input, CancellationToken cancellationToken = default);
-    IAsyncEnumerable<TOutput> StreamAsync(TInput input, CancellationToken cancellationToken = default);
+    string Name { get; }
+    string Instructions { get; }
+    IReadOnlyList<ITool> Tools { get; }
+    IReadOnlyList<IHandoff<TContext>> Handoffs { get; }
+    IReadOnlyList<IGuardrail<TContext>> InputGuardrails { get; }
+    IReadOnlyList<IGuardrail<TContext>> OutputGuardrails { get; }
+    
+    Task<AgentResult> RunAsync(
+        string input,
+        TContext? context = default,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<AgentEvent> RunStreamAsync(
+        string input,
+        TContext? context = default,
+        CancellationToken cancellationToken = default);
 }
-
-// Generic constraints for type safety
-public interface IChatAgent : IAgent<ChatMessage, ChatResponse> { }
 ```
 
-### Principle 2: Dependency Injection as Foundation
+### Principle 3: Built-in Guardrails
+
+```csharp
+// Input guardrail
+public interface IInputGuardrail<TContext>
+{
+    Task<GuardrailResult> ValidateAsync(
+        string input,
+        IAgent<TContext> agent,
+        TContext context,
+        CancellationToken cancellationToken = default);
+}
+
+// Output guardrail
+public interface IOutputGuardrail<TContext>
+{
+    Task<GuardrailResult> ValidateAsync(
+        object output,
+        IAgent<TContext> agent,
+        TContext context,
+        CancellationToken cancellationToken = default);
+}
+
+// Usage example
+var agent = new AgentBuilder<MyContext>()
+    .WithName("SafeAgent")
+    .WithInstructions("...")
+    .WithInputGuardrail(new ContentFilterGuardrail())
+    .WithOutputGuardrail(new PiiFilterGuardrail())
+    .Build();
+```
+
+### Principle 4: Fluent Handoff Building (Inspired by MS Agent Framework)
+
+```csharp
+// HandoffBuilder fluent API
+var workflow = new HandoffBuilder<MyContext>()
+    .WithParticipants(triageAgent, billingAgent, supportAgent)
+    .WithStartAgent(triageAgent)
+    .AddHandoff(triageAgent, billingAgent, "Handle billing issues")
+    .AddHandoff(triageAgent, supportAgent, "Handle technical support")
+    .AddHandoff(billingAgent, triageAgent)  // Can hand back
+    .WithAutonomousMode(turnLimits: new() { ["billing"] = 10 })
+    .WithTermination(cond => cond.MaxMessages(50).Or().Contains("COMPLETE"))
+    .Build();
+
+await foreach (var evt in workflow.RunStreamAsync("I have a billing issue"))
+{
+    Console.WriteLine(evt);
+}
+```
+
+### Principle 5: Built-in Tracing
+
+```csharp
+// Automatic tracing
+public interface ITracingProvider
+{
+    ISpan CreateAgentSpan(string agentName, IReadOnlyList<string> tools);
+    ISpan CreateToolSpan(string toolName, object input);
+    ISpan CreateHandoffSpan(string fromAgent, string toAgent);
+    ISpan CreateGuardrailSpan(string name, bool triggered);
+}
+
+// Usage
+var config = new RunConfig
+{
+    TracingEnabled = true,
+    TraceIncludeSensitiveData = false,
+};
+
+var result = await Runner.RunAsync(agent, "Hello", config);
+// Trace data automatically generated
+```
+
+### Principle 6: Dependency Injection Integration
 
 ```csharp
 // Integrate with Microsoft.Extensions.DependencyInjection
@@ -136,65 +415,35 @@ services.AddDawningAgents(options =>
     options.AddOpenAI(config => 
     {
         config.ApiKey = "...";
-        config.Model = "gpt-4";
+        config.DefaultModel = "gpt-4o";
     });
     
-    options.AddAgent<ResearchAgent>();
-    options.AddAgent<WriterAgent>();
+    // Register agents
+    options.AddAgent<TriageAgent>();
+    options.AddAgent<BillingAgent>();
+    options.AddAgent<SupportAgent>();
     
-    options.AddTool<WebSearchTool>();
-    options.AddTool<FileSystemTool>();
+    // Register tools
+    options.AddToolsFromAssembly(typeof(WebTools).Assembly);
+    
+    // Configure tracing
+    options.ConfigureTracing(tracing =>
+    {
+        tracing.AddConsoleExporter();
+        tracing.AddOpenTelemetryExporter();
+    });
 });
 
 var provider = services.BuildServiceProvider();
-var agent = provider.GetRequiredService<ResearchAgent>();
+var agent = provider.GetRequiredService<TriageAgent>();
 ```
 
-### Principle 3: Two-Layer Architecture
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    High-Level API                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
-│  │ChatAgent │  │TaskAgent │  │CodeAgent │  │ TeamBuilder  │ │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                    Core Abstractions                         │
-│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐ │
-│  │ IAgent │  │ ITool  │  │IMemory │  │IRuntime│  │IChannel│ │
-│  └────────┘  └────────┘  └────────┘  └────────┘  └────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Principle 4: Message-Passing for Multi-Agent
+### Principle 7: Attribute-Based Tool Discovery
 
 ```csharp
-// Agents communicate via messages (like AutoGen)
-public interface IAgentRuntime
-{
-    Task<TResponse> SendAsync<TMessage, TResponse>(
-        AgentId recipient,
-        TMessage message,
-        CancellationToken cancellationToken = default);
-    
-    Task PublishAsync<TMessage>(
-        TopicId topic,
-        TMessage message,
-        CancellationToken cancellationToken = default);
-    
-    Task<AgentId> RegisterAsync<TAgent>(
-        string name,
-        Func<TAgent> factory) where TAgent : IAgent;
-}
-```
-
-### Principle 5: Attribute-Based Discovery
-
-```csharp
-// Like Semantic Kernel's approach
 public class WebTools
 {
-    [Tool("Search the web")]
+    [Tool("search_web", "Search the web for information")]
     public async Task<string> SearchAsync(
         [Description("Search query")] string query,
         [Description("Max results")] int maxResults = 10)
@@ -202,7 +451,7 @@ public class WebTools
         // Implementation
     }
     
-    [Tool("Fetch webpage content")]
+    [Tool("fetch_page", "Fetch webpage content")]
     public async Task<string> FetchPageAsync(
         [Description("URL to fetch")] string url)
     {
@@ -210,76 +459,13 @@ public class WebTools
     }
 }
 
-// Auto-discovery
+// Auto-discovery and registration
 services.AddToolsFromAssembly(typeof(WebTools).Assembly);
-```
-
-### Principle 6: Fluent Team Building
-
-```csharp
-// Inspired by AutoGen's teams
-var team = Team.Create()
-    .WithAgent(researchAgent, role: "Researcher")
-    .WithAgent(writerAgent, role: "Writer")
-    .WithAgent(reviewerAgent, role: "Reviewer")
-    .WithSelectionStrategy<RoundRobinSelection>()
-    .WithTermination(conditions => conditions
-        .MaxMessages(50)
-        .Or()
-        .TextContains("TASK_COMPLETE")
-        .Or()
-        .Handoff("Human"))
-    .WithHumanInTheLoop(humanProxy)
-    .Build();
-
-var result = await team.RunAsync("Write an article about AI agents");
-```
-
-### Principle 7: Rich Observability
-
-```csharp
-// Combined Filters (like SK) + Events (like AutoGen)
-public interface IAgentFilter
-{
-    Task OnAgentInvokingAsync(AgentInvocationContext context, Func<Task> next);
-    Task OnAgentInvokedAsync(AgentInvocationContext context);
-}
-
-public interface IToolFilter
-{
-    Task OnToolInvokingAsync(ToolInvocationContext context, Func<Task> next);
-    Task OnToolInvokedAsync(ToolInvocationContext context);
-}
-
-// Event-based for external consumers
-public interface IAgentEvents
-{
-    event EventHandler<AgentMessageEventArgs> MessageReceived;
-    event EventHandler<ToolCallEventArgs> ToolCalled;
-    event EventHandler<HandoffEventArgs> HandoffOccurred;
-}
-```
-
-### Principle 8: First-Class Handoffs
-
-```csharp
-// Like AutoGen's handoff pattern
-public class ResearchAgent : ChatAgent
-{
-    [Handoff("Writer", "Hand off to writer when research is complete")]
-    [Handoff("Human", "Escalate to human when uncertain")]
-    public override async Task<ChatResponse> InvokeAsync(
-        ChatMessage message,
-        CancellationToken cancellationToken = default)
-    {
-        // Agent can trigger handoff via tool call
-    }
-}
 ```
 
 ---
 
-## Part 4: Core Interfaces (Draft)
+## Part 5: Core Interfaces (Draft)
 
 ### IAgent
 
@@ -288,29 +474,29 @@ namespace DawningAgents.Core;
 
 public interface IAgent
 {
-    string Id { get; }
     string Name { get; }
-    string Description { get; }
-    AgentMetadata Metadata { get; }
+    string? Description { get; }
+    string? Instructions { get; }
 }
 
-public interface IAgent<TInput, TOutput> : IAgent
-{
-    Task<TOutput> InvokeAsync(
-        TInput input,
-        AgentContext context,
-        CancellationToken cancellationToken = default);
-    
-    IAsyncEnumerable<TOutput> StreamAsync(
-        TInput input,
-        AgentContext context,
-        CancellationToken cancellationToken = default);
-}
-
-public interface IChatAgent : IAgent<IEnumerable<ChatMessage>, ChatResponse>
+public interface IAgent<TContext> : IAgent
 {
     IReadOnlyList<ITool> Tools { get; }
-    IReadOnlyList<Handoff> Handoffs { get; }
+    IReadOnlyList<IHandoff<TContext>> Handoffs { get; }
+    IReadOnlyList<IInputGuardrail<TContext>> InputGuardrails { get; }
+    IReadOnlyList<IOutputGuardrail<TContext>> OutputGuardrails { get; }
+    
+    Task<AgentResult> RunAsync(
+        string input,
+        RunConfig? config = null,
+        TContext? context = default,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<AgentEvent> RunStreamAsync(
+        string input,
+        RunConfig? config = null,
+        TContext? context = default,
+        CancellationToken cancellationToken = default);
 }
 ```
 
@@ -323,10 +509,10 @@ public interface ITool
 {
     string Name { get; }
     string Description { get; }
-    ToolSchema Schema { get; }  // JSON Schema for parameters
+    JsonSchema InputSchema { get; }
     
     Task<ToolResult> InvokeAsync(
-        ToolInput input,
+        string inputJson,
         CancellationToken cancellationToken = default);
 }
 
@@ -334,104 +520,112 @@ public interface ITool
 [AttributeUsage(AttributeTargets.Method)]
 public class ToolAttribute : Attribute
 {
-    public string? Name { get; set; }
-    public string? Description { get; set; }
+    public ToolAttribute(string name, string description);
+}
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public class DescriptionAttribute : Attribute
+{
+    public DescriptionAttribute(string description);
 }
 ```
 
-### IMemory
+### IHandoff
 
 ```csharp
 namespace DawningAgents.Core;
 
-public interface IMemory
+public interface IHandoff<TContext>
 {
-    Task SaveAsync(MemoryEntry entry, CancellationToken cancellationToken = default);
+    string ToolName { get; }
+    string ToolDescription { get; }
+    IAgent<TContext> TargetAgent { get; }
     
-    Task<IEnumerable<MemoryEntry>> RecallAsync(
-        string query,
-        MemoryRecallOptions? options = null,
+    Task<IAgent<TContext>> InvokeAsync(
+        RunContext<TContext> context,
+        string? inputJson = null,
         CancellationToken cancellationToken = default);
-    
-    Task ClearAsync(CancellationToken cancellationToken = default);
 }
 
-public interface IChatMemory : IMemory
-{
-    Task AddMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ChatMessage>> GetHistoryAsync(int? limit = null, CancellationToken cancellationToken = default);
-}
+// Handoff input data
+public record HandoffInputData(
+    IReadOnlyList<ChatMessage> History,
+    IReadOnlyList<ChatMessage> NewItems
+);
+
+// Input filter
+public delegate HandoffInputData HandoffInputFilter(HandoffInputData data);
 ```
 
-### IAgentRuntime
+### IGuardrail
 
 ```csharp
 namespace DawningAgents.Core;
 
-public interface IAgentRuntime
+public record GuardrailResult(
+    bool TripwireTriggered,
+    object? OutputInfo = null
+);
+
+public interface IInputGuardrail<TContext>
 {
-    Task<AgentId> RegisterAsync<TAgent>(
-        string type,
-        Func<IServiceProvider, TAgent> factory,
-        IEnumerable<Subscription>? subscriptions = null)
-        where TAgent : IAgent;
+    string Name { get; }
     
-    Task<TAgent> GetAgentAsync<TAgent>(AgentId id)
-        where TAgent : IAgent;
-    
-    Task<TResponse> SendMessageAsync<TMessage, TResponse>(
-        AgentId recipient,
-        TMessage message,
-        AgentId? sender = null,
+    Task<GuardrailResult> RunAsync(
+        RunContext<TContext> context,
+        IAgent<TContext> agent,
+        string input,
         CancellationToken cancellationToken = default);
+}
+
+public interface IOutputGuardrail<TContext>
+{
+    string Name { get; }
     
-    Task PublishMessageAsync<TMessage>(
-        TopicId topic,
-        TMessage message,
-        AgentId? sender = null,
+    Task<GuardrailResult> RunAsync(
+        RunContext<TContext> context,
+        IAgent<TContext> agent,
+        object output,
         CancellationToken cancellationToken = default);
 }
 ```
 
-### ITeam
+### IWorkflow
 
 ```csharp
 namespace DawningAgents.Core;
 
-public interface ITeam
+public interface IWorkflow<TContext>
 {
-    IReadOnlyList<IAgent> Participants { get; }
-    ISelectionStrategy SelectionStrategy { get; }
-    ITerminationCondition TerminationCondition { get; }
+    string Name { get; }
+    IReadOnlyList<IAgent<TContext>> Participants { get; }
     
-    Task<TeamResult> RunAsync(
-        string task,
+    Task<WorkflowResult> RunAsync(
+        string input,
+        TContext? context = default,
         CancellationToken cancellationToken = default);
     
-    IAsyncEnumerable<TeamEvent> RunStreamAsync(
-        string task,
+    IAsyncEnumerable<WorkflowEvent> RunStreamAsync(
+        string input,
+        TContext? context = default,
         CancellationToken cancellationToken = default);
 }
 
-public interface ISelectionStrategy
+// Handoff workflow builder
+public class HandoffBuilder<TContext>
 {
-    Task<IAgent?> SelectNextAsync(
-        IReadOnlyList<IAgent> participants,
-        IReadOnlyList<ChatMessage> history,
-        CancellationToken cancellationToken = default);
-}
-
-public interface ITerminationCondition
-{
-    Task<bool> ShouldTerminateAsync(
-        IReadOnlyList<ChatMessage> history,
-        CancellationToken cancellationToken = default);
+    public HandoffBuilder<TContext> WithParticipants(params IAgent<TContext>[] agents);
+    public HandoffBuilder<TContext> WithStartAgent(IAgent<TContext> agent);
+    public HandoffBuilder<TContext> AddHandoff(IAgent<TContext> from, IAgent<TContext> to, string? reason = null);
+    public HandoffBuilder<TContext> WithAutonomousMode(Dictionary<string, int>? turnLimits = null);
+    public HandoffBuilder<TContext> WithTermination(Func<TerminationBuilder, ITerminationCondition> configure);
+    public IWorkflow<TContext> Build();
 }
 ```
 
 ---
 
-## Part 5: Project Structure (Proposed)
+## Part 6: Project Structure (Proposed)
 
 ```text
 dawning-agents/
@@ -439,32 +633,42 @@ dawning-agents/
 │   ├── DawningAgents.Abstractions/     # Core interfaces
 │   │   ├── IAgent.cs
 │   │   ├── ITool.cs
-│   │   ├── IMemory.cs
-│   │   ├── IAgentRuntime.cs
-│   │   └── ITeam.cs
+│   │   ├── IHandoff.cs
+│   │   ├── IGuardrail.cs
+│   │   ├── IWorkflow.cs
+│   │   └── ITracing.cs
 │   │
 │   ├── DawningAgents.Core/             # Core implementations
 │   │   ├── Agents/
-│   │   │   ├── ChatAgent.cs
-│   │   │   └── TaskAgent.cs
-│   │   ├── Runtime/
-│   │   │   └── SingleThreadedRuntime.cs
-│   │   ├── Teams/
-│   │   │   ├── RoundRobinTeam.cs
-│   │   │   └── SelectorTeam.cs
-│   │   └── Memory/
-│   │       ├── BufferMemory.cs
-│   │       └── SummaryMemory.cs
+│   │   │   ├── Agent.cs
+│   │   │   └── AgentBuilder.cs
+│   │   ├── Tools/
+│   │   │   ├── FunctionTool.cs
+│   │   │   └── ToolAttribute.cs
+│   │   ├── Handoffs/
+│   │   │   ├── Handoff.cs
+│   │   │   └── HandoffBuilder.cs
+│   │   ├── Guardrails/
+│   │   │   ├── InputGuardrail.cs
+│   │   │   └── OutputGuardrail.cs
+│   │   ├── Workflows/
+│   │   │   ├── HandoffWorkflow.cs
+│   │   │   └── SequentialWorkflow.cs
+│   │   ├── Tracing/
+│   │   │   ├── Span.cs
+│   │   │   └── TracingProvider.cs
+│   │   └── Runner.cs
 │   │
 │   ├── DawningAgents.OpenAI/           # OpenAI integration
 │   ├── DawningAgents.Anthropic/        # Anthropic integration
 │   ├── DawningAgents.Azure/            # Azure OpenAI integration
-│   └── DawningAgents.Tools/            # Built-in tools
+│   └── DawningAgents.Extensions/       # Extension tools
 │
 ├── samples/
 │   ├── SimpleChat/
-│   ├── MultiAgent/
-│   └── CodeGeneration/
+│   ├── HandoffWorkflow/
+│   ├── GuardrailsDemo/
+│   └── TracingDemo/
 │
 ├── tests/
 │   ├── DawningAgents.Tests/
@@ -475,37 +679,39 @@ dawning-agents/
 
 ---
 
-## Part 6: Implementation Roadmap
+## Part 7: Implementation Roadmap
 
-### Phase 1: Foundation (Week 1-2)
-- [ ] Core interfaces (IAgent, ITool, IMemory)
-- [ ] Single-threaded runtime
+### Phase 1: Core Primitives (Week 1-2)
+- [ ] IAgent and Agent implementation
+- [ ] ITool and FunctionTool
+- [ ] Tool attribute discovery
 - [ ] OpenAI integration
-- [ ] Basic ChatAgent
+- [ ] Basic Runner
 
-### Phase 2: Tools & Memory (Week 3-4)
-- [ ] Attribute-based tool discovery
-- [ ] Tool execution
-- [ ] Buffer memory
-- [ ] Summary memory
+### Phase 2: Handoffs & Guardrails (Week 3-4)
+- [ ] IHandoff implementation
+- [ ] HandoffBuilder
+- [ ] IGuardrail interface
+- [ ] Input/output guardrails
+- [ ] Guardrail exception handling
 
-### Phase 3: Multi-Agent (Week 5-6)
-- [ ] Team abstraction
-- [ ] Selection strategies
+### Phase 3: Workflows (Week 5-6)
+- [ ] HandoffWorkflow
+- [ ] Autonomous mode
 - [ ] Termination conditions
-- [ ] Handoff support
-
-### Phase 4: Advanced Features (Week 7-8)
 - [ ] Human-in-the-loop
-- [ ] Streaming support
-- [ ] Filters & observability
-- [ ] Error handling & retry
+
+### Phase 4: Observability (Week 7-8)
+- [ ] Tracing system
+- [ ] Span types (Agent, Tool, Handoff, Guardrail)
+- [ ] Console exporter
+- [ ] OpenTelemetry integration
 
 ### Phase 5: Polish (Week 9-10)
 - [ ] Additional LLM providers
-- [ ] Built-in tools
+- [ ] Session management
 - [ ] Comprehensive tests
-- [ ] Documentation
+- [ ] Documentation and samples
 
 ---
 
@@ -513,14 +719,15 @@ dawning-agents/
 
 | Framework | Key Takeaway |
 |-----------|--------------|
-| **LangChain** | Composition elegance, but avoid magic |
-| **Semantic Kernel** | .NET patterns, DI, filters, attributes |
-| **AutoGen** | Actor model, teams, handoffs, termination |
+| **LangChain/LangGraph** | State machine orchestration, composable interfaces |
+| **MS Agent Framework** | .NET support, HandoffBuilder, Workflow orchestration |
+| **OpenAI Agents SDK** | Four core primitives, Guardrails, Tracing |
 
 **dawning-agents** will combine:
-- 🎯 .NET-first with strong typing (from SK)
-- 🔌 DI integration and filters (from SK)
-- 🔗 Clean interfaces like Runnable (inspired by LC)
-- 📬 Message-passing for multi-agent (from AutoGen)
-- 👥 Rich team/handoff patterns (from AutoGen)
-- 👁️ First-class observability (from all three)
+- 🎯 Four core primitives + Workflow (from OpenAI + MS)
+- 🛡️ Built-in Guardrails (from OpenAI)
+- 👁️ Built-in Tracing (from OpenAI)
+- 🔗 HandoffBuilder fluent API (from MS Agent Framework)
+- 🔌 DI integration (.NET best practices)
+- ⚡ .NET-first with strong typing
+- 📦 Attribute-based tool discovery
