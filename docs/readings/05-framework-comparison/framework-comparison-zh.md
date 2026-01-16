@@ -250,7 +250,7 @@ agent = Agent(
 ### 来自 LangChain/LangGraph
 
 ✅ **采用:**
-- 状态机编排模式（LangGraph）
+- 状态机编排模式（LangGraph）→ 用于复杂流程控制
 - 可组合的 Runnable 接口设计
 - 完善的可观测性系统
 
@@ -289,9 +289,9 @@ agent = Agent(
 
 ## 第四部分：dawning-agents 设计原则
 
-### 原则 1：四个核心原语 + 工作流
+### 原则 1：四个核心原语 + 双编排模式
 
-受 OpenAI Agents SDK 启发，但增加工作流支持：
+受 OpenAI Agents SDK 启发，结合 LangGraph 和 MS Agent Framework 的编排能力：
 
 ```csharp
 // 核心原语
@@ -300,9 +300,18 @@ public interface ITool { }       // Tool - 可调用的功能
 public interface IHandoff { }    // Handoff - Agent 间委托
 public interface IGuardrail { }  // Guardrail - 输入/输出验证
 
-// 额外的工作流支持（受 MS Agent Framework 启发）
-public interface IWorkflow { }   // Workflow - 编排多个 Agent
+// 双编排模式
+public interface IWorkflow { }   // Workflow 编排 - LLM 动态决策交接（受 MS Agent Framework 启发）
+public interface IStateGraph { } // 状态机编排 - 开发者预定义流程（受 LangGraph 启发）
 ```
+
+**两种编排模式的选择：**
+
+| 场景 | 推荐模式 | 原因 |
+|------|----------|------|
+| 多 Agent 协作、客服分流 | Workflow（HandoffBuilder） | LLM 智能决策交接目标 |
+| 审批流、数据管道、多轮迭代 | StateGraph | 需要确定性的流程控制 |
+| 简单对话 | 直接使用 Agent | 无需编排 |
 
 ### 原则 2：.NET 优先与强类型
 
@@ -590,7 +599,7 @@ public interface IOutputGuardrail<TContext>
 }
 ```
 
-### IWorkflow
+### IWorkflow（Workflow 编排）
 
 ```csharp
 namespace DawningAgents.Core;
@@ -621,6 +630,66 @@ public class HandoffBuilder<TContext>
     public HandoffBuilder<TContext> WithTermination(Func<TerminationBuilder, ITerminationCondition> configure);
     public IWorkflow<TContext> Build();
 }
+```
+
+### IStateGraph（状态机编排）
+
+```csharp
+namespace DawningAgents.Core;
+
+/// <summary>
+/// 状态机编排 - 用于需要确定性流程控制的场景
+/// 受 LangGraph 启发，但采用 .NET 强类型设计
+/// </summary>
+public interface IStateGraph<TState> where TState : class, new()
+{
+    string Name { get; }
+    IReadOnlyList<string> Nodes { get; }
+    
+    Task<TState> RunAsync(
+        TState initialState,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<StateGraphEvent<TState>> RunStreamAsync(
+        TState initialState,
+        CancellationToken cancellationToken = default);
+}
+
+// 状态机构建器
+public class StateGraphBuilder<TState> where TState : class, new()
+{
+    public StateGraphBuilder<TState> AddNode(string name, Func<TState, Task<TState>> action);
+    public StateGraphBuilder<TState> AddNode(string name, IAgent agent);
+    public StateGraphBuilder<TState> AddEdge(string from, string to);
+    public StateGraphBuilder<TState> AddConditionalEdge(
+        string from, 
+        Func<TState, string> condition);  // 返回下一个节点名
+    public StateGraphBuilder<TState> SetEntryPoint(string nodeName);
+    public StateGraphBuilder<TState> SetFinishPoint(string nodeName);
+    public IStateGraph<TState> Build();
+}
+
+// 使用示例
+public class ArticleState
+{
+    public string Topic { get; set; } = "";
+    public string Research { get; set; } = "";
+    public string Draft { get; set; } = "";
+    public bool NeedsMoreResearch { get; set; }
+}
+
+var graph = new StateGraphBuilder<ArticleState>()
+    .AddNode("research", researchAgent)
+    .AddNode("write", writeAgent)
+    .AddNode("review", reviewAgent)
+    .SetEntryPoint("research")
+    .AddConditionalEdge("research", state => 
+        state.NeedsMoreResearch ? "research" : "write")
+    .AddEdge("write", "review")
+    .SetFinishPoint("review")
+    .Build();
+
+var result = await graph.RunAsync(new ArticleState { Topic = "AI Agents" });
 ```
 
 ---
@@ -654,6 +723,9 @@ dawning-agents/
 │   │   ├── Workflows/
 │   │   │   ├── HandoffWorkflow.cs
 │   │   │   └── SequentialWorkflow.cs
+│   │   ├── StateGraphs/
+│   │   │   ├── StateGraph.cs
+│   │   │   └── StateGraphBuilder.cs
 │   │   ├── Tracing/
 │   │   │   ├── Span.cs
 │   │   │   └── TracingProvider.cs
@@ -695,10 +767,12 @@ dawning-agents/
 - [ ] 输入/输出护栏
 - [ ] 护栏异常处理
 
-### 阶段 3：工作流（第 5-6 周）
-- [ ] HandoffWorkflow
+### 阶段 3：双编排模式（第 5-6 周）
+- [ ] HandoffWorkflow（Workflow 编排）
 - [ ] 自主模式
 - [ ] 终止条件
+- [ ] StateGraph（状态机编排）
+- [ ] 条件边和循环
 - [ ] 人机协作
 
 ### 阶段 4：可观测性（第 7-8 周）
@@ -724,10 +798,11 @@ dawning-agents/
 | **OpenAI Agents SDK** | 四个核心原语，Guardrails，Tracing |
 
 **dawning-agents** 将结合：
-- 🎯 四个核心原语 + Workflow（来自 OpenAI + MS）
+- 🎯 四个核心原语 + 双编排模式（来自 OpenAI + MS + LangGraph）
+- 🔀 状态机编排 StateGraph（来自 LangGraph）
+- 🔗 Workflow 编排 HandoffBuilder（来自 MS Agent Framework）
 - 🛡️ 内置 Guardrails（来自 OpenAI）
 - 👁️ 内置 Tracing（来自 OpenAI）
-- 🔗 HandoffBuilder 流畅 API（来自 MS Agent Framework）
 - 🔌 DI 集成（.NET 最佳实践）
 - ⚡ .NET 优先与强类型
 - 📦 基于属性的工具发现

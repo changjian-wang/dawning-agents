@@ -250,7 +250,7 @@ agent = Agent(
 ### From LangChain/LangGraph
 
 ✅ **Take:**
-- State machine orchestration pattern (LangGraph)
+- State machine orchestration pattern (LangGraph) → for complex flow control
 - Composable Runnable interface design
 - Comprehensive observability system
 
@@ -289,9 +289,9 @@ agent = Agent(
 
 ## Part 4: dawning-agents Design Principles
 
-### Principle 1: Four Core Primitives + Workflow
+### Principle 1: Four Core Primitives + Dual Orchestration Modes
 
-Inspired by OpenAI Agents SDK, but with added workflow support:
+Inspired by OpenAI Agents SDK, combined with orchestration capabilities from LangGraph and MS Agent Framework:
 
 ```csharp
 // Core primitives
@@ -300,9 +300,18 @@ public interface ITool { }       // Tool - callable functionality
 public interface IHandoff { }    // Handoff - delegation between agents
 public interface IGuardrail { }  // Guardrail - input/output validation
 
-// Additional workflow support (inspired by MS Agent Framework)
-public interface IWorkflow { }   // Workflow - orchestrate multiple agents
+// Dual orchestration modes
+public interface IWorkflow { }   // Workflow orchestration - LLM dynamic handoff decisions (inspired by MS Agent Framework)
+public interface IStateGraph { } // State machine orchestration - developer-defined flows (inspired by LangGraph)
 ```
+
+**Choosing Between Orchestration Modes:**
+
+| Scenario | Recommended Mode | Reason |
+|----------|------------------|--------|
+| Multi-agent collaboration, customer service routing | Workflow (HandoffBuilder) | LLM intelligently decides handoff target |
+| Approval flows, data pipelines, iterative loops | StateGraph | Requires deterministic flow control |
+| Simple conversations | Use Agent directly | No orchestration needed |
 
 ### Principle 2: .NET-First with Strong Typing
 
@@ -590,7 +599,7 @@ public interface IOutputGuardrail<TContext>
 }
 ```
 
-### IWorkflow
+### IWorkflow (Workflow Orchestration)
 
 ```csharp
 namespace DawningAgents.Core;
@@ -621,6 +630,66 @@ public class HandoffBuilder<TContext>
     public HandoffBuilder<TContext> WithTermination(Func<TerminationBuilder, ITerminationCondition> configure);
     public IWorkflow<TContext> Build();
 }
+```
+
+### IStateGraph (State Machine Orchestration)
+
+```csharp
+namespace DawningAgents.Core;
+
+/// <summary>
+/// State machine orchestration - for scenarios requiring deterministic flow control
+/// Inspired by LangGraph, but with .NET strong typing design
+/// </summary>
+public interface IStateGraph<TState> where TState : class, new()
+{
+    string Name { get; }
+    IReadOnlyList<string> Nodes { get; }
+    
+    Task<TState> RunAsync(
+        TState initialState,
+        CancellationToken cancellationToken = default);
+    
+    IAsyncEnumerable<StateGraphEvent<TState>> RunStreamAsync(
+        TState initialState,
+        CancellationToken cancellationToken = default);
+}
+
+// State graph builder
+public class StateGraphBuilder<TState> where TState : class, new()
+{
+    public StateGraphBuilder<TState> AddNode(string name, Func<TState, Task<TState>> action);
+    public StateGraphBuilder<TState> AddNode(string name, IAgent agent);
+    public StateGraphBuilder<TState> AddEdge(string from, string to);
+    public StateGraphBuilder<TState> AddConditionalEdge(
+        string from, 
+        Func<TState, string> condition);  // Returns next node name
+    public StateGraphBuilder<TState> SetEntryPoint(string nodeName);
+    public StateGraphBuilder<TState> SetFinishPoint(string nodeName);
+    public IStateGraph<TState> Build();
+}
+
+// Usage example
+public class ArticleState
+{
+    public string Topic { get; set; } = "";
+    public string Research { get; set; } = "";
+    public string Draft { get; set; } = "";
+    public bool NeedsMoreResearch { get; set; }
+}
+
+var graph = new StateGraphBuilder<ArticleState>()
+    .AddNode("research", researchAgent)
+    .AddNode("write", writeAgent)
+    .AddNode("review", reviewAgent)
+    .SetEntryPoint("research")
+    .AddConditionalEdge("research", state => 
+        state.NeedsMoreResearch ? "research" : "write")
+    .AddEdge("write", "review")
+    .SetFinishPoint("review")
+    .Build();
+
+var result = await graph.RunAsync(new ArticleState { Topic = "AI Agents" });
 ```
 
 ---
@@ -654,6 +723,9 @@ dawning-agents/
 │   │   ├── Workflows/
 │   │   │   ├── HandoffWorkflow.cs
 │   │   │   └── SequentialWorkflow.cs
+│   │   ├── StateGraphs/
+│   │   │   ├── StateGraph.cs
+│   │   │   └── StateGraphBuilder.cs
 │   │   ├── Tracing/
 │   │   │   ├── Span.cs
 │   │   │   └── TracingProvider.cs
@@ -695,10 +767,12 @@ dawning-agents/
 - [ ] Input/output guardrails
 - [ ] Guardrail exception handling
 
-### Phase 3: Workflows (Week 5-6)
-- [ ] HandoffWorkflow
+### Phase 3: Dual Orchestration Modes (Week 5-6)
+- [ ] HandoffWorkflow (Workflow orchestration)
 - [ ] Autonomous mode
 - [ ] Termination conditions
+- [ ] StateGraph (State machine orchestration)
+- [ ] Conditional edges and loops
 - [ ] Human-in-the-loop
 
 ### Phase 4: Observability (Week 7-8)
@@ -724,10 +798,11 @@ dawning-agents/
 | **OpenAI Agents SDK** | Four core primitives, Guardrails, Tracing |
 
 **dawning-agents** will combine:
-- 🎯 Four core primitives + Workflow (from OpenAI + MS)
+- 🎯 Four core primitives + Dual orchestration modes (from OpenAI + MS + LangGraph)
+- 🔀 State machine orchestration StateGraph (from LangGraph)
+- 🔗 Workflow orchestration HandoffBuilder (from MS Agent Framework)
 - 🛡️ Built-in Guardrails (from OpenAI)
 - 👁️ Built-in Tracing (from OpenAI)
-- 🔗 HandoffBuilder fluent API (from MS Agent Framework)
 - 🔌 DI integration (.NET best practices)
 - ⚡ .NET-first with strong typing
 - 📦 Attribute-based tool discovery
