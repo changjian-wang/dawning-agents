@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DawningAgents.Core\DawningAgents.Core.csproj" />
+    <ProjectReference Include="..\..\src\DawningAgents.OpenAI\DawningAgents.OpenAI.csproj" />
+    <ProjectReference Include="..\..\src\DawningAgents.Azure\DawningAgents.Azure.csproj" />
   </ItemGroup>
 
 </Project>

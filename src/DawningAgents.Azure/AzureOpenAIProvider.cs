@@ -3,9 +3,14 @@ using System.Runtime.CompilerServices;
 using Azure;
 using Azure.AI.OpenAI;
 using Azure.Core;
+using DawningAgents.Abstractions.LLM;
 using OpenAI.Chat;
 
-namespace DawningAgents.Core.LLM;
+namespace DawningAgents.Azure;
+
+// 类型别名消除歧义
+using OpenAIChatMessage = global::OpenAI.Chat.ChatMessage;
+using OpenAIChatOptions = global::OpenAI.Chat.ChatCompletionOptions;
 
 /// <summary>
 /// Azure OpenAI / Azure AI Foundry 提供者实现
@@ -56,11 +61,11 @@ public class AzureOpenAIProvider : ILLMProvider
     }
 
     public async Task<ChatCompletionResponse> ChatAsync(
-        IEnumerable<ChatMessage> messages,
-        ChatCompletionOptions? options = null,
+        IEnumerable<Abstractions.LLM.ChatMessage> messages,
+        Abstractions.LLM.ChatCompletionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        options ??= new ChatCompletionOptions();
+        options ??= new Abstractions.LLM.ChatCompletionOptions();
 
         var chatMessages = BuildMessages(messages, options.SystemPrompt);
         var requestOptions = BuildRequestOptions(options);
@@ -82,11 +87,11 @@ public class AzureOpenAIProvider : ILLMProvider
     }
 
     public async IAsyncEnumerable<string> ChatStreamAsync(
-        IEnumerable<ChatMessage> messages,
-        ChatCompletionOptions? options = null,
+        IEnumerable<Abstractions.LLM.ChatMessage> messages,
+        Abstractions.LLM.ChatCompletionOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        options ??= new ChatCompletionOptions();
+        options ??= new Abstractions.LLM.ChatCompletionOptions();
 
         var chatMessages = BuildMessages(messages, options.SystemPrompt);
         var requestOptions = BuildRequestOptions(options);
@@ -106,11 +111,11 @@ public class AzureOpenAIProvider : ILLMProvider
         }
     }
 
-    private static List<OpenAI.Chat.ChatMessage> BuildMessages(
-        IEnumerable<ChatMessage> messages,
+    private static List<OpenAIChatMessage> BuildMessages(
+        IEnumerable<Abstractions.LLM.ChatMessage> messages,
         string? systemPrompt)
     {
-        var result = new List<OpenAI.Chat.ChatMessage>();
+        var result = new List<OpenAIChatMessage>();
 
         if (!string.IsNullOrWhiteSpace(systemPrompt))
         {
@@ -131,9 +136,9 @@ public class AzureOpenAIProvider : ILLMProvider
         return result;
     }
 
-    private static OpenAI.Chat.ChatCompletionOptions BuildRequestOptions(ChatCompletionOptions options)
+    private static OpenAIChatOptions BuildRequestOptions(Abstractions.LLM.ChatCompletionOptions options)
     {
-        return new OpenAI.Chat.ChatCompletionOptions
+        return new OpenAIChatOptions
         {
             Temperature = options.Temperature,
             MaxOutputTokenCount = options.MaxTokens

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DawningAgents.Abstractions.LLM;
 
 namespace DawningAgents.Core.LLM;
 

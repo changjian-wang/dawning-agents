@@ -1,4 +1,4 @@
-namespace DawningAgents.Core.LLM;
+namespace DawningAgents.Abstractions.LLM;
 
 /// <summary>
 /// 表示对话中的一条消息

@@ -1,4 +1,5 @@
-﻿using DawningAgents.Core.LLM;
+﻿using DawningAgents.Abstractions.LLM;
+using DawningAgents.Core.LLM;
 
 Console.WriteLine("=== DawningAgents LLM 演示 ===\n");
 
