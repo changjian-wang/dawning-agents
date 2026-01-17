@@ -1,20 +1,39 @@
 ﻿using DawningAgents.Core.LLM;
 
-Console.WriteLine("=== DawningAgents LLM 演示 (Ollama 本地模型) ===\n");
+Console.WriteLine("=== DawningAgents LLM 演示 ===\n");
 
-// 使用本地 Ollama 模型
-var model = args.Length > 0 ? args[0] : "deepseek-coder:6.7b";
-Console.WriteLine($"使用模型: {model}\n");
+// 使用工厂从环境变量自动选择 Provider
+// 支持: AZURE_OPENAI_*, OPENAI_API_KEY, 或默认 Ollama
+var config = LLMConfiguration.FromEnvironment();
+
+// 允许命令行参数覆盖模型
+if (args.Length > 0)
+{
+    config = config with { Model = args[0] };
+}
+
+Console.WriteLine($"提供者: {config.ProviderType}");
+Console.WriteLine($"模型: {config.Model}");
+if (!string.IsNullOrEmpty(config.Endpoint))
+{
+    Console.WriteLine($"端点: {config.Endpoint}");
+}
+Console.WriteLine();
 
 ILLMProvider provider;
 try
 {
-    provider = new OllamaProvider(model);
+    provider = LLMProviderFactory.Create(config);
+    Console.WriteLine($"✓ 已创建 {provider.Name} 提供者\n");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"创建提供者失败: {ex.Message}");
-    Console.WriteLine("请确保 Ollama 正在运行: ollama serve");
+    if (config.ProviderType == LLMProviderType.Ollama)
+    {
+        Console.WriteLine("请确保 Ollama 正在运行: ollama serve");
+        Console.WriteLine($"并下载模型: ollama pull {config.Model}");
+    }
     return;
 }
 
@@ -34,8 +53,15 @@ try
 catch (HttpRequestException ex)
 {
     Console.WriteLine($"请求失败: {ex.Message}");
-    Console.WriteLine("请确保 Ollama 正在运行，且已下载模型。");
-    Console.WriteLine($"运行: ollama pull {model}");
+    if (config.ProviderType == LLMProviderType.Ollama)
+    {
+        Console.WriteLine("请确保 Ollama 正在运行，且已下载模型。");
+        Console.WriteLine($"运行: ollama pull {config.Model}");
+    }
+    else
+    {
+        Console.WriteLine("请检查 API Key 和网络连接。");
+    }
     return;
 }
 
