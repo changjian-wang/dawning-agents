@@ -33,24 +33,5 @@ public static class LLMProviderFactory
         };
     }
 
-    /// <summary>
-    /// 根据配置创建 LLM 提供者（向后兼容）
-    /// </summary>
-    [Obsolete("建议使用 Create(LLMOptions) 重载")]
-    public static ILLMProvider Create(LLMConfiguration config)
-    {
-        return Create(config.ToOptions());
-    }
 
-    /// <summary>
-    /// 从环境变量自动创建 LLM 提供者
-    /// </summary>
-    [Obsolete("建议使用依赖注入配合 IConfiguration")]
-    public static ILLMProvider CreateFromEnvironment()
-    {
-#pragma warning disable CS0618
-        var config = LLMConfiguration.FromEnvironment();
-        return Create(config);
-#pragma warning restore CS0618
-    }
 }

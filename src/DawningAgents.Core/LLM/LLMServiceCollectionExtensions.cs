@@ -56,41 +56,7 @@ public static class LLMServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// 添加 LLM Provider 服务（从环境变量自动配置）
-    /// </summary>
-    [Obsolete("建议使用 AddLLMProvider(IConfiguration) 重载")]
-    public static IServiceCollection AddLLMProvider(this IServiceCollection services)
-    {
-#pragma warning disable CS0618
-        services.TryAddSingleton(_ => LLMConfiguration.FromEnvironment());
-        services.TryAddSingleton<ILLMProvider>(sp =>
-        {
-            var config = sp.GetRequiredService<LLMConfiguration>();
-            return LLMProviderFactory.Create(config);
-        });
-#pragma warning restore CS0618
-        return services;
-    }
 
-    /// <summary>
-    /// 添加 LLM Provider 服务（使用指定配置）
-    /// </summary>
-    [Obsolete("建议使用 AddLLMProvider(IConfiguration) 重载")]
-    public static IServiceCollection AddLLMProvider(
-        this IServiceCollection services,
-        LLMConfiguration configuration)
-    {
-        services.TryAddSingleton(configuration);
-        services.TryAddSingleton<ILLMProvider>(sp =>
-        {
-#pragma warning disable CS0618
-            var config = sp.GetRequiredService<LLMConfiguration>();
-            return LLMProviderFactory.Create(config);
-#pragma warning restore CS0618
-        });
-        return services;
-    }
 
     /// <summary>
     /// 添加 LLM Provider 服务（使用配置委托）
