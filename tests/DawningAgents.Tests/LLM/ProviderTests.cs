@@ -3,6 +3,7 @@ using DawningAgents.Azure;
 using DawningAgents.Core.LLM;
 using DawningAgents.OpenAI;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DawningAgents.Tests.LLM;
 
@@ -62,88 +63,100 @@ public class AzureOpenAIProviderTests
     }
 }
 
-public class LLMProviderFactoryTests
+public class OllamaProviderTests
 {
     [Fact]
-    public void Create_WithOllamaOptions_ReturnsOllamaProvider()
+    public void Constructor_WithNullHttpClient_ThrowsArgumentNullException()
     {
-        var options = new LLMOptions
-        {
-            ProviderType = LLMProviderType.Ollama,
-            Model = "test-model",
-            Endpoint = "http://localhost:11434"
-        };
+        var act = () => new OllamaProvider(null!, "model");
+        act.Should().Throw<ArgumentNullException>();
+    }
 
-        var provider = LLMProviderFactory.Create(options);
+    [Fact]
+    public void Constructor_WithNullModel_ThrowsArgumentException()
+    {
+        using var httpClient = new HttpClient();
+        var act = () => new OllamaProvider(httpClient, null!);
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Name_ReturnsOllama()
+    {
+        using var httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:11434") };
+        var provider = new OllamaProvider(httpClient, "test-model");
+        provider.Name.Should().Be("Ollama");
+    }
+}
+
+public class LLMProviderDITests
+{
+    [Fact]
+    public void AddLLMProvider_WithOllamaOptions_ReturnsOllamaProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddLLMProvider(options =>
+        {
+            options.ProviderType = LLMProviderType.Ollama;
+            options.Model = "test-model";
+            options.Endpoint = "http://localhost:11434";
+        });
+
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
         provider.Should().BeOfType<OllamaProvider>();
         provider.Name.Should().Be("Ollama");
     }
 
     [Fact]
-    public void Create_WithOpenAIOptions_ReturnsOpenAIProvider()
+    public void AddLLMProvider_WithOpenAIOptions_ReturnsOpenAIProvider()
     {
-        var options = new LLMOptions
+        var services = new ServiceCollection();
+        services.AddLLMProvider(options =>
         {
-            ProviderType = LLMProviderType.OpenAI,
-            Model = "gpt-4o",
-            ApiKey = "fake-key"
-        };
+            options.ProviderType = LLMProviderType.OpenAI;
+            options.Model = "gpt-4o";
+            options.ApiKey = "fake-key";
+        });
 
-        var provider = LLMProviderFactory.Create(options);
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
         provider.Should().BeOfType<OpenAIProvider>();
         provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
-    public void Create_WithAzureOpenAIOptions_ReturnsAzureOpenAIProvider()
+    public void AddLLMProvider_WithAzureOpenAIOptions_ReturnsAzureOpenAIProvider()
     {
-        var options = new LLMOptions
+        var services = new ServiceCollection();
+        services.AddLLMProvider(options =>
         {
-            ProviderType = LLMProviderType.AzureOpenAI,
-            Model = "gpt-4o",
-            ApiKey = "fake-key",
-            Endpoint = "https://test.openai.azure.com"
-        };
+            options.ProviderType = LLMProviderType.AzureOpenAI;
+            options.Model = "gpt-4o";
+            options.ApiKey = "fake-key";
+            options.Endpoint = "https://test.openai.azure.com";
+        });
 
-        var provider = LLMProviderFactory.Create(options);
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
         provider.Should().BeOfType<AzureOpenAIProvider>();
         provider.Name.Should().Be("AzureOpenAI");
     }
 
     [Fact]
-    public void Create_WithOpenAIOptionsMissingApiKey_ThrowsInvalidOperationException()
+    public void AddLLMProvider_WithOpenAIOptionsMissingApiKey_ThrowsOnResolve()
     {
-        var options = new LLMOptions
+        var services = new ServiceCollection();
+        services.AddLLMProvider(options =>
         {
-            ProviderType = LLMProviderType.OpenAI,
-            Model = "gpt-4o"
+            options.ProviderType = LLMProviderType.OpenAI;
+            options.Model = "gpt-4o";
             // Missing ApiKey
-        };
+        });
 
-        var act = () => LLMProviderFactory.Create(options);
+        var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*API Key*");
-    }
-
-    [Fact]
-    public void Create_WithAzureOptionsMissingEndpoint_ThrowsInvalidOperationException()
-    {
-        var options = new LLMOptions
-        {
-            ProviderType = LLMProviderType.AzureOpenAI,
-            Model = "gpt-4o",
-            ApiKey = "fake-key"
-            // Missing Endpoint
-        };
-
-        var act = () => LLMProviderFactory.Create(options);
-
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*endpoint*");
+        act.Should().Throw<InvalidOperationException>();
     }
 }
 

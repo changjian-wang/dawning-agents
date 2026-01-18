@@ -1,7 +1,10 @@
 using DawningAgents.Abstractions.LLM;
+using DawningAgents.Azure;
+using DawningAgents.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace DawningAgents.Core.LLM;
@@ -11,6 +14,8 @@ namespace DawningAgents.Core.LLM;
 /// </summary>
 public static class LLMServiceCollectionExtensions
 {
+    private const string OllamaHttpClientName = "Ollama";
+
     /// <summary>
     /// 从 IConfiguration 添加 LLM Provider 服务
     /// 支持 appsettings.json、环境变量、用户机密等配置源
@@ -21,7 +26,7 @@ public static class LLMServiceCollectionExtensions
     /// {
     ///   "LLM": {
     ///     "ProviderType": "Ollama",
-    ///     "Model": "deepseek-coder:1.3B",
+    ///     "Model": "deepseek-coder:1.3b",
     ///     "Endpoint": "http://localhost:11434"
     ///   }
     /// }
@@ -38,25 +43,28 @@ public static class LLMServiceCollectionExtensions
         var section = configuration.GetSection(LLMOptions.SectionName);
         if (!section.Exists())
         {
-            // 回退到传统环境变量检测
-            services.PostConfigure<LLMOptions>(options =>
-            {
-                ApplyEnvironmentVariables(options);
-            });
+            services.PostConfigure<LLMOptions>(ApplyEnvironmentVariables);
         }
+
+        // 注册 HttpClient（用于 Ollama）
+        services.AddHttpClient(OllamaHttpClientName, (sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
+            var endpoint = options.Endpoint ?? "http://localhost:11434";
+            client.BaseAddress = new Uri(endpoint.TrimEnd('/'));
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
 
         // 注册 Provider
         services.TryAddSingleton<ILLMProvider>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
             options.Validate();
-            return LLMProviderFactory.Create(options);
+            return CreateProvider(sp, options);
         });
 
         return services;
     }
-
-
 
     /// <summary>
     /// 添加 LLM Provider 服务（使用配置委托）
@@ -66,13 +74,57 @@ public static class LLMServiceCollectionExtensions
         Action<LLMOptions> configure)
     {
         services.Configure(configure);
+
+        // 注册 HttpClient
+        services.AddHttpClient(OllamaHttpClientName, (sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
+            var endpoint = options.Endpoint ?? "http://localhost:11434";
+            client.BaseAddress = new Uri(endpoint.TrimEnd('/'));
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
+
         services.TryAddSingleton<ILLMProvider>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
             options.Validate();
-            return LLMProviderFactory.Create(options);
+            return CreateProvider(sp, options);
         });
+
         return services;
+    }
+
+    /// <summary>
+    /// 根据配置创建 Provider 实例
+    /// </summary>
+    private static ILLMProvider CreateProvider(IServiceProvider sp, LLMOptions options)
+    {
+        var loggerFactory = sp.GetService<ILoggerFactory>();
+
+        return options.ProviderType switch
+        {
+            LLMProviderType.Ollama => CreateOllamaProvider(sp, options, loggerFactory),
+            LLMProviderType.OpenAI => new OpenAIProvider(
+                options.ApiKey!,
+                options.Model),
+            LLMProviderType.AzureOpenAI => new AzureOpenAIProvider(
+                options.Endpoint!,
+                options.ApiKey!,
+                options.Model),
+            _ => throw new ArgumentException($"Unknown provider type: {options.ProviderType}")
+        };
+    }
+
+    private static OllamaProvider CreateOllamaProvider(
+        IServiceProvider sp,
+        LLMOptions options,
+        ILoggerFactory? loggerFactory)
+    {
+        var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+        var httpClient = httpClientFactory.CreateClient(OllamaHttpClientName);
+        var logger = loggerFactory?.CreateLogger<OllamaProvider>();
+
+        return new OllamaProvider(httpClient, options.Model, logger);
     }
 
     /// <summary>
@@ -81,7 +133,8 @@ public static class LLMServiceCollectionExtensions
     public static IServiceCollection AddOllamaProvider(
         this IServiceCollection services,
         string model = "deepseek-coder:1.3B",
-        string endpoint = "http://localhost:11434")
+        string endpoint = "http://localhost:11434"
+    )
     {
         return services.AddLLMProvider(options =>
         {
@@ -97,7 +150,8 @@ public static class LLMServiceCollectionExtensions
     public static IServiceCollection AddOpenAIProvider(
         this IServiceCollection services,
         string apiKey,
-        string model = "gpt-4o")
+        string model = "gpt-4o"
+    )
     {
         return services.AddLLMProvider(options =>
         {
@@ -114,7 +168,8 @@ public static class LLMServiceCollectionExtensions
         this IServiceCollection services,
         string endpoint,
         string apiKey,
-        string deploymentName)
+        string deploymentName
+    )
     {
         return services.AddLLMProvider(options =>
         {

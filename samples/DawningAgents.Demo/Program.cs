@@ -1,77 +1,27 @@
 ﻿using DawningAgents.Abstractions.LLM;
 using DawningAgents.Core.LLM;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 Console.WriteLine("=== DawningAgents LLM 演示 ===\n");
 
-// 构建配置：支持多种配置源
-// 优先级（从低到高）：appsettings.json < appsettings.{Environment}.json < 环境变量 < 命令行参数
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile(
-        $"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json",
-        optional: true,
-        reloadOnChange: true
-    )
-    .AddEnvironmentVariables()
-    .AddCommandLine(args)
-    .Build();
+// 使用 Host 构建（自动配置 Configuration、Logging）
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddLLMProvider(builder.Configuration);
 
-// 从配置绑定 LLMOptions
-var options = new LLMOptions();
-configuration.GetSection(LLMOptions.SectionName).Bind(options);
+using var host = builder.Build();
 
-// 如果 appsettings.json 中没有配置，则尝试从传统环境变量读取
-if (options.ProviderType == LLMProviderType.Ollama && string.IsNullOrEmpty(options.ApiKey))
-{
-    var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
-    var azureApiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
-    var openaiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-
-    if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureApiKey))
-    {
-        options.ProviderType = LLMProviderType.AzureOpenAI;
-        options.Endpoint = azureEndpoint;
-        options.ApiKey = azureApiKey;
-        options.Model = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o";
-    }
-    else if (!string.IsNullOrEmpty(openaiApiKey))
-    {
-        options.ProviderType = LLMProviderType.OpenAI;
-        options.ApiKey = openaiApiKey;
-        options.Model = Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-4o";
-    }
-    else
-    {
-        // 默认使用 Ollama
-        options.Endpoint ??= "http://localhost:11434";
-        options.Model = string.IsNullOrEmpty(options.Model) ? "deepseek-coder:1.3b" : options.Model;
-    }
-}
-
-Console.WriteLine($"提供者: {options.ProviderType}");
-Console.WriteLine($"模型: {options.Model}");
-if (!string.IsNullOrEmpty(options.Endpoint))
-{
-    Console.WriteLine($"端点: {options.Endpoint}");
-}
-Console.WriteLine();
-
+// 从 DI 获取 Provider
 ILLMProvider provider;
 try
 {
-    provider = LLMProviderFactory.Create(options);
+    provider = host.Services.GetRequiredService<ILLMProvider>();
     Console.WriteLine($"✓ 已创建 {provider.Name} 提供者\n");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"创建提供者失败: {ex.Message}");
-    if (options.ProviderType == LLMProviderType.Ollama)
-    {
-        Console.WriteLine("请确保 Ollama 正在运行: ollama serve");
-        Console.WriteLine($"并下载模型: ollama pull {options.Model}");
-    }
+    Console.WriteLine("请检查 appsettings.json 配置或环境变量");
     return;
 }
 
@@ -91,18 +41,10 @@ try
         $"Token 数：输入={response.PromptTokens}, 输出={response.CompletionTokens}, 总计={response.TotalTokens}\n"
     );
 }
-catch (HttpRequestException ex)
+catch (Exception ex)
 {
     Console.WriteLine($"请求失败: {ex.Message}");
-    if (options.ProviderType == LLMProviderType.Ollama)
-    {
-        Console.WriteLine("请确保 Ollama 正在运行，且已下载模型。");
-        Console.WriteLine($"运行: ollama pull {options.Model}");
-    }
-    else
-    {
-        Console.WriteLine("请检查 API Key 和网络连接。");
-    }
+    Console.WriteLine("请确保服务正在运行，且配置正确。");
     return;
 }
 

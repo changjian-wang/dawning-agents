@@ -43,7 +43,8 @@ public interface ILLMProvider
     Task<ChatCompletionResponse> ChatAsync(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions? options = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 流式聊天完成响应
@@ -51,5 +52,6 @@ public interface ILLMProvider
     IAsyncEnumerable<string> ChatStreamAsync(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions? options = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }

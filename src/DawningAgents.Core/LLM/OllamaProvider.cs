@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DawningAgents.Abstractions.LLM;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DawningAgents.Core.LLM;
 
@@ -14,22 +16,23 @@ public class OllamaProvider : ILLMProvider
 {
     private readonly HttpClient _httpClient;
     private readonly string _model;
-    private readonly string _baseUrl;
+    private readonly ILogger<OllamaProvider> _logger;
 
     public string Name => "Ollama";
 
-    public OllamaProvider(string model = "deepseek-coder:1.3B", string baseUrl = "http://localhost:11434")
+    public OllamaProvider(
+        HttpClient httpClient,
+        string model,
+        ILogger<OllamaProvider>? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
-        ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
 
+        _httpClient = httpClient;
         _model = model;
-        _baseUrl = baseUrl.TrimEnd('/');
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(_baseUrl),
-            Timeout = TimeSpan.FromMinutes(5) // 本地模型可能较慢
-        };
+        _logger = logger ?? NullLogger<OllamaProvider>.Instance;
+
+        _logger.LogDebug("OllamaProvider 已创建，模型: {Model}", model);
     }
 
     public async Task<ChatCompletionResponse> ChatAsync(
@@ -43,24 +46,32 @@ public class OllamaProvider : ILLMProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+        _logger.LogDebug("发送聊天请求到 Ollama，模型: {Model}", _model);
+
         var response = await _httpClient.PostAsync("/api/chat", content, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(JsonOptions.Default, cancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(
+            JsonOptions.Default,
+            cancellationToken);
+
+        _logger.LogDebug("Ollama 响应完成，Token: {Prompt}/{Completion}",
+            result?.PromptEvalCount, result?.EvalCount);
 
         return new ChatCompletionResponse
         {
             Content = result?.Message?.Content ?? string.Empty,
             PromptTokens = result?.PromptEvalCount ?? 0,
             CompletionTokens = result?.EvalCount ?? 0,
-            FinishReason = result?.DoneReason ?? "stop"
+            FinishReason = result?.DoneReason ?? "stop",
         };
     }
 
     public async IAsyncEnumerable<string> ChatStreamAsync(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         options ??= new ChatCompletionOptions();
 
@@ -70,13 +81,14 @@ public class OllamaProvider : ILLMProvider
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
         {
-            Content = content
+            Content = content,
         };
 
         var response = await _httpClient.SendAsync(
             requestMessage,
             HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
+            cancellationToken
+        );
 
         response.EnsureSuccessStatusCode();
 
@@ -107,22 +119,23 @@ public class OllamaProvider : ILLMProvider
     private OllamaChatRequest BuildRequest(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions options,
-        bool stream)
+        bool stream
+    )
     {
         var ollamaMessages = new List<OllamaMessage>();
 
         if (!string.IsNullOrWhiteSpace(options.SystemPrompt))
         {
-            ollamaMessages.Add(new OllamaMessage { Role = "system", Content = options.SystemPrompt });
+            ollamaMessages.Add(
+                new OllamaMessage { Role = "system", Content = options.SystemPrompt }
+            );
         }
 
         foreach (var msg in messages)
         {
-            ollamaMessages.Add(new OllamaMessage
-            {
-                Role = msg.Role.ToLowerInvariant(),
-                Content = msg.Content
-            });
+            ollamaMessages.Add(
+                new OllamaMessage { Role = msg.Role.ToLowerInvariant(), Content = msg.Content }
+            );
         }
 
         return new OllamaChatRequest
@@ -133,8 +146,8 @@ public class OllamaProvider : ILLMProvider
             Options = new OllamaOptions
             {
                 Temperature = options.Temperature,
-                NumPredict = options.MaxTokens
-            }
+                NumPredict = options.MaxTokens,
+            },
         };
     }
 
@@ -198,7 +211,7 @@ public class OllamaProvider : ILLMProvider
         public static readonly JsonSerializerOptions Default = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
     }
 }
