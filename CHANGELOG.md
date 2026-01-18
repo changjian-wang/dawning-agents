@@ -38,7 +38,7 @@ public interface ILLMProvider
 
 ### 技术栈
 - **.NET**: 10.0 (最新 LTS)
-- **本地 LLM**: Ollama + deepseek-coder (1.3b/6.7b)
+- **本地 LLM**: Ollama + deepseek-coder (1.3b/6.7B)
 - **测试框架**: xUnit + FluentAssertions + Moq
 - **CI/CD**: GitHub Actions
 

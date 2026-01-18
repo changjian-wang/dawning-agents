@@ -65,41 +65,41 @@ public class AzureOpenAIProviderTests
 public class LLMProviderFactoryTests
 {
     [Fact]
-    public void Create_WithOllamaConfig_ReturnsOllamaProvider()
+    public void Create_WithOllamaOptions_ReturnsOllamaProvider()
     {
-        var config = new LLMConfiguration
+        var options = new LLMOptions
         {
             ProviderType = LLMProviderType.Ollama,
             Model = "test-model",
             Endpoint = "http://localhost:11434"
         };
 
-        var provider = LLMProviderFactory.Create(config);
+        var provider = LLMProviderFactory.Create(options);
 
         provider.Should().BeOfType<OllamaProvider>();
         provider.Name.Should().Be("Ollama");
     }
 
     [Fact]
-    public void Create_WithOpenAIConfig_ReturnsOpenAIProvider()
+    public void Create_WithOpenAIOptions_ReturnsOpenAIProvider()
     {
-        var config = new LLMConfiguration
+        var options = new LLMOptions
         {
             ProviderType = LLMProviderType.OpenAI,
             Model = "gpt-4o",
             ApiKey = "fake-key"
         };
 
-        var provider = LLMProviderFactory.Create(config);
+        var provider = LLMProviderFactory.Create(options);
 
         provider.Should().BeOfType<OpenAIProvider>();
         provider.Name.Should().Be("OpenAI");
     }
 
     [Fact]
-    public void Create_WithAzureOpenAIConfig_ReturnsAzureOpenAIProvider()
+    public void Create_WithAzureOpenAIOptions_ReturnsAzureOpenAIProvider()
     {
-        var config = new LLMConfiguration
+        var options = new LLMOptions
         {
             ProviderType = LLMProviderType.AzureOpenAI,
             Model = "gpt-4o",
@@ -107,32 +107,32 @@ public class LLMProviderFactoryTests
             Endpoint = "https://test.openai.azure.com"
         };
 
-        var provider = LLMProviderFactory.Create(config);
+        var provider = LLMProviderFactory.Create(options);
 
         provider.Should().BeOfType<AzureOpenAIProvider>();
         provider.Name.Should().Be("AzureOpenAI");
     }
 
     [Fact]
-    public void Create_WithOpenAIConfigMissingApiKey_ThrowsInvalidOperationException()
+    public void Create_WithOpenAIOptionsMissingApiKey_ThrowsInvalidOperationException()
     {
-        var config = new LLMConfiguration
+        var options = new LLMOptions
         {
             ProviderType = LLMProviderType.OpenAI,
             Model = "gpt-4o"
             // Missing ApiKey
         };
 
-        var act = () => LLMProviderFactory.Create(config);
+        var act = () => LLMProviderFactory.Create(options);
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*API Key*");
     }
 
     [Fact]
-    public void Create_WithAzureConfigMissingEndpoint_ThrowsInvalidOperationException()
+    public void Create_WithAzureOptionsMissingEndpoint_ThrowsInvalidOperationException()
     {
-        var config = new LLMConfiguration
+        var options = new LLMOptions
         {
             ProviderType = LLMProviderType.AzureOpenAI,
             Model = "gpt-4o",
@@ -140,37 +140,66 @@ public class LLMProviderFactoryTests
             // Missing Endpoint
         };
 
-        var act = () => LLMProviderFactory.Create(config);
+        var act = () => LLMProviderFactory.Create(options);
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*endpoint*");
     }
 }
 
-public class LLMConfigurationTests
+public class LLMOptionsTests
 {
     [Fact]
-    public void Default_Configuration_UsesOllama()
+    public void Default_Options_UsesOllama()
     {
-        var config = new LLMConfiguration();
+        var options = new LLMOptions();
 
-        config.ProviderType.Should().Be(LLMProviderType.Ollama);
-        config.Model.Should().Be("deepseek-coder:6.7b");
+        options.ProviderType.Should().Be(LLMProviderType.Ollama);
+        options.Model.Should().Be("deepseek-coder:1.3b");
     }
 
     [Fact]
-    public void Configuration_SupportsWithExpression()
+    public void Validate_OpenAI_WithoutApiKey_Throws()
     {
-        var original = new LLMConfiguration
+        var options = new LLMOptions
         {
-            ProviderType = LLMProviderType.Ollama,
-            Model = "model1"
+            ProviderType = LLMProviderType.OpenAI,
+            Model = "gpt-4o"
         };
 
-        var modified = original with { Model = "model2" };
+        var act = () => options.Validate();
 
-        original.Model.Should().Be("model1");
-        modified.Model.Should().Be("model2");
-        modified.ProviderType.Should().Be(LLMProviderType.Ollama);
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ApiKey*");
+    }
+
+    [Fact]
+    public void Validate_AzureOpenAI_WithoutEndpoint_Throws()
+    {
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.AzureOpenAI,
+            Model = "gpt-4o",
+            ApiKey = "fake-key"
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Endpoint*");
+    }
+
+    [Fact]
+    public void Validate_Ollama_SetsDefaultEndpoint()
+    {
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.Ollama,
+            Model = "test-model"
+        };
+
+        options.Validate();
+
+        options.Endpoint.Should().Be("http://localhost:11434");
     }
 }

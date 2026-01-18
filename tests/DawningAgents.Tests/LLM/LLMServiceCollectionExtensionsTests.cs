@@ -4,24 +4,25 @@ using DawningAgents.Core.LLM;
 using DawningAgents.OpenAI;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace DawningAgents.Tests.LLM;
 
 public class LLMServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddLLMProvider_WithConfiguration_RegistersServices()
+    public void AddLLMProvider_WithOptions_RegistersServices()
     {
         // Arrange
         var services = new ServiceCollection();
-        var config = new LLMConfiguration
-        {
-            ProviderType = LLMProviderType.Ollama,
-            Model = "test-model"
-        };
 
         // Act
-        services.AddLLMProvider(config);
+        services.AddLLMProvider(options =>
+        {
+            options.ProviderType = LLMProviderType.Ollama;
+            options.Model = "test-model";
+            options.Endpoint = "http://localhost:11434";
+        });
         var provider = services.BuildServiceProvider();
 
         // Assert
@@ -104,42 +105,40 @@ public class LLMServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddLLMProvider(config =>
+        services.AddLLMProvider(options =>
         {
-            config = config with
-            {
-                ProviderType = LLMProviderType.Ollama,
-                Model = "custom-model"
-            };
+            options.ProviderType = LLMProviderType.Ollama;
+            options.Model = "custom-model";
+            options.Endpoint = "http://localhost:11434";
         });
 
-        // 由于 record 的 with 表达式创建新实例，需要不同的方式测试
-        // 这里验证服务已注册
         var provider = services.BuildServiceProvider();
         var llmProvider = provider.GetService<ILLMProvider>();
 
         // Assert
         llmProvider.Should().NotBeNull();
+        llmProvider.Should().BeOfType<OllamaProvider>();
     }
 
     [Fact]
-    public void AddLLMProvider_ConfigurationIsInjectable()
+    public void AddLLMProvider_OptionsAreInjectable()
     {
         // Arrange
         var services = new ServiceCollection();
-        var expectedConfig = new LLMConfiguration
-        {
-            ProviderType = LLMProviderType.OpenAI,
-            ApiKey = "test-key",
-            Model = "gpt-4o"
-        };
 
         // Act
-        services.AddLLMProvider(expectedConfig);
+        services.AddLLMProvider(options =>
+        {
+            options.ProviderType = LLMProviderType.OpenAI;
+            options.ApiKey = "test-key";
+            options.Model = "gpt-4o";
+        });
         var provider = services.BuildServiceProvider();
 
         // Assert
-        var config = provider.GetRequiredService<LLMConfiguration>();
-        config.Should().Be(expectedConfig);
+        var options = provider.GetRequiredService<IOptions<LLMOptions>>().Value;
+        options.ProviderType.Should().Be(LLMProviderType.OpenAI);
+        options.ApiKey.Should().Be("test-key");
+        options.Model.Should().Be("gpt-4o");
     }
 }

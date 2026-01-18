@@ -18,7 +18,7 @@ public class OllamaProvider : ILLMProvider
 
     public string Name => "Ollama";
 
-    public OllamaProvider(string model = "deepseek-coder:6.7b", string baseUrl = "http://localhost:11434")
+    public OllamaProvider(string model = "deepseek-coder:1.3B", string baseUrl = "http://localhost:11434")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
         ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
