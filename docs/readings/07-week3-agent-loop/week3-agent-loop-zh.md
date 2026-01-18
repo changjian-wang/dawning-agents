@@ -156,7 +156,7 @@ ReAct（推理 + 行动）模式交错进行：
 #### IAgent 接口
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// 表示 Agent 执行的结果
@@ -228,7 +228,7 @@ public interface IAgent
 #### AgentContext 上下文
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// Agent 执行的上下文
@@ -271,9 +271,9 @@ public class AgentContext
 ### 2. AgentBase 抽象类
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -367,10 +367,10 @@ public abstract class AgentBase : IAgent
 ### 3. ReAct Agent 实现
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 using System.Text.RegularExpressions;
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -631,7 +631,7 @@ public partial class ReActAgent : AgentBase
 ### 2. Prompt 模板实现
 
 ```csharp
-namespace DawningAgents.Core.Prompts;
+namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
 /// Prompt 模板接口
@@ -785,7 +785,7 @@ public static class AgentPrompts
 ### 3. 少样本提示
 
 ```csharp
-namespace DawningAgents.Core.Prompts;
+namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
 /// 少样本提示构建器
@@ -877,7 +877,7 @@ var prompt = new FewShotPromptBuilder()
 ### Week 3 产出物
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Agents/
 │   ├── IAgent.cs              # Agent 接口
 │   ├── AgentBase.cs           # 包含通用功能的基类

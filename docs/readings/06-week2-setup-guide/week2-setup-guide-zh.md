@@ -163,18 +163,18 @@ git clone https://github.com/changjian-wang/dawning-agents.git
 cd dawning-agents
 
 # 创建解决方案
-dotnet new sln -n DawningAgents
+dotnet new sln -n Dawning.Agents
 
 # 创建核心类库项目
-dotnet new classlib -n DawningAgents.Core -o src/DawningAgents.Core
-dotnet sln add src/DawningAgents.Core/DawningAgents.Core.csproj
+dotnet new classlib -n Dawning.Agents.Core -o src/Dawning.Agents.Core
+dotnet sln add src/Dawning.Agents.Core/Dawning.Agents.Core.csproj
 
 # 创建测试项目
-dotnet new xunit -n DawningAgents.Tests -o tests/DawningAgents.Tests
-dotnet sln add tests/DawningAgents.Tests/DawningAgents.Tests.csproj
+dotnet new xunit -n Dawning.Agents.Tests -o tests/Dawning.Agents.Tests
+dotnet sln add tests/Dawning.Agents.Tests/Dawning.Agents.Tests.csproj
 
 # 添加项目引用
-dotnet add tests/DawningAgents.Tests/DawningAgents.Tests.csproj reference src/DawningAgents.Core/DawningAgents.Core.csproj
+dotnet add tests/Dawning.Agents.Tests/Dawning.Agents.Tests.csproj reference src/Dawning.Agents.Core/Dawning.Agents.Core.csproj
 
 # 构建验证
 dotnet build
@@ -185,7 +185,7 @@ dotnet build
 #### 核心项目包
 
 ```powershell
-cd src/DawningAgents.Core
+cd src/Dawning.Agents.Core
 
 # OpenAI SDK
 dotnet add package Azure.AI.OpenAI --version 2.0.0
@@ -207,7 +207,7 @@ dotnet add package Microsoft.Extensions.Http
 #### 测试项目包
 
 ```powershell
-cd tests/DawningAgents.Tests
+cd tests/Dawning.Agents.Tests
 
 # 测试框架
 dotnet add package xunit
@@ -362,10 +362,10 @@ jobs:
 
 ### 1. 创建 LLM Provider 接口
 
-创建 `src/DawningAgents.Core/LLM/ILLMProvider.cs`：
+创建 `src/Dawning.Agents.Core/LLM/ILLMProvider.cs`：
 
 ```csharp
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// 表示对话中的一条消息
@@ -424,7 +424,7 @@ public interface ILLMProvider
 
 ### 2. 实现 OpenAI Provider
 
-创建 `src/DawningAgents.Core/LLM/OpenAIProvider.cs`：
+创建 `src/Dawning.Agents.Core/LLM/OpenAIProvider.cs`：
 
 ```csharp
 using System.ClientModel;
@@ -432,7 +432,7 @@ using System.Runtime.CompilerServices;
 using OpenAI;
 using OpenAI.Chat;
 
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// OpenAI API 提供者实现
@@ -543,7 +543,7 @@ public class OpenAIProvider : ILLMProvider
 
 ### 3. 实现 Azure OpenAI Provider
 
-创建 `src/DawningAgents.Core/LLM/AzureOpenAIProvider.cs`：
+创建 `src/Dawning.Agents.Core/LLM/AzureOpenAIProvider.cs`：
 
 ```csharp
 using System.ClientModel;
@@ -552,7 +552,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
 
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// Azure OpenAI API 提供者实现
@@ -667,12 +667,12 @@ public class AzureOpenAIProvider : ILLMProvider
 
 ### 4. 创建简单控制台演示
 
-创建 `src/DawningAgents.Demo/Program.cs`：
+创建 `src/Dawning.Agents.Demo/Program.cs`：
 
 ```csharp
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 
-Console.WriteLine("=== DawningAgents LLM 演示 ===\n");
+Console.WriteLine("=== Dawning.Agents LLM 演示 ===\n");
 
 // 从环境变量获取 API key
 var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
@@ -734,13 +734,13 @@ Console.WriteLine("\n再见！");
 
 ### 5. 创建单元测试
 
-创建 `tests/DawningAgents.Tests/LLM/OpenAIProviderTests.cs`：
+创建 `tests/Dawning.Agents.Tests/LLM/OpenAIProviderTests.cs`：
 
 ```csharp
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using FluentAssertions;
 
-namespace DawningAgents.Tests.LLM;
+namespace Dawning.Agents.Tests.LLM;
 
 public class OpenAIProviderTests
 {
@@ -822,27 +822,27 @@ dawning-agents/
 │   └── workflows/
 │       └── build.yml
 ├── src/
-│   ├── DawningAgents.Core/
+│   ├── Dawning.Agents.Core/
 │   │   ├── LLM/
 │   │   │   ├── ILLMProvider.cs
 │   │   │   ├── OpenAIProvider.cs
 │   │   │   └── AzureOpenAIProvider.cs
-│   │   └── DawningAgents.Core.csproj
-│   └── DawningAgents.Demo/
+│   │   └── Dawning.Agents.Core.csproj
+│   └── Dawning.Agents.Demo/
 │       ├── Program.cs
-│       └── DawningAgents.Demo.csproj
+│       └── Dawning.Agents.Demo.csproj
 ├── tests/
-│   └── DawningAgents.Tests/
+│   └── Dawning.Agents.Tests/
 │       ├── LLM/
 │       │   └── OpenAIProviderTests.cs
-│       └── DawningAgents.Tests.csproj
+│       └── Dawning.Agents.Tests.csproj
 ├── docs/
 │   └── readings/
 │       └── ...
 ├── .editorconfig
 ├── .gitignore
 ├── Directory.Build.props
-├── DawningAgents.sln
+├── Dawning.Agents.sln
 ├── LEARNING_PLAN.md
 └── LICENSE
 ```

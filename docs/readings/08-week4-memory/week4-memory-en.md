@@ -35,7 +35,7 @@ Agents need memory to:
 ### 2. Memory Interface Design
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
 /// Represents a message in conversation history
@@ -112,9 +112,9 @@ public interface IConversationMemory
 The simplest memory type - stores all messages in a list:
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// Simple buffer memory that stores all messages
@@ -224,7 +224,7 @@ public class BufferMemory : IConversationMemory
 Keeps only the last N messages:
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
 /// Memory that keeps only the last N messages
@@ -329,7 +329,7 @@ Tokens are the fundamental units that LLMs process. Managing tokens is crucial b
 ### 2. Token Counter Interface
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// Interface for counting tokens in text
@@ -363,7 +363,7 @@ public interface ITokenCounter
 Using the SharpToken library (C# port of tiktoken):
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 using SharpToken;
 
@@ -444,7 +444,7 @@ public class TiktokenCounter : ITokenCounter
 For scenarios where tiktoken is not available:
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// Simple token counter using character-based estimation
@@ -511,10 +511,10 @@ public class SimpleTokenCounter : ITokenCounter
 ### 5. Summary Memory with Compression
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
-using DawningAgents.Core.LLM;
-using DawningAgents.Core.Tokens;
+using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// Memory that summarizes older messages to save tokens
@@ -704,7 +704,7 @@ Agents go through various states during execution:
 ### 2. State Definitions
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// Represents the current state of an agent
@@ -772,9 +772,9 @@ public record AgentStateChangedEvent
 ### 3. Stateful Agent Implementation
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -998,7 +998,7 @@ public class StatefulAgent : AgentBase
 ### 4. State Persistence
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// Interface for persisting agent state
@@ -1070,7 +1070,7 @@ public class InMemoryAgentStateStore : IAgentStateStore
 ### Week 4 Deliverables
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Memory/
 │   ├── IConversationMemory.cs    # Memory interface
 │   ├── ConversationMessage.cs    # Message model

@@ -30,7 +30,7 @@
 ### 2. 确认请求模型
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// 人工确认请求
@@ -131,7 +131,7 @@ public record ConfirmationResponse
 ### 3. 人机交互处理器接口
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// 人机交互接口
@@ -185,7 +185,7 @@ public enum NotificationLevel
 ### 1. 控制台交互处理器
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop.Handlers;
+namespace Dawning.Agents.Core.HumanLoop.Handlers;
 
 using Microsoft.Extensions.Logging;
 
@@ -382,7 +382,7 @@ public class ConsoleInteractionHandler : IHumanInteractionHandler
 ### 2. 异步回调处理器
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop.Handlers;
+namespace Dawning.Agents.Core.HumanLoop.Handlers;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -532,7 +532,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
 ### 1. 升级模型
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// 升级到人工处理的请求
@@ -584,7 +584,7 @@ public enum EscalationAction
 ### 2. 审批工作流管理器
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 using Microsoft.Extensions.Logging;
 
@@ -800,7 +800,7 @@ public record ApprovalResult
 ### 3. 人机协作Agent
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 using Microsoft.Extensions.Logging;
 
@@ -1090,7 +1090,7 @@ else
 ### 第10周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── HumanLoop/
     ├── ConfirmationRequest.cs      # 请求模型
     ├── ConfirmationResponse.cs     # 响应模型

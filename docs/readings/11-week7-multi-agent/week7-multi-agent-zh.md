@@ -35,7 +35,7 @@
 ### 2. Agent团队接口
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// 可参与多Agent工作流的Agent
@@ -85,7 +85,7 @@ public abstract class TeamAgentBase : AgentBase, ITeamAgent
 ### 3. 任务定义
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// 多Agent工作流中的任务
@@ -134,7 +134,7 @@ public record WorkflowResult
 ### 1. 编排器接口
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// 编排多个Agent的接口
@@ -189,7 +189,7 @@ public abstract class OrchestratorBase : IOrchestrator
 ### 2. 顺序编排器
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -282,7 +282,7 @@ public class SequentialOrchestrator : OrchestratorBase
 ### 3. 并行编排器
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -449,7 +449,7 @@ public class LLMAggregator : IResultAggregator
 ### 1. 监督Agent
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -629,7 +629,7 @@ public class SupervisorAgent : TeamAgentBase
 ### 2. 专业工作Agent
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Workers;
+namespace Dawning.Agents.Core.MultiAgent.Workers;
 
 using Microsoft.Extensions.Logging;
 
@@ -738,7 +738,7 @@ public class WriterAgent : TeamAgentBase
 ### 3. 动态路由器
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -893,7 +893,7 @@ var supervisedResult = await supervisor.ExecuteAsync(new AgentContext
 ### 第7周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── MultiAgent/
     ├── ITeamAgent.cs              # 团队Agent接口
     ├── TeamAgentBase.cs           # 基础实现

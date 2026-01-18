@@ -37,28 +37,28 @@
 ### 2. Dockerfile
 
 ```dockerfile
-# Dockerfile for DawningAgents
+# Dockerfile for Dawning.Agents
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy project files
-COPY ["src/DawningAgents.Core/DawningAgents.Core.csproj", "DawningAgents.Core/"]
-COPY ["src/DawningAgents.Api/DawningAgents.Api.csproj", "DawningAgents.Api/"]
+COPY ["src/Dawning.Agents.Core/Dawning.Agents.Core.csproj", "Dawning.Agents.Core/"]
+COPY ["src/Dawning.Agents.Api/Dawning.Agents.Api.csproj", "Dawning.Agents.Api/"]
 
 # Restore dependencies
-RUN dotnet restore "DawningAgents.Api/DawningAgents.Api.csproj"
+RUN dotnet restore "Dawning.Agents.Api/Dawning.Agents.Api.csproj"
 
 # Copy source code
 COPY src/ .
 
 # Build
-RUN dotnet build "DawningAgents.Api/DawningAgents.Api.csproj" -c Release -o /app/build
+RUN dotnet build "Dawning.Agents.Api/Dawning.Agents.Api.csproj" -c Release -o /app/build
 
 # Publish stage
 FROM build AS publish
-RUN dotnet publish "DawningAgents.Api/DawningAgents.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Dawning.Agents.Api/Dawning.Agents.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
@@ -82,7 +82,7 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENTRYPOINT ["dotnet", "DawningAgents.Api.dll"]
+ENTRYPOINT ["dotnet", "Dawning.Agents.Api.dll"]
 ```
 
 ### 3. Docker Compose
@@ -153,7 +153,7 @@ volumes:
 ### 1. Configuration Provider
 
 ```csharp
-namespace DawningAgents.Core.Configuration;
+namespace Dawning.Agents.Core.Configuration;
 
 using Microsoft.Extensions.Configuration;
 
@@ -261,7 +261,7 @@ public record CacheOptions
     "DefaultExpiration": "01:00:00"
   },
   "Telemetry": {
-    "ServiceName": "DawningAgents",
+    "ServiceName": "Dawning.Agents",
     "EnableLogging": true,
     "EnableMetrics": true,
     "EnableTracing": true,
@@ -297,7 +297,7 @@ public record CacheOptions
   "Logging": {
     "LogLevel": {
       "Default": "Warning",
-      "DawningAgents": "Information"
+      "Dawning.Agents": "Information"
     }
   }
 }
@@ -306,7 +306,7 @@ public record CacheOptions
 ### 3. Secrets Management
 
 ```csharp
-namespace DawningAgents.Core.Configuration;
+namespace Dawning.Agents.Core.Configuration;
 
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -392,7 +392,7 @@ public class EnvironmentSecretsManager : ISecretsManager
 ### 1. Request Queue & Worker Pool
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
@@ -554,7 +554,7 @@ public class AgentWorkerPool : IDisposable
 ### 2. Load Balancer & Circuit Breaker
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -726,7 +726,7 @@ public class CircuitBreakerOpenException : Exception
 ### 3. Auto-Scaler
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using Microsoft.Extensions.Logging;
 
@@ -880,14 +880,14 @@ public enum ScalingAction
 ### 4. API Startup Configuration
 
 ```csharp
-namespace DawningAgents.Api;
+namespace Dawning.Agents.Api;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DawningAgents.Core.Configuration;
-using DawningAgents.Core.Observability;
-using DawningAgents.Core.Scaling;
-using DawningAgents.Core.Safety;
+using Dawning.Agents.Core.Configuration;
+using Dawning.Agents.Core.Observability;
+using Dawning.Agents.Core.Scaling;
+using Dawning.Agents.Core.Safety;
 
 public class Program
 {
@@ -1111,7 +1111,7 @@ spec:
 ### Week 12 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Configuration/
 │   ├── AgentConfiguration.cs      # Config loading
 │   ├── AgentOptions.cs            # Typed options

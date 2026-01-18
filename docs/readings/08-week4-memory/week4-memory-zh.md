@@ -35,7 +35,7 @@ Agent 需要记忆来：
 ### 2. 记忆接口设计
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
 /// 表示对话历史中的消息
@@ -112,9 +112,9 @@ public interface IConversationMemory
 最简单的记忆类型 - 将所有消息存储在列表中：
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// 存储所有消息的简单缓冲记忆
@@ -224,7 +224,7 @@ public class BufferMemory : IConversationMemory
 只保留最后 N 条消息：
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
 /// 只保留最后 N 条消息的记忆
@@ -329,7 +329,7 @@ Token 是 LLM 处理的基本单位。管理 token 至关重要，因为：
 ### 2. Token 计数器接口
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// 计算文本中 token 数量的接口
@@ -363,7 +363,7 @@ public interface ITokenCounter
 使用 SharpToken 库（tiktoken 的 C# 移植版）：
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 using SharpToken;
 
@@ -444,7 +444,7 @@ public class TiktokenCounter : ITokenCounter
 用于 tiktoken 不可用的场景：
 
 ```csharp
-namespace DawningAgents.Core.Tokens;
+namespace Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// 使用基于字符估算的简单 token 计数器
@@ -511,10 +511,10 @@ public class SimpleTokenCounter : ITokenCounter
 ### 5. 带压缩的摘要记忆
 
 ```csharp
-namespace DawningAgents.Core.Memory;
+namespace Dawning.Agents.Core.Memory;
 
-using DawningAgents.Core.LLM;
-using DawningAgents.Core.Tokens;
+using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Tokens;
 
 /// <summary>
 /// 通过摘要旧消息来节省 token 的记忆
@@ -704,7 +704,7 @@ Agent 在执行过程中经历各种状态：
 ### 2. 状态定义
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// 表示 Agent 的当前状态
@@ -772,9 +772,9 @@ public record AgentStateChangedEvent
 ### 3. 有状态 Agent 实现
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -998,7 +998,7 @@ public class StatefulAgent : AgentBase
 ### 4. 状态持久化
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// 持久化 Agent 状态的接口
@@ -1070,7 +1070,7 @@ public class InMemoryAgentStateStore : IAgentStateStore
 ### Week 4 产出物
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Memory/
 │   ├── IConversationMemory.cs    # 记忆接口
 │   ├── ConversationMessage.cs    # 消息模型

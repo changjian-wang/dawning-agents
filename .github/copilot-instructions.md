@@ -1,8 +1,8 @@
-# DawningAgents 开发指南
+# Dawning.Agents 开发指南
 
 ## 项目概述
 
-DawningAgents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 OpenAI Agents SDK 的极简风格。
+Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 OpenAI Agents SDK 的极简风格。
 
 ## 核心设计原则
 
@@ -51,9 +51,9 @@ var provider = new OllamaProvider("model");
 ### 5. 接口与实现分离
 
 ```
-DawningAgents.Abstractions/  → 接口、数据模型（零依赖）
-DawningAgents.Core/          → 核心实现、DI 扩展
-DawningAgents.{Provider}/    → 具体提供者实现
+Dawning.Agents.Abstractions/  → 接口、数据模型（零依赖）
+Dawning.Agents.Core/          → 核心实现、DI 扩展
+Dawning.Agents.{Provider}/    → 具体提供者实现
 ```
 
 ### 6. 配置驱动
@@ -61,6 +61,64 @@ DawningAgents.{Provider}/    → 具体提供者实现
 - 通过 appsettings.json 切换行为
 - 支持环境变量覆盖
 - 不硬编码配置值
+
+## 代码格式（CSharpier）
+
+项目使用 CSharpier 进行代码格式化，关键规则：
+
+- **长参数列表**：每个参数独占一行
+
+```csharp
+// ✅ 好 - 多参数换行
+public MyService(
+    ILLMProvider llmProvider,
+    IOptions<MyOptions> options,
+    ILogger<MyService>? logger = null
+)
+{
+}
+
+// ❌ 避免 - 单行过长
+public MyService(ILLMProvider llmProvider, IOptions<MyOptions> options, ILogger<MyService>? logger = null)
+```
+
+- **集合初始化**：元素换行，尾随逗号
+
+```csharp
+// ✅ 好
+var messages = new List<ChatMessage>
+{
+    new("system", systemPrompt),
+    new("user", userInput),
+};
+
+// ❌ 避免
+var messages = new List<ChatMessage> { new("system", systemPrompt), new("user", userInput) };
+```
+
+- **方法链**：每个调用独占一行
+
+```csharp
+// ✅ 好
+var result = items
+    .Where(x => x.IsActive)
+    .Select(x => x.Name)
+    .ToList();
+```
+
+- **if 语句**：始终使用大括号
+
+```csharp
+// ✅ 好
+if (condition)
+{
+    DoSomething();
+}
+
+// ❌ 避免
+if (condition)
+    DoSomething();
+```
 
 ## 命名规范
 
@@ -78,7 +136,7 @@ DawningAgents.{Provider}/    → 具体提供者实现
 ### 新增服务接口
 
 ```csharp
-namespace DawningAgents.Abstractions;
+namespace Dawning.Agents.Abstractions;
 
 /// <summary>
 /// 服务描述
@@ -94,7 +152,7 @@ public interface IMyService
 ### 新增服务实现
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public class MyService : IMyService
 {
@@ -118,7 +176,7 @@ public class MyService : IMyService
 ### 新增 DI 扩展
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public static class MyServiceExtensions
 {
@@ -139,7 +197,7 @@ public static class MyServiceExtensions
 ### 新增配置类
 
 ```csharp
-namespace DawningAgents.Abstractions;
+namespace Dawning.Agents.Abstractions;
 
 /// <summary>
 /// 服务配置选项

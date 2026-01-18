@@ -40,7 +40,7 @@ Tools are the **hands and eyes** of an AI agent, allowing it to:
 ### 2. Core Tool Interface
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
 /// Base interface for all tools
@@ -122,7 +122,7 @@ public record ToolResult
 ### 3. Tool Base Class
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Diagnostics;
 using System.Text.Json;
@@ -245,7 +245,7 @@ public abstract class ToolBase : ITool
 ### 1. Tool Attributes for Declarative Definition
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
 /// Marks a class as a tool
@@ -308,7 +308,7 @@ public class WeatherToolExample
 ### 2. Tool Schema Generator
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Reflection;
 using System.Text.Json;
@@ -412,7 +412,7 @@ public record ParameterProperty
 ### 3. Tool Registry
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -520,7 +520,7 @@ public class ToolRegistry : IToolRegistry
 ### 1. Calculator Tool
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Data;
 using System.Text.Json;
@@ -602,7 +602,7 @@ public class CalculatorTool : ToolBase
 ### 2. DateTime Tool
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Globalization;
 using Microsoft.Extensions.Logging;
@@ -766,7 +766,7 @@ public class DateTimeTool : ToolBase
 ### 3. HTTP Request Tool
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Net.Http.Json;
 using System.Text;
@@ -898,7 +898,7 @@ public class HttpTool : ToolBase
 ### 4. Search Tool (Web Search)
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Web;
 using Microsoft.Extensions.Logging;
@@ -1030,7 +1030,7 @@ public class SearchTool : ToolBase
 ## Tool Executor
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using Microsoft.Extensions.Logging;
 
@@ -1108,7 +1108,7 @@ public class ToolExecutorOptions
 ### Week 5 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Tools/
 │   ├── ITool.cs               # Tool interface
 │   ├── ToolBase.cs            # Base class

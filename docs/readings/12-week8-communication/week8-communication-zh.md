@@ -30,7 +30,7 @@
 ### 2. 消息类型
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 /// <summary>
 /// Agent通信的基础消息
@@ -97,7 +97,7 @@ public enum AgentStatus
 ### 3. 消息总线接口
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 /// <summary>
 /// Agent通信的中央消息总线
@@ -142,7 +142,7 @@ public interface IMessageBus
 ### 4. 内存消息总线
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -319,7 +319,7 @@ public class InMemoryMessageBus : IMessageBus
 ### 1. 共享状态接口
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 /// <summary>
 /// 多Agent协作的共享状态存储
@@ -370,7 +370,7 @@ public interface ISharedState
 ### 2. 内存共享状态
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -498,7 +498,7 @@ public class InMemorySharedState : ISharedState
 ### 3. 黑板系统
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 using Microsoft.Extensions.Logging;
 
@@ -672,7 +672,7 @@ public enum ProblemStatus
 ### 1. 可通信Agent
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 using Microsoft.Extensions.Logging;
 
@@ -857,7 +857,7 @@ public abstract class CommunicatingAgent : TeamAgentBase
 ### 2. 协作协调器
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Collaboration;
+namespace Dawning.Agents.Core.MultiAgent.Collaboration;
 
 using Microsoft.Extensions.Logging;
 
@@ -1107,7 +1107,7 @@ Console.WriteLine($"参与者：{result.ParticipantCount}");
 ### 第8周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── MultiAgent/
     ├── Communication/
     │   ├── AgentMessage.cs           # 消息类型

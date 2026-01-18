@@ -40,7 +40,7 @@
 ### 2. 核心工具接口
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
 /// 所有工具的基础接口
@@ -122,7 +122,7 @@ public record ToolResult
 ### 3. 工具基类
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Diagnostics;
 using System.Text.Json;
@@ -245,7 +245,7 @@ public abstract class ToolBase : ITool
 ### 1. 用于声明式定义的工具属性
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
 /// 将类标记为工具
@@ -308,7 +308,7 @@ public class WeatherToolExample
 ### 2. 工具模式生成器
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Reflection;
 using System.Text.Json;
@@ -412,7 +412,7 @@ public record ParameterProperty
 ### 3. 工具注册表
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -520,7 +520,7 @@ public class ToolRegistry : IToolRegistry
 ### 1. 计算器工具
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Data;
 using System.Text.Json;
@@ -602,7 +602,7 @@ public class CalculatorTool : ToolBase
 ### 2. 日期时间工具
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Globalization;
 using Microsoft.Extensions.Logging;
@@ -766,7 +766,7 @@ public class DateTimeTool : ToolBase
 ### 3. HTTP 请求工具
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Net.Http.Json;
 using System.Text;
@@ -898,7 +898,7 @@ public class HttpTool : ToolBase
 ### 4. 搜索工具（网络搜索）
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
 using System.Web;
 using Microsoft.Extensions.Logging;
@@ -1030,7 +1030,7 @@ public class SearchTool : ToolBase
 ## 工具执行器
 
 ```csharp
-namespace DawningAgents.Core.Tools;
+namespace Dawning.Agents.Core.Tools;
 
 using Microsoft.Extensions.Logging;
 
@@ -1108,7 +1108,7 @@ public class ToolExecutorOptions
 ### Week 5 产出物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Tools/
 │   ├── ITool.cs               # 工具接口
 │   ├── ToolBase.cs            # 基类

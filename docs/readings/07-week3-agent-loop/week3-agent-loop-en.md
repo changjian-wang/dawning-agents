@@ -156,7 +156,7 @@ Final Answer: Paris
 #### IAgent Interface
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// Represents the result of an agent execution
@@ -228,7 +228,7 @@ public interface IAgent
 #### AgentContext
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 /// <summary>
 /// Context for agent execution
@@ -271,9 +271,9 @@ public class AgentContext
 ### 2. AgentBase Abstract Class
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -367,10 +367,10 @@ public abstract class AgentBase : IAgent
 ### 3. ReAct Agent Implementation
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
 using System.Text.RegularExpressions;
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -631,7 +631,7 @@ Example 2: ...
 ### 2. Prompt Template Implementation
 
 ```csharp
-namespace DawningAgents.Core.Prompts;
+namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
 /// Interface for prompt templates
@@ -785,7 +785,7 @@ public static class AgentPrompts
 ### 3. Few-Shot Prompting
 
 ```csharp
-namespace DawningAgents.Core.Prompts;
+namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
 /// Builder for few-shot prompts
@@ -877,7 +877,7 @@ var prompt = new FewShotPromptBuilder()
 ### Week 3 Deliverables
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Agents/
 │   ├── IAgent.cs              # Agent interface
 │   ├── AgentBase.cs           # Base class with common functionality

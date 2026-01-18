@@ -419,7 +419,7 @@ var result = await Runner.RunAsync(agent, "你好", config);
 // 与 Microsoft.Extensions.DependencyInjection 集成
 var services = new ServiceCollection();
 
-services.AddDawningAgents(options =>
+services.AddDawning.Agents(options =>
 {
     options.AddOpenAI(config => 
     {
@@ -479,7 +479,7 @@ services.AddToolsFromAssembly(typeof(WebTools).Assembly);
 ### IAgent
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IAgent
 {
@@ -512,7 +512,7 @@ public interface IAgent<TContext> : IAgent
 ### ITool
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface ITool
 {
@@ -542,7 +542,7 @@ public class DescriptionAttribute : Attribute
 ### IHandoff
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IHandoff<TContext>
 {
@@ -569,7 +569,7 @@ public delegate HandoffInputData HandoffInputFilter(HandoffInputData data);
 ### IGuardrail
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public record GuardrailResult(
     bool TripwireTriggered,
@@ -602,7 +602,7 @@ public interface IOutputGuardrail<TContext>
 ### IWorkflow（Workflow 编排）
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IWorkflow<TContext>
 {
@@ -635,7 +635,7 @@ public class HandoffBuilder<TContext>
 ### IStateGraph（状态机编排）
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 /// <summary>
 /// 状态机编排 - 用于需要确定性流程控制的场景
@@ -699,7 +699,7 @@ var result = await graph.RunAsync(new ArticleState { Topic = "AI Agents" });
 ```text
 dawning-agents/
 ├── src/
-│   ├── DawningAgents.Abstractions/     # 核心接口
+│   ├── Dawning.Agents.Abstractions/     # 核心接口
 │   │   ├── IAgent.cs
 │   │   ├── ITool.cs
 │   │   ├── IHandoff.cs
@@ -707,7 +707,7 @@ dawning-agents/
 │   │   ├── IWorkflow.cs
 │   │   └── ITracing.cs
 │   │
-│   ├── DawningAgents.Core/             # 核心实现
+│   ├── Dawning.Agents.Core/             # 核心实现
 │   │   ├── Agents/
 │   │   │   ├── Agent.cs
 │   │   │   └── AgentBuilder.cs
@@ -731,10 +731,10 @@ dawning-agents/
 │   │   │   └── TracingProvider.cs
 │   │   └── Runner.cs
 │   │
-│   ├── DawningAgents.OpenAI/           # OpenAI 集成
-│   ├── DawningAgents.Anthropic/        # Anthropic 集成
-│   ├── DawningAgents.Azure/            # Azure OpenAI 集成
-│   └── DawningAgents.Extensions/       # 扩展工具
+│   ├── Dawning.Agents.OpenAI/           # OpenAI 集成
+│   ├── Dawning.Agents.Anthropic/        # Anthropic 集成
+│   ├── Dawning.Agents.Azure/            # Azure OpenAI 集成
+│   └── Dawning.Agents.Extensions/       # 扩展工具
 │
 ├── samples/
 │   ├── SimpleChat/
@@ -743,8 +743,8 @@ dawning-agents/
 │   └── TracingDemo/
 │
 ├── tests/
-│   ├── DawningAgents.Tests/
-│   └── DawningAgents.IntegrationTests/
+│   ├── Dawning.Agents.Tests/
+│   └── Dawning.Agents.IntegrationTests/
 │
 └── docs/
 ```

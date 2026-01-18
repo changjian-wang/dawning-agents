@@ -419,7 +419,7 @@ var result = await Runner.RunAsync(agent, "Hello", config);
 // Integrate with Microsoft.Extensions.DependencyInjection
 var services = new ServiceCollection();
 
-services.AddDawningAgents(options =>
+services.AddDawning.Agents(options =>
 {
     options.AddOpenAI(config => 
     {
@@ -479,7 +479,7 @@ services.AddToolsFromAssembly(typeof(WebTools).Assembly);
 ### IAgent
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IAgent
 {
@@ -512,7 +512,7 @@ public interface IAgent<TContext> : IAgent
 ### ITool
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface ITool
 {
@@ -542,7 +542,7 @@ public class DescriptionAttribute : Attribute
 ### IHandoff
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IHandoff<TContext>
 {
@@ -569,7 +569,7 @@ public delegate HandoffInputData HandoffInputFilter(HandoffInputData data);
 ### IGuardrail
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public record GuardrailResult(
     bool TripwireTriggered,
@@ -602,7 +602,7 @@ public interface IOutputGuardrail<TContext>
 ### IWorkflow (Workflow Orchestration)
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 public interface IWorkflow<TContext>
 {
@@ -635,7 +635,7 @@ public class HandoffBuilder<TContext>
 ### IStateGraph (State Machine Orchestration)
 
 ```csharp
-namespace DawningAgents.Core;
+namespace Dawning.Agents.Core;
 
 /// <summary>
 /// State machine orchestration - for scenarios requiring deterministic flow control
@@ -699,7 +699,7 @@ var result = await graph.RunAsync(new ArticleState { Topic = "AI Agents" });
 ```text
 dawning-agents/
 ├── src/
-│   ├── DawningAgents.Abstractions/     # Core interfaces
+│   ├── Dawning.Agents.Abstractions/     # Core interfaces
 │   │   ├── IAgent.cs
 │   │   ├── ITool.cs
 │   │   ├── IHandoff.cs
@@ -707,7 +707,7 @@ dawning-agents/
 │   │   ├── IWorkflow.cs
 │   │   └── ITracing.cs
 │   │
-│   ├── DawningAgents.Core/             # Core implementations
+│   ├── Dawning.Agents.Core/             # Core implementations
 │   │   ├── Agents/
 │   │   │   ├── Agent.cs
 │   │   │   └── AgentBuilder.cs
@@ -731,10 +731,10 @@ dawning-agents/
 │   │   │   └── TracingProvider.cs
 │   │   └── Runner.cs
 │   │
-│   ├── DawningAgents.OpenAI/           # OpenAI integration
-│   ├── DawningAgents.Anthropic/        # Anthropic integration
-│   ├── DawningAgents.Azure/            # Azure OpenAI integration
-│   └── DawningAgents.Extensions/       # Extension tools
+│   ├── Dawning.Agents.OpenAI/           # OpenAI integration
+│   ├── Dawning.Agents.Anthropic/        # Anthropic integration
+│   ├── Dawning.Agents.Azure/            # Azure OpenAI integration
+│   └── Dawning.Agents.Extensions/       # Extension tools
 │
 ├── samples/
 │   ├── SimpleChat/
@@ -743,8 +743,8 @@ dawning-agents/
 │   └── TracingDemo/
 │
 ├── tests/
-│   ├── DawningAgents.Tests/
-│   └── DawningAgents.IntegrationTests/
+│   ├── Dawning.Agents.Tests/
+│   └── Dawning.Agents.IntegrationTests/
 │
 └── docs/
 ```

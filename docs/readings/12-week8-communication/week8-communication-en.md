@@ -30,7 +30,7 @@
 ### 2. Message Types
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 /// <summary>
 /// Base message for agent communication
@@ -97,7 +97,7 @@ public enum AgentStatus
 ### 3. Message Bus Interface
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 /// <summary>
 /// Central message bus for agent communication
@@ -142,7 +142,7 @@ public interface IMessageBus
 ### 4. In-Memory Message Bus
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -319,7 +319,7 @@ public class InMemoryMessageBus : IMessageBus
 ### 1. Shared State Interface
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 /// <summary>
 /// Shared state store for multi-agent collaboration
@@ -370,7 +370,7 @@ public interface ISharedState
 ### 2. In-Memory Shared State
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -498,7 +498,7 @@ public class InMemorySharedState : ISharedState
 ### 3. Blackboard System
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.State;
+namespace Dawning.Agents.Core.MultiAgent.State;
 
 using Microsoft.Extensions.Logging;
 
@@ -672,7 +672,7 @@ public enum ProblemStatus
 ### 1. Communicating Agent
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Communication;
+namespace Dawning.Agents.Core.MultiAgent.Communication;
 
 using Microsoft.Extensions.Logging;
 
@@ -857,7 +857,7 @@ public abstract class CommunicatingAgent : TeamAgentBase
 ### 2. Collaboration Coordinator
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Collaboration;
+namespace Dawning.Agents.Core.MultiAgent.Collaboration;
 
 using Microsoft.Extensions.Logging;
 
@@ -1107,7 +1107,7 @@ Console.WriteLine($"Participants: {result.ParticipantCount}");
 ### Week 8 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── MultiAgent/
     ├── Communication/
     │   ├── AgentMessage.cs           # Message types

@@ -30,7 +30,7 @@
 ### 2. Safety Configuration
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
 /// Safety configuration for agents
@@ -97,7 +97,7 @@ public record SafetyConfig
 ### 3. Guardrail Interface
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
 /// Interface for safety guardrails
@@ -180,7 +180,7 @@ public enum GuardrailAction
 ### 1. Input Validator
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -308,7 +308,7 @@ public class InputValidator : IGuardrail
 ### 2. Content Moderator
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using Microsoft.Extensions.Logging;
 
@@ -433,7 +433,7 @@ public class ContentModerator : IGuardrail
 ### 3. Sensitive Data Filter
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -556,7 +556,7 @@ public class SensitiveDataFilter : IGuardrail
 ### 1. Guardrail Pipeline
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -681,7 +681,7 @@ public record PipelineResult
 ### 2. Safe Agent Wrapper
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -789,7 +789,7 @@ public class SafeAgent : IAgent
 ### 3. Rate Limiter
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using System.Collections.Concurrent;
 
@@ -908,7 +908,7 @@ public class RateLimiter
 ### 4. Audit Logger
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -1080,7 +1080,7 @@ else
 ### Week 9 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── Safety/
     ├── SafetyConfig.cs              # Configuration
     ├── IGuardrail.cs                # Guardrail interface

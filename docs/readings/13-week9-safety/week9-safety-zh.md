@@ -30,7 +30,7 @@
 ### 2. 安全配置
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
 /// Agent的安全配置
@@ -97,7 +97,7 @@ public record SafetyConfig
 ### 3. 护栏接口
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
 /// 安全护栏接口
@@ -180,7 +180,7 @@ public enum GuardrailAction
 ### 1. 输入验证器
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -312,7 +312,7 @@ public class InputValidator : IGuardrail
 ### 2. 内容审核器
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using Microsoft.Extensions.Logging;
 
@@ -437,7 +437,7 @@ public class ContentModerator : IGuardrail
 ### 3. 敏感数据过滤器
 
 ```csharp
-namespace DawningAgents.Core.Safety.Guardrails;
+namespace Dawning.Agents.Core.Safety.Guardrails;
 
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -560,7 +560,7 @@ public class SensitiveDataFilter : IGuardrail
 ### 1. 护栏流水线
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -685,7 +685,7 @@ public record PipelineResult
 ### 2. 安全Agent包装器
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -793,7 +793,7 @@ public class SafeAgent : IAgent
 ### 3. 速率限制器
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using System.Collections.Concurrent;
 
@@ -912,7 +912,7 @@ public class RateLimiter
 ### 4. 审计日志器
 
 ```csharp
-namespace DawningAgents.Core.Safety;
+namespace Dawning.Agents.Core.Safety;
 
 using Microsoft.Extensions.Logging;
 
@@ -1084,7 +1084,7 @@ else
 ### 第9周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── Safety/
     ├── SafetyConfig.cs              # 配置
     ├── IGuardrail.cs                # 护栏接口

@@ -33,7 +33,7 @@
 ### 2. Telemetry Configuration
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 /// <summary>
 /// Telemetry configuration for agents
@@ -58,7 +58,7 @@ public record TelemetryConfig
     /// <summary>
     /// Service name for telemetry
     /// </summary>
-    public string ServiceName { get; init; } = "DawningAgents";
+    public string ServiceName { get; init; } = "Dawning.Agents";
     
     /// <summary>
     /// Service version
@@ -100,7 +100,7 @@ public enum LogLevel
 ### 3. Agent Telemetry Provider
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -247,7 +247,7 @@ public class AgentTelemetry : IDisposable
 ### 1. Agent Logger
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using Microsoft.Extensions.Logging;
 
@@ -344,7 +344,7 @@ public class AgentLogger
 ### 2. Log Context & Enrichment
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Collections.Concurrent;
 
@@ -443,7 +443,7 @@ public static class LogContextExtensions
 ### 1. Metrics Collector
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Collections.Concurrent;
 
@@ -630,7 +630,7 @@ public record MetricData
 ### 2. Distributed Tracing
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Diagnostics;
 
@@ -816,7 +816,7 @@ internal class NoOpSpan : ITraceSpan
 ### 3. Observable Agent Wrapper
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using Microsoft.Extensions.Logging;
 
@@ -934,7 +934,7 @@ public class ObservableAgent : IAgent
 ### 4. Health Check
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 /// <summary>
 /// Health check for agent system
@@ -1064,7 +1064,7 @@ public class LLMHealthCheck : IHealthCheckProvider
 // Configure telemetry
 var telemetryConfig = new TelemetryConfig
 {
-    ServiceName = "DawningAgents",
+    ServiceName = "Dawning.Agents",
     ServiceVersion = "1.0.0",
     Environment = "development",
     EnableLogging = true,
@@ -1128,7 +1128,7 @@ foreach (var component in health.Components)
 ### Week 11 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── Observability/
     ├── TelemetryConfig.cs        # Configuration
     ├── AgentTelemetry.cs         # Metrics/tracing provider

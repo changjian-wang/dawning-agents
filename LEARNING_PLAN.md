@@ -77,14 +77,14 @@ Phase 6 (Week 11-12) : 优化、测试与发布
 ```text
 dawning-agents/
 ├── src/
-│   └── DawningAgents.Core/
+│   └── Dawning.Agents.Core/
 │       └── LLM/
 │           ├── ILLMProvider.cs
 │           ├── OpenAIProvider.cs
 │           └── AzureOpenAIProvider.cs
 ├── tests/
-│   └── DawningAgents.Tests/
-└── DawningAgents.sln
+│   └── Dawning.Agents.Tests/
+└── Dawning.Agents.sln
 ```
 
 ---
@@ -157,7 +157,7 @@ public interface IAgent
 **Week 4 产出物**:
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Agents/
 │   ├── IAgent.cs
 │   ├── AgentBase.cs
@@ -244,7 +244,7 @@ public class WeatherTool
 **Week 6 产出物**:
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Tools/
 │   ├── ITool.cs
 │   ├── ToolAttribute.cs
@@ -321,7 +321,7 @@ src/DawningAgents.Core/
 **Week 8 产出物**:
 
 ```text
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Orchestration/
 │   ├── IOrchestrator.cs
 │   ├── OrchestratorBase.cs
@@ -365,7 +365,7 @@ src/DawningAgents.Core/
 
 ```csharp
 // 目标用法
-services.AddDawningAgents()
+services.AddDawning.Agents()
     .AddAgent<ResearcherAgent>()
     .AddAgent<WriterAgent>()
     .AddOrchestrator<SequentialOrchestrator>()
@@ -407,15 +407,15 @@ services.AddDawningAgents()
 
 ```text
 src/
-├── DawningAgents.Core/           # 核心库
-├── DawningAgents.Extensions/     # 扩展包
+├── Dawning.Agents.Core/           # 核心库
+├── Dawning.Agents.Extensions/     # 扩展包
 │   ├── DependencyInjection/
 │   ├── Logging/
 │   └── Resilience/
-├── DawningAgents.Persistence/    # 持久化
+├── Dawning.Agents.Persistence/    # 持久化
 │   ├── ICheckpointStore.cs
 │   └── FileCheckpointStore.cs
-└── DawningAgents.Observability/  # 可观测性
+└── Dawning.Agents.Observability/  # 可观测性
     ├── Tracing/
     ├── Metrics/
     └── Events/
@@ -475,13 +475,13 @@ src/
 ```text
 dawning-agents/
 ├── src/
-│   ├── DawningAgents.Core/
-│   ├── DawningAgents.Extensions/
-│   ├── DawningAgents.Persistence/
-│   └── DawningAgents.Observability/
+│   ├── Dawning.Agents.Core/
+│   ├── Dawning.Agents.Extensions/
+│   ├── Dawning.Agents.Persistence/
+│   └── Dawning.Agents.Observability/
 ├── tests/
-│   ├── DawningAgents.Tests.Unit/
-│   └── DawningAgents.Tests.Integration/
+│   ├── Dawning.Agents.Tests.Unit/
+│   └── Dawning.Agents.Tests.Integration/
 ├── examples/
 │   ├── ResearchTeam/
 │   ├── CustomerService/
@@ -493,7 +493,7 @@ dawning-agents/
 │   └── api-reference.md
 ├── README.md
 ├── CHANGELOG.md
-└── DawningAgents.sln
+└── Dawning.Agents.sln
 ```
 
 ---

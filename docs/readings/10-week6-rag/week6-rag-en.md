@@ -40,7 +40,7 @@
 Embeddings are dense vector representations that capture semantic meaning:
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Interface for generating embeddings
@@ -72,7 +72,7 @@ public interface IEmbeddingProvider
 ### 3. OpenAI Embeddings Implementation
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -158,7 +158,7 @@ public class OpenAIEmbeddingProvider : IEmbeddingProvider
 ### 4. Vector Similarity Functions
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Vector similarity calculations
@@ -234,7 +234,7 @@ public static class VectorSimilarity
 ### 1. Document Model
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Represents a document in the knowledge base
@@ -288,7 +288,7 @@ public record SearchResult
 ### 2. Document Chunker
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Interface for splitting documents into chunks
@@ -461,7 +461,7 @@ public class SentenceChunker : IDocumentChunker
 ### 3. Vector Store Interface
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Interface for vector storage and retrieval
@@ -503,7 +503,7 @@ public interface IVectorStore
 ### 4. In-Memory Vector Store
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using System.Collections.Concurrent;
 
@@ -597,7 +597,7 @@ public class InMemoryVectorStore : IVectorStore
 ### 1. Retriever Interface
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// Interface for retrieving relevant documents
@@ -653,7 +653,7 @@ public class VectorRetriever : IRetriever
 ### 2. Knowledge Base
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using Microsoft.Extensions.Logging;
 
@@ -764,9 +764,9 @@ public class KnowledgeBase
 ### 3. RAG Tool for Agents
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
-using DawningAgents.Core.RAG;
+using Dawning.Agents.Core.RAG;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -856,10 +856,10 @@ public class RAGTool : ToolBase
 ### 4. RAG-Enhanced Agent
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
-using DawningAgents.Core.RAG;
+using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.RAG;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -975,7 +975,7 @@ Console.WriteLine(response.Output);
 ### Week 6 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── RAG/
 │   ├── IEmbeddingProvider.cs       # Embedding interface
 │   ├── OpenAIEmbeddingProvider.cs  # OpenAI implementation

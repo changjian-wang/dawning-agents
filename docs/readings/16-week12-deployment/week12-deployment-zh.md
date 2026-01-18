@@ -37,28 +37,28 @@
 ### 2. Dockerfile
 
 ```dockerfile
-# DawningAgents的Dockerfile
+# Dawning.Agents的Dockerfile
 
 # 构建阶段
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # 复制项目文件
-COPY ["src/DawningAgents.Core/DawningAgents.Core.csproj", "DawningAgents.Core/"]
-COPY ["src/DawningAgents.Api/DawningAgents.Api.csproj", "DawningAgents.Api/"]
+COPY ["src/Dawning.Agents.Core/Dawning.Agents.Core.csproj", "Dawning.Agents.Core/"]
+COPY ["src/Dawning.Agents.Api/Dawning.Agents.Api.csproj", "Dawning.Agents.Api/"]
 
 # 还原依赖
-RUN dotnet restore "DawningAgents.Api/DawningAgents.Api.csproj"
+RUN dotnet restore "Dawning.Agents.Api/Dawning.Agents.Api.csproj"
 
 # 复制源代码
 COPY src/ .
 
 # 构建
-RUN dotnet build "DawningAgents.Api/DawningAgents.Api.csproj" -c Release -o /app/build
+RUN dotnet build "Dawning.Agents.Api/Dawning.Agents.Api.csproj" -c Release -o /app/build
 
 # 发布阶段
 FROM build AS publish
-RUN dotnet publish "DawningAgents.Api/DawningAgents.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Dawning.Agents.Api/Dawning.Agents.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # 运行时阶段
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
@@ -82,7 +82,7 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENTRYPOINT ["dotnet", "DawningAgents.Api.dll"]
+ENTRYPOINT ["dotnet", "Dawning.Agents.Api.dll"]
 ```
 
 ### 3. Docker Compose
@@ -153,7 +153,7 @@ volumes:
 ### 1. 配置提供者
 
 ```csharp
-namespace DawningAgents.Core.Configuration;
+namespace Dawning.Agents.Core.Configuration;
 
 using Microsoft.Extensions.Configuration;
 
@@ -261,7 +261,7 @@ public record CacheOptions
     "DefaultExpiration": "01:00:00"
   },
   "Telemetry": {
-    "ServiceName": "DawningAgents",
+    "ServiceName": "Dawning.Agents",
     "EnableLogging": true,
     "EnableMetrics": true,
     "EnableTracing": true,
@@ -297,7 +297,7 @@ public record CacheOptions
   "Logging": {
     "LogLevel": {
       "Default": "Warning",
-      "DawningAgents": "Information"
+      "Dawning.Agents": "Information"
     }
   }
 }
@@ -306,7 +306,7 @@ public record CacheOptions
 ### 3. 密钥管理
 
 ```csharp
-namespace DawningAgents.Core.Configuration;
+namespace Dawning.Agents.Core.Configuration;
 
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -392,7 +392,7 @@ public class EnvironmentSecretsManager : ISecretsManager
 ### 1. 请求队列与工作池
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
@@ -554,7 +554,7 @@ public class AgentWorkerPool : IDisposable
 ### 2. 负载均衡器与熔断器
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -726,7 +726,7 @@ public class CircuitBreakerOpenException : Exception
 ### 3. 自动扩展器
 
 ```csharp
-namespace DawningAgents.Core.Scaling;
+namespace Dawning.Agents.Core.Scaling;
 
 using Microsoft.Extensions.Logging;
 
@@ -880,14 +880,14 @@ public enum ScalingAction
 ### 4. API启动配置
 
 ```csharp
-namespace DawningAgents.Api;
+namespace Dawning.Agents.Api;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DawningAgents.Core.Configuration;
-using DawningAgents.Core.Observability;
-using DawningAgents.Core.Scaling;
-using DawningAgents.Core.Safety;
+using Dawning.Agents.Core.Configuration;
+using Dawning.Agents.Core.Observability;
+using Dawning.Agents.Core.Scaling;
+using Dawning.Agents.Core.Safety;
 
 public class Program
 {
@@ -1111,7 +1111,7 @@ spec:
 ### 第12周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── Configuration/
 │   ├── AgentConfiguration.cs      # 配置加载
 │   ├── AgentOptions.cs            # 类型化选项

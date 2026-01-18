@@ -12,16 +12,16 @@ dawning-agents/
 ├── .editorconfig                    # 代码规范
 ├── .github/workflows/build.yml      # GitHub Actions CI/CD
 ├── Directory.Build.props            # 统一项目配置 (net10.0)
-├── DawningAgents.sln                # 解决方案
+├── Dawning.Agents.sln                # 解决方案
 ├── src/
-│   ├── DawningAgents.Core/          # 核心类库
+│   ├── Dawning.Agents.Core/          # 核心类库
 │   │   └── LLM/
 │   │       ├── ILLMProvider.cs      # LLM 抽象接口
 │   │       └── OllamaProvider.cs    # Ollama 本地模型实现
-│   └── DawningAgents.Demo/          # 演示控制台
+│   └── Dawning.Agents.Demo/          # 演示控制台
 │       └── Program.cs
 └── tests/
-    └── DawningAgents.Tests/         # 单元测试 (8 tests)
+    └── Dawning.Agents.Tests/         # 单元测试 (8 tests)
         └── LLM/
             └── OllamaProviderTests.cs
 ```

@@ -32,7 +32,7 @@
 ### 2. 遥测配置
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 /// <summary>
 /// Agent遥测配置
@@ -57,7 +57,7 @@ public record TelemetryConfig
     /// <summary>
     /// 遥测服务名称
     /// </summary>
-    public string ServiceName { get; init; } = "DawningAgents";
+    public string ServiceName { get; init; } = "Dawning.Agents";
     
     /// <summary>
     /// 服务版本
@@ -99,7 +99,7 @@ public enum LogLevel
 ### 3. Agent遥测提供者
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -246,7 +246,7 @@ public class AgentTelemetry : IDisposable
 ### 1. Agent日志器
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using Microsoft.Extensions.Logging;
 
@@ -343,7 +343,7 @@ public class AgentLogger
 ### 2. 日志上下文与丰富
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Collections.Concurrent;
 
@@ -442,7 +442,7 @@ public static class LogContextExtensions
 ### 1. 指标收集器
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Collections.Concurrent;
 
@@ -629,7 +629,7 @@ public record MetricData
 ### 2. 分布式追踪
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using System.Diagnostics;
 
@@ -815,7 +815,7 @@ internal class NoOpSpan : ITraceSpan
 ### 3. 可观测Agent包装器
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 using Microsoft.Extensions.Logging;
 
@@ -933,7 +933,7 @@ public class ObservableAgent : IAgent
 ### 4. 健康检查
 
 ```csharp
-namespace DawningAgents.Core.Observability;
+namespace Dawning.Agents.Core.Observability;
 
 /// <summary>
 /// Agent系统健康检查
@@ -1063,7 +1063,7 @@ public class LLMHealthCheck : IHealthCheckProvider
 // 配置遥测
 var telemetryConfig = new TelemetryConfig
 {
-    ServiceName = "DawningAgents",
+    ServiceName = "Dawning.Agents",
     ServiceVersion = "1.0.0",
     Environment = "development",
     EnableLogging = true,
@@ -1127,7 +1127,7 @@ foreach (var component in health.Components)
 ### 第11周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── Observability/
     ├── TelemetryConfig.cs        # 配置
     ├── AgentTelemetry.cs         # 指标/追踪提供者

@@ -30,7 +30,7 @@
 ### 2. Confirmation Request Models
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// Request for human confirmation
@@ -131,7 +131,7 @@ public record ConfirmationResponse
 ### 3. Human Interaction Handler Interface
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// Interface for human interaction
@@ -185,7 +185,7 @@ public enum NotificationLevel
 ### 1. Console-Based Handler
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop.Handlers;
+namespace Dawning.Agents.Core.HumanLoop.Handlers;
 
 using Microsoft.Extensions.Logging;
 
@@ -382,7 +382,7 @@ public class ConsoleInteractionHandler : IHumanInteractionHandler
 ### 2. Async Callback Handler
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop.Handlers;
+namespace Dawning.Agents.Core.HumanLoop.Handlers;
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -532,7 +532,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
 ### 1. Escalation Models
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
 /// Request to escalate to human
@@ -584,7 +584,7 @@ public enum EscalationAction
 ### 2. Approval Workflow Manager
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 using Microsoft.Extensions.Logging;
 
@@ -800,7 +800,7 @@ public record ApprovalResult
 ### 3. Human-in-the-Loop Agent
 
 ```csharp
-namespace DawningAgents.Core.HumanLoop;
+namespace Dawning.Agents.Core.HumanLoop;
 
 using Microsoft.Extensions.Logging;
 
@@ -1090,7 +1090,7 @@ else
 ### Week 10 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── HumanLoop/
     ├── ConfirmationRequest.cs      # Request models
     ├── ConfirmationResponse.cs     # Response models

@@ -35,7 +35,7 @@ Single agents have limitations:
 ### 2. Agent Team Interface
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// Represents an agent that can participate in multi-agent workflows
@@ -85,7 +85,7 @@ public abstract class TeamAgentBase : AgentBase, ITeamAgent
 ### 3. Task Definition
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// Represents a task in a multi-agent workflow
@@ -134,7 +134,7 @@ public record WorkflowResult
 ### 1. Orchestrator Interface
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 /// <summary>
 /// Interface for orchestrating multiple agents
@@ -189,7 +189,7 @@ public abstract class OrchestratorBase : IOrchestrator
 ### 2. Sequential Orchestrator
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -282,7 +282,7 @@ public class SequentialOrchestrator : OrchestratorBase
 ### 3. Parallel Orchestrator
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -449,7 +449,7 @@ public class LLMAggregator : IResultAggregator
 ### 1. Supervisor Agent
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -629,7 +629,7 @@ public class SupervisorAgent : TeamAgentBase
 ### 2. Specialized Worker Agents
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent.Workers;
+namespace Dawning.Agents.Core.MultiAgent.Workers;
 
 using Microsoft.Extensions.Logging;
 
@@ -738,7 +738,7 @@ public class WriterAgent : TeamAgentBase
 ### 3. Dynamic Router
 
 ```csharp
-namespace DawningAgents.Core.MultiAgent;
+namespace Dawning.Agents.Core.MultiAgent;
 
 using Microsoft.Extensions.Logging;
 
@@ -893,7 +893,7 @@ var supervisedResult = await supervisor.ExecuteAsync(new AgentContext
 ### Week 7 Deliverables
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 └── MultiAgent/
     ├── ITeamAgent.cs              # Team agent interface
     ├── TeamAgentBase.cs           # Base implementation

@@ -40,7 +40,7 @@
 嵌入向量是捕获语义含义的稠密向量表示：
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 嵌入向量生成接口
@@ -72,7 +72,7 @@ public interface IEmbeddingProvider
 ### 3. OpenAI嵌入向量实现
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -158,7 +158,7 @@ public class OpenAIEmbeddingProvider : IEmbeddingProvider
 ### 4. 向量相似度函数
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 向量相似度计算
@@ -234,7 +234,7 @@ public static class VectorSimilarity
 ### 1. 文档模型
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 知识库中的文档
@@ -288,7 +288,7 @@ public record SearchResult
 ### 2. 文档分块器
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 文档分块接口
@@ -462,7 +462,7 @@ public class SentenceChunker : IDocumentChunker
 ### 3. 向量存储接口
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 向量存储和检索接口
@@ -504,7 +504,7 @@ public interface IVectorStore
 ### 4. 内存向量存储
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using System.Collections.Concurrent;
 
@@ -598,7 +598,7 @@ public class InMemoryVectorStore : IVectorStore
 ### 1. 检索器接口
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
 /// 检索相关文档的接口
@@ -654,7 +654,7 @@ public class VectorRetriever : IRetriever
 ### 2. 知识库
 
 ```csharp
-namespace DawningAgents.Core.RAG;
+namespace Dawning.Agents.Core.RAG;
 
 using Microsoft.Extensions.Logging;
 
@@ -765,9 +765,9 @@ public class KnowledgeBase
 ### 3. RAG工具
 
 ```csharp
-namespace DawningAgents.Core.Tools.BuiltIn;
+namespace Dawning.Agents.Core.Tools.BuiltIn;
 
-using DawningAgents.Core.RAG;
+using Dawning.Agents.Core.RAG;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -857,10 +857,10 @@ public class RAGTool : ToolBase
 ### 4. RAG增强Agent
 
 ```csharp
-namespace DawningAgents.Core.Agents;
+namespace Dawning.Agents.Core.Agents;
 
-using DawningAgents.Core.LLM;
-using DawningAgents.Core.RAG;
+using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.RAG;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -976,7 +976,7 @@ Console.WriteLine(response.Output);
 ### 第6周交付物
 
 ```
-src/DawningAgents.Core/
+src/Dawning.Agents.Core/
 ├── RAG/
 │   ├── IEmbeddingProvider.cs       # 嵌入向量接口
 │   ├── OpenAIEmbeddingProvider.cs  # OpenAI实现

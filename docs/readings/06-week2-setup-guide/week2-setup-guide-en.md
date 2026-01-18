@@ -163,18 +163,18 @@ git clone https://github.com/changjian-wang/dawning-agents.git
 cd dawning-agents
 
 # Create solution
-dotnet new sln -n DawningAgents
+dotnet new sln -n Dawning.Agents
 
 # Create core library project
-dotnet new classlib -n DawningAgents.Core -o src/DawningAgents.Core
-dotnet sln add src/DawningAgents.Core/DawningAgents.Core.csproj
+dotnet new classlib -n Dawning.Agents.Core -o src/Dawning.Agents.Core
+dotnet sln add src/Dawning.Agents.Core/Dawning.Agents.Core.csproj
 
 # Create test project
-dotnet new xunit -n DawningAgents.Tests -o tests/DawningAgents.Tests
-dotnet sln add tests/DawningAgents.Tests/DawningAgents.Tests.csproj
+dotnet new xunit -n Dawning.Agents.Tests -o tests/Dawning.Agents.Tests
+dotnet sln add tests/Dawning.Agents.Tests/Dawning.Agents.Tests.csproj
 
 # Add reference from tests to core
-dotnet add tests/DawningAgents.Tests/DawningAgents.Tests.csproj reference src/DawningAgents.Core/DawningAgents.Core.csproj
+dotnet add tests/Dawning.Agents.Tests/Dawning.Agents.Tests.csproj reference src/Dawning.Agents.Core/Dawning.Agents.Core.csproj
 
 # Build to verify
 dotnet build
@@ -185,7 +185,7 @@ dotnet build
 #### Core Project Packages
 
 ```powershell
-cd src/DawningAgents.Core
+cd src/Dawning.Agents.Core
 
 # OpenAI SDK
 dotnet add package Azure.AI.OpenAI --version 2.0.0
@@ -207,7 +207,7 @@ dotnet add package Microsoft.Extensions.Http
 #### Test Project Packages
 
 ```powershell
-cd tests/DawningAgents.Tests
+cd tests/Dawning.Agents.Tests
 
 # Testing frameworks
 dotnet add package xunit
@@ -362,10 +362,10 @@ jobs:
 
 ### 1. Create LLM Provider Interface
 
-Create `src/DawningAgents.Core/LLM/ILLMProvider.cs`:
+Create `src/Dawning.Agents.Core/LLM/ILLMProvider.cs`:
 
 ```csharp
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// Represents a message in a conversation
@@ -424,7 +424,7 @@ public interface ILLMProvider
 
 ### 2. Implement OpenAI Provider
 
-Create `src/DawningAgents.Core/LLM/OpenAIProvider.cs`:
+Create `src/Dawning.Agents.Core/LLM/OpenAIProvider.cs`:
 
 ```csharp
 using System.ClientModel;
@@ -432,7 +432,7 @@ using System.Runtime.CompilerServices;
 using OpenAI;
 using OpenAI.Chat;
 
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// OpenAI API provider implementation
@@ -543,7 +543,7 @@ public class OpenAIProvider : ILLMProvider
 
 ### 3. Implement Azure OpenAI Provider
 
-Create `src/DawningAgents.Core/LLM/AzureOpenAIProvider.cs`:
+Create `src/Dawning.Agents.Core/LLM/AzureOpenAIProvider.cs`:
 
 ```csharp
 using System.ClientModel;
@@ -552,7 +552,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
 
-namespace DawningAgents.Core.LLM;
+namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
 /// Azure OpenAI API provider implementation
@@ -667,12 +667,12 @@ public class AzureOpenAIProvider : ILLMProvider
 
 ### 4. Create Simple Console Demo
 
-Create `src/DawningAgents.Demo/Program.cs`:
+Create `src/Dawning.Agents.Demo/Program.cs`:
 
 ```csharp
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 
-Console.WriteLine("=== DawningAgents LLM Demo ===\n");
+Console.WriteLine("=== Dawning.Agents LLM Demo ===\n");
 
 // Get API key from environment
 var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
@@ -734,13 +734,13 @@ Console.WriteLine("\nGoodbye!");
 
 ### 5. Create Unit Tests
 
-Create `tests/DawningAgents.Tests/LLM/OpenAIProviderTests.cs`:
+Create `tests/Dawning.Agents.Tests/LLM/OpenAIProviderTests.cs`:
 
 ```csharp
-using DawningAgents.Core.LLM;
+using Dawning.Agents.Core.LLM;
 using FluentAssertions;
 
-namespace DawningAgents.Tests.LLM;
+namespace Dawning.Agents.Tests.LLM;
 
 public class OpenAIProviderTests
 {
@@ -822,27 +822,27 @@ dawning-agents/
 │   └── workflows/
 │       └── build.yml
 ├── src/
-│   ├── DawningAgents.Core/
+│   ├── Dawning.Agents.Core/
 │   │   ├── LLM/
 │   │   │   ├── ILLMProvider.cs
 │   │   │   ├── OpenAIProvider.cs
 │   │   │   └── AzureOpenAIProvider.cs
-│   │   └── DawningAgents.Core.csproj
-│   └── DawningAgents.Demo/
+│   │   └── Dawning.Agents.Core.csproj
+│   └── Dawning.Agents.Demo/
 │       ├── Program.cs
-│       └── DawningAgents.Demo.csproj
+│       └── Dawning.Agents.Demo.csproj
 ├── tests/
-│   └── DawningAgents.Tests/
+│   └── Dawning.Agents.Tests/
 │       ├── LLM/
 │       │   └── OpenAIProviderTests.cs
-│       └── DawningAgents.Tests.csproj
+│       └── Dawning.Agents.Tests.csproj
 ├── docs/
 │   └── readings/
 │       └── ...
 ├── .editorconfig
 ├── .gitignore
 ├── Directory.Build.props
-├── DawningAgents.sln
+├── Dawning.Agents.sln
 ├── LEARNING_PLAN.md
 └── LICENSE
 ```
