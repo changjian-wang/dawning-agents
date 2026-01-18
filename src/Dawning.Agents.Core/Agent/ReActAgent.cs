@@ -77,7 +77,11 @@ public partial class ReActAgent : AgentBase
             new("user", prompt),
         };
 
-        var response = await LLMProvider.ChatAsync(messages, cancellationToken: cancellationToken);
+        var response = await LLMProvider.ChatAsync(
+            messages,
+            new ChatCompletionOptions { MaxTokens = 1024 },
+            cancellationToken
+        );
         var llmOutput = response.Content ?? string.Empty;
 
         Logger.LogDebug("LLM 输出:\n{Output}", llmOutput);
@@ -97,6 +101,7 @@ public partial class ReActAgent : AgentBase
         return new AgentStep
         {
             StepNumber = stepNumber,
+            RawOutput = llmOutput,
             Thought = thought,
             Action = action,
             ActionInput = actionInput,
@@ -114,11 +119,31 @@ public partial class ReActAgent : AgentBase
     /// </remarks>
     protected override string? ExtractFinalAnswer(AgentStep step)
     {
-        // 如果这一步没有 Action，检查 Thought 中是否包含 Final Answer
+        // 从原始输出中提取 Final Answer
+        if (!string.IsNullOrEmpty(step.RawOutput))
+        {
+            var finalAnswer = ExtractMatch(FinalAnswerRegex(), step.RawOutput);
+            if (!string.IsNullOrEmpty(finalAnswer))
+            {
+                return finalAnswer;
+            }
+        }
+
+        // 如果没有 Action 且有 Thought，可能 LLM 直接给出了答案（非标准格式）
         if (string.IsNullOrEmpty(step.Action) && !string.IsNullOrEmpty(step.Thought))
         {
-            // 重新解析原始输出查找 Final Answer
-            // 由于我们在 step 中存储了 thought，需要检查是否有 final answer 模式
+            // 将 Thought 作为答案返回
+            return step.Thought;
+        }
+
+        // 如果既没有标准格式，也没有 Thought，但有原始输出，直接返回原始输出
+        if (
+            string.IsNullOrEmpty(step.Action)
+            && string.IsNullOrEmpty(step.Thought)
+            && !string.IsNullOrEmpty(step.RawOutput)
+        )
+        {
+            return step.RawOutput;
         }
 
         return null;

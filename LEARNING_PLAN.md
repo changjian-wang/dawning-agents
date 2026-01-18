@@ -95,10 +95,10 @@ dawning-agents/
 
 #### Day 1-2: 理解 Agent Loop
 
-- [ ] **阅读**: LangChain Agent 源码
+- [x] **阅读**: LangChain Agent 源码
   - `langchain/agents/agent.py`
   - `langchain/agents/mrkl/base.py`
-- [ ] **笔记**: Agent 执行循环原理
+- [x] **笔记**: Agent 执行循环原理
 
   ```text
   Observe → Think → Act → Observe → ...
@@ -106,10 +106,10 @@ dawning-agents/
 
 #### Day 3-4: 实现基础 Agent
 
-- [ ] **代码**: 设计 `IAgent` 接口
-- [ ] **代码**: 实现 `AgentBase` 抽象类
-- [ ] **代码**: 实现 `AgentContext` 上下文
-- [ ] **代码**: 实现简单的 ReAct Agent
+- [x] **代码**: 设计 `IAgent` 接口
+- [x] **代码**: 实现 `AgentBase` 抽象类
+- [x] **代码**: 实现 `AgentContext` 上下文
+- [x] **代码**: 实现简单的 ReAct Agent
 
 ```csharp
 // 目标接口
@@ -123,11 +123,11 @@ public interface IAgent
 
 #### Day 5-7: Prompt Engineering
 
-- [ ] **学习**: System Prompt 设计原则
-- [ ] **学习**: Few-shot Prompting
-- [ ] **学习**: Chain of Thought Prompting
-- [ ] **实践**: 为 Agent 设计 Prompt 模板
-- [ ] **代码**: 实现 `PromptTemplate` 类
+- [x] **学习**: System Prompt 设计原则
+- [x] **学习**: Few-shot Prompting
+- [x] **学习**: Chain of Thought Prompting
+- [x] **实践**: 为 Agent 设计 Prompt 模板
+- [x] **代码**: 实现 `PromptTemplate` 类
 
 ### Week 4: 对话管理与记忆
 

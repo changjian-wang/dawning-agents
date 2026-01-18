@@ -29,5 +29,8 @@ public interface IAgent
     /// <param name="context">执行上下文</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>Agent 响应</returns>
-    Task<AgentResponse> RunAsync(AgentContext context, CancellationToken cancellationToken = default);
+    Task<AgentResponse> RunAsync(
+        AgentContext context,
+        CancellationToken cancellationToken = default
+    );
 }

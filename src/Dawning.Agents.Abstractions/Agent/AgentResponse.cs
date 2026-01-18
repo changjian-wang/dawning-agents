@@ -33,24 +33,32 @@ public record AgentResponse
     /// <summary>
     /// 创建成功响应
     /// </summary>
-    public static AgentResponse Successful(string finalAnswer, IReadOnlyList<AgentStep> steps, TimeSpan duration)
-        => new()
+    public static AgentResponse Successful(
+        string finalAnswer,
+        IReadOnlyList<AgentStep> steps,
+        TimeSpan duration
+    ) =>
+        new()
         {
             Success = true,
             FinalAnswer = finalAnswer,
             Steps = steps,
-            Duration = duration
+            Duration = duration,
         };
 
     /// <summary>
     /// 创建失败响应
     /// </summary>
-    public static AgentResponse Failed(string error, IReadOnlyList<AgentStep> steps, TimeSpan duration)
-        => new()
+    public static AgentResponse Failed(
+        string error,
+        IReadOnlyList<AgentStep> steps,
+        TimeSpan duration
+    ) =>
+        new()
         {
             Success = false,
             Error = error,
             Steps = steps,
-            Duration = duration
+            Duration = duration,
         };
 }

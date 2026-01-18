@@ -11,6 +11,11 @@ public record AgentStep
     public required int StepNumber { get; init; }
 
     /// <summary>
+    /// LLM 原始输出（用于调试和 Final Answer 提取）
+    /// </summary>
+    public string? RawOutput { get; init; }
+
+    /// <summary>
     /// Agent 的思考过程
     /// </summary>
     public string? Thought { get; init; }

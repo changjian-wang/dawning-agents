@@ -52,7 +52,31 @@ var provider = new OllamaProvider("model");
 
 ```
 Dawning.Agents.Abstractions/  → 接口、数据模型（零依赖）
+├── LLM/                      → LLM 相关接口
+│   ├── ILLMProvider.cs
+│   ├── ChatMessage.cs
+│   └── LLMOptions.cs
+├── Agent/                    → Agent 相关接口
+│   ├── IAgent.cs
+│   ├── AgentContext.cs
+│   ├── AgentStep.cs
+│   ├── AgentResponse.cs
+│   └── AgentOptions.cs
+└── Prompts/                  → 提示词模板接口
+    └── IPromptTemplate.cs
+
 Dawning.Agents.Core/          → 核心实现、DI 扩展
+├── LLM/
+│   ├── OllamaProvider.cs
+│   └── LLMServiceCollectionExtensions.cs
+├── Agent/
+│   ├── AgentBase.cs
+│   ├── ReActAgent.cs
+│   └── AgentServiceCollectionExtensions.cs
+└── Prompts/
+    ├── PromptTemplate.cs
+    └── AgentPrompts.cs
+
 Dawning.Agents.{Provider}/    → 具体提供者实现
 ```
 

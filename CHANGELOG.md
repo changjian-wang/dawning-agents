@@ -4,6 +4,65 @@
 
 ---
 
+## [2026-01-18] Phase 2: Week 3 Agent 核心循环实现
+
+### 新增的文件结构
+```
+src/Dawning.Agents.Abstractions/
+├── Agent/
+│   ├── IAgent.cs              # Agent 核心接口
+│   ├── AgentContext.cs        # 执行上下文
+│   ├── AgentStep.cs           # 单步执行记录
+│   ├── AgentResponse.cs       # 执行响应
+│   └── AgentOptions.cs        # 配置选项
+└── Prompts/
+    └── IPromptTemplate.cs     # 提示词模板接口
+
+src/Dawning.Agents.Core/
+├── Agent/
+│   ├── AgentBase.cs                        # Agent 基类（核心循环）
+│   ├── ReActAgent.cs                       # ReAct 模式实现
+│   └── AgentServiceCollectionExtensions.cs # DI 注册扩展
+└── Prompts/
+    ├── PromptTemplate.cs      # 模板实现
+    └── AgentPrompts.cs        # 预定义模板
+
+tests/Dawning.Agents.Tests/
+├── Agent/
+│   ├── AgentModelsTests.cs    # 数据模型测试 (9 tests)
+│   └── ReActAgentTests.cs     # ReActAgent 测试 (6 tests)
+└── Prompts/
+    └── PromptTemplateTests.cs # 模板测试 (7 tests)
+```
+
+### 核心接口设计
+```csharp
+public interface IAgent
+{
+    string Name { get; }
+    string Instructions { get; }
+    Task<AgentResponse> RunAsync(string input, CancellationToken ct = default);
+    Task<AgentResponse> RunAsync(AgentContext context, CancellationToken ct = default);
+}
+```
+
+### ReAct 模式实现
+- **Thought**: Agent 的思考过程
+- **Action**: 要执行的动作
+- **Action Input**: 动作输入参数
+- **Observation**: 动作执行结果
+- **Final Answer**: 最终答案
+
+### 测试统计
+- 新增测试: 21 个
+- 总测试数: 63 个（全部通过）
+
+### 其他变更
+- 项目重命名: `DawningAgents` → `Dawning.Agents`
+- 更新 copilot-instructions.md 添加 CSharpier 格式规范
+
+---
+
 ## [2026-01-17] Phase 1: Week 2 项目初始化完成
 
 ### 创建的解决方案结构
