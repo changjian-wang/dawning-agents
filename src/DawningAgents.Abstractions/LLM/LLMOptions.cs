@@ -1,21 +1,6 @@
 namespace DawningAgents.Abstractions.LLM;
 
 /// <summary>
-/// LLM 提供者类型
-/// </summary>
-public enum LLMProviderType
-{
-    /// <summary>本地 Ollama 模型</summary>
-    Ollama,
-
-    /// <summary>OpenAI API</summary>
-    OpenAI,
-
-    /// <summary>Azure OpenAI / Azure AI Foundry</summary>
-    AzureOpenAI,
-}
-
-/// <summary>
 /// LLM 配置选项
 /// 支持通过 appsettings.json、环境变量、用户机密等方式配置
 /// </summary>
