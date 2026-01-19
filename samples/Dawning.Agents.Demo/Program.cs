@@ -63,52 +63,52 @@ Console.WriteLine($"✓ 已创建 Agent: {agent.Name}\n");
 
 // 使用需要多步推理的复杂问题
 var complexQuestion = "帮我计算 23 * 17 的结果，然后查询北京的天气，最后总结一下。";
-Console.WriteLine($"问题：{complexQuestion}\n");
+Console.WriteLine($"📝 问题：{complexQuestion}\n");
 var agentResponse = await agent.RunAsync(complexQuestion);
 
-Console.WriteLine($"执行结果: {(agentResponse.Success ? "成功" : "失败")}");
-Console.WriteLine($"执行步骤: {agentResponse.Steps.Count}");
-Console.WriteLine($"执行时间: {agentResponse.Duration.TotalMilliseconds:F0}ms");
+// 显示执行步骤详情（使用清晰的格式）
+Console.WriteLine("─────────────────────────────────────────────────────────────");
+Console.WriteLine("                        🔄 执行过程");
+Console.WriteLine("─────────────────────────────────────────────────────────────");
 
-if (agentResponse.Success)
-{
-    Console.WriteLine($"最终答案: {agentResponse.FinalAnswer}");
-}
-else
-{
-    Console.WriteLine($"错误: {agentResponse.Error}");
-}
-
-// 显示执行步骤详情
-Console.WriteLine("\n执行步骤详情：");
 foreach (var step in agentResponse.Steps)
 {
-    Console.WriteLine($"  步骤 {step.StepNumber}:");
-
-    // 显示原始输出（截取前 200 字符）
-    if (!string.IsNullOrEmpty(step.RawOutput))
-    {
-        var preview = step.RawOutput.Length > 200 ? step.RawOutput[..200] + "..." : step.RawOutput;
-        Console.WriteLine($"    原始输出: {preview.Replace("\n", " ")}");
-    }
+    Console.WriteLine($"\n【步骤 {step.StepNumber}】");
 
     if (!string.IsNullOrEmpty(step.Thought))
     {
-        Console.WriteLine($"    Thought: {step.Thought[..Math.Min(100, step.Thought.Length)]}...");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"  💭 思考：{step.Thought.Trim()}");
+        Console.ResetColor();
     }
 
     if (!string.IsNullOrEmpty(step.Action))
     {
-        Console.WriteLine($"    Action: {step.Action}");
-        Console.WriteLine($"    Input: {step.ActionInput}");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"  🎯 动作：{step.Action}");
+        Console.WriteLine($"  📥 输入：{step.ActionInput}");
+        Console.ResetColor();
     }
 
     if (!string.IsNullOrEmpty(step.Observation))
     {
-        Console.WriteLine(
-            $"    Observation: {step.Observation[..Math.Min(80, step.Observation.Length)]}..."
-        );
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  👁️ 观察：{step.Observation.Trim()}");
+        Console.ResetColor();
     }
+}
+
+Console.WriteLine("\n─────────────────────────────────────────────────────────────");
+Console.WriteLine("                        📊 执行摘要");
+Console.WriteLine("─────────────────────────────────────────────────────────────");
+Console.WriteLine($"  状态：{(agentResponse.Success ? "✅ 成功" : "❌ 失败")}");
+Console.WriteLine($"  步骤：{agentResponse.Steps.Count} 步");
+Console.WriteLine($"  耗时：{agentResponse.Duration.TotalMilliseconds:F0}ms");
+if (!agentResponse.Success && !string.IsNullOrEmpty(agentResponse.Error))
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine($"  错误：{agentResponse.Error}");
+    Console.ResetColor();
 }
 
 Console.WriteLine();
