@@ -176,7 +176,8 @@ static async Task RunAgentDemo(IAgent agent)
     PrintSection("2. Agent 演示（ReAct 模式）");
     Console.WriteLine($"✓ Agent: {agent.Name}\n");
 
-    var question = "帮我搜索 .NET 中依赖注入的最佳实践，然后计算如果一个服务有 5 个依赖项，每个依赖项又有 3 个子依赖，总共需要注册多少个服务？最后给出建议。";
+    var question =
+        "帮我搜索 .NET 中依赖注入的最佳实践，然后计算如果一个服务有 5 个依赖项，每个依赖项又有 3 个子依赖，总共需要注册多少个服务？最后给出建议。";
     Console.WriteLine($"📝 问题：{question}\n");
 
     var response = await agent.RunAsync(question);
