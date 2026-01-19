@@ -1137,6 +1137,789 @@ src/Dawning.Agents.Core/
 | **工具注册表** | 集中管理工具 |
 | **工具执行器** | 带超时/重试的执行 |
 
+### 下一步：Week 5.5
+
+Week 5.5 将涵盖高级工具管理（参考 GitHub Copilot 设计）：
+
+- Tool Sets 工具分组
+- Virtual Tools 延迟加载
+- Tool Selector 智能选择
+- Approval Handler 审批流程
+
+---
+
+## Week 5.5: 高级工具管理（参考 GitHub Copilot）
+
+> 本节记录 dawning-agents 项目实际实现的高级工具管理系统
+
+### 1. 设计背景
+
+**问题**：LLM 上下文窗口有限，64 个工具全部发送会：
+
+- 浪费 Token
+- 降低工具选择准确率
+- 响应变慢
+
+**解决方案**：参考 GitHub Copilot 的设计策略
+
+```text
+GitHub Copilot 工具管理策略：
+- 默认 40 个工具精简为 13 个核心工具
+- 非核心工具分为 Virtual Tool 组（按需展开）
+- 使用 Embedding-Guided Tool Routing 智能选择
+```
+
+### 2. 架构层次图
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Agent 执行层                                  │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  IAgent.RunAsync() → 解析 LLM 响应 → 调用工具 → 返回结果      │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      工具管理层 (Week 5.5)                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────┐  │
+│  │ IToolSet    │  │IVirtualTool │  │ IToolSelector               │  │
+│  │ 工具分组    │  │ 延迟加载    │  │ 智能选择                    │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │             IToolApprovalHandler (审批流程)                  │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      工具注册层 (Week 5)                             │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  IToolRegistry                                                │   │
+│  │  - Register(ITool)              注册单个工具                  │   │
+│  │  - RegisterToolsFromType<T>()   从类型扫描注册                │   │
+│  │  - GetTool(name)                按名称获取                    │   │
+│  │  - GetToolsByCategory()         按分类获取                    │   │
+│  │  - RegisterToolSet()            注册工具集 (新增)             │   │
+│  │  - RegisterVirtualTool()        注册虚拟工具 (新增)           │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        工具定义层                                    │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  ITool 接口                                                   │   │
+│  │  - Name              工具名称（唯一标识）                      │   │
+│  │  - Description       描述（给 LLM 看）                        │   │
+│  │  - ParametersSchema  JSON Schema（参数格式）                  │   │
+│  │  - RiskLevel         风险等级 (Low/Medium/High)               │   │
+│  │  - RequiresConfirmation  是否需要确认                         │   │
+│  │  - Category          分类                                     │   │
+│  │  - ExecuteAsync()    执行方法                                 │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 3. IToolSet - 工具分组
+
+将相关工具组织在一起，便于管理和引用。
+
+```csharp
+namespace Dawning.Agents.Abstractions.Tools;
+
+/// <summary>
+/// 工具集接口 - 将相关工具分组管理
+/// </summary>
+public interface IToolSet
+{
+    /// <summary>
+    /// 工具集名称（唯一标识符）
+    /// </summary>
+    string Name { get; }
+
+    /// <summary>
+    /// 工具集描述（供 LLM 理解工具集用途）
+    /// </summary>
+    string Description { get; }
+
+    /// <summary>
+    /// 工具集图标（可选，用于 UI 显示）
+    /// </summary>
+    string? Icon { get; }
+
+    /// <summary>
+    /// 工具集包含的所有工具
+    /// </summary>
+    IReadOnlyList<ITool> Tools { get; }
+
+    /// <summary>
+    /// 工具数量
+    /// </summary>
+    int Count { get; }
+
+    /// <summary>
+    /// 根据名称获取工具
+    /// </summary>
+    ITool? GetTool(string toolName);
+
+    /// <summary>
+    /// 检查是否包含指定工具
+    /// </summary>
+    bool Contains(string toolName);
+}
+```
+
+**实现类 ToolSet**：
+
+```csharp
+namespace Dawning.Agents.Core.Tools;
+
+public class ToolSet : IToolSet
+{
+    private readonly Dictionary<string, ITool> _toolsByName;
+
+    public string Name { get; }
+    public string Description { get; }
+    public string? Icon { get; }
+    public IReadOnlyList<ITool> Tools { get; }
+    public int Count => Tools.Count;
+
+    public ToolSet(string name, string description, IEnumerable<ITool> tools, string? icon = null)
+    {
+        Name = name;
+        Description = description;
+        Icon = icon;
+        Tools = tools.ToList().AsReadOnly();
+        _toolsByName = Tools.ToDictionary(t => t.Name, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public ITool? GetTool(string toolName) => _toolsByName.GetValueOrDefault(toolName);
+    public bool Contains(string toolName) => _toolsByName.ContainsKey(toolName);
+
+    /// <summary>
+    /// 从工具类型创建工具集（静态工厂方法）
+    /// </summary>
+    public static ToolSet FromType<T>(string name, string description, string? icon = null)
+        where T : class, new()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterToolsFromType<T>();
+        return new ToolSet(name, description, registry.GetAllTools(), icon);
+    }
+}
+```
+
+### 4. IVirtualTool - 延迟加载工具组
+
+虚拟工具是 `ITool` 的特殊实现，它代表一组相关工具。LLM 首先看到虚拟工具的摘要，需要时再展开为具体工具。
+
+```text
+工具组织策略对比：
+
+Before (Week 5):
+┌─────────────────────────────────────────────────────┐
+│ LLM 看到: 64 个独立工具                              │
+│ [Calculate] [GetTime] [ReadFile] [DeleteFile] ...   │
+└─────────────────────────────────────────────────────┘
+
+After (Week 5.5):
+┌─────────────────────────────────────────────────────┐
+│ LLM 先看到: 4-8 个虚拟工具组                         │
+│                                                     │
+│  [🔢 MathTools]     → 需要时展开 8 个数学工具        │
+│  [📁 FileTools]     → 需要时展开 13 个文件工具       │
+│  [🌐 HttpTools]     → 需要时展开 6 个网络工具        │
+│  [🔧 GitTools]      → 需要时展开 18 个 Git 工具      │
+└─────────────────────────────────────────────────────┘
+```
+
+```csharp
+namespace Dawning.Agents.Abstractions.Tools;
+
+/// <summary>
+/// 虚拟工具接口 - 延迟加载的工具组
+/// </summary>
+public interface IVirtualTool : ITool
+{
+    /// <summary>
+    /// 展开后的所有工具
+    /// </summary>
+    IReadOnlyList<ITool> ExpandedTools { get; }
+
+    /// <summary>
+    /// 是否已展开
+    /// </summary>
+    bool IsExpanded { get; }
+
+    /// <summary>
+    /// 关联的工具集
+    /// </summary>
+    IToolSet ToolSet { get; }
+
+    /// <summary>
+    /// 展开工具组
+    /// </summary>
+    void Expand();
+
+    /// <summary>
+    /// 折叠工具组
+    /// </summary>
+    void Collapse();
+}
+```
+
+**实现类 VirtualTool**：
+
+```csharp
+namespace Dawning.Agents.Core.Tools;
+
+public class VirtualTool : IVirtualTool
+{
+    public IToolSet ToolSet { get; }
+    public bool IsExpanded { get; private set; }
+    public IReadOnlyList<ITool> ExpandedTools => ToolSet.Tools;
+
+    // ITool 实现 - 虚拟工具本身也是一个工具
+    public string Name { get; }
+    public string Description { get; }
+    public string ParametersSchema => "{}";
+    public bool RequiresConfirmation => false;
+    public ToolRiskLevel RiskLevel => ToolRiskLevel.Low;
+    public string? Category => "VirtualTool";
+
+    public VirtualTool(IToolSet toolSet, string? name = null, string? description = null)
+    {
+        ToolSet = toolSet;
+        Name = name ?? toolSet.Name;
+        Description = description ?? $"工具集: {toolSet.Description} (包含 {toolSet.Count} 个工具)";
+    }
+
+    public void Expand() => IsExpanded = true;
+    public void Collapse() => IsExpanded = false;
+
+    /// <summary>
+    /// 执行时自动展开并返回工具列表
+    /// </summary>
+    public Task<ToolResult> ExecuteAsync(string input, CancellationToken ct = default)
+    {
+        Expand();
+        var toolList = string.Join("\n", ToolSet.Tools.Select(t => $"- {t.Name}: {t.Description}"));
+        return Task.FromResult(new ToolResult
+        {
+            Output = $"工具集 '{ToolSet.Name}' 已展开，包含以下工具:\n{toolList}"
+        });
+    }
+
+    /// <summary>
+    /// 从工具类型创建虚拟工具
+    /// </summary>
+    public static VirtualTool FromType<T>(string name, string description, string? icon = null)
+        where T : class, new()
+    {
+        var toolSet = Tools.ToolSet.FromType<T>(name, description, icon);
+        return new VirtualTool(toolSet);
+    }
+}
+```
+
+### 5. IToolSelector - 智能工具选择
+
+根据用户查询智能选择最相关的工具，避免将所有工具都发送给 LLM。
+
+```csharp
+namespace Dawning.Agents.Abstractions.Tools;
+
+/// <summary>
+/// 工具选择器接口 - 智能选择最相关的工具
+/// </summary>
+public interface IToolSelector
+{
+    /// <summary>
+    /// 根据查询选择最相关的工具
+    /// </summary>
+    Task<IReadOnlyList<ITool>> SelectToolsAsync(
+        string query,
+        IReadOnlyList<ITool> availableTools,
+        int maxTools = 20,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据查询选择最相关的工具集
+    /// </summary>
+    Task<IReadOnlyList<IToolSet>> SelectToolSetsAsync(
+        string query,
+        IReadOnlyList<IToolSet> availableToolSets,
+        int maxToolSets = 5,
+        CancellationToken cancellationToken = default);
+}
+```
+
+**DefaultToolSelector 实现逻辑**：
+
+```text
+用户输入: "帮我查看 git 仓库状态"
+                │
+                ▼
+┌─────────────────────────────────────────┐
+│          关键词匹配 + 类别匹配           │
+│                                         │
+│  1. 关键词提取: "git", "仓库", "状态"    │
+│  2. 匹配工具名/描述/分类                 │
+│  3. 打分排序                            │
+│                                         │
+│  结果:                                  │
+│  - GitStatus (score: 15)                │
+│  - GitLog (score: 8)                    │
+│  - GitBranch (score: 5)                 │
+└─────────────────────────────────────────┘
+                │
+                ▼
+        返回 Top N 工具
+```
+
+```csharp
+namespace Dawning.Agents.Core.Tools;
+
+public class DefaultToolSelector : IToolSelector
+{
+    // 常见操作关键词映射
+    private static readonly Dictionary<string, string[]> OperationKeywords = new()
+    {
+        ["file"] = ["read", "write", "delete", "copy", "move", "list", "文件", "读取", "写入"],
+        ["search"] = ["find", "grep", "search", "look", "查找", "搜索"],
+        ["git"] = ["commit", "push", "pull", "branch", "merge", "status", "提交", "仓库"],
+        ["http"] = ["get", "post", "request", "api", "url", "请求", "接口"],
+        ["math"] = ["calculate", "compute", "add", "subtract", "计算", "数学"],
+        ["time"] = ["date", "time", "now", "today", "日期", "时间", "今天"],
+    };
+
+    public Task<IReadOnlyList<ITool>> SelectToolsAsync(
+        string query,
+        IReadOnlyList<ITool> availableTools,
+        int maxTools = 20,
+        CancellationToken ct = default)
+    {
+        var queryLower = query.ToLowerInvariant();
+        
+        var scoredTools = availableTools
+            .Select(tool => (Tool: tool, Score: CalculateScore(tool, queryLower)))
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .Take(maxTools)
+            .Select(x => x.Tool)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<ITool>>(scoredTools);
+    }
+
+    private int CalculateScore(ITool tool, string query)
+    {
+        int score = 0;
+        
+        // 名称匹配 (权重最高)
+        if (query.Contains(tool.Name.ToLowerInvariant())) score += 10;
+        
+        // 描述匹配
+        if (tool.Description.ToLowerInvariant().Contains(query)) score += 5;
+        
+        // 分类匹配
+        if (tool.Category != null && query.Contains(tool.Category.ToLowerInvariant())) score += 8;
+        
+        // 关键词匹配
+        foreach (var (category, keywords) in OperationKeywords)
+        {
+            if (keywords.Any(k => query.Contains(k)))
+            {
+                if (tool.Category?.Equals(category, StringComparison.OrdinalIgnoreCase) == true)
+                    score += 5;
+                if (tool.Name.Contains(category, StringComparison.OrdinalIgnoreCase))
+                    score += 3;
+            }
+        }
+        
+        return score;
+    }
+}
+```
+
+### 6. IToolApprovalHandler - 审批流程
+
+在企业环境中，某些工具操作需要经过审批才能执行。
+
+```csharp
+namespace Dawning.Agents.Abstractions.Tools;
+
+/// <summary>
+/// 审批策略
+/// </summary>
+public enum ApprovalStrategy
+{
+    /// <summary>开发/测试环境：全部自动批准</summary>
+    AlwaysApprove,
+    
+    /// <summary>安全敏感环境：全部拒绝</summary>
+    AlwaysDeny,
+    
+    /// <summary>推荐：基于风险等级判断</summary>
+    RiskBased,
+    
+    /// <summary>交互式：每次询问用户</summary>
+    Interactive
+}
+
+/// <summary>
+/// 工具审批处理器接口
+/// </summary>
+public interface IToolApprovalHandler
+{
+    /// <summary>
+    /// 请求工具执行审批
+    /// </summary>
+    Task<bool> RequestApprovalAsync(
+        ITool tool,
+        string input,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 请求 URL 访问审批
+    /// </summary>
+    Task<bool> RequestUrlApprovalAsync(
+        ITool tool,
+        string url,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 请求命令执行审批
+    /// </summary>
+    Task<bool> RequestCommandApprovalAsync(
+        ITool tool,
+        string command,
+        CancellationToken cancellationToken = default);
+}
+```
+
+**DefaultToolApprovalHandler 实现**：
+
+```text
+安全分级金字塔：
+
+                    ┌─────────┐
+                    │  High   │  DeleteFile, RunCommand
+                    │  高风险  │  GitPush, Format
+                    └────┬────┘
+                   ┌─────┴─────┐
+                   │  Medium   │  HttpGet, HttpPost
+                   │  中风险   │  网络请求相关
+                   └─────┬─────┘
+              ┌──────────┴──────────┐
+              │        Low          │  GetTime, Calculate
+              │       低风险        │  ReadFile, ListDir
+              └─────────────────────┘
+```
+
+```csharp
+namespace Dawning.Agents.Core.Tools;
+
+public class DefaultToolApprovalHandler : IToolApprovalHandler
+{
+    private readonly ApprovalStrategy _strategy;
+    
+    // 信任的 URL 域名
+    private static readonly HashSet<string> TrustedDomains = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "localhost", "127.0.0.1", "github.com", "api.github.com",
+        "microsoft.com", "azure.com", "nuget.org"
+    };
+    
+    // 安全的命令前缀
+    private static readonly string[] SafeCommands =
+    {
+        "ls", "dir", "pwd", "cd", "echo", "cat", "type",
+        "git status", "git log", "git branch", "git diff",
+        "dotnet --version", "dotnet --info", "node --version"
+    };
+    
+    // 危险命令模式（即使 AlwaysApprove 也拒绝）
+    private static readonly string[] DangerousPatterns =
+    {
+        "rm -rf /", "rm -rf /*", "del /s /q c:\\",
+        "format", "mkfs", "shutdown", "reboot",
+        ":(){:|:&};:", "dd if=/dev/zero"
+    };
+
+    public DefaultToolApprovalHandler(ApprovalStrategy strategy = ApprovalStrategy.RiskBased)
+    {
+        _strategy = strategy;
+    }
+
+    public Task<bool> RequestApprovalAsync(ITool tool, string input, CancellationToken ct = default)
+    {
+        var result = _strategy switch
+        {
+            ApprovalStrategy.AlwaysApprove => true,
+            ApprovalStrategy.AlwaysDeny => false,
+            ApprovalStrategy.Interactive => false, // 需要 UI 实现
+            ApprovalStrategy.RiskBased => tool.RiskLevel switch
+            {
+                ToolRiskLevel.Low => true,
+                ToolRiskLevel.Medium => true,  // 可根据需求调整
+                ToolRiskLevel.High => false,
+                _ => false
+            },
+            _ => false
+        };
+        
+        return Task.FromResult(result);
+    }
+
+    public Task<bool> RequestUrlApprovalAsync(ITool tool, string url, CancellationToken ct = default)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return Task.FromResult(false);
+
+        // 检查是否是信任的域名
+        var host = uri.Host;
+        var isTrusted = TrustedDomains.Any(d => 
+            host.Equals(d, StringComparison.OrdinalIgnoreCase) ||
+            host.EndsWith($".{d}", StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(isTrusted);
+    }
+
+    public Task<bool> RequestCommandApprovalAsync(ITool tool, string command, CancellationToken ct = default)
+    {
+        var cmdLower = command.ToLowerInvariant().Trim();
+        
+        // 检查危险命令（始终拒绝）
+        if (DangerousPatterns.Any(p => cmdLower.Contains(p.ToLowerInvariant())))
+            return Task.FromResult(false);
+
+        // 检查安全命令
+        if (SafeCommands.Any(s => cmdLower.StartsWith(s.ToLowerInvariant())))
+            return Task.FromResult(true);
+
+        // 其他命令根据策略处理
+        return Task.FromResult(_strategy == ApprovalStrategy.AlwaysApprove);
+    }
+}
+```
+
+### 7. DI 注册扩展
+
+```csharp
+namespace Dawning.Agents.Core.Tools;
+
+public static class ToolServiceCollectionExtensions
+{
+    // Week 5 原有方法
+    public static IServiceCollection AddToolRegistry(this IServiceCollection services) { ... }
+    public static IServiceCollection AddAllBuiltInTools(this IServiceCollection services) { ... }
+    public static IServiceCollection AddBuiltInTools(this IServiceCollection services) { ... }
+    
+    // Week 5.5 新增方法
+    
+    /// <summary>
+    /// 注册工具选择器
+    /// </summary>
+    public static IServiceCollection AddToolSelector(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IToolSelector, DefaultToolSelector>();
+        return services;
+    }
+
+    /// <summary>
+    /// 注册审批处理器
+    /// </summary>
+    public static IServiceCollection AddToolApprovalHandler(
+        this IServiceCollection services,
+        ApprovalStrategy strategy = ApprovalStrategy.RiskBased)
+    {
+        services.TryAddSingleton<IToolApprovalHandler>(
+            _ => new DefaultToolApprovalHandler(strategy));
+        return services;
+    }
+
+    /// <summary>
+    /// 注册工具集
+    /// </summary>
+    public static IServiceCollection AddToolSet(
+        this IServiceCollection services,
+        IToolSet toolSet)
+    {
+        services.AddSingleton(toolSet);
+        // 同时在 ToolRegistry 中注册
+        var sp = services.BuildServiceProvider();
+        var registry = sp.GetService<IToolRegistry>();
+        registry?.RegisterToolSet(toolSet);
+        return services;
+    }
+
+    /// <summary>
+    /// 从类型创建并注册工具集
+    /// </summary>
+    public static IServiceCollection AddToolSetFrom<T>(
+        this IServiceCollection services,
+        string name,
+        string description,
+        string? icon = null) where T : class, new()
+    {
+        var toolSet = ToolSet.FromType<T>(name, description, icon);
+        return services.AddToolSet(toolSet);
+    }
+
+    /// <summary>
+    /// 注册虚拟工具
+    /// </summary>
+    public static IServiceCollection AddVirtualTool(
+        this IServiceCollection services,
+        IVirtualTool virtualTool) { ... }
+
+    /// <summary>
+    /// 从类型创建并注册虚拟工具
+    /// </summary>
+    public static IServiceCollection AddVirtualToolFrom<T>(
+        this IServiceCollection services,
+        string name,
+        string description,
+        string? icon = null) where T : class, new() { ... }
+}
+```
+
+### 8. 使用示例
+
+```csharp
+// Program.cs
+var builder = Host.CreateApplicationBuilder(args);
+
+// 注册工具系统
+builder.Services.AddToolRegistry();
+builder.Services.AddAllBuiltInTools();
+
+// Week 5.5: 高级工具管理
+builder.Services.AddToolSelector();
+builder.Services.AddToolApprovalHandler(ApprovalStrategy.RiskBased);
+
+// 注册工具集
+builder.Services.AddToolSetFrom<MathTool>("math", "数学计算工具集", "🔢");
+builder.Services.AddToolSetFrom<GitTool>("git", "Git 版本控制", "🔧");
+
+// 注册虚拟工具（延迟加载）
+builder.Services.AddVirtualToolFrom<FileSystemTool>("filesystem", "文件系统工具", "📁");
+
+var host = builder.Build();
+
+// 使用工具选择器
+var selector = host.Services.GetRequiredService<IToolSelector>();
+var registry = host.Services.GetRequiredService<IToolRegistry>();
+
+var tools = await selector.SelectToolsAsync(
+    "帮我计算文件大小", 
+    registry.GetAllTools(), 
+    maxTools: 10);
+
+// 使用审批处理器
+var approver = host.Services.GetRequiredService<IToolApprovalHandler>();
+var tool = registry.GetTool("DeleteFile")!;
+
+if (await approver.RequestApprovalAsync(tool, "/path/to/file"))
+{
+    var result = await tool.ExecuteAsync("/path/to/file");
+}
+```
+
+### 9. Week 5.5 产出物
+
+```
+src/Dawning.Agents.Abstractions/
+└── Tools/
+    ├── IToolSet.cs               # 工具集接口 ✨
+    ├── IVirtualTool.cs           # 虚拟工具接口 ✨
+    ├── IToolSelector.cs          # 工具选择器接口 ✨
+    └── IToolApprovalHandler.cs   # 审批处理器接口 + ApprovalStrategy ✨
+
+src/Dawning.Agents.Core/
+└── Tools/
+    ├── ToolSet.cs                # 工具集实现 ✨
+    ├── VirtualTool.cs            # 虚拟工具实现 ✨
+    ├── DefaultToolSelector.cs    # 默认选择器 ✨
+    ├── DefaultToolApprovalHandler.cs # 默认审批处理器 ✨
+    └── ToolServiceCollectionExtensions.cs # DI 扩展 (更新)
+
+tests/Dawning.Agents.Tests/
+└── Tools/
+    ├── ToolSetTests.cs           # 工具集测试 (15) ✨
+    ├── ToolSelectorTests.cs      # 选择器测试 (7) ✨
+    └── ToolApprovalHandlerTests.cs # 审批测试 (12) ✨
+```
+
+### 10. 关键设计决策
+
+| 决策 | 理由 |
+|------|------|
+| **IVirtualTool 继承 ITool** | 虚拟工具本身也是工具，可以被 LLM 调用 |
+| **ToolSet.FromType<T>** | 简化从工具类创建工具集的流程 |
+| **DefaultToolSelector 基于关键词** | 简单可靠，无需额外依赖；未来可扩展为 Embedding 匹配 |
+| **危险命令始终拒绝** | 即使 AlwaysApprove 也不允许执行 `rm -rf /` 等命令 |
+| **RiskBased 为默认策略** | 平衡安全性和易用性 |
+
+### 11. 未来增强
+
+- [ ] `EmbeddingToolSelector` - 基于语义的工具选择
+- [ ] `InteractiveApprovalHandler` - 支持 UI 交互的审批
+- [ ] Tool Usage Analytics - 工具使用统计
+- [ ] Dynamic Tool Loading - 动态加载工具插件
+
+---
+
+## 总结
+
+### Week 5 + 5.5 完整产出物
+
+```
+src/Dawning.Agents.Abstractions/
+└── Tools/
+    ├── ITool.cs                  # 工具接口
+    ├── FunctionToolAttribute.cs  # 声明式特性
+    ├── ToolRiskLevel.cs          # 风险等级枚举
+    ├── IToolRegistry.cs          # 注册表接口
+    ├── IToolSet.cs               # 工具集接口 (Week 5.5)
+    ├── IVirtualTool.cs           # 虚拟工具接口 (Week 5.5)
+    ├── IToolSelector.cs          # 选择器接口 (Week 5.5)
+    └── IToolApprovalHandler.cs   # 审批接口 (Week 5.5)
+
+src/Dawning.Agents.Core/
+└── Tools/
+    ├── MethodTool.cs             # 方法工具实现
+    ├── ToolScanner.cs            # 工具扫描器
+    ├── ToolRegistry.cs           # 注册表实现
+    ├── ToolSet.cs                # 工具集实现 (Week 5.5)
+    ├── VirtualTool.cs            # 虚拟工具实现 (Week 5.5)
+    ├── DefaultToolSelector.cs    # 默认选择器 (Week 5.5)
+    ├── DefaultToolApprovalHandler.cs # 审批处理器 (Week 5.5)
+    ├── ToolServiceCollectionExtensions.cs
+    └── BuiltIn/
+        ├── DateTimeTool.cs       # 4 方法
+        ├── MathTool.cs           # 8 方法
+        ├── JsonTool.cs           # 4 方法
+        ├── UtilityTool.cs        # 5 方法
+        ├── FileSystemTool.cs     # 13 方法
+        ├── HttpTool.cs           # 6 方法
+        ├── ProcessTool.cs        # 6 方法
+        └── GitTool.cs            # 18 方法
+        (共 64 个内置工具方法)
+```
+
+### 测试统计
+
+| 测试文件 | 数量 | 说明 |
+|----------|------|------|
+| 原有 Week 5 测试 | 72 | LLM, Agent, Tools |
+| ToolSetTests.cs | 15 | ToolSet + VirtualTool |
+| ToolSelectorTests.cs | 7 | DefaultToolSelector |
+| ToolApprovalHandlerTests.cs | 12 | DefaultToolApprovalHandler |
+| **总计** | **106** | 全部通过 ✅ |
+
 ### 下一步：Week 6
 
 Week 6 将涵盖 RAG 集成：

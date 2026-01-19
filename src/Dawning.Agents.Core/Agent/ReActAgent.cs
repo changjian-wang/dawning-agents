@@ -273,8 +273,8 @@ public partial class ReActAgent : AgentBase
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>动作执行后的观察结果</returns>
     /// <remarks>
-    /// <para>优先使用 IToolRegistry 中注册的工具</para>
-    /// <para>如果没有找到注册的工具，回退到内置的 Mock 实现</para>
+    /// <para>使用 IToolRegistry 中注册的工具执行动作</para>
+    /// <para>如果工具不存在，返回错误信息和可用工具列表</para>
     /// </remarks>
     protected virtual async Task<string> ExecuteActionAsync(
         string action,
@@ -284,7 +284,7 @@ public partial class ReActAgent : AgentBase
     {
         Logger.LogDebug("执行动作: {Action}, 输入: {Input}", action, actionInput);
 
-        // 优先使用注册的工具
+        // 使用注册的工具
         if (_toolRegistry != null)
         {
             var tool = _toolRegistry.GetTool(action);
@@ -305,20 +305,20 @@ public partial class ReActAgent : AgentBase
                     return $"Tool error: {result.Error}";
                 }
             }
+
+            // 工具不存在，返回错误信息和可用工具列表
+            var availableTools = _toolRegistry.GetAllTools();
+            if (availableTools.Count > 0)
+            {
+                var toolList = string.Join(", ", availableTools.Select(t => t.Name));
+                Logger.LogWarning("工具 '{Action}' 不存在，可用工具: {Tools}", action, toolList);
+                return $"Error: Tool '{action}' not found. Available tools: {toolList}. Please choose a valid tool.";
+            }
         }
 
-        // 回退到 Mock 实现
-        Logger.LogDebug("使用内置 Mock 工具: {Action}", action);
-        var mockResult = action.ToLowerInvariant() switch
-        {
-            "search" =>
-                $"Search results for '{actionInput}': [This is a mock result. Register real tools for actual functionality.]",
-            "calculate" => $"Calculation result: [Mock calculation for '{actionInput}']",
-            "lookup" => $"Lookup result for '{actionInput}': [Mock data]",
-            _ => $"Unknown action '{action}'. Use --help to see available actions.",
-        };
-
-        return mockResult;
+        // 没有注册任何工具
+        Logger.LogWarning("没有注册任何工具，无法执行动作: {Action}", action);
+        return $"Error: No tools registered. Cannot execute action '{action}'. Please register tools using AddBuiltInTools() or AddToolsFrom<T>().";
     }
 
     /// <summary>

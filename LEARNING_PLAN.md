@@ -319,22 +319,62 @@ public interface IToolApprovalHandler
 }
 ```
 
-### Week 6: RAG 集成
+### Week 6: 动态工具 + RAG 集成
 
-#### Day 1-2: 向量数据库基础
+#### Day 1-2: PackageManagerTool 实现
+
+- [ ] **设计**: 动态工具安装的安全策略
+  - 白名单机制（允许安装的包列表）
+  - 审批流程集成（High RiskLevel）
+  - 安装后验证
+- [ ] **代码**: 实现 `PackageManagerTool`
+  - `WingetInstall` - Windows 软件安装
+  - `WingetSearch` - 搜索可用软件
+  - `PipInstall` - Python 包安装
+  - `NpmInstall` - Node.js 包安装
+  - `DotnetToolInstall` - .NET CLI 工具安装
+- [ ] **代码**: 实现 `PackageManagerOptions` 配置
+- [ ] **测试**: 包管理工具测试
+
+```csharp
+// 目标实现
+public class PackageManagerTool
+{
+    [FunctionTool("使用 winget 搜索 Windows 软件", RiskLevel = ToolRiskLevel.Low)]
+    public Task<string> WingetSearch(string query);
+    
+    [FunctionTool("使用 winget 安装 Windows 软件", 
+        RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
+    public Task<string> WingetInstall(string packageId);
+    
+    [FunctionTool("使用 pip 安装 Python 包",
+        RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
+    public Task<string> PipInstall(string package);
+    
+    [FunctionTool("使用 npm 安装 Node.js 包",
+        RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
+    public Task<string> NpmInstall(string package);
+    
+    [FunctionTool("使用 dotnet tool 安装 .NET 工具",
+        RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
+    public Task<string> DotnetToolInstall(string package);
+}
+```
+
+#### Day 3-4: 向量数据库基础
 
 - [ ] **学习**: Embedding 原理
 - [ ] **学习**: 向量相似度计算 (余弦相似度)
 - [ ] **实践**: 使用 OpenAI Embeddings API
 
-#### Day 3-4: RAG 流程实现
+#### Day 5-6: RAG 流程实现
 
 - [ ] **代码**: 设计 `IVectorStore` 接口
 - [ ] **代码**: 实现内存向量存储
 - [ ] **代码**: 实现文档分块 (Chunking)
 - [ ] **代码**: 实现检索器 `IRetriever`
 
-#### Day 5-7: RAG 与 Agent 集成
+#### Day 7: RAG 与 Agent 集成
 
 - [ ] **代码**: 实现 `RAGTool` 工具
 - [ ] **代码**: 实现 `KnowledgeBase` 知识库
@@ -346,14 +386,10 @@ public interface IToolApprovalHandler
 ```text
 src/Dawning.Agents.Core/
 ├── Tools/
-│   ├── ITool.cs
-│   ├── ToolAttribute.cs
-│   ├── ToolRegistry.cs
-│   ├── ToolExecutor.cs
-│   └── BuiltIn/
-│       ├── SearchTool.cs
-│       ├── CalculatorTool.cs
-│       └── DateTimeTool.cs
+│   ├── BuiltIn/
+│   │   ├── PackageManagerTool.cs   ← NEW: 动态工具安装
+│   │   └── ...
+│   └── ...
 ├── RAG/
 │   ├── IVectorStore.cs
 │   ├── InMemoryVectorStore.cs
