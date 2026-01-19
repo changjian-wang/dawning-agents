@@ -267,59 +267,68 @@ public class MyOptions
 
 ---
 
-## 未来功能规划
+## 已完成功能
 
-### Tools/Skills 系统 (Week 5)
+### Tools/Skills 系统 ✅ (Week 5 已完成)
 
 Tools 是 Agent 的"手"和"眼"，允许 Agent 与外部系统交互。
 
-**设计原则（OpenAI Agents SDK 风格）：**
+**核心接口（已实现）：**
 
 ```csharp
-// ✅ 极简：使用特性标记方法即成为 Tool
-[FunctionTool("搜索网页内容")]
-public string SearchWeb(string query) => $"Results for: {query}";
-
-// ✅ 自动：从方法签名生成 JSON Schema
-// ✅ 自动：从 XML 注释提取描述
-// ✅ 类型安全：使用类型提示进行参数验证
-```
-
-**核心接口规划：**
-
-```csharp
-// 接口定义在 Abstractions
 public interface ITool
 {
     string Name { get; }
     string Description { get; }
     string ParametersSchema { get; }
+    bool RequiresConfirmation { get; }  // 是否需要确认
+    ToolRiskLevel RiskLevel { get; }    // Low/Medium/High
+    string? Category { get; }           // 工具分类
     Task<ToolResult> ExecuteAsync(string input, CancellationToken ct = default);
 }
 
 public interface IToolRegistry
 {
     void Register(ITool tool);
+    void RegisterToolsFromType<T>() where T : class;
     ITool? GetTool(string name);
     IReadOnlyList<ITool> GetAllTools();
+    IReadOnlyList<ITool> GetToolsByCategory(string category);
 }
 ```
 
-**DI 注册方式：**
+**使用特性标记（已实现）：**
 
 ```csharp
-// 注册单个 Tool
-services.AddTool<WeatherTool>();
-
-// 自动扫描并注册所有 [FunctionTool] 标记的方法
-services.AddToolsFromAssembly(typeof(Program).Assembly);
-
-// 使用
-var registry = sp.GetRequiredService<IToolRegistry>();
-var tool = registry.GetTool("weather");
+[FunctionTool(
+    "删除文件",
+    RequiresConfirmation = true,
+    RiskLevel = ToolRiskLevel.High,
+    Category = "FileSystem"
+)]
+public string DeleteFile(string path) => File.Delete(path);
 ```
 
-### Agent 核心循环 (Week 3-4)
+**内置工具（64 个方法）：**
+- `DateTimeTool` (4) - 日期时间
+- `MathTool` (8) - 数学计算
+- `JsonTool` (4) - JSON 处理
+- `UtilityTool` (5) - 实用工具
+- `FileSystemTool` (13) - 文件操作
+- `HttpTool` (6) - HTTP 请求
+- `ProcessTool` (6) - 进程管理
+- `GitTool` (18) - Git 操作
+
+**DI 注册方式（已实现）：**
+
+```csharp
+services.AddAllBuiltInTools();     // 所有内置工具
+services.AddBuiltInTools();        // 只有安全工具
+services.AddFileSystemTools();     // 按类别注册
+services.AddToolsFromAssembly(typeof(Program).Assembly);
+```
+
+### Agent 核心循环 ✅ (Week 3 已完成)
 
 ```csharp
 public interface IAgent
@@ -334,6 +343,107 @@ public interface IAgent
 var agent = sp.GetRequiredService<IAgent>();
 var response = await agent.RunAsync("今天北京天气怎么样？");
 ```
+
+---
+
+### Tool Sets 与 Virtual Tools ✅ (Week 5.5 已完成)
+
+参考 GitHub Copilot 的工具管理策略，实现了工具分组、虚拟工具、智能选择和审批流程。
+
+**Tool Sets（工具集）：**
+
+```csharp
+public interface IToolSet
+{
+    string Name { get; }
+    string Description { get; }
+    string? Icon { get; }
+    IReadOnlyList<ITool> Tools { get; }
+    int Count { get; }
+    ITool? GetTool(string toolName);
+    bool Contains(string toolName);
+}
+
+// 使用方式
+var mathTools = ToolSet.FromType<MathTool>("math", "数学计算工具集");
+services.AddToolSet(mathTools);
+```
+
+**Virtual Tools（虚拟工具）：**
+
+```csharp
+public interface IVirtualTool : ITool
+{
+    IReadOnlyList<ITool> ExpandedTools { get; }
+    bool IsExpanded { get; }
+    IToolSet ToolSet { get; }
+    void Expand();
+    void Collapse();
+}
+
+// LLM 先看到虚拟工具摘要，需要时再展开
+var gitVirtual = VirtualTool.FromType<GitTool>("git", "Git 版本控制工具集");
+```
+
+**Tool Selector（智能选择）：**
+
+```csharp
+public interface IToolSelector
+{
+    Task<IReadOnlyList<ITool>> SelectToolsAsync(
+        string query,
+        IReadOnlyList<ITool> availableTools,
+        int maxTools = 20,
+        CancellationToken ct = default);
+}
+
+// 使用方式
+services.AddToolSelector();
+var selector = sp.GetRequiredService<IToolSelector>();
+var tools = await selector.SelectToolsAsync("计算文件大小", allTools, maxTools: 10);
+```
+
+**Tool Approval（审批流程）：**
+
+```csharp
+public enum ApprovalStrategy
+{
+    AlwaysApprove,   // 开发/测试环境
+    AlwaysDeny,      // 安全敏感环境
+    RiskBased,       // 基于风险等级（推荐）
+    Interactive      // 交互式确认
+}
+
+public interface IToolApprovalHandler
+{
+    Task<bool> RequestApprovalAsync(ITool tool, string input, CancellationToken ct);
+    Task<bool> RequestUrlApprovalAsync(ITool tool, string url, CancellationToken ct);
+    Task<bool> RequestCommandApprovalAsync(ITool tool, string command, CancellationToken ct);
+}
+
+// 使用方式
+services.AddToolApprovalHandler(ApprovalStrategy.RiskBased);
+```
+
+**DI 注册方式（已实现）：**
+
+```csharp
+// 工具选择器和审批处理器
+services.AddToolSelector();
+services.AddToolApprovalHandler(ApprovalStrategy.RiskBased);
+
+// 工具集
+services.AddToolSet(new ToolSet("math", "数学工具", mathTools));
+services.AddToolSetFrom<MathTool>("math", "数学计算工具集");
+
+// 虚拟工具
+services.AddVirtualTool(new VirtualTool(toolSet));
+services.AddVirtualToolFrom<GitTool>("git", "Git 版本控制工具集", "🔧");
+```
+
+---
+
+## 未来功能规划
 
 ### Memory 系统 (Week 4)
 

@@ -179,45 +179,145 @@ src/Dawning.Agents.Core/
 
 ## 🛠️ Phase 3: 工具系统 + RAG 集成 (Week 5-6)
 
-### Week 5: 工具系统设计
+### Week 5: 工具系统设计 ✅ 已完成
 
 #### Day 1-2: 理解 Function Calling
 
-- [ ] **阅读**: OpenAI Function Calling 文档
-- [ ] **阅读**: OpenAI Agents SDK `@function_tool` 设计
+- [x] **阅读**: OpenAI Function Calling 文档
+- [x] **阅读**: OpenAI Agents SDK `@function_tool` 设计
   - `openai-agents-python/src/agents/tool.py`
-- [ ] **阅读**: MS Agent Framework `ai_function` 设计
-- [ ] **笔记**: 工具定义规范 (JSON Schema)
+- [x] **阅读**: MS Agent Framework `ai_function` 设计
+- [x] **笔记**: 工具定义规范 (JSON Schema)
 
 #### Day 3-4: 实现工具系统
 
-- [ ] **代码**: 设计 `ITool` 接口
-- [ ] **代码**: 实现 `ToolAttribute` 特性
-- [ ] **代码**: 实现 `ToolRegistry` 注册表
-- [ ] **代码**: 实现工具发现与注册
+- [x] **代码**: 设计 `ITool` 接口（含安全属性）
+- [x] **代码**: 实现 `FunctionToolAttribute` 特性
+- [x] **代码**: 实现 `ToolRegistry` 注册表
+- [x] **代码**: 实现工具发现与注册
 
 ```csharp
-// 目标用法
-public class WeatherTool
-{
-    [Tool("获取天气信息")]
-    [Parameter("location", "城市名称", required: true)]
-    public async Task<string> GetWeatherAsync(string location)
-    {
-        // 实现
-    }
-}
+// 实际实现
+[FunctionTool(
+    "删除文件", 
+    RequiresConfirmation = true,
+    RiskLevel = ToolRiskLevel.High,
+    Category = "FileSystem"
+)]
+public string DeleteFile(string path) => ...;
 ```
 
 #### Day 5-7: 工具调用与结果处理
 
-- [ ] **代码**: 实现 LLM 工具调用解析
-- [ ] **代码**: 实现工具执行引擎
-- [ ] **代码**: 实现结果格式化
-- [ ] **实践**: 实现几个内置工具
-  - `SearchTool` - 网络搜索
-  - `CalculatorTool` - 数学计算
-  - `DateTimeTool` - 日期时间
+- [x] **代码**: 实现 LLM 工具调用解析
+- [x] **代码**: 实现工具执行引擎 (`MethodTool`)
+- [x] **代码**: 实现结果格式化 (`ToolResult`)
+- [x] **实践**: 实现 64 个内置工具方法
+  - `DateTimeTool` (4) - 日期时间
+  - `MathTool` (8) - 数学计算
+  - `JsonTool` (4) - JSON 处理
+  - `UtilityTool` (5) - 实用工具
+  - `FileSystemTool` (13) - 文件操作 ✨
+  - `HttpTool` (6) - HTTP 请求 ✨
+  - `ProcessTool` (6) - 进程管理 ✨
+  - `GitTool` (18) - Git 操作 ✨
+
+#### 安全机制（参考 GitHub Copilot）
+- [x] `ToolRiskLevel` 枚举 (Low/Medium/High)
+- [x] `RequiresConfirmation` 属性
+- [x] `Category` 工具分类
+- [x] `ToolResult.NeedConfirmation()` 工厂方法
+
+### Week 5.5: Tool Sets 与 Virtual Tools ✅ 已完成
+
+#### 背景：GitHub Copilot 工具管理策略
+- 默认 40 个工具精简为 13 个核心工具
+- 非核心工具分为 Virtual Tool 组（按需展开）
+- Embedding-Guided Tool Routing 智能选择
+
+#### Day 1-2: Tool Sets 实现 ✅
+
+- [x] **代码**: 设计 `IToolSet` 接口
+- [x] **代码**: 实现 `ToolSet` 类
+- [x] **代码**: 支持 Tool Set 的 DI 注册
+- [x] **代码**: 扩展 `IToolRegistry` 支持 Tool Sets
+
+```csharp
+public interface IToolSet
+{
+    string Name { get; }
+    string Description { get; }
+    string? Icon { get; }
+    IReadOnlyList<ITool> Tools { get; }
+    int Count { get; }
+    ITool? GetTool(string toolName);
+    bool Contains(string toolName);
+}
+```
+
+#### Day 3-4: Virtual Tools 实现 ✅
+
+- [x] **代码**: 设计 `IVirtualTool` 接口
+- [x] **代码**: 实现 `VirtualTool` 延迟加载
+- [x] **代码**: 实现工具组展开机制
+- [x] **代码**: 提供静态工厂方法 `FromType<T>`
+
+```csharp
+public interface IVirtualTool : ITool
+{
+    IReadOnlyList<ITool> ExpandedTools { get; }
+    bool IsExpanded { get; }
+    IToolSet ToolSet { get; }
+    void Expand();
+    void Collapse();
+}
+```
+
+#### Day 5-6: Tool Selector 实现 ✅
+
+- [x] **代码**: 设计 `IToolSelector` 接口
+- [x] **代码**: 实现 `DefaultToolSelector` (基于关键词/类别匹配)
+- [ ] **代码**: 实现 `EmbeddingToolSelector` (语义匹配) - 未来增强
+- [x] **测试**: 工具选择单元测试 (7 个测试)
+
+```csharp
+public interface IToolSelector
+{
+    Task<IReadOnlyList<ITool>> SelectToolsAsync(
+        string query,
+        IReadOnlyList<ITool> availableTools,
+        int maxTools = 20,
+        CancellationToken ct = default);
+    Task<IReadOnlyList<IToolSet>> SelectToolSetsAsync(...);
+}
+```
+
+#### Day 7: Tool Approval Workflow ✅
+
+- [x] **代码**: 设计 `IToolApprovalHandler` 接口
+- [x] **代码**: 实现多种审批策略 (`ApprovalStrategy` 枚举)
+- [x] **代码**: 实现 `DefaultToolApprovalHandler`
+  - 信任的 URL 列表
+  - 安全的命令列表
+  - 危险命令检测（自动拒绝）
+- [x] **测试**: 审批处理器测试 (12 个测试)
+
+```csharp
+public enum ApprovalStrategy
+{
+    AlwaysApprove,   // 开发/测试环境
+    AlwaysDeny,      // 安全敏感环境
+    RiskBased,       // 基于风险等级（推荐）
+    Interactive      // 交互式确认
+}
+
+public interface IToolApprovalHandler
+{
+    Task<bool> RequestApprovalAsync(ITool tool, string input, CancellationToken ct);
+    Task<bool> RequestUrlApprovalAsync(ITool tool, string url, CancellationToken ct);
+    Task<bool> RequestCommandApprovalAsync(ITool tool, string command, CancellationToken ct);
+}
+```
 
 ### Week 6: RAG 集成
 

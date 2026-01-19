@@ -99,6 +99,113 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 添加工具选择器（默认实现）
+    /// </summary>
+    public static IServiceCollection AddToolSelector(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IToolSelector, DefaultToolSelector>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加工具审批处理器（默认实现）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="strategy">审批策略</param>
+    public static IServiceCollection AddToolApprovalHandler(
+        this IServiceCollection services,
+        ApprovalStrategy strategy = ApprovalStrategy.RiskBased
+    )
+    {
+        services.TryAddSingleton<IToolApprovalHandler>(sp => new DefaultToolApprovalHandler(
+            strategy,
+            sp.GetService<Microsoft.Extensions.Logging.ILogger<DefaultToolApprovalHandler>>()
+        ));
+        return services;
+    }
+
+    /// <summary>
+    /// 注册工具集
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="toolSet">工具集实例</param>
+    public static IServiceCollection AddToolSet(this IServiceCollection services, IToolSet toolSet)
+    {
+        services.AddToolRegistry();
+
+        services.AddSingleton<IToolRegistration>(sp =>
+        {
+            var registry = sp.GetRequiredService<IToolRegistry>();
+            registry.RegisterToolSet(toolSet);
+            return new ToolRegistration($"ToolSet:{toolSet.Name}");
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// 从工具类型创建并注册工具集
+    /// </summary>
+    /// <typeparam name="T">工具类类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <param name="name">工具集名称</param>
+    /// <param name="description">工具集描述</param>
+    /// <param name="icon">图标（可选）</param>
+    public static IServiceCollection AddToolSetFrom<T>(
+        this IServiceCollection services,
+        string name,
+        string description,
+        string? icon = null
+    )
+        where T : class, new()
+    {
+        var toolSet = ToolSet.FromType<T>(name, description, icon);
+        return services.AddToolSet(toolSet);
+    }
+
+    /// <summary>
+    /// 注册虚拟工具
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="virtualTool">虚拟工具实例</param>
+    public static IServiceCollection AddVirtualTool(
+        this IServiceCollection services,
+        IVirtualTool virtualTool
+    )
+    {
+        services.AddToolRegistry();
+
+        services.AddSingleton<IToolRegistration>(sp =>
+        {
+            var registry = sp.GetRequiredService<IToolRegistry>();
+            registry.RegisterVirtualTool(virtualTool);
+            return new ToolRegistration($"VirtualTool:{virtualTool.Name}");
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// 从工具类型创建并注册虚拟工具
+    /// </summary>
+    /// <typeparam name="T">工具类类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <param name="name">虚拟工具名称</param>
+    /// <param name="description">虚拟工具描述</param>
+    /// <param name="icon">图标（可选）</param>
+    public static IServiceCollection AddVirtualToolFrom<T>(
+        this IServiceCollection services,
+        string name,
+        string description,
+        string? icon = null
+    )
+        where T : class, new()
+    {
+        var virtualTool = VirtualTool.FromType<T>(name, description, icon);
+        return services.AddVirtualTool(virtualTool);
+    }
+
+    /// <summary>
     /// 确保所有工具已注册（在构建 Host 后调用）
     /// </summary>
     public static IServiceProvider EnsureToolsRegistered(this IServiceProvider serviceProvider)
