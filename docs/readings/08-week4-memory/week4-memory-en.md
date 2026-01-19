@@ -10,6 +10,7 @@
 ### 1. Why Memory Matters
 
 Agents need memory to:
+
 - **Maintain context** across multi-turn conversations
 - **Remember user preferences** and prior decisions
 - **Track task progress** over time
@@ -313,6 +314,7 @@ public class WindowMemory : IConversationMemory
 ### 1. Understanding Token Counting
 
 Tokens are the fundamental units that LLMs process. Managing tokens is crucial because:
+
 - LLMs have **context window limits** (4K, 8K, 128K, etc.)
 - **Cost** is calculated per token
 - **Performance** degrades with excessive context
@@ -320,7 +322,7 @@ Tokens are the fundamental units that LLMs process. Managing tokens is crucial b
 #### Token Estimation Rules
 
 | Content Type | Approximate Ratio |
-|-------------|-------------------|
+| ------------- | ------------------- |
 | English text | ~4 characters per token |
 | Chinese text | ~1-2 characters per token |
 | Code | ~3-4 characters per token |
@@ -1090,7 +1092,7 @@ src/Dawning.Agents.Core/
 ### Key Concepts Learned
 
 | Concept | Description |
-|---------|-------------|
+| --------- | ------------- |
 | **Memory Types** | Buffer, Window, Summary |
 | **Token Counting** | Tiktoken, estimation methods |
 | **Context Management** | Trimming, summarization |
@@ -1121,6 +1123,7 @@ var response = await agent.ExecuteAsync(context);
 ### Next: Week 5-6 (Phase 3)
 
 Phase 3 will cover:
+
 - Tool development and integration
 - Tool result parsing
 - Error handling and retries
