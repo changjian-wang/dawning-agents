@@ -44,7 +44,8 @@ public class AzureOpenAIProviderTests
     public void Constructor_WithNullApiKey_ThrowsArgumentException()
     {
         string? nullApiKey = null;
-        var act = () => new AzureOpenAIProvider("https://test.openai.azure.com", nullApiKey!, "deployment");
+        var act = () =>
+            new AzureOpenAIProvider("https://test.openai.azure.com", nullApiKey!, "deployment");
         act.Should().Throw<ArgumentException>();
     }
 
@@ -58,7 +59,11 @@ public class AzureOpenAIProviderTests
     [Fact]
     public void Name_ReturnsAzureOpenAI()
     {
-        var provider = new AzureOpenAIProvider("https://test.openai.azure.com", "fake-key", "gpt-4o");
+        var provider = new AzureOpenAIProvider(
+            "https://test.openai.azure.com",
+            "fake-key",
+            "gpt-4o"
+        );
         provider.Name.Should().Be("AzureOpenAI");
     }
 }
@@ -174,16 +179,11 @@ public class LLMOptionsTests
     [Fact]
     public void Validate_OpenAI_WithoutApiKey_Throws()
     {
-        var options = new LLMOptions
-        {
-            ProviderType = LLMProviderType.OpenAI,
-            Model = "gpt-4o"
-        };
+        var options = new LLMOptions { ProviderType = LLMProviderType.OpenAI, Model = "gpt-4o" };
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*ApiKey*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ApiKey*");
     }
 
     [Fact]
@@ -193,13 +193,12 @@ public class LLMOptionsTests
         {
             ProviderType = LLMProviderType.AzureOpenAI,
             Model = "gpt-4o",
-            ApiKey = "fake-key"
+            ApiKey = "fake-key",
         };
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Endpoint*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Endpoint*");
     }
 
     [Fact]
@@ -208,7 +207,7 @@ public class LLMOptionsTests
         var options = new LLMOptions
         {
             ProviderType = LLMProviderType.Ollama,
-            Model = "test-model"
+            Model = "test-model",
         };
 
         options.Validate();

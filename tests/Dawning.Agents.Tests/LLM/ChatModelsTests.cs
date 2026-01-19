@@ -73,7 +73,7 @@ public class ChatModelsTests
         {
             Temperature = 0.5f,
             MaxTokens = 2000,
-            SystemPrompt = "You are a helpful assistant."
+            SystemPrompt = "You are a helpful assistant.",
         };
 
         // Assert
@@ -108,7 +108,7 @@ public class ChatModelsTests
         {
             Content = "测试",
             PromptTokens = 10,
-            CompletionTokens = 20
+            CompletionTokens = 20,
         };
 
         // Assert
@@ -123,7 +123,7 @@ public class ChatModelsTests
         {
             Content = "Hello",
             PromptTokens = 100,
-            CompletionTokens = 50
+            CompletionTokens = 50,
         };
 
         // Assert - TotalTokens should always equal PromptTokens + CompletionTokens
@@ -138,7 +138,7 @@ public class ChatModelsTests
         {
             Content = "",
             PromptTokens = 0,
-            CompletionTokens = 0
+            CompletionTokens = 0,
         };
 
         // Assert
@@ -152,11 +152,7 @@ public class ChatModelsTests
     public void ChatCompletionResponse_SupportsFinishReasons(string reason)
     {
         // Act
-        var response = new ChatCompletionResponse
-        {
-            Content = "Test",
-            FinishReason = reason
-        };
+        var response = new ChatCompletionResponse { Content = "Test", FinishReason = reason };
 
         // Assert
         response.FinishReason.Should().Be(reason);

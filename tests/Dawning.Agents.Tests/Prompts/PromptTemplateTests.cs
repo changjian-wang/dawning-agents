@@ -11,11 +11,7 @@ public class PromptTemplateTests
     {
         // Arrange
         var template = new PromptTemplate("test", "Hello {name}, you are {age} years old.");
-        var variables = new Dictionary<string, object>
-        {
-            ["name"] = "Alice",
-            ["age"] = 30
-        };
+        var variables = new Dictionary<string, object> { ["name"] = "Alice", ["age"] = 30 };
 
         // Act
         var result = template.Format(variables);
@@ -29,10 +25,7 @@ public class PromptTemplateTests
     {
         // Arrange
         var template = new PromptTemplate("test", "Hello {name}, your score is {score}.");
-        var variables = new Dictionary<string, object>
-        {
-            ["name"] = "Bob"
-        };
+        var variables = new Dictionary<string, object> { ["name"] = "Bob" };
 
         // Act
         var result = template.Format(variables);

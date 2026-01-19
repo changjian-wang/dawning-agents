@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,6 +18,8 @@ namespace Dawning.Agents.Core.Agent;
 /// </remarks>
 public partial class ReActAgent : AgentBase
 {
+    private readonly IToolRegistry? _toolRegistry;
+
     /// <summary>
     /// 匹配 "Thought: ..." 部分，提取 Agent 的思考过程
     /// </summary>
@@ -46,13 +49,18 @@ public partial class ReActAgent : AgentBase
     /// </summary>
     /// <param name="llmProvider">LLM 提供者，用于调用语言模型</param>
     /// <param name="options">Agent 配置选项</param>
+    /// <param name="toolRegistry">工具注册表（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
     public ReActAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
+        IToolRegistry? toolRegistry = null,
         ILogger<ReActAgent>? logger = null
     )
-        : base(llmProvider, options, logger) { }
+        : base(llmProvider, options, logger)
+    {
+        _toolRegistry = toolRegistry;
+    }
 
     /// <summary>
     /// 执行单个 ReAct 步骤：构建提示词 → 调用 LLM → 解析输出 → 执行动作
@@ -154,6 +162,8 @@ public partial class ReActAgent : AgentBase
     /// </summary>
     protected virtual string BuildSystemPrompt()
     {
+        var availableActions = BuildAvailableActionsPrompt();
+
         return $"""
             {Instructions}
 
@@ -171,13 +181,37 @@ public partial class ReActAgent : AgentBase
             When you have enough information to provide the final answer, use:
             Final Answer: [Your complete answer to the user's question]
 
-            Available actions:
-            - Search: Search for information
-            - Calculate: Perform calculations
-            - Lookup: Look up specific data
+            {availableActions}
 
             Always think step by step and explain your reasoning.
             """;
+    }
+
+    /// <summary>
+    /// 构建可用动作列表的提示词
+    /// </summary>
+    protected virtual string BuildAvailableActionsPrompt()
+    {
+        if (_toolRegistry == null || _toolRegistry.Count == 0)
+        {
+            // 没有注册工具时使用默认列表
+            return """
+                Available actions:
+                - Search: Search for information
+                - Calculate: Perform calculations
+                - Lookup: Look up specific data
+                """;
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Available actions:");
+
+        foreach (var tool in _toolRegistry.GetAllTools())
+        {
+            sb.AppendLine($"- {tool.Name}: {tool.Description}");
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>
@@ -239,29 +273,52 @@ public partial class ReActAgent : AgentBase
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>动作执行后的观察结果</returns>
     /// <remarks>
-    /// <para>当前为模拟实现，后续将集成 Tools 系统</para>
-    /// <para>子类可重写此方法以集成实际的工具</para>
+    /// <para>优先使用 IToolRegistry 中注册的工具</para>
+    /// <para>如果没有找到注册的工具，回退到内置的 Mock 实现</para>
     /// </remarks>
-    protected virtual Task<string> ExecuteActionAsync(
+    protected virtual async Task<string> ExecuteActionAsync(
         string action,
         string? actionInput,
         CancellationToken cancellationToken
     )
     {
-        // 基础实现：模拟动作执行
-        // 在实际使用中，这里会调用 Tools 系统
         Logger.LogDebug("执行动作: {Action}, 输入: {Input}", action, actionInput);
 
-        var result = action.ToLowerInvariant() switch
+        // 优先使用注册的工具
+        if (_toolRegistry != null)
+        {
+            var tool = _toolRegistry.GetTool(action);
+            if (tool != null)
+            {
+                Logger.LogDebug("使用注册的工具: {ToolName}", tool.Name);
+                var result = await tool.ExecuteAsync(
+                    actionInput ?? string.Empty,
+                    cancellationToken
+                );
+
+                if (result.Success)
+                {
+                    return result.Output;
+                }
+                else
+                {
+                    return $"Tool error: {result.Error}";
+                }
+            }
+        }
+
+        // 回退到 Mock 实现
+        Logger.LogDebug("使用内置 Mock 工具: {Action}", action);
+        var mockResult = action.ToLowerInvariant() switch
         {
             "search" =>
-                $"Search results for '{actionInput}': [This is a mock result. Integrate with real tools for actual functionality.]",
+                $"Search results for '{actionInput}': [This is a mock result. Register real tools for actual functionality.]",
             "calculate" => $"Calculation result: [Mock calculation for '{actionInput}']",
             "lookup" => $"Lookup result for '{actionInput}': [Mock data]",
-            _ => $"Unknown action '{action}'. Available actions: Search, Calculate, Lookup",
+            _ => $"Unknown action '{action}'. Use --help to see available actions.",
         };
 
-        return Task.FromResult(result);
+        return mockResult;
     }
 
     /// <summary>

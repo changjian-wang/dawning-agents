@@ -29,7 +29,7 @@ public class AgentModelsTests
             StepNumber = 1,
             Thought = "thinking...",
             Action = "Search",
-            ActionInput = "query"
+            ActionInput = "query",
         };
 
         // Act
@@ -61,7 +61,7 @@ public class AgentModelsTests
         // Arrange
         var steps = new List<AgentStep>
         {
-            new() { StepNumber = 1, Thought = "thinking" }
+            new() { StepNumber = 1, Thought = "thinking" },
         };
         var duration = TimeSpan.FromSeconds(1);
 
@@ -102,7 +102,7 @@ public class AgentModelsTests
         {
             Name = "TestAgent",
             Instructions = "Test instructions",
-            MaxSteps = 5
+            MaxSteps = 5,
         };
 
         // Act
@@ -122,8 +122,7 @@ public class AgentModelsTests
         var act = () => options.Validate();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Name*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Name*");
     }
 
     [Fact]
@@ -136,7 +135,6 @@ public class AgentModelsTests
         var act = () => options.Validate();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*MaxSteps*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxSteps*");
     }
 }

@@ -70,10 +70,7 @@ public class LLMServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddAzureOpenAIProvider(
-            "https://test.openai.azure.com",
-            "fake-api-key",
-            "gpt-4o");
+        services.AddAzureOpenAIProvider("https://test.openai.azure.com", "fake-api-key", "gpt-4o");
         var provider = services.BuildServiceProvider();
 
         // Assert

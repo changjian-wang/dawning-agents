@@ -39,18 +39,21 @@ public partial class PromptTemplate : IPromptTemplate
             return Template;
         }
 
-        return PlaceholderRegex().Replace(Template, match =>
-        {
-            var key = match.Groups[1].Value;
-            return variables.TryGetValue(key, out var value)
-                ? value?.ToString() ?? string.Empty
-                : match.Value; // 保留未找到的占位符
-        });
+        return PlaceholderRegex()
+            .Replace(
+                Template,
+                match =>
+                {
+                    var key = match.Groups[1].Value;
+                    return variables.TryGetValue(key, out var value)
+                        ? value?.ToString() ?? string.Empty
+                        : match.Value; // 保留未找到的占位符
+                }
+            );
     }
 
     /// <summary>
     /// 创建提示词模板
     /// </summary>
-    public static PromptTemplate Create(string name, string template)
-        => new(name, template);
+    public static PromptTemplate Create(string name, string template) => new(name, template);
 }

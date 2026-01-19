@@ -34,7 +34,8 @@ public static class AgentPrompts
         - Always think step by step and explain your reasoning
         - Use tools when you need external information
         - Provide Final Answer when you're confident about the response
-        """);
+        """
+    );
 
     /// <summary>
     /// ReAct Agent 用户提示词
@@ -45,7 +46,8 @@ public static class AgentPrompts
         Question: {question}
 
         {history}
-        """);
+        """
+    );
 
     /// <summary>
     /// 简单对话 Agent 系统提示词
@@ -56,5 +58,6 @@ public static class AgentPrompts
         {instructions}
 
         You are a helpful AI assistant. Answer the user's questions directly and concisely.
-        """);
+        """
+    );
 }

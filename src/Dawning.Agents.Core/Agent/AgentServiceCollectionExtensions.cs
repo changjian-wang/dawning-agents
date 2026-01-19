@@ -1,5 +1,6 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Core.Agent;
+using Dawning.Agents.Core.Tools;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -24,6 +25,9 @@ public static class AgentServiceCollectionExtensions
     {
         services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
 
+        // 确保 ToolRegistry 已注册（Agent 可选依赖）
+        services.AddToolRegistry();
+
         services.TryAddSingleton<IAgent, ReActAgent>();
 
         return services;
@@ -41,6 +45,10 @@ public static class AgentServiceCollectionExtensions
     )
     {
         services.Configure(configure);
+
+        // 确保 ToolRegistry 已注册（Agent 可选依赖）
+        services.AddToolRegistry();
+
         services.TryAddSingleton<IAgent, ReActAgent>();
 
         return services;

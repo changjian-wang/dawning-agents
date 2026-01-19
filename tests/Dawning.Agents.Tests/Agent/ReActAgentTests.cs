@@ -16,19 +16,21 @@ public class ReActAgentTests
     public ReActAgentTests()
     {
         _mockProvider = new Mock<ILLMProvider>();
-        _options = Options.Create(new AgentOptions
-        {
-            Name = "TestAgent",
-            Instructions = "You are a helpful assistant.",
-            MaxSteps = 3
-        });
+        _options = Options.Create(
+            new AgentOptions
+            {
+                Name = "TestAgent",
+                Instructions = "You are a helpful assistant.",
+                MaxSteps = 3,
+            }
+        );
     }
 
     [Fact]
     public void Constructor_ShouldSetNameAndInstructions()
     {
         // Act
-        var agent = new ReActAgent(_mockProvider.Object, _options);
+        var agent = new ReActAgent(_mockProvider.Object, _options, null, null);
 
         // Assert
         agent.Name.Should().Be("TestAgent");
@@ -39,16 +41,28 @@ public class ReActAgentTests
     public async Task RunAsync_ShouldReturnFailedWhenExceedsMaxSteps()
     {
         // Arrange - LLM 一直返回需要继续执行的响应
-        _mockProvider.Setup(p => p.ChatAsync(
-            It.IsAny<IEnumerable<ChatMessage>>(),
-            It.IsAny<ChatCompletionOptions>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse
-            {
-                Content = "Thought: I need to search for information.\nAction: Search\nAction Input: test query"
-            });
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse
+                {
+                    Content =
+                        "Thought: I need to search for information.\nAction: Search\nAction Input: test query",
+                }
+            );
 
-        var agent = new ReActAgent(_mockProvider.Object, _options, NullLogger<ReActAgent>.Instance);
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            NullLogger<ReActAgent>.Instance
+        );
 
         // Act
         var response = await agent.RunAsync("What is the answer?");
@@ -66,7 +80,12 @@ public class ReActAgentTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var agent = new ReActAgent(_mockProvider.Object, _options, NullLogger<ReActAgent>.Instance);
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            NullLogger<ReActAgent>.Instance
+        );
 
         // Act
         var response = await agent.RunAsync("test", cts.Token);
@@ -80,13 +99,22 @@ public class ReActAgentTests
     public async Task RunAsync_ShouldHandleException()
     {
         // Arrange
-        _mockProvider.Setup(p => p.ChatAsync(
-            It.IsAny<IEnumerable<ChatMessage>>(),
-            It.IsAny<ChatCompletionOptions>(),
-            It.IsAny<CancellationToken>()))
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new InvalidOperationException("LLM Error"));
 
-        var agent = new ReActAgent(_mockProvider.Object, _options, NullLogger<ReActAgent>.Instance);
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            NullLogger<ReActAgent>.Instance
+        );
 
         // Act
         var response = await agent.RunAsync("test");
@@ -100,50 +128,70 @@ public class ReActAgentTests
     public async Task RunAsync_ShouldCallLLMWithCorrectMessages()
     {
         // Arrange
-        _mockProvider.Setup(p => p.ChatAsync(
-            It.IsAny<IEnumerable<ChatMessage>>(),
-            It.IsAny<ChatCompletionOptions>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse
-            {
-                Content = "Final Answer: The answer is 42"
-            });
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "Final Answer: The answer is 42" }
+            );
 
-        var agent = new ReActAgent(_mockProvider.Object, _options, NullLogger<ReActAgent>.Instance);
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            NullLogger<ReActAgent>.Instance
+        );
 
         // Act
         await agent.RunAsync("What is the answer?");
 
         // Assert
-        _mockProvider.Verify(p => p.ChatAsync(
-            It.Is<IEnumerable<ChatMessage>>(msgs =>
-                msgs.Count() == 2 &&
-                msgs.First().Role == "system" &&
-                msgs.Last().Role == "user"),
-            It.IsAny<ChatCompletionOptions>(),
-            It.IsAny<CancellationToken>()),
-            Times.AtLeastOnce);
+        _mockProvider.Verify(
+            p =>
+                p.ChatAsync(
+                    It.Is<IEnumerable<ChatMessage>>(msgs =>
+                        msgs.Count() == 2
+                        && msgs.First().Role == "system"
+                        && msgs.Last().Role == "user"
+                    ),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.AtLeastOnce
+        );
     }
 
     [Fact]
     public async Task RunAsync_WithContext_ShouldUseProvidedContext()
     {
         // Arrange
-        _mockProvider.Setup(p => p.ChatAsync(
-            It.IsAny<IEnumerable<ChatMessage>>(),
-            It.IsAny<ChatCompletionOptions>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse
-            {
-                Content = "Thought: Searching...\nAction: Search\nAction Input: test"
-            });
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse
+                {
+                    Content = "Thought: Searching...\nAction: Search\nAction Input: test",
+                }
+            );
 
-        var agent = new ReActAgent(_mockProvider.Object, _options, NullLogger<ReActAgent>.Instance);
-        var context = new AgentContext
-        {
-            UserInput = "Custom input",
-            MaxSteps = 1
-        };
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            NullLogger<ReActAgent>.Instance
+        );
+        var context = new AgentContext { UserInput = "Custom input", MaxSteps = 1 };
 
         // Act
         var response = await agent.RunAsync(context);

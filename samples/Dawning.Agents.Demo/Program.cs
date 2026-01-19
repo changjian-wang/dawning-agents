@@ -2,6 +2,9 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Tools;
+using Dawning.Agents.Core.Tools.BuiltIn;
+using Dawning.Agents.Demo.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -21,14 +24,22 @@ Console.WriteLine("╚═══════════════════�
 // 构建 Host
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddLLMProvider(builder.Configuration);
+
+// 注册内置工具 + 自定义工具
+builder.Services.AddBuiltInTools();
+builder.Services.AddToolsFrom<DemoTools>();
+
 builder.Services.AddReActAgent(options =>
 {
     options.Name = "DawnAgent";
-    options.Instructions = "你是一个专业的编程助手，擅长代码分析、技术选型和最佳实践建议。";
+    options.Instructions = "你是一个专业的 AI Agent 专家，擅长分析问题并使用工具解决问题。";
     options.MaxSteps = 5;
 });
 
 using var host = builder.Build();
+
+// 确保工具已注册
+host.Services.EnsureToolsRegistered();
 
 // 获取服务
 var provider = GetProvider(host.Services);
@@ -149,12 +160,17 @@ static ILLMProvider? GetProvider(IServiceProvider services)
 static async Task RunChatDemo(ILLMProvider provider)
 {
     PrintSection("1. 简单聊天");
-    Console.WriteLine("问题：async/await 和 Task.Run 有什么区别？\n");
+    Console.WriteLine("问题：什么是 ReAct 模式？它如何帮助 AI Agent 解决复杂问题？\n");
 
     try
     {
         var response = await provider.ChatAsync(
-            [new ChatMessage("user", "async/await 和 Task.Run 有什么区别？用简洁的话解释。")],
+            [
+                new ChatMessage(
+                    "user",
+                    "什么是 ReAct 模式？它如何帮助 AI Agent 解决复杂问题？用简洁的话解释。"
+                ),
+            ],
             new ChatCompletionOptions { MaxTokens = 300 }
         );
 
@@ -177,7 +193,7 @@ static async Task RunAgentDemo(IAgent agent)
     Console.WriteLine($"✓ Agent: {agent.Name}\n");
 
     var question =
-        "帮我搜索 .NET 中依赖注入的最佳实践，然后计算如果一个服务有 5 个依赖项，每个依赖项又有 3 个子依赖，总共需要注册多少个服务？最后给出建议。";
+        "帮我搜索 AI Agent 的常见架构模式，然后计算如果一个 Agent 系统有 3 个专家 Agent，每个专家有 4 个工具，总共需要多少个工具调用能力？最后总结多 Agent 协作的优势。";
     Console.WriteLine($"📝 问题：{question}\n");
 
     var response = await agent.RunAsync(question);
@@ -228,12 +244,12 @@ static async Task RunAgentDemo(IAgent agent)
 static async Task RunStreamDemo(ILLMProvider provider)
 {
     PrintSection("3. 流式聊天");
-    Console.WriteLine("问题：列举 SOLID 五大原则\n");
+    Console.WriteLine("问题：AI Agent 常用的工具类型有哪些？\n");
     Console.Write("回复：");
 
     await foreach (
         var chunk in provider.ChatStreamAsync(
-            [new ChatMessage("user", "用一句话分别解释 SOLID 五大原则。")],
+            [new ChatMessage("user", "列举 AI Agent 常用的 5 种工具类型，每种用一句话说明用途。")],
             new ChatCompletionOptions { MaxTokens = 400 }
         )
     )
@@ -250,7 +266,8 @@ static async Task RunInteractiveChat(ILLMProvider provider)
     Console.WriteLine("输入 'quit' 或 'exit' 退出\n");
 
     var messages = new List<ChatMessage>();
-    var systemPrompt = "你是一个名叫 Dawn 的 AI 编程助手。回答要简洁。";
+    var systemPrompt =
+        "你是一个名叫 Dawn 的 AI Agent 专家，精通 Agent 架构设计、工具调用和多 Agent 协作。回答要简洁。";
 
     while (true)
     {
