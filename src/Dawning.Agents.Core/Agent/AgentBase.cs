@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -32,6 +33,11 @@ public abstract class AgentBase : IAgent
     protected readonly AgentOptions Options;
 
     /// <summary>
+    /// 对话记忆（可选），用于跨会话保持上下文
+    /// </summary>
+    protected readonly IConversationMemory? Memory;
+
+    /// <summary>
     /// Agent 名称
     /// </summary>
     public virtual string Name => Options.Name;
@@ -46,16 +52,19 @@ public abstract class AgentBase : IAgent
     /// </summary>
     /// <param name="llmProvider">LLM 提供者</param>
     /// <param name="options">Agent 配置选项</param>
+    /// <param name="memory">对话记忆（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
     /// <exception cref="ArgumentNullException">当 llmProvider 或 options 为 null 时抛出</exception>
     protected AgentBase(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
+        IConversationMemory? memory = null,
         ILogger? logger = null
     )
     {
         LLMProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
         Options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        Memory = memory;
         Logger = logger ?? NullLogger.Instance;
     }
 
@@ -110,6 +119,10 @@ public abstract class AgentBase : IAgent
                         Name,
                         context.Steps.Count
                     );
+
+                    // 保存对话到记忆
+                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken);
+
                     return AgentResponse.Successful(finalAnswer, context.Steps, stopwatch.Elapsed);
                 }
             }
@@ -159,4 +172,39 @@ public abstract class AgentBase : IAgent
     /// 当返回非 null 值时，Agent 循环将终止并返回成功响应
     /// </remarks>
     protected abstract string? ExtractFinalAnswer(AgentStep step);
+
+    /// <summary>
+    /// 保存对话到记忆（如果已配置）
+    /// </summary>
+    /// <param name="userInput">用户输入</param>
+    /// <param name="assistantResponse">Agent 响应</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private async Task SaveToMemoryAsync(
+        string userInput,
+        string assistantResponse,
+        CancellationToken cancellationToken
+    )
+    {
+        if (Memory == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await Memory.AddMessageAsync(
+                new ConversationMessage { Role = "user", Content = userInput },
+                cancellationToken
+            );
+            await Memory.AddMessageAsync(
+                new ConversationMessage { Role = "assistant", Content = assistantResponse },
+                cancellationToken
+            );
+            Logger.LogDebug("对话已保存到记忆，当前消息数: {Count}", Memory.MessageCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "保存对话到记忆时出错");
+        }
+    }
 }

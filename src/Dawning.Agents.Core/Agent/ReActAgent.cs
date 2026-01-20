@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,14 +51,16 @@ public partial class ReActAgent : AgentBase
     /// <param name="llmProvider">LLM 提供者，用于调用语言模型</param>
     /// <param name="options">Agent 配置选项</param>
     /// <param name="toolRegistry">工具注册表（可选）</param>
+    /// <param name="memory">对话记忆（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
     public ReActAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
         IToolRegistry? toolRegistry = null,
+        IConversationMemory? memory = null,
         ILogger<ReActAgent>? logger = null
     )
-        : base(llmProvider, options, logger)
+        : base(llmProvider, options, memory, logger)
     {
         _toolRegistry = toolRegistry;
     }

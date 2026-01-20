@@ -50,16 +50,100 @@ dotnet run
 
 - ✅ Week 2: LLM Provider 完成
 - ✅ Week 3: Agent 核心循环完成（63 测试通过）
+- ✅ Week 4: Memory 系统完成（150 测试通过）
 - ✅ Week 5: Tools/Skills 系统完成（74 测试通过）
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
-- 🔜 Week 4: Memory 系统（下一步）
+- 🔜 Week 6: PackageManagerTool + RAG 集成
 
 ### 下一步任务
 
-1. `IConversationMemory` 接口设计 - 对话记忆
-2. `BufferMemory` 实现 - 滑动窗口记忆
-3. `SummaryMemory` 实现 - 对话摘要
-4. `TokenLimitMemory` 实现 - Token 限制记忆
+1. `PackageManagerTool` - 动态工具安装（winget/pip/npm/dotnet）
+2. `IVectorStore` 接口设计 - 向量存储
+3. `RAGTool` 实现 - 知识库检索
+
+---
+
+## [2026-01-20] Phase 2.5: Week 4 Memory 系统完成
+
+### 新增的接口（Abstractions）
+
+```csharp
+// 对话消息记录
+public record ConversationMessage
+{
+    public string Id { get; init; }
+    public required string Role { get; init; }
+    public required string Content { get; init; }
+    public DateTime Timestamp { get; init; }
+    public int? TokenCount { get; init; }
+}
+
+// 对话记忆管理接口
+public interface IConversationMemory
+{
+    Task AddMessageAsync(ConversationMessage message, CancellationToken ct = default);
+    Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<ChatMessage>> GetContextAsync(int? maxTokens = null, CancellationToken ct = default);
+    Task ClearAsync(CancellationToken ct = default);
+    Task<int> GetTokenCountAsync(CancellationToken ct = default);
+    int MessageCount { get; }
+}
+
+// Token 计数器接口
+public interface ITokenCounter
+{
+    int CountTokens(string text);
+    int CountTokens(IEnumerable<ChatMessage> messages);
+    string ModelName { get; }
+    int MaxContextTokens { get; }
+}
+```
+
+### 新增的实现类（Core）
+
+| 类 | 描述 |
+|---|---|
+| `SimpleTokenCounter` | 基于字符估算的 Token 计数器（英文 4 字符/token，中文 1.5 字符/token） |
+| `BufferMemory` | 存储所有消息的简单缓冲记忆 |
+| `WindowMemory` | 只保留最后 N 条消息的滑动窗口记忆 |
+| `SummaryMemory` | 自动摘要旧消息的智能记忆（需要 LLM） |
+
+### DI 扩展方法
+
+```csharp
+// 根据配置自动选择 Memory 类型
+services.AddMemory(configuration);
+
+// 或直接指定类型
+services.AddBufferMemory();
+services.AddWindowMemory(windowSize: 10);
+services.AddSummaryMemory(maxRecentMessages: 6, summaryThreshold: 10);
+services.AddTokenCounter();
+```
+
+### 配置选项
+
+```json
+{
+  "Memory": {
+    "Type": "Window",
+    "WindowSize": 10,
+    "MaxRecentMessages": 6,
+    "SummaryThreshold": 10,
+    "ModelName": "gpt-4",
+    "MaxContextTokens": 8192
+  }
+}
+```
+
+### 测试覆盖
+
+- `SimpleTokenCounterTests` - 10 个测试
+- `BufferMemoryTests` - 11 个测试
+- `WindowMemoryTests` - 10 个测试
+- `SummaryMemoryTests` - 13 个测试
+
+**总计：150 个测试通过**（包括之前的 106 个）
 
 ---
 

@@ -1,6 +1,8 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Core.Agent;
+using Dawning.Agents.Core.Memory;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -30,7 +32,7 @@ public class ReActAgentTests
     public void Constructor_ShouldSetNameAndInstructions()
     {
         // Act
-        var agent = new ReActAgent(_mockProvider.Object, _options, null, null);
+        var agent = new ReActAgent(_mockProvider.Object, _options, null, null, null);
 
         // Assert
         agent.Name.Should().Be("TestAgent");
@@ -61,6 +63,7 @@ public class ReActAgentTests
             _mockProvider.Object,
             _options,
             null,
+            null,
             NullLogger<ReActAgent>.Instance
         );
 
@@ -83,6 +86,7 @@ public class ReActAgentTests
         var agent = new ReActAgent(
             _mockProvider.Object,
             _options,
+            null,
             null,
             NullLogger<ReActAgent>.Instance
         );
@@ -112,6 +116,7 @@ public class ReActAgentTests
         var agent = new ReActAgent(
             _mockProvider.Object,
             _options,
+            null,
             null,
             NullLogger<ReActAgent>.Instance
         );
@@ -143,6 +148,7 @@ public class ReActAgentTests
         var agent = new ReActAgent(
             _mockProvider.Object,
             _options,
+            null,
             null,
             NullLogger<ReActAgent>.Instance
         );
@@ -189,6 +195,7 @@ public class ReActAgentTests
             _mockProvider.Object,
             _options,
             null,
+            null,
             NullLogger<ReActAgent>.Instance
         );
         var context = new AgentContext { UserInput = "Custom input", MaxSteps = 1 };
@@ -198,5 +205,122 @@ public class ReActAgentTests
 
         // Assert
         response.Steps.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task RunAsync_WithMemory_ShouldSaveConversationToMemory()
+    {
+        // Arrange
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "Final Answer: The answer is 42" }
+            );
+
+        var memory = new BufferMemory(new SimpleTokenCounter());
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            memory,
+            NullLogger<ReActAgent>.Instance
+        );
+
+        // Act
+        var response = await agent.RunAsync("What is the answer?");
+
+        // Assert
+        response.Success.Should().BeTrue();
+        response.FinalAnswer.Should().Be("The answer is 42");
+
+        // 验证 Memory 保存了对话
+        memory.MessageCount.Should().Be(2);
+        var messages = await memory.GetMessagesAsync();
+        messages[0].Role.Should().Be("user");
+        messages[0].Content.Should().Be("What is the answer?");
+        messages[1].Role.Should().Be("assistant");
+        messages[1].Content.Should().Be("The answer is 42");
+    }
+
+    [Fact]
+    public async Task RunAsync_WithoutMemory_ShouldNotThrow()
+    {
+        // Arrange
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "Final Answer: Hello" }
+            );
+
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            null, // No memory
+            NullLogger<ReActAgent>.Instance
+        );
+
+        // Act
+        var response = await agent.RunAsync("Hi");
+
+        // Assert
+        response.Success.Should().BeTrue();
+        response.FinalAnswer.Should().Be("Hello");
+    }
+
+    [Fact]
+    public async Task RunAsync_MultipleConversations_ShouldAccumulateInMemory()
+    {
+        // Arrange
+        var callCount = 0;
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                return new ChatCompletionResponse
+                {
+                    Content = $"Final Answer: Response {callCount}",
+                };
+            });
+
+        var memory = new BufferMemory(new SimpleTokenCounter());
+        var agent = new ReActAgent(
+            _mockProvider.Object,
+            _options,
+            null,
+            memory,
+            NullLogger<ReActAgent>.Instance
+        );
+
+        // Act - 执行两次对话
+        await agent.RunAsync("Question 1");
+        await agent.RunAsync("Question 2");
+
+        // Assert
+        memory.MessageCount.Should().Be(4); // 2 user + 2 assistant messages
+        var messages = await memory.GetMessagesAsync();
+        messages[0].Content.Should().Be("Question 1");
+        messages[1].Content.Should().Be("Response 1");
+        messages[2].Content.Should().Be("Question 2");
+        messages[3].Content.Should().Be("Response 2");
     }
 }

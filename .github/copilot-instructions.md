@@ -441,25 +441,51 @@ services.AddVirtualTool(new VirtualTool(toolSet));
 services.AddVirtualToolFrom<GitTool>("git", "Git 版本控制工具集", "🔧");
 ```
 
----
+### Memory 系统 ✅ (Week 4 已完成)
 
-## 未来功能规划
+Memory 是 Agent 的"记忆"，管理对话历史和上下文。
 
-### Memory 系统 (Week 4)
+**核心接口（已实现）：**
 
 ```csharp
 public interface IConversationMemory
 {
-    void AddMessage(ChatMessage message);
-    IReadOnlyList<ChatMessage> GetMessages(int? limit = null);
-    Task<string> SummarizeAsync(CancellationToken ct = default);
+    Task AddMessageAsync(ConversationMessage message, CancellationToken ct = default);
+    Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<ChatMessage>> GetContextAsync(int? maxTokens = null, CancellationToken ct = default);
+    Task ClearAsync(CancellationToken ct = default);
+    Task<int> GetTokenCountAsync(CancellationToken ct = default);
+    int MessageCount { get; }
 }
 
-// 实现类型
-// - BufferMemory: 滑动窗口
-// - SummaryMemory: 对话摘要
-// - TokenLimitMemory: Token 限制
+public interface ITokenCounter
+{
+    int CountTokens(string text);
+    int CountTokens(IEnumerable<ChatMessage> messages);
+    string ModelName { get; }
+    int MaxContextTokens { get; }
+}
 ```
+
+**实现类型（已实现）：**
+- `SimpleTokenCounter` - 字符估算（英文 4 字符/token，中文 1.5 字符/token）
+- `BufferMemory` - 存储所有消息
+- `WindowMemory` - 滑动窗口（保留最近 N 条）
+- `SummaryMemory` - 自动摘要旧消息
+
+**DI 注册方式（已实现）：**
+
+```csharp
+services.AddMemory(configuration);        // 根据配置自动选择
+services.AddBufferMemory();               // 缓冲记忆
+services.AddWindowMemory(windowSize: 10); // 滑动窗口
+services.AddSummaryMemory();              // 摘要记忆
+services.AddTokenCounter();               // Token 计数器
+```
+
+---
+
+## 未来功能规划
 
 ### Handoff 多 Agent 协作 (Week 7-8)
 

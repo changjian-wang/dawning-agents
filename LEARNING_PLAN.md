@@ -129,50 +129,57 @@ public interface IAgent
 - [x] **实践**: 为 Agent 设计 Prompt 模板
 - [x] **代码**: 实现 `PromptTemplate` 类
 
-### Week 4: 对话管理与记忆
+### Week 4: 对话管理与记忆 ✅
 
-#### Day 1-2: 对话历史管理
+#### Day 1-2: 对话历史管理 ✅
 
-- [ ] **阅读**: LangChain Memory 源码
+- [x] **阅读**: LangChain Memory 源码
   - `langchain/memory/buffer.py`
   - `langchain/memory/summary.py`
-- [ ] **代码**: 实现 `IConversationMemory` 接口
-- [ ] **代码**: 实现 `BufferMemory` (滑动窗口)
-- [ ] **代码**: 实现 `SummaryMemory` (对话摘要)
+- [x] **代码**: 实现 `IConversationMemory` 接口
+- [x] **代码**: 实现 `BufferMemory` (缓冲记忆)
+- [x] **代码**: 实现 `WindowMemory` (滑动窗口)
+- [x] **代码**: 实现 `SummaryMemory` (对话摘要)
 
-#### Day 3-4: Token 管理
+#### Day 3-4: Token 管理 ✅
 
-- [ ] **学习**: Token 计算原理 (tiktoken)
-- [ ] **代码**: 实现 Token 计数器
-- [ ] **代码**: 实现上下文窗口管理
-- [ ] **代码**: 实现对话压缩策略
+- [x] **学习**: Token 计算原理 (tiktoken)
+- [x] **代码**: 实现 `ITokenCounter` 接口
+- [x] **代码**: 实现 `SimpleTokenCounter` (字符估算)
+- [x] **代码**: 实现上下文窗口管理 (maxTokens 参数)
 
-#### Day 5-7: Agent 状态机
+#### Day 5-7: DI 集成与测试 ✅
 
-- [ ] **设计**: Agent 状态转换图
-- [ ] **代码**: 实现 `AgentState` 枚举
-- [ ] **代码**: 实现状态转换逻辑
-- [ ] **测试**: 编写单元测试
+- [x] **代码**: 实现 `MemoryOptions` 配置类
+- [x] **代码**: 实现 DI 扩展方法
+  - `AddMemory()` - 根据配置自动选择
+  - `AddBufferMemory()` / `AddWindowMemory()` / `AddSummaryMemory()`
+- [x] **测试**: 编写单元测试（44 个新增测试）
 
 **Week 4 产出物**:
 
 ```text
-src/Dawning.Agents.Core/
-├── Agents/
-│   ├── IAgent.cs
-│   ├── AgentBase.cs
-│   ├── AgentContext.cs
-│   ├── AgentState.cs
-│   └── ReActAgent.cs
+src/Dawning.Agents.Abstractions/
 ├── Memory/
-│   ├── IConversationMemory.cs
-│   ├── BufferMemory.cs
-│   └── SummaryMemory.cs
-├── Prompts/
-│   ├── IPromptTemplate.cs
-│   └── PromptTemplate.cs
-└── LLM/
-    └── ...
+│   ├── ConversationMessage.cs     ← 对话消息记录
+│   ├── IConversationMemory.cs     ← 记忆接口
+│   ├── ITokenCounter.cs           ← Token 计数器接口
+│   └── MemoryOptions.cs           ← 配置选项
+
+src/Dawning.Agents.Core/
+├── Memory/
+│   ├── SimpleTokenCounter.cs      ← 字符估算计数器
+│   ├── BufferMemory.cs            ← 缓冲记忆
+│   ├── WindowMemory.cs            ← 滑动窗口记忆
+│   ├── SummaryMemory.cs           ← 摘要记忆
+│   └── MemoryServiceCollectionExtensions.cs  ← DI 扩展
+
+tests/Dawning.Agents.Tests/
+├── Memory/
+│   ├── SimpleTokenCounterTests.cs
+│   ├── BufferMemoryTests.cs
+│   ├── WindowMemoryTests.cs
+│   └── SummaryMemoryTests.cs
 ```
 
 ---

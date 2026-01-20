@@ -1,7 +1,9 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Memory;
 using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Demo.Tools;
@@ -28,6 +30,9 @@ builder.Services.AddLLMProvider(builder.Configuration);
 // 注册内置工具 + 自定义工具
 builder.Services.AddBuiltInTools();
 builder.Services.AddToolsFrom<DemoTools>();
+
+// 注册 Memory 服务
+builder.Services.AddWindowMemory(windowSize: 6);
 
 builder.Services.AddReActAgent(options =>
 {
@@ -65,6 +70,15 @@ switch (runMode)
     case RunMode.Interactive:
         await RunInteractiveChat(provider);
         break;
+    case RunMode.Memory:
+        var memory = host.Services.GetRequiredService<IConversationMemory>();
+        var tokenCounter = host.Services.GetRequiredService<ITokenCounter>();
+        await RunMemoryDemo(provider, memory, tokenCounter);
+        break;
+    case RunMode.AgentMemory:
+        var agentMemory = host.Services.GetRequiredService<IConversationMemory>();
+        await RunAgentMemoryDemo(agent, agentMemory);
+        break;
     default: // All
         await RunChatDemo(provider);
         await RunAgentDemo(agent);
@@ -100,6 +114,14 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.Interactive;
     }
+    else if (args.Contains("--memory") || args.Contains("-m"))
+    {
+        mode = RunMode.Memory;
+    }
+    else if (args.Contains("--agent-memory") || args.Contains("-am"))
+    {
+        mode = RunMode.AgentMemory;
+    }
 
     return (showHelp, mode);
 }
@@ -117,6 +139,8 @@ static void ShowHelp()
           --agent         只运行 Agent 演示
           --stream        只运行流式聊天演示
           -i, --interactive  只运行交互式对话
+          -m, --memory    演示 Memory 系统（滑动窗口记忆）
+          -am, --agent-memory  演示 Agent + Memory 多轮对话
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):
@@ -304,6 +328,113 @@ static async Task RunInteractiveChat(ILLMProvider provider)
     }
 }
 
+static async Task RunMemoryDemo(
+    ILLMProvider provider,
+    IConversationMemory memory,
+    ITokenCounter tokenCounter
+)
+{
+    PrintSection("5. Memory 系统演示（滑动窗口）");
+
+    var windowMemory = memory as WindowMemory;
+    if (windowMemory != null)
+    {
+        Console.WriteLine($"✓ 使用 WindowMemory，窗口大小: {windowMemory.WindowSize}");
+    }
+    else
+    {
+        Console.WriteLine($"✓ 使用 {memory.GetType().Name}");
+    }
+
+    Console.WriteLine($"✓ Token 计数器: {tokenCounter.ModelName}");
+    Console.WriteLine("\n输入 'quit' 退出，输入 'status' 查看记忆状态\n");
+
+    var systemPrompt = "你是 Dawn，一个简洁的 AI 助手。回答要简短，不超过 50 字。";
+
+    while (true)
+    {
+        Console.Write("你：");
+        var input = Console.ReadLine();
+
+        if (
+            string.IsNullOrWhiteSpace(input)
+            || input.Equals("quit", StringComparison.OrdinalIgnoreCase)
+            || input.Equals("exit", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            break;
+        }
+
+        // 查看记忆状态
+        if (input.Equals("status", StringComparison.OrdinalIgnoreCase))
+        {
+            await PrintMemoryStatus(memory);
+            continue;
+        }
+
+        // 添加用户消息到记忆
+        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = input });
+
+        // 获取上下文并调用 LLM
+        var context = await memory.GetContextAsync();
+        var messagesForLlm = context.ToList();
+
+        Console.Write("Dawn：");
+        var fullResponse = new System.Text.StringBuilder();
+
+        await foreach (
+            var chunk in provider.ChatStreamAsync(
+                messagesForLlm,
+                new ChatCompletionOptions { SystemPrompt = systemPrompt, MaxTokens = 200 }
+            )
+        )
+        {
+            Console.Write(chunk);
+            fullResponse.Append(chunk);
+        }
+
+        Console.WriteLine();
+
+        // 添加助手回复到记忆
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = fullResponse.ToString() }
+        );
+
+        // 显示记忆统计
+        var tokenCount = await memory.GetTokenCountAsync();
+        PrintDim($"  [消息数: {memory.MessageCount}, Token: ~{tokenCount}]");
+        Console.WriteLine();
+    }
+
+    // 退出前显示最终状态
+    Console.WriteLine("\n📊 最终记忆状态：");
+    await PrintMemoryStatus(memory);
+}
+
+static async Task PrintMemoryStatus(IConversationMemory memory)
+{
+    var messages = await memory.GetMessagesAsync();
+    var tokenCount = await memory.GetTokenCountAsync();
+
+    PrintDivider("📝 记忆状态");
+    Console.WriteLine($"  消息数量: {memory.MessageCount}");
+    Console.WriteLine($"  Token 估算: ~{tokenCount}");
+    Console.WriteLine();
+
+    if (messages.Count > 0)
+    {
+        Console.WriteLine("  最近消息:");
+        foreach (var msg in messages.TakeLast(6))
+        {
+            var preview = msg.Content.Length > 40 ? msg.Content[..40] + "..." : msg.Content;
+            var role = msg.Role == "user" ? "👤" : "🤖";
+            PrintDim($"    {role} {preview.Replace("\n", " ")}");
+        }
+    }
+
+    Console.WriteLine();
+}
+
 // ============================================================================
 // 输出辅助
 // ============================================================================
@@ -346,6 +477,69 @@ static void PrintColored(string message, ConsoleColor color)
     Console.ResetColor();
 }
 
+static async Task RunAgentMemoryDemo(IAgent agent, IConversationMemory memory)
+{
+    PrintSection("Agent + Memory 多轮对话演示");
+    Console.WriteLine($"✓ Agent: {agent.Name}");
+    Console.WriteLine($"✓ Memory 类型: {memory.GetType().Name}");
+    Console.WriteLine("\n演示 Agent 如何在多轮对话中自动保存记忆...\n");
+
+    // 预设的多轮对话问题
+    var questions = new[]
+    {
+        "计算 15 + 27 等于多少？",
+        "再把刚才的结果乘以 2",
+        "今天是几号？",
+    };
+
+    foreach (var question in questions)
+    {
+        PrintDivider($"📝 问题：{question}");
+
+        var response = await agent.RunAsync(question);
+
+        // 显示执行步骤
+        foreach (var step in response.Steps)
+        {
+            if (!string.IsNullOrEmpty(step.Action))
+            {
+                PrintColored($"  🎯 {step.Action}({step.ActionInput})", ConsoleColor.Yellow);
+                PrintColored($"  👁️ {step.Observation?.Trim()}", ConsoleColor.Green);
+            }
+        }
+
+        if (response.Success && !string.IsNullOrEmpty(response.FinalAnswer))
+        {
+            PrintColored($"\n  💬 回答：{response.FinalAnswer}\n", ConsoleColor.Cyan);
+        }
+
+        // 显示 Memory 状态
+        var messages = await memory.GetMessagesAsync();
+        PrintDim($"  📚 Memory 状态: {messages.Count} 条消息");
+
+        // 显示最近的消息摘要
+        var recent = messages.TakeLast(4).ToList();
+        foreach (var msg in recent)
+        {
+            var role = msg.Role == "user" ? "👤" : "🤖";
+            var content =
+                msg.Content.Length > 50 ? msg.Content[..50] + "..." : msg.Content;
+            PrintDim($"     {role} {content}");
+        }
+
+        Console.WriteLine();
+    }
+
+    // 最终统计
+    PrintDivider("📊 Memory 统计");
+    var allMessages = await memory.GetMessagesAsync();
+    Console.WriteLine($"  总消息数: {allMessages.Count}");
+    Console.WriteLine($"  用户消息: {allMessages.Count(m => m.Role == "user")}");
+    Console.WriteLine($"  助手消息: {allMessages.Count(m => m.Role == "assistant")}");
+    var totalTokens = await memory.GetTokenCountAsync();
+    Console.WriteLine($"  估计 Token: {totalTokens}");
+}
+
 // ============================================================================
 // 枚举
 // ============================================================================
@@ -357,4 +551,6 @@ enum RunMode
     Agent,
     Stream,
     Interactive,
+    Memory,
+    AgentMemory,
 }
