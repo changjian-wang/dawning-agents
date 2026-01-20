@@ -1,6 +1,7 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
+using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Memory;
@@ -30,6 +31,12 @@ builder.Services.AddLLMProvider(builder.Configuration);
 // 注册内置工具 + 自定义工具
 builder.Services.AddBuiltInTools();
 builder.Services.AddToolsFrom<DemoTools>();
+builder.Services.AddPackageManagerTools(options =>
+{
+    // 安全配置：白名单模式
+    options.WhitelistedPackages = ["Git.*", "Microsoft.*", "Python.*", "nodejs", "dotnet-*"];
+    options.BlacklistedPackages = ["*hack*", "*crack*", "*malware*"];
+});
 
 // 注册 Memory 服务
 builder.Services.AddWindowMemory(windowSize: 6);
@@ -79,6 +86,10 @@ switch (runMode)
         var agentMemory = host.Services.GetRequiredService<IConversationMemory>();
         await RunAgentMemoryDemo(agent, agentMemory);
         break;
+    case RunMode.PackageManager:
+        var registry = host.Services.GetRequiredService<IToolRegistry>();
+        await RunPackageManagerDemo(registry);
+        break;
     default: // All
         await RunChatDemo(provider);
         await RunAgentDemo(agent);
@@ -122,6 +133,10 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.AgentMemory;
     }
+    else if (args.Contains("--package-manager") || args.Contains("-pm"))
+    {
+        mode = RunMode.PackageManager;
+    }
 
     return (showHelp, mode);
 }
@@ -141,6 +156,7 @@ static void ShowHelp()
           -i, --interactive  只运行交互式对话
           -m, --memory    演示 Memory 系统（滑动窗口记忆）
           -am, --agent-memory  演示 Agent + Memory 多轮对话
+          -pm, --package-manager  演示 PackageManagerTool 包管理工具
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):
@@ -439,6 +455,13 @@ static async Task PrintMemoryStatus(IConversationMemory memory)
 // 输出辅助
 // ============================================================================
 
+static void PrintTitle(string title)
+{
+    Console.WriteLine($"\n╔══════════════════════════════════════════════════════════════╗");
+    Console.WriteLine($"║  {title, -58} ║");
+    Console.WriteLine($"╚══════════════════════════════════════════════════════════════╝\n");
+}
+
 static void PrintSection(string title)
 {
     Console.WriteLine($"━━━ {title} ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -460,6 +483,20 @@ static void PrintError(string message)
 {
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine(message);
+    Console.ResetColor();
+}
+
+static void PrintInfo(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine($"ℹ {message}");
+    Console.ResetColor();
+}
+
+static void PrintWarning(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"⚠ {message}");
     Console.ResetColor();
 }
 
@@ -485,12 +522,7 @@ static async Task RunAgentMemoryDemo(IAgent agent, IConversationMemory memory)
     Console.WriteLine("\n演示 Agent 如何在多轮对话中自动保存记忆...\n");
 
     // 预设的多轮对话问题
-    var questions = new[]
-    {
-        "计算 15 + 27 等于多少？",
-        "再把刚才的结果乘以 2",
-        "今天是几号？",
-    };
+    var questions = new[] { "计算 15 + 27 等于多少？", "再把刚才的结果乘以 2", "今天是几号？" };
 
     foreach (var question in questions)
     {
@@ -522,8 +554,7 @@ static async Task RunAgentMemoryDemo(IAgent agent, IConversationMemory memory)
         foreach (var msg in recent)
         {
             var role = msg.Role == "user" ? "👤" : "🤖";
-            var content =
-                msg.Content.Length > 50 ? msg.Content[..50] + "..." : msg.Content;
+            var content = msg.Content.Length > 50 ? msg.Content[..50] + "..." : msg.Content;
             PrintDim($"     {role} {content}");
         }
 
@@ -540,6 +571,117 @@ static async Task RunAgentMemoryDemo(IAgent agent, IConversationMemory memory)
     Console.WriteLine($"  估计 Token: {totalTokens}");
 }
 
+/// <summary>
+/// 演示 PackageManagerTool 包管理工具
+/// </summary>
+static async Task RunPackageManagerDemo(IToolRegistry registry)
+{
+    PrintTitle("📦 PackageManagerTool 演示");
+
+    // 获取所有 PackageManager 类别的工具
+    var pmTools = registry.GetToolsByCategory("PackageManager").ToList();
+
+    Console.WriteLine($"\n已注册的包管理工具 ({pmTools.Count} 个):\n");
+
+    // 按包管理器类型分组显示
+    var wingetTools = pmTools.Where(t => t.Name.StartsWith("Winget")).ToList();
+    var pipTools = pmTools.Where(t => t.Name.StartsWith("Pip")).ToList();
+    var npmTools = pmTools.Where(t => t.Name.StartsWith("Npm")).ToList();
+    var dotnetTools = pmTools.Where(t => t.Name.StartsWith("DotnetTool")).ToList();
+
+    void PrintToolGroup(string groupName, string icon, IList<ITool> tools)
+    {
+        Console.WriteLine($"  {icon} {groupName} ({tools.Count} 个工具):");
+        foreach (var tool in tools)
+        {
+            var riskIcon = tool.RiskLevel switch
+            {
+                ToolRiskLevel.Low => "🟢",
+                ToolRiskLevel.Medium => "🟡",
+                ToolRiskLevel.High => "🔴",
+                _ => "⚪",
+            };
+            var confirmIcon = tool.RequiresConfirmation ? "🔒" : "";
+            Console.WriteLine($"      {riskIcon} {tool.Name} {confirmIcon}");
+            PrintDim($"         {tool.Description[..Math.Min(60, tool.Description.Length)]}...");
+        }
+        Console.WriteLine();
+    }
+
+    PrintToolGroup("Winget (Windows)", "🪟", wingetTools);
+    PrintToolGroup("Pip (Python)", "🐍", pipTools);
+    PrintToolGroup("Npm (Node.js)", "📦", npmTools);
+    PrintToolGroup("Dotnet Tool (.NET)", "🔷", dotnetTools);
+
+    // 演示工具执行
+    PrintDivider("📋 工具演示");
+
+    Console.WriteLine("\n1️⃣ 演示 DotnetToolList (安全只读操作):\n");
+    var dotnetListTool = pmTools.FirstOrDefault(t => t.Name == "DotnetToolList");
+    if (dotnetListTool != null)
+    {
+        PrintInfo($"执行 {dotnetListTool.Name}...");
+        var result = await dotnetListTool.ExecuteAsync("{\"global\": true}");
+        if (result.Success)
+        {
+            PrintSuccess("执行成功:");
+            // 只显示前 10 行
+            var lines = result.Output.Split('\n').Take(15);
+            foreach (var line in lines)
+            {
+                Console.WriteLine($"  {line}");
+            }
+            if (result.Output.Split('\n').Length > 15)
+            {
+                PrintDim("  ... (更多输出已省略)");
+            }
+        }
+        else
+        {
+            PrintError($"执行失败: {result.Error}");
+        }
+    }
+
+    Console.WriteLine("\n2️⃣ 演示 DotnetToolSearch (安全只读操作):\n");
+    var dotnetSearchTool = pmTools.FirstOrDefault(t => t.Name == "DotnetToolSearch");
+    if (dotnetSearchTool != null)
+    {
+        PrintInfo("搜索 'dotnet-ef'...");
+        var result = await dotnetSearchTool.ExecuteAsync("{\"query\": \"dotnet-ef\"}");
+        if (result.Success)
+        {
+            PrintSuccess("搜索结果:");
+            var lines = result.Output.Split('\n').Take(10);
+            foreach (var line in lines)
+            {
+                Console.WriteLine($"  {line}");
+            }
+        }
+        else
+        {
+            PrintError($"搜索失败: {result.Error}");
+        }
+    }
+
+    Console.WriteLine("\n3️⃣ 高风险操作演示 (模拟):\n");
+    PrintWarning("以下操作标记为高风险，实际执行时需要用户确认：");
+
+    var highRiskTools = pmTools.Where(t => t.RiskLevel == ToolRiskLevel.High).Take(5);
+    foreach (var tool in highRiskTools)
+    {
+        Console.WriteLine($"  🔴 {tool.Name}");
+        PrintDim($"     {tool.Description[..Math.Min(70, tool.Description.Length)]}...");
+    }
+
+    // 统计信息
+    PrintDivider("📊 统计信息");
+    Console.WriteLine($"  总工具数: {pmTools.Count}");
+    Console.WriteLine($"  低风险 (只读): {pmTools.Count(t => t.RiskLevel == ToolRiskLevel.Low)}");
+    Console.WriteLine(
+        $"  高风险 (需确认): {pmTools.Count(t => t.RiskLevel == ToolRiskLevel.High)}"
+    );
+}
+
 // ============================================================================
 // 枚举
 // ============================================================================
@@ -553,4 +695,5 @@ enum RunMode
     Interactive,
     Memory,
     AgentMemory,
+    PackageManager,
 }

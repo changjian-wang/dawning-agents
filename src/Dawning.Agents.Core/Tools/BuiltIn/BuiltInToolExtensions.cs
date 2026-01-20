@@ -152,4 +152,40 @@ public static class BuiltInToolExtensions
         services.AddToolsFrom<GitTool>();
         return services;
     }
+
+    /// <summary>
+    /// 添加包管理工具
+    /// </summary>
+    /// <remarks>
+    /// <para>支持的包管理器:</para>
+    /// <list type="bullet">
+    /// <item>winget (Windows)</item>
+    /// <item>pip (Python)</item>
+    /// <item>npm (Node.js)</item>
+    /// <item>dotnet tool (.NET)</item>
+    /// </list>
+    /// <para>⚠️ 高风险工具：所有安装/卸载操作都需要用户确认。</para>
+    /// </remarks>
+    public static IServiceCollection AddPackageManagerTools(this IServiceCollection services)
+    {
+        services.AddSingleton<Abstractions.Tools.PackageManagerOptions>();
+        services.AddToolsFrom<PackageManagerTool>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加包管理工具（带配置）
+    /// </summary>
+    public static IServiceCollection AddPackageManagerTools(
+        this IServiceCollection services,
+        Action<Abstractions.Tools.PackageManagerOptions> configure
+    )
+    {
+        var options = new Abstractions.Tools.PackageManagerOptions();
+        configure(options);
+        options.Validate();
+        services.AddSingleton(options);
+        services.AddToolsFrom<PackageManagerTool>();
+        return services;
+    }
 }

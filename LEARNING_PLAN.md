@@ -328,44 +328,57 @@ public interface IToolApprovalHandler
 
 ### Week 6: 动态工具 + RAG 集成
 
-#### Day 1-2: PackageManagerTool 实现
+#### Day 1-2: PackageManagerTool 实现 ✅ 已完成
 
-- [ ] **设计**: 动态工具安装的安全策略
+- [x] **设计**: 动态工具安装的安全策略
   - 白名单机制（允许安装的包列表）
+  - 黑名单机制（禁止安装的包列表）
   - 审批流程集成（High RiskLevel）
-  - 安装后验证
-- [ ] **代码**: 实现 `PackageManagerTool`
-  - `WingetInstall` - Windows 软件安装
-  - `WingetSearch` - 搜索可用软件
-  - `PipInstall` - Python 包安装
-  - `NpmInstall` - Node.js 包安装
-  - `DotnetToolInstall` - .NET CLI 工具安装
-- [ ] **代码**: 实现 `PackageManagerOptions` 配置
-- [ ] **测试**: 包管理工具测试
+  - 超时控制
+- [x] **代码**: 实现 `PackageManagerTool`
+  - `WingetSearch/Show/Install/Uninstall/List` - Windows 软件管理 (5 个方法)
+  - `PipList/Show/Install/Uninstall` - Python 包管理 (4 个方法)
+  - `NpmSearch/View/Install/Uninstall/List` - Node.js 包管理 (5 个方法)
+  - `DotnetToolSearch/Install/Uninstall/List/Update` - .NET CLI 工具管理 (5 个方法)
+- [x] **代码**: 实现 `PackageManagerOptions` 配置
+- [x] **测试**: 包管理工具测试 (23 个测试)
 
 ```csharp
-// 目标实现
+// 实际实现
 public class PackageManagerTool
 {
     [FunctionTool("使用 winget 搜索 Windows 软件", RiskLevel = ToolRiskLevel.Low)]
-    public Task<string> WingetSearch(string query);
+    public Task<ToolResult> WingetSearch(string query, int maxResults = 10);
     
     [FunctionTool("使用 winget 安装 Windows 软件", 
         RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
-    public Task<string> WingetInstall(string packageId);
+    public Task<ToolResult> WingetInstall(string packageId, string? version = null);
     
     [FunctionTool("使用 pip 安装 Python 包",
         RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
-    public Task<string> PipInstall(string package);
+    public Task<ToolResult> PipInstall(string package, bool userInstall = false);
     
     [FunctionTool("使用 npm 安装 Node.js 包",
         RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
-    public Task<string> NpmInstall(string package);
+    public Task<ToolResult> NpmInstall(string package, bool global = false);
     
     [FunctionTool("使用 dotnet tool 安装 .NET 工具",
         RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
-    public Task<string> DotnetToolInstall(string package);
+    public Task<ToolResult> DotnetToolInstall(string package, bool global = true);
 }
+```
+
+**Week 6 产出物 (Day 1-2):**
+
+```text
+src/Dawning.Agents.Abstractions/Tools/
+└── PackageManagerOptions.cs        ← 包管理工具配置
+
+src/Dawning.Agents.Core/Tools/BuiltIn/
+└── PackageManagerTool.cs           ← 19 个包管理工具方法
+
+tests/Dawning.Agents.Tests/Tools/
+└── PackageManagerToolTests.cs      ← 23 个单元测试
 ```
 
 #### Day 3-4: 向量数据库基础

@@ -53,13 +53,81 @@ dotnet run
 - ✅ Week 4: Memory 系统完成（150 测试通过）
 - ✅ Week 5: Tools/Skills 系统完成（74 测试通过）
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
-- 🔜 Week 6: PackageManagerTool + RAG 集成
+- ✅ Week 6: PackageManagerTool 完成（176 测试通过）
+- 🔜 Week 6.5: RAG 集成
 
 ### 下一步任务
 
-1. `PackageManagerTool` - 动态工具安装（winget/pip/npm/dotnet）
-2. `IVectorStore` 接口设计 - 向量存储
-3. `RAGTool` 实现 - 知识库检索
+1. `IVectorStore` 接口设计 - 向量存储
+2. `RAGTool` 实现 - 知识库检索
+3. 文档分块 (Chunking)
+
+---
+
+## [2026-01-20] Phase 3: Week 6 PackageManagerTool 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Tools/
+└── PackageManagerOptions.cs     ← 包管理工具配置
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Tools/BuiltIn/
+└── PackageManagerTool.cs        ← 19 个包管理工具方法
+```
+
+**Tests:**
+```text
+tests/Dawning.Agents.Tests/Tools/
+└── PackageManagerToolTests.cs   ← 23 个单元测试
+```
+
+### 实现的工具方法 (19 个)
+
+| 包管理器 | 方法 | 风险等级 |
+|----------|------|----------|
+| **Winget** | WingetSearch, WingetShow, WingetList | Low |
+| **Winget** | WingetInstall, WingetUninstall | High |
+| **Pip** | PipList, PipShow | Low |
+| **Pip** | PipInstall, PipUninstall | High |
+| **Npm** | NpmSearch, NpmView, NpmList | Low |
+| **Npm** | NpmInstall, NpmUninstall | High |
+| **Dotnet** | DotnetToolSearch, DotnetToolList | Low |
+| **Dotnet** | DotnetToolInstall, DotnetToolUninstall, DotnetToolUpdate | High |
+
+### 安全特性
+
+- **白名单机制**: 只允许安装白名单中的包
+- **黑名单机制**: 禁止安装黑名单中的包
+- **高风险标记**: 所有安装/卸载操作标记为 `RequiresConfirmation = true`
+- **超时控制**: 默认 300 秒超时
+
+### 使用示例
+
+```csharp
+// 注册工具
+services.AddPackageManagerTools(options =>
+{
+    options.WhitelistedPackages = ["Git.*", "Microsoft.*"];
+    options.BlacklistedPackages = ["*hack*", "*malware*"];
+    options.DefaultTimeoutSeconds = 300;
+});
+
+// 使用工具
+var tool = new PackageManagerTool(options);
+await tool.DotnetToolList(global: true);
+await tool.WingetSearch("git");
+```
+
+### Demo 命令
+
+```bash
+dotnet run -- -pm    # 演示 PackageManagerTool
+```
 
 ---
 
