@@ -1,10 +1,12 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
+using Dawning.Agents.Abstractions.Orchestration;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Memory;
+using Dawning.Agents.Core.Orchestration;
 using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Demo.Tools;
@@ -90,6 +92,9 @@ switch (runMode)
         var registry = host.Services.GetRequiredService<IToolRegistry>();
         await RunPackageManagerDemo(registry);
         break;
+    case RunMode.Orchestrator:
+        await RunOrchestratorDemo(provider);
+        break;
     default: // All
         await RunChatDemo(provider);
         await RunAgentDemo(agent);
@@ -137,6 +142,10 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.PackageManager;
     }
+    else if (args.Contains("--orchestrator") || args.Contains("-o"))
+    {
+        mode = RunMode.Orchestrator;
+    }
 
     return (showHelp, mode);
 }
@@ -157,6 +166,7 @@ static void ShowHelp()
           -m, --memory    演示 Memory 系统（滑动窗口记忆）
           -am, --agent-memory  演示 Agent + Memory 多轮对话
           -pm, --package-manager  演示 PackageManagerTool 包管理工具
+          -o, --orchestrator  演示多 Agent 编排器
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):
@@ -683,6 +693,234 @@ static async Task RunPackageManagerDemo(IToolRegistry registry)
 }
 
 // ============================================================================
+// 编排器演示
+// ============================================================================
+
+static async Task RunOrchestratorDemo(ILLMProvider provider)
+{
+    PrintDivider("🎭 多 Agent 编排器演示");
+
+    Console.WriteLine("\n编排器允许多个 Agent 协同工作：");
+    Console.WriteLine("  • SequentialOrchestrator: 顺序执行（流水线）");
+    Console.WriteLine("  • ParallelOrchestrator: 并行执行（多专家）\n");
+
+    // ========================================================================
+    // 1. 顺序编排器演示
+    // ========================================================================
+    PrintDivider("1️⃣ 顺序编排器 (Sequential)");
+    Console.WriteLine("场景：翻译流水线 - 输入 → 翻译 → 润色 → 输出\n");
+
+    // 创建模拟 Agent
+    var translatorAgent = new MockAgent(
+        "Translator",
+        async (input, ct) =>
+        {
+            // 模拟翻译
+            await Task.Delay(100, ct);
+            return $"[已翻译] {input.Replace("Hello", "你好").Replace("world", "世界")}";
+        }
+    );
+
+    var polisherAgent = new MockAgent(
+        "Polisher",
+        async (input, ct) =>
+        {
+            // 模拟润色
+            await Task.Delay(100, ct);
+            return $"[已润色] {input} ✨";
+        }
+    );
+
+    var summarizerAgent = new MockAgent(
+        "Summarizer",
+        async (input, ct) =>
+        {
+            // 模拟摘要
+            await Task.Delay(100, ct);
+            return $"[摘要] 内容: {input[..Math.Min(50, input.Length)]}...";
+        }
+    );
+
+    var sequentialOrchestrator = new SequentialOrchestrator("翻译流水线")
+        .AddAgent(translatorAgent)
+        .AddAgent(polisherAgent)
+        .AddAgent(summarizerAgent);
+
+    Console.WriteLine($"编排器: {sequentialOrchestrator.Name}");
+    Console.WriteLine($"Agent 数量: {sequentialOrchestrator.Agents.Count}");
+    Console.WriteLine(
+        $"执行顺序: {string.Join(" → ", sequentialOrchestrator.Agents.Select(a => a.Name))}\n"
+    );
+
+    var input1 = "Hello world, this is a test message.";
+    PrintInfo($"输入: {input1}");
+
+    var result1 = await sequentialOrchestrator.RunAsync(input1);
+
+    if (result1.Success)
+    {
+        PrintSuccess($"最终输出: {result1.FinalOutput}");
+        Console.WriteLine($"总耗时: {result1.Duration.TotalMilliseconds:F0}ms\n");
+
+        Console.WriteLine("执行详情:");
+        foreach (var record in result1.AgentResults)
+        {
+            Console.WriteLine($"  [{record.ExecutionOrder + 1}] {record.AgentName}:");
+            PrintDim($"      输入: {record.Input[..Math.Min(40, record.Input.Length)]}...");
+            PrintDim(
+                $"      输出: {record.Response.FinalAnswer?[..Math.Min(40, record.Response.FinalAnswer.Length)]}..."
+            );
+        }
+    }
+    else
+    {
+        PrintError($"执行失败: {result1.Error}");
+    }
+
+    // ========================================================================
+    // 2. 并行编排器演示
+    // ========================================================================
+    PrintDivider("2️⃣ 并行编排器 (Parallel)");
+    Console.WriteLine("场景：多专家分析 - 同时询问多个专家并聚合意见\n");
+
+    var legalExpert = new MockAgent(
+        "法律专家",
+        async (input, ct) =>
+        {
+            await Task.Delay(150, ct);
+            return "从法律角度看，建议重点关注合同条款和合规性问题。";
+        }
+    );
+
+    var techExpert = new MockAgent(
+        "技术专家",
+        async (input, ct) =>
+        {
+            await Task.Delay(120, ct);
+            return "从技术角度看，需要评估实施可行性和技术风险。";
+        }
+    );
+
+    var financeExpert = new MockAgent(
+        "财务专家",
+        async (input, ct) =>
+        {
+            await Task.Delay(100, ct);
+            return "从财务角度看，ROI 预计为 150%，回收周期约 18 个月。";
+        }
+    );
+
+    var parallelOrchestrator = new ParallelOrchestrator("专家委员会")
+        .AddAgent(legalExpert)
+        .AddAgent(techExpert)
+        .AddAgent(financeExpert);
+
+    Console.WriteLine($"编排器: {parallelOrchestrator.Name}");
+    Console.WriteLine($"专家数量: {parallelOrchestrator.Agents.Count}");
+    Console.WriteLine(
+        $"专家列表: {string.Join(", ", parallelOrchestrator.Agents.Select(a => a.Name))}\n"
+    );
+
+    var input2 = "评估这个新项目的可行性";
+    PrintInfo($"问题: {input2}");
+
+    var result2 = await parallelOrchestrator.RunAsync(input2);
+
+    if (result2.Success)
+    {
+        PrintSuccess($"聚合结果: {result2.FinalOutput}");
+        Console.WriteLine($"总耗时: {result2.Duration.TotalMilliseconds:F0}ms (并行执行)\n");
+
+        Console.WriteLine("各专家意见:");
+        foreach (var record in result2.AgentResults.OrderBy(r => r.EndTime - r.StartTime))
+        {
+            var duration = (record.EndTime - record.StartTime).TotalMilliseconds;
+            Console.WriteLine($"  🧑‍💼 {record.AgentName} ({duration:F0}ms):");
+            PrintDim($"      {record.Response.FinalAnswer}");
+        }
+    }
+
+    // ========================================================================
+    // 3. 自定义聚合策略
+    // ========================================================================
+    PrintDivider("3️⃣ 自定义聚合策略");
+    Console.WriteLine("使用 Merge 策略合并所有专家意见：\n");
+
+    var customOrchestrator = new ParallelOrchestrator(
+        "专家委员会-Merge",
+        Microsoft.Extensions.Options.Options.Create(
+            new OrchestratorOptions { AggregationStrategy = ResultAggregationStrategy.Merge }
+        )
+    )
+        .AddAgent(legalExpert)
+        .AddAgent(techExpert)
+        .AddAgent(financeExpert);
+
+    var result3 = await customOrchestrator.RunAsync(input2);
+
+    if (result3.Success)
+    {
+        Console.WriteLine("合并后的完整报告:\n");
+        Console.WriteLine(result3.FinalOutput);
+    }
+
+    // ========================================================================
+    // 4. 统计信息
+    // ========================================================================
+    PrintDivider("📊 编排器能力总结");
+    Console.WriteLine("  ✅ SequentialOrchestrator - 流水线处理，前一个输出→后一个输入");
+    Console.WriteLine("  ✅ ParallelOrchestrator - 并行执行，支持多种聚合策略");
+    Console.WriteLine("  ✅ 聚合策略: LastResult, FirstSuccess, Merge, Vote, Custom");
+    Console.WriteLine("  ✅ 支持超时控制、错误处理、并发限制");
+    Console.WriteLine("  ✅ 完整的执行记录和追踪");
+}
+
+// ============================================================================
+// Mock Agent for Demo
+// ============================================================================
+
+class MockAgent : IAgent
+{
+    private readonly Func<string, CancellationToken, Task<string>> _handler;
+
+    public MockAgent(string name, Func<string, CancellationToken, Task<string>> handler)
+    {
+        Name = name;
+        _handler = handler;
+    }
+
+    public string Name { get; }
+    public string Instructions => $"Mock Agent: {Name}";
+
+    public async Task<AgentResponse> RunAsync(
+        string input,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            var result = await _handler(input, cancellationToken);
+            stopwatch.Stop();
+            return AgentResponse.Successful(result, [], stopwatch.Elapsed);
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            return AgentResponse.Failed(ex.Message, [], stopwatch.Elapsed);
+        }
+    }
+
+    public Task<AgentResponse> RunAsync(
+        AgentContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return RunAsync(context.UserInput, cancellationToken);
+    }
+}
+
+// ============================================================================
 // 枚举
 // ============================================================================
 
@@ -696,4 +934,5 @@ enum RunMode
     Memory,
     AgentMemory,
     PackageManager,
+    Orchestrator,
 }
