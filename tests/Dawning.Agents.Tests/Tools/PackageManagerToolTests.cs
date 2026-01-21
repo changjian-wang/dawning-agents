@@ -316,6 +316,7 @@ public class PackageManagerToolTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task PipList_ShouldNotRequireValidation()
     {
         // Arrange - PipList 是只读操作，应该不受白名单/黑名单限制

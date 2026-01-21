@@ -225,9 +225,10 @@ public class ProcessTool
         [ToolParameter("是否终止整个进程树")] bool entireProcessTree = false
     )
     {
+        Process? process = null;
         try
         {
-            var process = Process.GetProcessById(processId);
+            process = Process.GetProcessById(processId);
             process.Kill(entireProcessTree);
             return Task.FromResult(ToolResult.Ok($"进程 {processId} 已终止"));
         }
@@ -238,6 +239,10 @@ public class ProcessTool
         catch (Exception ex)
         {
             return Task.FromResult(ToolResult.Fail($"终止进程失败: {ex.Message}"));
+        }
+        finally
+        {
+            process?.Dispose();
         }
     }
 
@@ -253,40 +258,58 @@ public class ProcessTool
         {
             var processes = Process.GetProcesses();
 
-            if (!string.IsNullOrWhiteSpace(nameFilter))
+            try
             {
-                processes = processes
-                    .Where(p =>
+                IEnumerable<Process> filtered = processes;
+
+                if (!string.IsNullOrWhiteSpace(nameFilter))
+                {
+                    filtered = processes.Where(p =>
                         p.ProcessName.Contains(nameFilter, StringComparison.OrdinalIgnoreCase)
-                    )
-                    .ToArray();
-            }
-
-            var result = new StringBuilder();
-            result.AppendLine($"找到 {processes.Length} 个进程:");
-            result.AppendLine();
-            result.AppendLine("PID\t内存(MB)\t进程名");
-            result.AppendLine(new string('-', 50));
-
-            foreach (var p in processes.OrderBy(p => p.ProcessName).Take(100))
-            {
-                try
-                {
-                    var memoryMb = p.WorkingSet64 / 1024.0 / 1024.0;
-                    result.AppendLine($"{p.Id}\t{memoryMb:F1}\t\t{p.ProcessName}");
+                    );
                 }
-                catch
+
+                var result = new StringBuilder();
+                result.AppendLine($"找到 {processes.Length} 个进程:");
+                result.AppendLine();
+                result.AppendLine("PID\t内存(MB)\t进程名");
+                result.AppendLine(new string('-', 50));
+
+                var count = 0;
+                foreach (var p in filtered.OrderBy(p => p.ProcessName))
                 {
-                    // 某些系统进程无法访问
+                    if (count >= 100)
+                    {
+                        break;
+                    }
+
+                    try
+                    {
+                        var memoryMb = p.WorkingSet64 / 1024.0 / 1024.0;
+                        result.AppendLine($"{p.Id}\t{memoryMb:F1}\t\t{p.ProcessName}");
+                        count++;
+                    }
+                    catch
+                    {
+                        // 某些系统进程无法访问
+                    }
+                }
+
+                if (processes.Length > 100)
+                {
+                    result.AppendLine($"... 还有 {processes.Length - 100} 个进程未显示");
+                }
+
+                return Task.FromResult(ToolResult.Ok(result.ToString().TrimEnd()));
+            }
+            finally
+            {
+                // 必须释放所有 Process 对象，否则会内存泄漏
+                foreach (var p in processes)
+                {
+                    p.Dispose();
                 }
             }
-
-            if (processes.Length > 100)
-            {
-                result.AppendLine($"... 还有 {processes.Length - 100} 个进程未显示");
-            }
-
-            return Task.FromResult(ToolResult.Ok(result.ToString().TrimEnd()));
         }
         catch (Exception ex)
         {
@@ -300,9 +323,10 @@ public class ProcessTool
     [FunctionTool("获取指定进程的详细信息。", Category = "Process")]
     public Task<ToolResult> GetProcessInfo([ToolParameter("进程 ID")] int processId)
     {
+        Process? process = null;
         try
         {
-            var process = Process.GetProcessById(processId);
+            process = Process.GetProcessById(processId);
 
             var result = new StringBuilder();
             result.AppendLine($"进程名: {process.ProcessName}");
@@ -334,6 +358,10 @@ public class ProcessTool
         catch (Exception ex)
         {
             return Task.FromResult(ToolResult.Fail($"获取进程信息失败: {ex.Message}"));
+        }
+        finally
+        {
+            process?.Dispose();
         }
     }
 

@@ -150,6 +150,7 @@ public class BuiltInToolTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task FileSystemTool_ReadFile_ShouldWork()
     {
         // Arrange
@@ -183,6 +184,7 @@ public class BuiltInToolTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task FileSystemTool_ListDirectory_ShouldWork()
     {
         // Arrange
@@ -205,6 +207,7 @@ public class BuiltInToolTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task ProcessTool_ListProcesses_ShouldWork()
     {
         // Arrange
@@ -225,6 +228,7 @@ public class BuiltInToolTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task ProcessTool_GetEnvironmentVariable_ShouldWork()
     {
         // Arrange

@@ -21,4 +21,8 @@
         <ProjectReference Include="..\..\src\Dawning.Agents.OpenAI\Dawning.Agents.OpenAI.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Azure\Dawning.Agents.Azure.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
 </Project>
