@@ -381,42 +381,67 @@ tests/Dawning.Agents.Tests/Tools/
 └── PackageManagerToolTests.cs      ← 23 个单元测试
 ```
 
-#### Day 3-4: 向量数据库基础
+#### Day 3-4: 向量数据库基础 ✅ 已完成
 
-- [ ] **学习**: Embedding 原理
-- [ ] **学习**: 向量相似度计算 (余弦相似度)
-- [ ] **实践**: 使用 OpenAI Embeddings API
+- [x] **学习**: Embedding 原理
+- [x] **学习**: 向量相似度计算 (余弦相似度)
+- [x] **代码**: 实现 `IEmbeddingProvider` 接口
+- [x] **代码**: 实现 `SimpleEmbeddingProvider` (基于哈希的本地嵌入)
 
-#### Day 5-6: RAG 流程实现
+#### Day 5-6: RAG 流程实现 ✅ 已完成
 
-- [ ] **代码**: 设计 `IVectorStore` 接口
-- [ ] **代码**: 实现内存向量存储
-- [ ] **代码**: 实现文档分块 (Chunking)
-- [ ] **代码**: 实现检索器 `IRetriever`
+- [x] **代码**: 设计 `IVectorStore` 接口
+- [x] **代码**: 实现 `InMemoryVectorStore` (内存向量存储 + 余弦相似度)
+- [x] **代码**: 实现 `DocumentChunker` (文档分块 - 段落/句子分割)
+- [x] **代码**: 实现 `IRetriever` 接口
+- [x] **代码**: 实现 `VectorRetriever` (结合 Embedding + VectorStore)
 
-#### Day 7: RAG 与 Agent 集成
+#### Day 7: RAG 与 Agent 集成 ✅ 已完成
 
-- [ ] **代码**: 实现 `RAGTool` 工具
-- [ ] **代码**: 实现 `KnowledgeBase` 知识库
-- [ ] **代码**: 实现上下文注入
-- [ ] **测试**: RAG 效果评估
+- [x] **代码**: 实现 `KnowledgeBase` 知识库
+- [x] **代码**: 实现 `RAGOptions` 配置选项
+- [x] **代码**: 实现 `RAGServiceCollectionExtensions` DI 扩展
+- [x] **测试**: RAG 单元测试 (50 个测试)
+
+**Bug 修复:**
+- [x] `DocumentChunker`: 修复 `SplitLargeParagraph` 无限循环导致 17GB 内存耗尽
+- [x] `ProcessTool`: 修复 `Process` 对象未释放导致内存泄漏
 
 **Week 6 产出物**:
 
 ```text
+src/Dawning.Agents.Abstractions/
+├── Tools/
+│   └── PackageManagerOptions.cs       ← 包管理工具配置
+├── RAG/
+│   ├── IEmbeddingProvider.cs          ← 嵌入向量提供者接口
+│   ├── IVectorStore.cs                ← 向量存储接口 + DocumentChunk/SearchResult
+│   ├── IRetriever.cs                  ← 检索器接口
+│   └── RAGOptions.cs                  ← RAG 配置选项
+
 src/Dawning.Agents.Core/
 ├── Tools/
-│   ├── BuiltIn/
-│   │   ├── PackageManagerTool.cs   ← NEW: 动态工具安装
-│   │   └── ...
-│   └── ...
+│   └── BuiltIn/
+│       └── PackageManagerTool.cs      ← 19 个包管理工具方法
 ├── RAG/
-│   ├── IVectorStore.cs
-│   ├── InMemoryVectorStore.cs
-│   ├── IRetriever.cs
-│   ├── DocumentChunker.cs
-│   └── KnowledgeBase.cs
-└── ...
+│   ├── SimpleEmbeddingProvider.cs     ← 基于哈希的本地嵌入（开发测试用）
+│   ├── InMemoryVectorStore.cs         ← 内存向量存储（余弦相似度）
+│   ├── DocumentChunker.cs             ← 文档分块器（段落/句子分割）
+│   ├── VectorRetriever.cs             ← 向量检索器
+│   ├── KnowledgeBase.cs               ← 知识库（端到端 RAG）
+│   └── RAGServiceCollectionExtensions.cs ← DI 扩展方法
+
+tests/Dawning.Agents.Tests/
+├── Tools/
+│   └── PackageManagerToolTests.cs     ← 23 个单元测试
+├── RAG/
+│   ├── DocumentChunkerTests.cs        ← 9 个测试
+│   ├── InMemoryVectorStoreTests.cs    ← 10 个测试
+│   ├── SimpleEmbeddingProviderTests.cs ← 14 个测试
+│   ├── VectorRetrieverTests.cs        ← 4 个测试
+│   ├── KnowledgeBaseTests.cs          ← 6 个测试
+│   └── RAGServiceCollectionExtensionsTests.cs ← 7 个测试
+└── xunit.runner.json                  ← 测试配置（禁用并行）
 ```
 
 ---

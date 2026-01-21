@@ -53,14 +53,110 @@ dotnet run
 - ✅ Week 4: Memory 系统完成（150 测试通过）
 - ✅ Week 5: Tools/Skills 系统完成（74 测试通过）
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
-- ✅ Week 6: PackageManagerTool 完成（176 测试通过）
-- 🔜 Week 6.5: RAG 集成
+- ✅ Week 6: PackageManagerTool + RAG 完成（233 测试通过）
+- 🔜 Week 7: 多 Agent 协作（Handoff）
 
 ### 下一步任务
 
-1. `IVectorStore` 接口设计 - 向量存储
-2. `RAGTool` 实现 - 知识库检索
-3. 文档分块 (Chunking)
+1. `IOrchestrator` 接口设计 - Agent 编排
+2. `SequentialOrchestrator` - 顺序执行
+3. `ParallelOrchestrator` - 并行执行
+4. Agent Handoff 机制
+
+---
+
+## [2026-01-21] Phase 3: Week 6 RAG 系统完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/RAG/
+├── IEmbeddingProvider.cs      ← 嵌入向量提供者接口
+├── IVectorStore.cs            ← 向量存储接口 + DocumentChunk/SearchResult
+├── IRetriever.cs              ← 检索器接口
+└── RAGOptions.cs              ← RAG 配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/RAG/
+├── SimpleEmbeddingProvider.cs       ← 基于哈希的本地嵌入（开发测试用）
+├── InMemoryVectorStore.cs           ← 内存向量存储（余弦相似度）
+├── DocumentChunker.cs               ← 文档分块器（段落/句子分割）
+├── VectorRetriever.cs               ← 向量检索器
+├── KnowledgeBase.cs                 ← 知识库（端到端 RAG）
+└── RAGServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+**Tests:**
+```text
+tests/Dawning.Agents.Tests/RAG/
+├── DocumentChunkerTests.cs              ← 9 个测试
+├── InMemoryVectorStoreTests.cs          ← 10 个测试
+├── SimpleEmbeddingProviderTests.cs      ← 14 个测试
+├── VectorRetrieverTests.cs              ← 4 个测试
+├── KnowledgeBaseTests.cs                ← 6 个测试
+└── RAGServiceCollectionExtensionsTests.cs ← 7 个测试
+```
+
+### RAG 核心组件
+
+| 组件 | 职责 | 实现 |
+|------|------|------|
+| `IEmbeddingProvider` | 文本 → 向量 | `SimpleEmbeddingProvider` (本地哈希) |
+| `IVectorStore` | 向量存储 + 相似度搜索 | `InMemoryVectorStore` (余弦相似度) |
+| `DocumentChunker` | 文档分块 | 段落 → 句子 → 固定大小 |
+| `IRetriever` | 语义检索 | `VectorRetriever` |
+| `KnowledgeBase` | 端到端知识库 | 分块 + 嵌入 + 存储 + 检索 |
+
+### DI 注册方式
+
+```csharp
+// 完整 RAG（开发测试）
+services.AddRAG();
+
+// 带配置
+services.AddRAG(configuration);
+services.AddRAG(options => {
+    options.ChunkSize = 500;
+    options.ChunkOverlap = 50;
+    options.TopK = 5;
+    options.MinScore = 0.5f;
+});
+
+// 单独组件
+services.AddInMemoryVectorStore();
+services.AddSimpleEmbedding(dimensions: 384);
+services.AddKnowledgeBase();
+```
+
+### Bug 修复
+
+1. **DocumentChunker 无限循环** - `SplitLargeParagraph` 方法当 `overlap >= length` 时导致无限循环，消耗 17GB 内存
+   - 修复：限制 `safeOverlap = Math.Min(overlap, chunkSize / 2)`
+   - 修复：确保每次至少前进 1 个字符 `Math.Max(1, length - safeOverlap)`
+
+2. **ProcessTool 内存泄漏** - `Process` 对象未正确释放
+   - 修复：添加 `process?.Dispose()` 和 `finally` 块
+
+### 测试基础设施改进
+
+1. 添加 `xunit.runner.json` 禁用并行测试
+2. 5 个集成测试标记为 `[Trait("Category", "Integration")]`
+3. 228 个单元测试通过，耗时约 2 秒
+
+### 测试统计
+
+| 类别 | 测试数 |
+|------|--------|
+| RAG 核心 | 50 |
+| Memory | 44 |
+| Tools | 89 |
+| Agent | 25 |
+| LLM | 11 |
+| Prompts | 14 |
+| **总计** | **233** |
 
 ---
 
