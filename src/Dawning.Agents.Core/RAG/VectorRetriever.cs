@@ -26,7 +26,8 @@ public class VectorRetriever : IRetriever
         ILogger<VectorRetriever>? logger = null
     )
     {
-        _embeddingProvider = embeddingProvider ?? throw new ArgumentNullException(nameof(embeddingProvider));
+        _embeddingProvider =
+            embeddingProvider ?? throw new ArgumentNullException(nameof(embeddingProvider));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _options = options?.Value ?? new RAGOptions();
         _logger = logger ?? NullLogger<VectorRetriever>.Instance;
@@ -73,12 +74,7 @@ public class VectorRetriever : IRetriever
         CancellationToken cancellationToken = default
     )
     {
-        var results = await RetrieveAsync(
-            query,
-            topK,
-            _options.MinScore,
-            cancellationToken
-        );
+        var results = await RetrieveAsync(query, topK, _options.MinScore, cancellationToken);
 
         if (results.Count == 0)
         {
@@ -90,8 +86,8 @@ public class VectorRetriever : IRetriever
         for (var i = 0; i < results.Count; i++)
         {
             var result = results[i];
-            var context = _options.ContextTemplate
-                .Replace("{index}", (i + 1).ToString())
+            var context = _options
+                .ContextTemplate.Replace("{index}", (i + 1).ToString())
                 .Replace("{content}", result.Chunk.Content)
                 .Replace("{score}", result.Score.ToString("F2"))
                 .Replace("{source}", result.Chunk.Metadata.GetValueOrDefault("source", "unknown"));
@@ -100,7 +96,9 @@ public class VectorRetriever : IRetriever
 
             if (_options.IncludeMetadata && result.Chunk.Metadata.Count > 0)
             {
-                contextBuilder.AppendLine($"   Source: {string.Join(", ", result.Chunk.Metadata.Select(kv => $"{kv.Key}={kv.Value}"))}");
+                contextBuilder.AppendLine(
+                    $"   Source: {string.Join(", ", result.Chunk.Metadata.Select(kv => $"{kv.Key}={kv.Value}"))}"
+                );
             }
 
             contextBuilder.AppendLine();

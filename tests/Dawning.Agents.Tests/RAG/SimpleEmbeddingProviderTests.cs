@@ -203,7 +203,9 @@ public class SimpleEmbeddingProviderTests
 
     private static double CosineSimilarity(float[] a, float[] b)
     {
-        double dot = 0, normA = 0, normB = 0;
+        double dot = 0,
+            normA = 0,
+            normB = 0;
         for (int i = 0; i < a.Length; i++)
         {
             dot += a[i] * b[i];

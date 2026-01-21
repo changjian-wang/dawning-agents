@@ -179,10 +179,7 @@ public class DocumentChunkerTests
 
     #region Helper Methods
 
-    private static IOptions<RAGOptions> CreateOptions(
-        int chunkSize = 500,
-        int chunkOverlap = 50
-    )
+    private static IOptions<RAGOptions> CreateOptions(int chunkSize = 500, int chunkOverlap = 50)
     {
         return Options.Create(
             new RAGOptions { ChunkSize = chunkSize, ChunkOverlap = chunkOverlap }

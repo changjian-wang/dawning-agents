@@ -43,10 +43,7 @@ public class PackageManagerToolTests
     )
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            WhitelistedPackages = [pattern],
-        };
+        var options = new PackageManagerOptions { WhitelistedPackages = [pattern] };
 
         // Act
         var result = options.IsWhitelisted(packageName);
@@ -59,10 +56,7 @@ public class PackageManagerToolTests
     public void PackageManagerOptions_IsWhitelisted_EmptyList_ShouldAllowAll()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            WhitelistedPackages = [],
-        };
+        var options = new PackageManagerOptions { WhitelistedPackages = [] };
 
         // Act & Assert
         options.IsWhitelisted("any-package").Should().BeTrue();
@@ -80,10 +74,7 @@ public class PackageManagerToolTests
     )
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            BlacklistedPackages = [pattern],
-        };
+        var options = new PackageManagerOptions { BlacklistedPackages = [pattern] };
 
         // Act
         var result = options.IsBlacklisted(packageName);
@@ -96,17 +87,13 @@ public class PackageManagerToolTests
     public void PackageManagerOptions_Validate_InvalidTimeout_ShouldThrow()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            DefaultTimeoutSeconds = 0,
-        };
+        var options = new PackageManagerOptions { DefaultTimeoutSeconds = 0 };
 
         // Act
         var act = () => options.Validate();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*DefaultTimeoutSeconds*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*DefaultTimeoutSeconds*");
     }
 
     #endregion
@@ -129,8 +116,14 @@ public class PackageManagerToolTests
         // Assert
         var tools = registry.GetToolsByCategory("PackageManager").ToList();
         tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name.Contains("Winget") || t.Name.Contains("Pip") ||
-                                    t.Name.Contains("Npm") || t.Name.Contains("DotnetTool"));
+        tools
+            .Should()
+            .Contain(t =>
+                t.Name.Contains("Winget")
+                || t.Name.Contains("Pip")
+                || t.Name.Contains("Npm")
+                || t.Name.Contains("DotnetTool")
+            );
     }
 
     [Fact]
@@ -170,15 +163,21 @@ public class PackageManagerToolTests
         // Act
         var installTools = registry
             .GetToolsByCategory("PackageManager")
-            .Where(t => t.Name.Contains("Install") || t.Name.Contains("Uninstall") || t.Name.Contains("Update"))
+            .Where(t =>
+                t.Name.Contains("Install")
+                || t.Name.Contains("Uninstall")
+                || t.Name.Contains("Update")
+            )
             .ToList();
 
         // Assert
         installTools.Should().NotBeEmpty("应该存在安装/卸载工具");
         installTools
             .Should()
-            .OnlyContain(t => t.RequiresConfirmation && t.RiskLevel == ToolRiskLevel.High,
-                "所有安装/卸载操作都应该是高风险并需要确认");
+            .OnlyContain(
+                t => t.RequiresConfirmation && t.RiskLevel == ToolRiskLevel.High,
+                "所有安装/卸载操作都应该是高风险并需要确认"
+            );
     }
 
     [Fact]
@@ -195,16 +194,22 @@ public class PackageManagerToolTests
         // Act
         var readOnlyTools = registry
             .GetToolsByCategory("PackageManager")
-            .Where(t => t.Name.Contains("Search") || t.Name.Contains("List") ||
-                        t.Name.Contains("Show") || t.Name.Contains("View"))
+            .Where(t =>
+                t.Name.Contains("Search")
+                || t.Name.Contains("List")
+                || t.Name.Contains("Show")
+                || t.Name.Contains("View")
+            )
             .ToList();
 
         // Assert
         readOnlyTools.Should().NotBeEmpty("应该存在只读工具");
         readOnlyTools
             .Should()
-            .OnlyContain(t => t.RiskLevel == ToolRiskLevel.Low && !t.RequiresConfirmation,
-                "所有只读操作都应该是低风险且不需要确认");
+            .OnlyContain(
+                t => t.RiskLevel == ToolRiskLevel.Low && !t.RequiresConfirmation,
+                "所有只读操作都应该是低风险且不需要确认"
+            );
     }
 
     #endregion
@@ -229,10 +234,7 @@ public class PackageManagerToolTests
     public async Task WingetInstall_BlacklistedPackage_ShouldFail()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            BlacklistedPackages = ["*hack*", "*malware*"],
-        };
+        var options = new PackageManagerOptions { BlacklistedPackages = ["*hack*", "*malware*"] };
         var tool = new PackageManagerTool(options);
 
         // Act
@@ -265,10 +267,7 @@ public class PackageManagerToolTests
     public async Task PipInstall_DisabledPip_ShouldFail()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            AllowPip = false,
-        };
+        var options = new PackageManagerOptions { AllowPip = false };
         var tool = new PackageManagerTool(options);
 
         // Act
@@ -283,10 +282,7 @@ public class PackageManagerToolTests
     public async Task NpmInstall_DisabledNpm_ShouldFail()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            AllowNpm = false,
-        };
+        var options = new PackageManagerOptions { AllowNpm = false };
         var tool = new PackageManagerTool(options);
 
         // Act
@@ -301,10 +297,7 @@ public class PackageManagerToolTests
     public async Task DotnetToolInstall_DisabledDotnetTool_ShouldFail()
     {
         // Arrange
-        var options = new PackageManagerOptions
-        {
-            AllowDotnetTool = false,
-        };
+        var options = new PackageManagerOptions { AllowDotnetTool = false };
         var tool = new PackageManagerTool(options);
 
         // Act

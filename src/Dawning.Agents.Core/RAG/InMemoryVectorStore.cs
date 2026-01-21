@@ -89,8 +89,8 @@ public class InMemoryVectorStore : IVectorStore
             throw new ArgumentException("Query embedding cannot be empty", nameof(queryEmbedding));
         }
 
-        var results = _chunks.Values
-            .Where(c => c.Embedding != null)
+        var results = _chunks
+            .Values.Where(c => c.Embedding != null)
             .Select(chunk =>
             {
                 var score = CosineSimilarity(queryEmbedding, chunk.Embedding!);
@@ -129,8 +129,8 @@ public class InMemoryVectorStore : IVectorStore
         CancellationToken cancellationToken = default
     )
     {
-        var toRemove = _chunks.Values
-            .Where(c => c.DocumentId == documentId)
+        var toRemove = _chunks
+            .Values.Where(c => c.DocumentId == documentId)
             .Select(c => c.Id)
             .ToList();
 

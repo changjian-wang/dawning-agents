@@ -66,7 +66,12 @@ public class VectorRetrieverTests
 
         _vectorStoreMock
             .Setup(s =>
-                s.SearchAsync(queryEmbedding, It.IsAny<int>(), It.IsAny<float>(), It.IsAny<CancellationToken>())
+                s.SearchAsync(
+                    queryEmbedding,
+                    It.IsAny<int>(),
+                    It.IsAny<float>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(searchResults);
 
@@ -76,7 +81,10 @@ public class VectorRetrieverTests
         // Assert
         results.Should().HaveCount(1);
         results[0].Score.Should().Be(0.9f);
-        _embeddingProviderMock.Verify(p => p.EmbedAsync(query, It.IsAny<CancellationToken>()), Times.Once);
+        _embeddingProviderMock.Verify(
+            p => p.EmbedAsync(query, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -89,7 +97,14 @@ public class VectorRetrieverTests
             .ReturnsAsync([0.1f, 0.2f]);
 
         _vectorStoreMock
-            .Setup(s => s.SearchAsync(It.IsAny<float[]>(), 10, It.IsAny<float>(), It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.SearchAsync(
+                    It.IsAny<float[]>(),
+                    10,
+                    It.IsAny<float>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync([]);
 
         // Act
@@ -97,7 +112,13 @@ public class VectorRetrieverTests
 
         // Assert
         _vectorStoreMock.Verify(
-            s => s.SearchAsync(It.IsAny<float[]>(), 10, It.IsAny<float>(), It.IsAny<CancellationToken>()),
+            s =>
+                s.SearchAsync(
+                    It.IsAny<float[]>(),
+                    10,
+                    It.IsAny<float>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -146,7 +167,12 @@ public class VectorRetrieverTests
 
         _vectorStoreMock
             .Setup(s =>
-                s.SearchAsync(queryEmbedding, It.IsAny<int>(), It.IsAny<float>(), It.IsAny<CancellationToken>())
+                s.SearchAsync(
+                    queryEmbedding,
+                    It.IsAny<int>(),
+                    It.IsAny<float>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(searchResults);
 
@@ -169,7 +195,12 @@ public class VectorRetrieverTests
 
         _vectorStoreMock
             .Setup(s =>
-                s.SearchAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<float>(), It.IsAny<CancellationToken>())
+                s.SearchAsync(
+                    It.IsAny<float[]>(),
+                    It.IsAny<int>(),
+                    It.IsAny<float>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync([]);
 

@@ -67,7 +67,9 @@ public class InMemoryVectorStoreTests
         await _store.AddBatchAsync(chunks);
 
         // Assert
-        (await _store.GetAsync("c1")).Should().NotBeNull();
+        (await _store.GetAsync("c1"))
+            .Should()
+            .NotBeNull();
         (await _store.GetAsync("c2")).Should().NotBeNull();
         (await _store.GetAsync("c3")).Should().NotBeNull();
     }
@@ -80,8 +82,7 @@ public class InMemoryVectorStoreTests
     public async Task SearchAsync_ShouldReturnSimilarChunks()
     {
         // Arrange
-        await _store.AddBatchAsync(
-        [
+        await _store.AddBatchAsync([
             CreateChunk("c1", "Apple", [1.0f, 0.0f, 0.0f]),
             CreateChunk("c2", "Banana", [0.0f, 1.0f, 0.0f]),
             CreateChunk("c3", "Cherry", [0.0f, 0.0f, 1.0f]),
@@ -102,8 +103,7 @@ public class InMemoryVectorStoreTests
     public async Task SearchAsync_ShouldRespectMinScore()
     {
         // Arrange
-        await _store.AddBatchAsync(
-        [
+        await _store.AddBatchAsync([
             CreateChunk("c1", "Similar", [1.0f, 0.0f, 0.0f]),
             CreateChunk("c2", "Different", [0.0f, 1.0f, 0.0f]),
         ]);
@@ -132,8 +132,7 @@ public class InMemoryVectorStoreTests
     public async Task SearchAsync_ShouldReturnScoresInDescendingOrder()
     {
         // Arrange
-        await _store.AddBatchAsync(
-        [
+        await _store.AddBatchAsync([
             CreateChunk("c1", "A", [1.0f, 0.0f]),
             CreateChunk("c2", "B", [0.5f, 0.5f]),
             CreateChunk("c3", "C", [0.0f, 1.0f]),
@@ -183,8 +182,7 @@ public class InMemoryVectorStoreTests
     public async Task DeleteByDocumentIdAsync_ShouldRemoveAllChunksForDocument()
     {
         // Arrange
-        await _store.AddBatchAsync(
-        [
+        await _store.AddBatchAsync([
             CreateChunk("c1", "Chunk 1", [0.1f, 0.2f], "doc1"),
             CreateChunk("c2", "Chunk 2", [0.3f, 0.4f], "doc1"),
             CreateChunk("c3", "Chunk 3", [0.5f, 0.6f], "doc2"),
@@ -208,8 +206,7 @@ public class InMemoryVectorStoreTests
     public async Task ClearAsync_ShouldRemoveAllChunks()
     {
         // Arrange
-        await _store.AddBatchAsync(
-        [
+        await _store.AddBatchAsync([
             CreateChunk("c1", "A", [0.1f]),
             CreateChunk("c2", "B", [0.2f]),
         ]);

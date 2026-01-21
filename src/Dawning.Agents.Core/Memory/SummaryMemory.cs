@@ -146,10 +146,7 @@ public class SummaryMemory : IConversationMemory
         CancellationToken cancellationToken
     )
     {
-        var conversationText = string.Join(
-            "\n",
-            messages.Select(m => $"{m.Role}: {m.Content}")
-        );
+        var conversationText = string.Join("\n", messages.Select(m => $"{m.Role}: {m.Content}"));
 
         string currentSummary;
         lock (_lock)

@@ -260,9 +260,7 @@ public class ReActAgentTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new ChatCompletionResponse { Content = "Final Answer: Hello" }
-            );
+            .ReturnsAsync(new ChatCompletionResponse { Content = "Final Answer: Hello" });
 
         var agent = new ReActAgent(
             _mockProvider.Object,

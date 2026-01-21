@@ -71,12 +71,10 @@ public static class RAGServiceCollectionExtensions
         int dimensions = 384
     )
     {
-        services.AddSingleton<IEmbeddingProvider>(sp =>
-            new SimpleEmbeddingProvider(
-                dimensions,
-                sp.GetService<Microsoft.Extensions.Logging.ILogger<SimpleEmbeddingProvider>>()
-            )
-        );
+        services.AddSingleton<IEmbeddingProvider>(sp => new SimpleEmbeddingProvider(
+            dimensions,
+            sp.GetService<Microsoft.Extensions.Logging.ILogger<SimpleEmbeddingProvider>>()
+        ));
         return services;
     }
 

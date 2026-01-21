@@ -104,11 +104,7 @@ public class PackageManagerTool
 
         _logger.LogDebug("Winget 查看详情: {PackageId}", packageId);
 
-        return await RunCommandAsync(
-            "winget",
-            $"show \"{packageId}\"",
-            cancellationToken
-        );
+        return await RunCommandAsync("winget", $"show \"{packageId}\"", cancellationToken);
     }
 
     /// <summary>
@@ -143,9 +139,14 @@ public class PackageManagerTool
             return validationResult;
         }
 
-        _logger.LogInformation("Winget 安装: {PackageId} 版本: {Version}", packageId, version ?? "最新");
+        _logger.LogInformation(
+            "Winget 安装: {PackageId} 版本: {Version}",
+            packageId,
+            version ?? "最新"
+        );
 
-        var args = $"install \"{packageId}\" --accept-package-agreements --accept-source-agreements";
+        var args =
+            $"install \"{packageId}\" --accept-package-agreements --accept-source-agreements";
         if (!string.IsNullOrWhiteSpace(version))
         {
             args += $" --version \"{version}\"";
@@ -155,7 +156,12 @@ public class PackageManagerTool
             args += " --silent";
         }
 
-        return await RunCommandAsync("winget", args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            "winget",
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     /// <summary>
@@ -196,7 +202,12 @@ public class PackageManagerTool
             args += " --silent";
         }
 
-        return await RunCommandAsync("winget", args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            "winget",
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     /// <summary>
@@ -266,7 +277,8 @@ public class PackageManagerTool
         // 如果有过滤关键词，在结果中过滤
         if (result.Success && !string.IsNullOrWhiteSpace(filter))
         {
-            var lines = result.Output.Split('\n')
+            var lines = result
+                .Output.Split('\n')
                 .Where(line => line.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
@@ -349,7 +361,12 @@ public class PackageManagerTool
             args += " --upgrade";
         }
 
-        return await RunCommandAsync(python, args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            python,
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     /// <summary>
@@ -646,7 +663,11 @@ public class PackageManagerTool
             return validationResult;
         }
 
-        _logger.LogInformation("Dotnet tool 安装: {PackageName} 全局: {Global}", packageName, global);
+        _logger.LogInformation(
+            "Dotnet tool 安装: {PackageName} 全局: {Global}",
+            packageName,
+            global
+        );
 
         var args = $"tool install \"{packageName}\"";
         if (global)
@@ -658,7 +679,12 @@ public class PackageManagerTool
             args += $" --version \"{version}\"";
         }
 
-        return await RunCommandAsync("dotnet", args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            "dotnet",
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     /// <summary>
@@ -694,7 +720,12 @@ public class PackageManagerTool
             args += " -g";
         }
 
-        return await RunCommandAsync("dotnet", args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            "dotnet",
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     /// <summary>
@@ -757,7 +788,12 @@ public class PackageManagerTool
             args += " -g";
         }
 
-        return await RunCommandAsync("dotnet", args, cancellationToken, _options.DefaultTimeoutSeconds);
+        return await RunCommandAsync(
+            "dotnet",
+            args,
+            cancellationToken,
+            _options.DefaultTimeoutSeconds
+        );
     }
 
     #endregion
@@ -896,7 +932,9 @@ public class PackageManagerTool
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception)
         {
-            return ToolResult.Fail($"命令 '{command}' 未找到。请确保已安装并添加到 PATH 环境变量。");
+            return ToolResult.Fail(
+                $"命令 '{command}' 未找到。请确保已安装并添加到 PATH 环境变量。"
+            );
         }
         catch (Exception ex)
         {

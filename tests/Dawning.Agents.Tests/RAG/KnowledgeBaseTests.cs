@@ -23,12 +23,7 @@ public class KnowledgeBaseTests
         var ragOptions = Options.Create(new RAGOptions { ChunkSize = 100, ChunkOverlap = 10 });
         _chunker = new DocumentChunker(ragOptions);
 
-        _kb = new KnowledgeBase(
-            _embeddingProviderMock.Object,
-            _vectorStore,
-            _chunker,
-            ragOptions
-        );
+        _kb = new KnowledgeBase(_embeddingProviderMock.Object, _vectorStore, _chunker, ragOptions);
     }
 
     #region AddDocumentAsync Tests
@@ -39,9 +34,12 @@ public class KnowledgeBaseTests
         // Arrange
         var content = "Hello world. This is a test document.";
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => new[] { 0.1f, 0.2f, 0.3f }).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => new[] { 0.1f, 0.2f, 0.3f }).ToList()
             );
 
         // Act
@@ -62,9 +60,12 @@ public class KnowledgeBaseTests
         var content = "Test content";
         var metadata = new Dictionary<string, string> { ["author"] = "test" };
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => new[] { 0.1f }).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => new[] { 0.1f }).ToList()
             );
 
         // Act
@@ -100,9 +101,12 @@ public class KnowledgeBaseTests
         // Arrange
         var embedding = new[] { 1.0f, 0.0f, 0.0f };
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => embedding).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => embedding).ToList()
             );
 
         _embeddingProviderMock
@@ -143,9 +147,12 @@ public class KnowledgeBaseTests
         // Arrange
         var embedding = new[] { 1.0f };
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => embedding).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => embedding).ToList()
             );
 
         _embeddingProviderMock
@@ -172,9 +179,12 @@ public class KnowledgeBaseTests
         // Arrange
         var embedding = new[] { 1.0f };
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => embedding).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => embedding).ToList()
             );
 
         _embeddingProviderMock
@@ -204,9 +214,12 @@ public class KnowledgeBaseTests
         // Arrange
         var embedding = new[] { 1.0f };
         _embeddingProviderMock
-            .Setup(p => p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) =>
-                texts.Select(_ => embedding).ToList()
+            .Setup(p =>
+                p.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                (IEnumerable<string> texts, CancellationToken _) =>
+                    texts.Select(_ => embedding).ToList()
             );
 
         _embeddingProviderMock
