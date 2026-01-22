@@ -49,8 +49,7 @@ public class HandoffOptionsTests
         var action = () => options.Validate();
 
         // Assert
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*MaxHandoffDepth*");
+        action.Should().Throw<InvalidOperationException>().WithMessage("*MaxHandoffDepth*");
     }
 
     [Fact]
@@ -63,26 +62,20 @@ public class HandoffOptionsTests
         var action = () => options.Validate();
 
         // Assert
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*TimeoutSeconds*");
+        action.Should().Throw<InvalidOperationException>().WithMessage("*TimeoutSeconds*");
     }
 
     [Fact]
     public void Validate_ShouldThrow_WhenTotalTimeoutLessThanTimeout()
     {
         // Arrange
-        var options = new HandoffOptions
-        {
-            TimeoutSeconds = 60,
-            TotalTimeoutSeconds = 30,
-        };
+        var options = new HandoffOptions { TimeoutSeconds = 60, TotalTimeoutSeconds = 30 };
 
         // Act
         var action = () => options.Validate();
 
         // Assert
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*TotalTimeoutSeconds*");
+        action.Should().Throw<InvalidOperationException>().WithMessage("*TotalTimeoutSeconds*");
     }
 
     [Fact]

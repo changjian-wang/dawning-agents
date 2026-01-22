@@ -7,13 +7,9 @@ public static class ConsoleHelper
 {
     public static void PrintTitle(string title)
     {
-        Console.WriteLine(
-            $"\n╔══════════════════════════════════════════════════════════════╗"
-        );
-        Console.WriteLine($"║  {title,-58} ║");
-        Console.WriteLine(
-            $"╚══════════════════════════════════════════════════════════════╝\n"
-        );
+        Console.WriteLine($"\n╔══════════════════════════════════════════════════════════════╗");
+        Console.WriteLine($"║  {title, -58} ║");
+        Console.WriteLine($"╚══════════════════════════════════════════════════════════════╝\n");
     }
 
     public static void PrintSection(string title)

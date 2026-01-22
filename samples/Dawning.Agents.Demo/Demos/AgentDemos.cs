@@ -83,12 +83,7 @@ public static class AgentDemos
         Console.WriteLine("\n演示 Agent 如何在多轮对话中自动保存记忆...\n");
 
         // 预设的多轮对话问题
-        var questions = new[]
-        {
-            "计算 15 + 27 等于多少？",
-            "再把刚才的结果乘以 2",
-            "今天是几号？",
-        };
+        var questions = new[] { "计算 15 + 27 等于多少？", "再把刚才的结果乘以 2", "今天是几号？" };
 
         foreach (var question in questions)
         {

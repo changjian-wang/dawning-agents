@@ -60,11 +60,7 @@ public class HandoffResultTests
         var response = AgentResponse.Successful("Answer", [], TimeSpan.FromSeconds(1));
         var chain = new List<HandoffRecord>
         {
-            new()
-            {
-                ToAgent = "Agent1",
-                Input = "input",
-            },
+            new() { ToAgent = "Agent1", Input = "input" },
         };
 
         // Act
@@ -170,11 +166,7 @@ public class AgentResponseHandoffExtensionsTests
     public void IsHandoffRequest_ShouldReturnFalse_WhenResponseFailed()
     {
         // Arrange
-        var response = AgentResponse.Failed(
-            "[HANDOFF:Agent] input",
-            [],
-            TimeSpan.Zero
-        );
+        var response = AgentResponse.Failed("[HANDOFF:Agent] input", [], TimeSpan.Zero);
 
         // Act & Assert
         response.IsHandoffRequest().Should().BeFalse();

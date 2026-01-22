@@ -66,9 +66,7 @@ public static class HandoffServiceCollectionExtensions
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
 
         // 添加一个后处理器来注册 Agent
-        services.AddSingleton<IHandoffAgentRegistration>(
-            new HandoffAgentRegistration(agent)
-        );
+        services.AddSingleton<IHandoffAgentRegistration>(new HandoffAgentRegistration(agent));
 
         return services;
     }
@@ -88,9 +86,9 @@ public static class HandoffServiceCollectionExtensions
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
 
         // 添加一个后处理器来注册 Agent
-        services.AddSingleton<IHandoffAgentRegistration>(sp =>
-            new HandoffAgentRegistration(agentFactory(sp))
-        );
+        services.AddSingleton<IHandoffAgentRegistration>(sp => new HandoffAgentRegistration(
+            agentFactory(sp)
+        ));
 
         return services;
     }

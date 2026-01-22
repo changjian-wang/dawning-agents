@@ -13,7 +13,9 @@ namespace Dawning.Agents.Core.Handoff;
 /// </summary>
 public class HandoffHandler : IHandoffHandler
 {
-    private readonly ConcurrentDictionary<string, IAgent> _agents = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IAgent> _agents = new(
+        StringComparer.OrdinalIgnoreCase
+    );
     private readonly HandoffOptions _options;
     private readonly ILogger<HandoffHandler> _logger;
 
@@ -92,7 +94,10 @@ public class HandoffHandler : IHandoffHandler
 
         stopwatch.Stop();
 
-        return result with { TotalDuration = stopwatch.Elapsed };
+        return result with
+        {
+            TotalDuration = stopwatch.Elapsed,
+        };
     }
 
     /// <inheritdoc />

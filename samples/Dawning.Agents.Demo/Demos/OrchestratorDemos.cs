@@ -1,7 +1,9 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Orchestration;
+using Dawning.Agents.Abstractions.Telemetry;
 using Dawning.Agents.Core.Orchestration;
+using Dawning.Agents.Core.Telemetry;
 using Dawning.Agents.Demo.Helpers;
 
 namespace Dawning.Agents.Demo.Demos;
@@ -22,8 +24,12 @@ public static class OrchestratorDemos
         Console.WriteLine("  • SequentialOrchestrator: 顺序执行（流水线）");
         Console.WriteLine("  • ParallelOrchestrator: 并行执行（多专家）\n");
 
-        // Token 统计收集器
-        var statsCollector = new TokenStatsCollector();
+        // 创建 Token 追踪器（使用框架提供的 InMemoryTokenUsageTracker）
+        var tokenTracker = TokenStatsHelper.CreateTracker();
+
+        // 创建带追踪功能的 LLM Provider 工厂方法
+        TokenTrackingLLMProvider CreateTrackedProvider(string agentName) =>
+            new(provider, tokenTracker, agentName);
 
         // ====================================================================
         // 1. 顺序编排器演示
@@ -32,25 +38,23 @@ public static class OrchestratorDemos
         Console.WriteLine("场景：文本处理流水线 - 提取关键词 → 情感分析 → 生成摘要\n");
 
         // 创建 LLM Agent - 每个 Agent 处理不同任务
-        var keywordExtractor = new LLMAgentWithStats(
-            provider,
+        var keywordExtractor = new SimpleLLMAgent(
+            CreateTrackedProvider("关键词提取"),
             "关键词提取",
             "你是关键词提取专家。从用户输入的文本中提取5-8个关键词，用逗号分隔。只输出关键词，不要其他内容。格式：关键词: xxx, xxx, xxx"
         );
 
-        var sentimentAnalyzer = new LLMAgentWithStats(
-            provider,
+        var sentimentAnalyzer = new SimpleLLMAgent(
+            CreateTrackedProvider("情感分析"),
             "情感分析",
             "你是情感分析专家。分析输入内容的情感倾向和主题。输出格式：情感: [积极/消极/中性] (百分比) | 主题: xxx | 领域: xxx"
         );
 
-        var summaryGenerator = new LLMAgentWithStats(
-            provider,
+        var summaryGenerator = new SimpleLLMAgent(
+            CreateTrackedProvider("摘要生成"),
             "摘要生成",
             "你是摘要生成专家。基于前面的分析结果，生成一句话摘要。格式：📝 摘要: xxx"
         );
-
-        statsCollector.RegisterRange([keywordExtractor, sentimentAnalyzer, summaryGenerator]);
 
         var sequentialOrchestrator = new SequentialOrchestrator("文本分析流水线")
             .AddAgent(keywordExtractor)
@@ -96,25 +100,23 @@ public static class OrchestratorDemos
         ConsoleHelper.PrintDivider("2️⃣ 并行编排器 (Parallel)");
         Console.WriteLine("场景：多专家分析 - 同时询问多个专家并聚合意见\n");
 
-        var legalExpert = new LLMAgentWithStats(
-            provider,
+        var legalExpert = new SimpleLLMAgent(
+            CreateTrackedProvider("法律专家"),
             "法律专家",
             "你是企业法律顾问。从法律角度简短评估用户提出的项目，重点关注合同、合规和风险。一句话回答。"
         );
 
-        var techExpert = new LLMAgentWithStats(
-            provider,
+        var techExpert = new SimpleLLMAgent(
+            CreateTrackedProvider("技术专家"),
             "技术专家",
             "你是技术架构师。从技术角度简短评估用户提出的项目，重点关注可行性和实施风险。一句话回答。"
         );
 
-        var financeExpert = new LLMAgentWithStats(
-            provider,
+        var financeExpert = new SimpleLLMAgent(
+            CreateTrackedProvider("财务专家"),
             "财务专家",
             "你是财务分析师。从财务角度简短评估用户提出的项目，预估ROI和回收周期。一句话回答。"
         );
-
-        statsCollector.RegisterRange([legalExpert, techExpert, financeExpert]);
 
         var parallelOrchestrator = new ParallelOrchestrator("专家委员会")
             .AddAgent(legalExpert)
@@ -171,9 +173,9 @@ public static class OrchestratorDemos
         }
 
         // ====================================================================
-        // 4. Token 统计
+        // 4. Token 统计（使用框架追踪器）
         // ====================================================================
-        statsCollector.PrintSummary();
+        TokenStatsHelper.PrintSummary(tokenTracker);
 
         // ====================================================================
         // 5. 能力总结

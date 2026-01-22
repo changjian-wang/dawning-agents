@@ -53,9 +53,7 @@ public class HandoffOptions
 
         if (TotalTimeoutSeconds < TimeoutSeconds)
         {
-            throw new InvalidOperationException(
-                "TotalTimeoutSeconds must be >= TimeoutSeconds"
-            );
+            throw new InvalidOperationException("TotalTimeoutSeconds must be >= TimeoutSeconds");
         }
     }
 }

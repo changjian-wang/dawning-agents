@@ -1,8 +1,10 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Handoff;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Telemetry;
 using Dawning.Agents.Core.Handoff;
 using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Telemetry;
 using Dawning.Agents.Demo.Helpers;
 
 namespace Dawning.Agents.Demo.Demos;
@@ -23,8 +25,12 @@ public static class HandoffDemos
         Console.WriteLine("  • Triage Agent: 分析请求并分配给专家");
         Console.WriteLine("  • 专家 Agent: 处理特定领域的问题\n");
 
-        // Token 统计收集器
-        var statsCollector = new HandoffTokenStats();
+        // 创建 Token 追踪器（使用框架提供的 InMemoryTokenUsageTracker）
+        var tokenTracker = TokenStatsHelper.CreateTracker();
+
+        // 创建带追踪功能的 LLM Provider 工厂方法
+        TokenTrackingLLMProvider CreateTrackedProvider(string agentName) =>
+            new(provider, tokenTracker, agentName);
 
         // ====================================================================
         // 1. 创建 Handoff Handler 和 Agent
@@ -32,28 +38,25 @@ public static class HandoffDemos
         var handler = new HandoffHandler();
 
         // 创建 Triage Agent - 负责分析请求并分配
-        var triageAgent = new TriageAgent(provider, statsCollector);
+        var triageAgent = new TriageAgent(CreateTrackedProvider("Triage"));
 
         // 创建专家 Agent
         var techExpert = new ExpertAgent(
-            provider,
-            statsCollector,
+            CreateTrackedProvider("技术专家"),
             "技术专家",
             "技术问题",
             "你是一位资深技术专家，擅长软件架构、系统设计、DevOps 和云原生技术。请提供专业、实用的技术建议。"
         );
 
         var legalExpert = new ExpertAgent(
-            provider,
-            statsCollector,
+            CreateTrackedProvider("法律专家"),
             "法律专家",
             "法律问题",
             "你是一位企业法律顾问，擅长合同法、知识产权和商业合规。请提供专业的法律建议（仅供参考，不构成法律意见）。"
         );
 
         var financeExpert = new ExpertAgent(
-            provider,
-            statsCollector,
+            CreateTrackedProvider("财务专家"),
             "财务专家",
             "财务问题",
             "你是一位财务分析专家，擅长投资回报分析、预算规划和风险评估。请提供专业的财务建议。"
@@ -135,9 +138,9 @@ public static class HandoffDemos
         }
 
         // ====================================================================
-        // 4. Token 统计
+        // 4. Token 统计（使用框架追踪器）
         // ====================================================================
-        statsCollector.PrintSummary();
+        TokenStatsHelper.PrintSummary(tokenTracker);
 
         // ====================================================================
         // 5. 能力总结
@@ -153,65 +156,15 @@ public static class HandoffDemos
 }
 
 /// <summary>
-/// Handoff Token 统计收集器
-/// </summary>
-internal class HandoffTokenStats
-{
-    private readonly Dictionary<string, (int PromptTokens, int CompletionTokens, int CallCount)> _stats = [];
-
-    public void Record(string agentName, int promptTokens, int completionTokens)
-    {
-        if (_stats.TryGetValue(agentName, out var current))
-        {
-            _stats[agentName] = (
-                current.PromptTokens + promptTokens,
-                current.CompletionTokens + completionTokens,
-                current.CallCount + 1
-            );
-        }
-        else
-        {
-            _stats[agentName] = (promptTokens, completionTokens, 1);
-        }
-    }
-
-    public int TotalPromptTokens => _stats.Values.Sum(s => s.PromptTokens);
-    public int TotalCompletionTokens => _stats.Values.Sum(s => s.CompletionTokens);
-    public int TotalTokens => TotalPromptTokens + TotalCompletionTokens;
-    public int TotalCallCount => _stats.Values.Sum(s => s.CallCount);
-
-    public void PrintSummary()
-    {
-        ConsoleHelper.PrintDivider("📈 Token 使用统计");
-
-        foreach (var (name, stats) in _stats.OrderByDescending(x => x.Value.PromptTokens + x.Value.CompletionTokens))
-        {
-            var total = stats.PromptTokens + stats.CompletionTokens;
-            Console.WriteLine(
-                $"  {name}: 输入={stats.PromptTokens}, 输出={stats.CompletionTokens}, 总计={total} ({stats.CallCount}次调用)"
-            );
-        }
-
-        Console.WriteLine();
-        ConsoleHelper.PrintColored(
-            $"  📊 总计: 输入={TotalPromptTokens}, 输出={TotalCompletionTokens}, 总计={TotalTokens} ({TotalCallCount}次调用)",
-            ConsoleColor.Yellow
-        );
-    }
-}
-
-/// <summary>
 /// Triage Agent - 负责分析请求并分配给专家
 /// </summary>
 internal class TriageAgent : IHandoffAgent
 {
     private readonly ILLMProvider _provider;
-    private readonly HandoffTokenStats _stats;
 
-    public TriageAgent(ILLMProvider provider, HandoffTokenStats stats)
+    public TriageAgent(ILLMProvider provider)
     {
         _provider = provider;
-        _stats = stats;
     }
 
     public string Name => "Triage";
@@ -244,18 +197,13 @@ internal class TriageAgent : IHandoffAgent
             - 用户问"项目ROI如何计算" → [ROUTE:财务专家] 这是投资回报分析问题
             """;
 
-        var messages = new List<ChatMessage>
-        {
-            new("system", systemPrompt),
-            new("user", input),
-        };
+        var messages = new List<ChatMessage> { new("system", systemPrompt), new("user", input) };
 
         var result = await _provider.ChatAsync(messages, cancellationToken: cancellationToken);
         var response = result.Content ?? "";
         var duration = DateTime.UtcNow - startTime;
 
-        // 记录 Token 统计
-        _stats.Record(Name, result.PromptTokens, result.CompletionTokens);
+        // Token 统计由 TokenTrackingLLMProvider 自动追踪
 
         // 解析 LLM 响应
         if (response.StartsWith("[ROUTE:"))
@@ -264,9 +212,10 @@ internal class TriageAgent : IHandoffAgent
             if (endIndex > 7)
             {
                 var targetAgent = response.Substring(7, endIndex - 7);
-                var reason = response.Length > endIndex + 1
-                    ? response.Substring(endIndex + 1).Trim()
-                    : "LLM 路由决策";
+                var reason =
+                    response.Length > endIndex + 1
+                        ? response.Substring(endIndex + 1).Trim()
+                        : "LLM 路由决策";
 
                 var handoffResponse = AgentResponseHandoffExtensions.CreateHandoffResponse(
                     targetAgent,
@@ -297,20 +246,12 @@ internal class TriageAgent : IHandoffAgent
 internal class ExpertAgent : IAgent
 {
     private readonly ILLMProvider _provider;
-    private readonly HandoffTokenStats _stats;
     private readonly string _expertise;
     private readonly string _systemPrompt;
 
-    public ExpertAgent(
-        ILLMProvider provider,
-        HandoffTokenStats stats,
-        string name,
-        string expertise,
-        string systemPrompt
-    )
+    public ExpertAgent(ILLMProvider provider, string name, string expertise, string systemPrompt)
     {
         _provider = provider;
-        _stats = stats;
         Name = name;
         _expertise = expertise;
         _systemPrompt = systemPrompt;
@@ -326,18 +267,13 @@ internal class ExpertAgent : IAgent
     {
         var startTime = DateTime.UtcNow;
 
-        var messages = new List<ChatMessage>
-        {
-            new("system", _systemPrompt),
-            new("user", input),
-        };
+        var messages = new List<ChatMessage> { new("system", _systemPrompt), new("user", input) };
 
         var result = await _provider.ChatAsync(messages, cancellationToken: cancellationToken);
         var response = result.Content ?? "";
         var duration = DateTime.UtcNow - startTime;
 
-        // 记录 Token 统计
-        _stats.Record(Name, result.PromptTokens, result.CompletionTokens);
+        // Token 统计由 TokenTrackingLLMProvider 自动追踪
 
         return AgentResponse.Successful(response, [], duration);
     }
