@@ -54,14 +54,241 @@ dotnet run
 - ✅ Week 5: Tools/Skills 系统完成（74 测试通过）
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
 - ✅ Week 6: PackageManagerTool + RAG 完成（233 测试通过）
-- 🔜 Week 7: 多 Agent 协作（Handoff）
+- ✅ Week 7: Handoff 多 Agent 协作完成
+- ✅ Week 8: Token Usage Tracking 完成
+- ✅ Week 9: Safety & Guardrails 完成
+- ✅ Week 10: Human-in-the-Loop 完成
+- ✅ Week 11: Observability & Monitoring 完成
+- ✅ Week 12: Deployment & Scaling 完成（736 测试通过）
+- ✅ Demo: Week 8-12 演示更新完成
 
-### 下一步任务
+### 🎉 12 周学习计划全部完成！
 
-1. `IOrchestrator` 接口设计 - Agent 编排
-2. `SequentialOrchestrator` - 顺序执行
-3. `ParallelOrchestrator` - 并行执行
-4. Agent Handoff 机制
+框架核心功能已全部实现，可开始实际项目开发或发布准备。
+
+---
+
+## [2026-01-22] Week 8-12 Demo 更新
+
+### 新增的演示文件
+
+```text
+samples/Dawning.Agents.Demo/
+├── SafetyDemos.cs          ← 安全护栏演示（敏感数据检测、最大长度限制）
+├── HumanLoopDemos.cs       ← 人机协作演示（确认请求、风险等级策略）
+├── ObservabilityDemos.cs   ← 可观测性演示（指标收集、健康检查、追踪）
+└── ScalingDemos.cs         ← 扩缩容演示（请求队列、负载均衡、熔断器）
+```
+
+### 修改的文件
+
+- **RunMode.cs**: 添加 `Safety`, `HumanLoop`, `Observability`, `Scaling` 枚举值
+- **Program.cs**: 添加菜单选项 `[S] Safety`, `[H] Human-in-Loop`, `[O] Observability`, `[C] Scaling`
+
+---
+
+## [2026-01-22] Phase 6: Week 12 Deployment & Scaling 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Scaling/
+├── ILoadBalancer.cs        ← 负载均衡接口
+├── IAutoScaler.cs          ← 自动扩缩容接口
+├── ICircuitBreaker.cs      ← 熔断器接口
+├── CircuitState.cs         ← 熔断器状态枚举（Closed/Open/HalfOpen）
+└── ScalingOptions.cs       ← 扩缩容配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Scaling/
+├── RoundRobinLoadBalancer.cs      ← 轮询负载均衡
+├── LeastLoadedLoadBalancer.cs     ← 最小负载均衡
+├── SimpleAutoScaler.cs            ← 简单自动扩缩容
+├── DefaultCircuitBreaker.cs       ← 默认熔断器实现
+└── ScalingServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 核心组件
+
+| 组件 | 职责 | 实现 |
+|------|------|------|
+| `ILoadBalancer` | 请求分发 | `RoundRobinLoadBalancer`, `LeastLoadedLoadBalancer` |
+| `IAutoScaler` | 自动扩缩容 | `SimpleAutoScaler` |
+| `ICircuitBreaker` | 故障隔离 | `DefaultCircuitBreaker` |
+
+---
+
+## [2026-01-22] Phase 6: Week 11 Observability & Monitoring 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Observability/
+├── IMetricsCollector.cs    ← 指标收集接口
+├── IHealthCheck.cs         ← 健康检查接口
+├── HealthStatus.cs         ← 健康状态枚举（Healthy/Degraded/Unhealthy）
+└── MetricsSnapshot.cs      ← 指标快照数据模型
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Observability/
+├── MetricsCollector.cs                    ← 指标收集器实现
+├── CompositeHealthCheck.cs                ← 复合健康检查
+└── ObservabilityServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 核心功能
+
+| 功能 | 方法 | 说明 |
+|------|------|------|
+| Counter | `IncrementCounter()` | 递增计数器 |
+| Histogram | `RecordHistogram()` | 记录直方图 |
+| Gauge | `SetGauge()` | 设置仪表值 |
+| Snapshot | `GetSnapshot()` | 获取指标快照 |
+
+---
+
+## [2026-01-22] Phase 5: Week 10 Human-in-the-Loop 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/HumanLoop/
+├── IApprovalHandler.cs       ← 审批处理接口
+├── ConfirmationRequest.cs    ← 确认请求数据模型
+├── ConfirmationType.cs       ← 确认类型枚举（Binary/MultiChoice/FreeformInput/Review）
+├── ApprovalStrategy.cs       ← 审批策略枚举（AlwaysApprove/AlwaysDeny/RiskBased/Interactive）
+└── HumanLoopOptions.cs       ← 人机协作配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/HumanLoop/
+├── RiskBasedApprovalHandler.cs           ← 基于风险等级的审批处理
+├── InteractiveApprovalHandler.cs         ← 交互式审批处理
+└── HumanLoopServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 风险等级策略
+
+| 风险等级 | 行为 |
+|---------|------|
+| Low | 自动批准 |
+| Medium | 记录日志后批准 |
+| High | 需要确认 |
+| Critical | 需要多重确认 |
+
+---
+
+## [2026-01-22] Phase 5: Week 9 Safety & Guardrails 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Safety/
+├── IGuardrail.cs           ← 安全护栏接口
+├── IInputGuardrail.cs      ← 输入验证接口
+├── IOutputGuardrail.cs     ← 输出过滤接口
+├── GuardrailResult.cs      ← 护栏结果数据模型
+└── SafetyOptions.cs        ← 安全配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Safety/
+├── SensitiveDataGuardrail.cs            ← 敏感数据检测（信用卡、邮箱、电话、身份证）
+├── MaxLengthGuardrail.cs                ← 最大长度限制
+├── CompositeGuardrail.cs                ← 复合护栏
+└── SafetyServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 敏感数据检测模式
+
+```csharp
+// 支持的敏感数据类型
+- 信用卡号: \b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b
+- 邮箱地址: \b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b
+- 电话号码: \b1[3-9]\d{9}\b
+- 身份证号: \b\d{17}[\dXx]\b
+```
+
+---
+
+## [2026-01-22] Phase 4: Week 8 Token Usage Tracking 完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Telemetry/
+├── ITokenTracker.cs        ← Token 追踪接口
+├── ITelemetryCollector.cs  ← 遥测收集接口
+├── TokenUsage.cs           ← Token 使用量数据模型
+├── TelemetryData.cs        ← 遥测数据模型
+└── TelemetryOptions.cs     ← 遥测配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Telemetry/
+├── DefaultTokenTracker.cs                  ← 默认 Token 追踪器
+├── InMemoryTelemetryCollector.cs           ← 内存遥测收集器
+└── TelemetryServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### DI 注册方式
+
+```csharp
+services.AddTelemetry(configuration);       // 根据配置自动选择
+services.AddTokenTracker();                 // Token 追踪
+services.AddTelemetryCollector();           // 遥测收集
+```
+
+---
+
+## [2026-01-21] Phase 4: Week 7 Handoff 多 Agent 协作完成
+
+### 新增的文件
+
+**Abstractions:**
+```text
+src/Dawning.Agents.Abstractions/Handoff/
+├── IHandoff.cs             ← Handoff 接口
+├── Handoff.cs              ← 泛型 Handoff 实现
+├── HandoffFilter.cs        ← Handoff 过滤器
+└── HandoffOptions.cs       ← Handoff 配置选项
+```
+
+**Core:**
+```text
+src/Dawning.Agents.Core/Handoff/
+├── HandoffExecutor.cs                    ← Handoff 执行器
+├── ConditionalHandoff.cs                 ← 条件 Handoff
+└── HandoffServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 核心概念
+
+| 概念 | 说明 |
+|------|------|
+| `IHandoff` | Agent 切换接口 |
+| `Handoff<TAgent>` | 泛型 Handoff，指定目标 Agent 类型 |
+| `HandoffFilter` | 切换条件过滤器 |
+| `HandoffExecutor` | 执行 Agent 切换 |
+
+### DI 注册方式
+
+```csharp
+services.AddHandoff<ResearchAgent>();       // 注册 Handoff
+services.AddHandoffExecutor();              // 注册执行器
+```
 
 ---
 
