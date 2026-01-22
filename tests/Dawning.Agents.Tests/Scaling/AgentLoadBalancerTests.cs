@@ -186,12 +186,18 @@ public class AgentLoadBalancerTests
         public string Name => "MockAgent";
         public string Instructions => "Mock instructions";
 
-        public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default)
+        public Task<AgentResponse> RunAsync(
+            string input,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult(AgentResponse.Successful("Mock response", [], TimeSpan.Zero));
         }
 
-        public Task<AgentResponse> RunAsync(AgentContext context, CancellationToken cancellationToken = default)
+        public Task<AgentResponse> RunAsync(
+            AgentContext context,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult(AgentResponse.Successful("Mock response", [], TimeSpan.Zero));
         }

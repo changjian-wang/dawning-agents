@@ -44,13 +44,23 @@ public record ApprovalResult
     /// 创建自动批准结果
     /// </summary>
     public static ApprovalResult AutoApproved(string action) =>
-        new() { Action = action, IsApproved = true, IsAutoApproved = true };
+        new()
+        {
+            Action = action,
+            IsApproved = true,
+            IsAutoApproved = true,
+        };
 
     /// <summary>
     /// 创建批准结果
     /// </summary>
     public static ApprovalResult Approved(string action, string? approvedBy = null) =>
-        new() { Action = action, IsApproved = true, ApprovedBy = approvedBy };
+        new()
+        {
+            Action = action,
+            IsApproved = true,
+            ApprovedBy = approvedBy,
+        };
 
     /// <summary>
     /// 创建拒绝结果

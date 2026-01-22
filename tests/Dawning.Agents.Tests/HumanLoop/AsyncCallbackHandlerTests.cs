@@ -28,16 +28,14 @@ public class AsyncCallbackHandlerTests
         {
             receivedRequest = req;
             // Complete the confirmation asynchronously
-            Task.Run(() => handler.CompleteConfirmation(
-                new ConfirmationResponse { RequestId = req.Id, SelectedOption = "yes" }
-            ));
+            Task.Run(() =>
+                handler.CompleteConfirmation(
+                    new ConfirmationResponse { RequestId = req.Id, SelectedOption = "yes" }
+                )
+            );
         };
 
-        var request = new ConfirmationRequest
-        {
-            Action = "Test",
-            Description = "Test description",
-        };
+        var request = new ConfirmationRequest { Action = "Test", Description = "Test description" };
 
         // Act
         var response = await handler.RequestConfirmationAsync(request);
@@ -159,14 +157,16 @@ public class AsyncCallbackHandlerTests
         handler.EscalationRequested += (sender, req) =>
         {
             receivedRequest = req;
-            Task.Run(() => handler.CompleteEscalation(
-                new EscalationResult
-                {
-                    RequestId = req.Id,
-                    Action = EscalationAction.Resolved,
-                    Resolution = "Fixed",
-                }
-            ));
+            Task.Run(() =>
+                handler.CompleteEscalation(
+                    new EscalationResult
+                    {
+                        RequestId = req.Id,
+                        Action = EscalationAction.Resolved,
+                        Resolution = "Fixed",
+                    }
+                )
+            );
         };
 
         var request = new EscalationRequest { Reason = "Error", Description = "Test error" };

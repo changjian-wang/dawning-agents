@@ -22,9 +22,7 @@ public static class SafetyServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<SafetyOptions>(
-            configuration.GetSection(SafetyOptions.SectionName)
-        );
+        services.Configure<SafetyOptions>(configuration.GetSection(SafetyOptions.SectionName));
 
         return services.AddSafetyGuardrailsCore();
     }
@@ -79,9 +77,7 @@ public static class SafetyServiceCollectionExtensions
                 pipeline.AddInputGuardrail(
                     new SensitiveDataGuardrail(
                         options,
-                        sp.GetService<
-                            Microsoft.Extensions.Logging.ILogger<SensitiveDataGuardrail>
-                        >()
+                        sp.GetService<Microsoft.Extensions.Logging.ILogger<SensitiveDataGuardrail>>()
                     )
                 );
             }
@@ -91,9 +87,7 @@ public static class SafetyServiceCollectionExtensions
                 pipeline.AddInputGuardrail(
                     new ContentFilterGuardrail(
                         options,
-                        sp.GetService<
-                            Microsoft.Extensions.Logging.ILogger<ContentFilterGuardrail>
-                        >()
+                        sp.GetService<Microsoft.Extensions.Logging.ILogger<ContentFilterGuardrail>>()
                     )
                 );
             }
@@ -111,9 +105,7 @@ public static class SafetyServiceCollectionExtensions
                 pipeline.AddOutputGuardrail(
                     new SensitiveDataGuardrail(
                         options,
-                        sp.GetService<
-                            Microsoft.Extensions.Logging.ILogger<SensitiveDataGuardrail>
-                        >()
+                        sp.GetService<Microsoft.Extensions.Logging.ILogger<SensitiveDataGuardrail>>()
                     )
                 );
             }

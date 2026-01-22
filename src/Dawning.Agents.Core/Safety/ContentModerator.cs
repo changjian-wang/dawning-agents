@@ -46,9 +46,10 @@ public class ContentModerator : IInputGuardrail, IOutputGuardrail
         }
 
         // 内容过长时截断（节省 Token）
-        var contentToCheck = content.Length > _options.MaxContentToCheck
-            ? content[.._options.MaxContentToCheck] + "..."
-            : content;
+        var contentToCheck =
+            content.Length > _options.MaxContentToCheck
+                ? content[.._options.MaxContentToCheck] + "..."
+                : content;
 
         try
         {
@@ -79,12 +80,14 @@ public class ContentModerator : IInputGuardrail, IOutputGuardrail
                 return GuardrailResult.Fail(
                     result.Reason ?? "内容审核未通过",
                     Name,
-                    result.ViolatedCategories.Select(c => new GuardrailIssue
-                    {
-                        Type = "ContentModeration",
-                        Description = c,
-                        Severity = IssueSeverity.Error,
-                    }).ToList()
+                    result
+                        .ViolatedCategories.Select(c => new GuardrailIssue
+                        {
+                            Type = "ContentModeration",
+                            Description = c,
+                            Severity = IssueSeverity.Error,
+                        })
+                        .ToList()
                 );
             }
 
@@ -148,8 +151,8 @@ public class ContentModerator : IInputGuardrail, IOutputGuardrail
                 var doc = System.Text.Json.JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                var allowed = root.TryGetProperty("allowed", out var allowedProp)
-                    && allowedProp.GetBoolean();
+                var allowed =
+                    root.TryGetProperty("allowed", out var allowedProp) && allowedProp.GetBoolean();
 
                 var categories = new List<string>();
                 if (root.TryGetProperty("categories", out var categoriesProp))
@@ -183,7 +186,10 @@ public class ContentModerator : IInputGuardrail, IOutputGuardrail
 
         // 解析失败，根据响应内容做简单判断
         var lowerResponse = response.ToLowerInvariant();
-        if (lowerResponse.Contains("\"allowed\": false") || lowerResponse.Contains("\"allowed\":false"))
+        if (
+            lowerResponse.Contains("\"allowed\": false")
+            || lowerResponse.Contains("\"allowed\":false")
+        )
         {
             return new ModerationResult
             {
@@ -219,15 +225,7 @@ public class ContentModeratorOptions
     /// 审核类别
     /// </summary>
     public List<string> Categories { get; set; } =
-    [
-        "暴力内容",
-        "色情内容",
-        "仇恨言论",
-        "自我伤害",
-        "非法活动",
-        "个人攻击",
-        "虚假信息",
-    ];
+    ["暴力内容", "色情内容", "仇恨言论", "自我伤害", "非法活动", "个人攻击", "虚假信息"];
 
     /// <summary>
     /// 最大检查内容长度（超过则截断）

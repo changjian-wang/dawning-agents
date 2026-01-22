@@ -83,14 +83,5 @@ public class HumanLoopOptions
     /// 关键风险关键词
     /// </summary>
     public string[] CriticalRiskKeywords { get; set; } =
-    [
-        "production",
-        "financial",
-        "customer data",
-        "credentials",
-        "生产",
-        "财务",
-        "客户数据",
-        "凭证",
-    ];
+    ["production", "financial", "customer data", "credentials", "生产", "财务", "客户数据", "凭证"];
 }

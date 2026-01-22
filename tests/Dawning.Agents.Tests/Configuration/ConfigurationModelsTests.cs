@@ -36,7 +36,10 @@ public class ConfigurationModelsTests
     [Theory]
     [InlineData("", "Agent Name is required")]
     [InlineData(null, "Agent Name is required")]
-    public void AgentDeploymentOptions_Validate_ThrowsOnInvalidName(string? name, string expectedMessage)
+    public void AgentDeploymentOptions_Validate_ThrowsOnInvalidName(
+        string? name,
+        string expectedMessage
+    )
     {
         var options = new AgentDeploymentOptions { Name = name! };
 
@@ -52,7 +55,9 @@ public class ConfigurationModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("MaxIterations must be at least 1");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("MaxIterations must be at least 1");
     }
 
     [Fact]
@@ -92,7 +97,9 @@ public class ConfigurationModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("Temperature must be between 0 and 2");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("Temperature must be between 0 and 2");
     }
 
     [Fact]
@@ -130,6 +137,8 @@ public class ConfigurationModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("DefaultExpiration must be positive");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("DefaultExpiration must be positive");
     }
 }

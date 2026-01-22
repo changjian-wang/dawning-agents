@@ -45,7 +45,9 @@ public class HealthModelsTests
     public void HealthStatus_ShouldHaveCorrectValues(HealthStatus status, int expectedValue)
     {
         // Assert
-        ((int)status).Should().Be(expectedValue);
+        ((int)status)
+            .Should()
+            .Be(expectedValue);
     }
 
     [Fact]

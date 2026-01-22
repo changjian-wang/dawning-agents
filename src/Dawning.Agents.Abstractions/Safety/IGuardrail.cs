@@ -26,10 +26,7 @@ public interface IGuardrail
     /// <param name="content">要检查的内容</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>检查结果</returns>
-    Task<GuardrailResult> CheckAsync(
-        string content,
-        CancellationToken cancellationToken = default
-    );
+    Task<GuardrailResult> CheckAsync(string content, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

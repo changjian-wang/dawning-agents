@@ -105,11 +105,7 @@ public class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
             }
             catch (RegexMatchTimeoutException ex)
             {
-                _logger.LogWarning(
-                    ex,
-                    "正则表达式 {PatternName} 匹配超时",
-                    compiled.Config.Name
-                );
+                _logger.LogWarning(ex, "正则表达式 {PatternName} 匹配超时", compiled.Config.Name);
             }
         }
 
@@ -124,11 +120,7 @@ public class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
         if (_options.FailureBehavior == GuardrailFailureBehavior.BlockAndReport)
         {
             return Task.FromResult(
-                GuardrailResult.Fail(
-                    $"检测到 {issues.Count} 处敏感数据",
-                    Name,
-                    issues
-                )
+                GuardrailResult.Fail($"检测到 {issues.Count} 处敏感数据", Name, issues)
             );
         }
 

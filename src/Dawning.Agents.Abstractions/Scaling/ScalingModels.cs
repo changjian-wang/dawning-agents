@@ -183,13 +183,23 @@ public record ScalingDecision
     /// 创建扩容决策
     /// </summary>
     public static ScalingDecision ScaleUp(int delta, string reason) =>
-        new() { Action = ScalingAction.ScaleUp, Delta = delta, Reason = reason };
+        new()
+        {
+            Action = ScalingAction.ScaleUp,
+            Delta = delta,
+            Reason = reason,
+        };
 
     /// <summary>
     /// 创建缩容决策
     /// </summary>
     public static ScalingDecision ScaleDown(int delta, string reason) =>
-        new() { Action = ScalingAction.ScaleDown, Delta = delta, Reason = reason };
+        new()
+        {
+            Action = ScalingAction.ScaleDown,
+            Delta = delta,
+            Reason = reason,
+        };
 }
 
 /// <summary>
@@ -210,7 +220,7 @@ public enum ScalingAction
     /// <summary>
     /// 缩容
     /// </summary>
-    ScaleDown
+    ScaleDown,
 }
 
 /// <summary>
@@ -231,5 +241,5 @@ public enum CircuitState
     /// <summary>
     /// 半开状态（测试恢复）
     /// </summary>
-    HalfOpen
+    HalfOpen,
 }

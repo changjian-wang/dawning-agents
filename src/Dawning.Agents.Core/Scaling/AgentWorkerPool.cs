@@ -116,7 +116,12 @@ public class AgentWorkerPool : IAgentWorkerPool
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "工作线程 {WorkerId} 处理项 {ItemId} 失败", workerId, item.Id);
+                    _logger.LogError(
+                        ex,
+                        "工作线程 {WorkerId} 处理项 {ItemId} 失败",
+                        workerId,
+                        item.Id
+                    );
                     item.CompletionSource.TrySetException(ex);
                 }
             }

@@ -19,9 +19,7 @@ public static class ObservabilityServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<TelemetryConfig>(
-            configuration.GetSection(TelemetryConfig.SectionName)
-        );
+        services.Configure<TelemetryConfig>(configuration.GetSection(TelemetryConfig.SectionName));
 
         services.TryAddSingleton<TelemetryConfig>(sp =>
         {
@@ -79,7 +77,9 @@ public static class ObservabilityServiceCollectionExtensions
             var telemetry = sp.GetRequiredService<AgentTelemetry>();
             var config = sp.GetRequiredService<TelemetryConfig>();
             var loggerFactory = sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-            var logger = loggerFactory?.CreateLogger(typeof(ObservableAgent).FullName ?? nameof(ObservableAgent));
+            var logger = loggerFactory?.CreateLogger(
+                typeof(ObservableAgent).FullName ?? nameof(ObservableAgent)
+            );
             return new ObservableAgent(innerAgent, telemetry, config, logger);
         });
 
@@ -140,7 +140,9 @@ public static class ObservabilityServiceCollectionExtensions
                 var telemetry = sp.GetRequiredService<AgentTelemetry>();
                 var config = sp.GetRequiredService<TelemetryConfig>();
                 var loggerFactory = sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                var logger = loggerFactory?.CreateLogger(typeof(ObservableAgent).FullName ?? nameof(ObservableAgent));
+                var logger = loggerFactory?.CreateLogger(
+                    typeof(ObservableAgent).FullName ?? nameof(ObservableAgent)
+                );
                 return new ObservableAgent(marker.Agent, telemetry, config, logger);
             });
         }
@@ -158,8 +160,11 @@ public static class ObservabilityServiceCollectionExtensions
     {
         var telemetry = serviceProvider.GetRequiredService<AgentTelemetry>();
         var config = serviceProvider.GetRequiredService<TelemetryConfig>();
-        var loggerFactory = serviceProvider.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-        var logger = loggerFactory?.CreateLogger(typeof(ObservableAgent).FullName ?? nameof(ObservableAgent));
+        var loggerFactory =
+            serviceProvider.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+        var logger = loggerFactory?.CreateLogger(
+            typeof(ObservableAgent).FullName ?? nameof(ObservableAgent)
+        );
         return new ObservableAgent(innerAgent, telemetry, config, logger);
     }
 

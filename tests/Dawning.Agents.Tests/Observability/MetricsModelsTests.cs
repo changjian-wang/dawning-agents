@@ -78,9 +78,18 @@ public class MetricsModelsTests
     {
         // Arrange
         var timestamp = DateTime.UtcNow;
-        var counters = new List<MetricData> { new() { Name = "c1", Type = "counter" } };
-        var histograms = new List<MetricData> { new() { Name = "h1", Type = "histogram" } };
-        var gauges = new List<MetricData> { new() { Name = "g1", Type = "gauge" } };
+        var counters = new List<MetricData>
+        {
+            new() { Name = "c1", Type = "counter" },
+        };
+        var histograms = new List<MetricData>
+        {
+            new() { Name = "h1", Type = "histogram" },
+        };
+        var gauges = new List<MetricData>
+        {
+            new() { Name = "g1", Type = "gauge" },
+        };
 
         // Act
         var snapshot = new MetricsSnapshot

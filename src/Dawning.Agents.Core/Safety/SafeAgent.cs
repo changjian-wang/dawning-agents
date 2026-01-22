@@ -39,10 +39,7 @@ public class SafeAgent : IAgent
     public string Instructions => _innerAgent.Instructions;
 
     /// <inheritdoc />
-    public Task<AgentResponse> RunAsync(
-        string input,
-        CancellationToken cancellationToken = default
-    )
+    public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default)
     {
         return RunAsync(input, userId: null, cancellationToken: cancellationToken);
     }
@@ -121,7 +118,9 @@ public class SafeAgent : IAgent
                     _logger.LogWarning(
                         "Agent {AgentName} 输入被护栏阻止: {Reason}",
                         Name,
-                        inputCheckResult.Issues.FirstOrDefault()?.Description ?? inputCheckResult.Message ?? "Unknown"
+                        inputCheckResult.Issues.FirstOrDefault()?.Description
+                            ?? inputCheckResult.Message
+                            ?? "Unknown"
                     );
 
                     if (_auditLogger != null)
@@ -132,8 +131,13 @@ public class SafeAgent : IAgent
                                 EventType = AuditEventType.GuardrailTriggered,
                                 AgentName = Name,
                                 Input = input,
-                                ErrorMessage = inputCheckResult.Issues.FirstOrDefault()?.Description ?? inputCheckResult.Message,
-                                TriggeredGuardrails = [inputCheckResult.TriggeredBy ?? "InputGuardrail"],
+                                ErrorMessage =
+                                    inputCheckResult.Issues.FirstOrDefault()?.Description
+                                    ?? inputCheckResult.Message,
+                                TriggeredGuardrails =
+                                [
+                                    inputCheckResult.TriggeredBy ?? "InputGuardrail",
+                                ],
                                 Status = AuditResultStatus.Blocked,
                             },
                             cancellationToken
@@ -180,7 +184,9 @@ public class SafeAgent : IAgent
                     _logger.LogWarning(
                         "Agent {AgentName} 输出被护栏阻止: {Reason}",
                         Name,
-                        outputCheckResult.Issues.FirstOrDefault()?.Description ?? outputCheckResult.Message ?? "Unknown"
+                        outputCheckResult.Issues.FirstOrDefault()?.Description
+                            ?? outputCheckResult.Message
+                            ?? "Unknown"
                     );
 
                     if (_auditLogger != null)
@@ -191,9 +197,13 @@ public class SafeAgent : IAgent
                                 EventType = AuditEventType.GuardrailTriggered,
                                 AgentName = Name,
                                 Output = finalOutput,
-                                ErrorMessage = outputCheckResult.Issues.FirstOrDefault()?.Description ?? outputCheckResult.Message,
+                                ErrorMessage =
+                                    outputCheckResult.Issues.FirstOrDefault()?.Description
+                                    ?? outputCheckResult.Message,
                                 TriggeredGuardrails =
-                                    [outputCheckResult.TriggeredBy ?? "OutputGuardrail"],
+                                [
+                                    outputCheckResult.TriggeredBy ?? "OutputGuardrail",
+                                ],
                                 Status = AuditResultStatus.Blocked,
                             },
                             cancellationToken
@@ -253,11 +263,7 @@ public class SafeAgent : IAgent
                 );
             }
 
-            return AgentResponse.Failed(
-                $"执行过程中发生错误: {ex.Message}",
-                [],
-                stopwatch.Elapsed
-            );
+            return AgentResponse.Failed($"执行过程中发生错误: {ex.Message}", [], stopwatch.Elapsed);
         }
     }
 

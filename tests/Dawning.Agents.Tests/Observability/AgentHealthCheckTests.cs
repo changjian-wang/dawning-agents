@@ -30,7 +30,9 @@ public class AgentHealthCheckTests
         mockProvider.Setup(p => p.Name).Returns("TestProvider");
         mockProvider
             .Setup(p => p.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ComponentHealth { Name = "TestProvider", Status = HealthStatus.Healthy });
+            .ReturnsAsync(
+                new ComponentHealth { Name = "TestProvider", Status = HealthStatus.Healthy }
+            );
 
         healthCheck.AddProvider(mockProvider.Object);
 

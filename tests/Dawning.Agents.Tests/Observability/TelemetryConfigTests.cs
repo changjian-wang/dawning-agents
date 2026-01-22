@@ -40,7 +40,9 @@ public class TelemetryConfigTests
     public void LogLevel_ShouldHaveCorrectValues(TelemetryLogLevel level, int expectedValue)
     {
         // Assert
-        ((int)level).Should().Be(expectedValue);
+        ((int)level)
+            .Should()
+            .Be(expectedValue);
     }
 
     [Fact]

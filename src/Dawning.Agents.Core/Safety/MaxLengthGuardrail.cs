@@ -103,11 +103,7 @@ public class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
         );
 
         return Task.FromResult(
-            GuardrailResult.Fail(
-                $"内容长度 ({length}) 超过最大限制 ({_maxLength})",
-                Name,
-                [issue]
-            )
+            GuardrailResult.Fail($"内容长度 ({length}) 超过最大限制 ({_maxLength})", Name, [issue])
         );
     }
 }

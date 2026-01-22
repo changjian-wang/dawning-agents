@@ -54,7 +54,8 @@ public interface IConfigurationProvider
     /// <typeparam name="T">配置类型</typeparam>
     /// <param name="sectionName">段名称</param>
     /// <returns>配置实例</returns>
-    T? GetSection<T>(string sectionName) where T : class, new();
+    T? GetSection<T>(string sectionName)
+        where T : class, new();
 
     /// <summary>
     /// 重新加载配置

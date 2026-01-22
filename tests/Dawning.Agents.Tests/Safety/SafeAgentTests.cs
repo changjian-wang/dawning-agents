@@ -25,16 +25,20 @@ public class SafeAgentTests
         _mockAgent.Setup(a => a.Name).Returns("TestAgent");
         _mockAgent.Setup(a => a.Instructions).Returns("Test instructions");
 
-        _mockPipeline.Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string input, CancellationToken _) => GuardrailResult.Pass(input));
 
-        _mockPipeline.Setup(p => p.CheckOutputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckOutputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string output, CancellationToken _) => GuardrailResult.Pass(output));
 
-        _mockRateLimiter.Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockRateLimiter
+            .Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(RateLimitResult.Allow(10, DateTimeOffset.UtcNow.AddMinutes(1)));
 
-        _mockAuditLogger.Setup(l => l.LogAsync(It.IsAny<AuditEntry>(), It.IsAny<CancellationToken>()))
+        _mockAuditLogger
+            .Setup(l => l.LogAsync(It.IsAny<AuditEntry>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
     }
 
@@ -69,7 +73,8 @@ public class SafeAgentTests
     {
         // Arrange
         var expectedResponse = AgentResponse.Successful("Hello back!", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         var safeAgent = CreateSafeAgent();
@@ -79,15 +84,21 @@ public class SafeAgentTests
 
         // Assert
         response.FinalAnswer.Should().Be("Hello back!");
-        _mockAgent.Verify(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockAgent.Verify(
+            a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task RunAsync_ShouldBlockRequest_WhenRateLimitExceeded()
     {
         // Arrange
-        _mockRateLimiter.Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(RateLimitResult.Deny(TimeSpan.FromMinutes(1), DateTimeOffset.UtcNow.AddMinutes(1)));
+        _mockRateLimiter
+            .Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                RateLimitResult.Deny(TimeSpan.FromMinutes(1), DateTimeOffset.UtcNow.AddMinutes(1))
+            );
 
         var safeAgent = CreateSafeAgent();
 
@@ -97,7 +108,10 @@ public class SafeAgentTests
         // Assert
         response.Success.Should().BeFalse();
         response.Error.Should().Contain("速率限制");
-        _mockAgent.Verify(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockAgent.Verify(
+            a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -105,7 +119,8 @@ public class SafeAgentTests
     {
         // Arrange
         var failResult = GuardrailResult.Fail("输入过长", "MaxLengthGuardrail");
-        _mockPipeline.Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(failResult);
 
         var safeAgent = CreateSafeAgent();
@@ -116,7 +131,10 @@ public class SafeAgentTests
         // Assert
         response.Success.Should().BeFalse();
         response.Error.Should().Contain("输入未通过安全检查");
-        _mockAgent.Verify(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockAgent.Verify(
+            a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -124,11 +142,18 @@ public class SafeAgentTests
     {
         // Arrange
         var processedResult = GuardrailResult.PassWithContent("[已脱敏]Email: ***");
-        _mockPipeline.Setup(p => p.CheckInputAsync("Email: test@example.com", It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckInputAsync("Email: test@example.com", It.IsAny<CancellationToken>()))
             .ReturnsAsync(processedResult);
 
         var expectedResponse = AgentResponse.Successful("Processed", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a =>
+                a.RunAsync(
+                    It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(expectedResponse);
 
         var safeAgent = CreateSafeAgent();
@@ -137,19 +162,37 @@ public class SafeAgentTests
         await safeAgent.RunAsync("Email: test@example.com", "user123");
 
         // Assert
-        _mockAgent.Verify(a => a.RunAsync(It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"), It.IsAny<CancellationToken>()), Times.Once);
+        _mockAgent.Verify(
+            a =>
+                a.RunAsync(
+                    It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task RunAsync_ShouldBlockResponse_WhenOutputGuardrailFails()
     {
         // Arrange
-        var agentResponse = AgentResponse.Successful("Sensitive output with credit card", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        var agentResponse = AgentResponse.Successful(
+            "Sensitive output with credit card",
+            [],
+            TimeSpan.FromSeconds(1)
+        );
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(agentResponse);
 
         var failResult = GuardrailResult.Fail("检测到敏感信息", "SensitiveDataGuardrail");
-        _mockPipeline.Setup(p => p.CheckOutputAsync("Sensitive output with credit card", It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p =>
+                p.CheckOutputAsync(
+                    "Sensitive output with credit card",
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(failResult);
 
         var safeAgent = CreateSafeAgent();
@@ -166,12 +209,18 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldUseProcessedOutput_WhenGuardrailModifiesOutput()
     {
         // Arrange
-        var agentResponse = AgentResponse.Successful("Phone: 13812345678", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        var agentResponse = AgentResponse.Successful(
+            "Phone: 13812345678",
+            [],
+            TimeSpan.FromSeconds(1)
+        );
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(agentResponse);
 
         var processedResult = GuardrailResult.PassWithContent("Phone: ***");
-        _mockPipeline.Setup(p => p.CheckOutputAsync("Phone: 13812345678", It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckOutputAsync("Phone: 13812345678", It.IsAny<CancellationToken>()))
             .ReturnsAsync(processedResult);
 
         var safeAgent = CreateSafeAgent();
@@ -188,7 +237,8 @@ public class SafeAgentTests
     {
         // Arrange
         var expectedResponse = AgentResponse.Successful("Response", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         var safeAgent = CreateSafeAgent();
@@ -198,18 +248,20 @@ public class SafeAgentTests
 
         // Assert - Should log start and complete
         _mockAuditLogger.Verify(
-            l => l.LogAsync(
-                It.Is<AuditEntry>(e => e.EventType == AuditEventType.AgentRunStart),
-                It.IsAny<CancellationToken>()
-            ),
+            l =>
+                l.LogAsync(
+                    It.Is<AuditEntry>(e => e.EventType == AuditEventType.AgentRunStart),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
 
         _mockAuditLogger.Verify(
-            l => l.LogAsync(
-                It.Is<AuditEntry>(e => e.EventType == AuditEventType.AgentRunEnd),
-                It.IsAny<CancellationToken>()
-            ),
+            l =>
+                l.LogAsync(
+                    It.Is<AuditEntry>(e => e.EventType == AuditEventType.AgentRunEnd),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -219,7 +271,8 @@ public class SafeAgentTests
     {
         // Arrange
         var failResult = GuardrailResult.Fail("Blocked reason", "TestGuardrail");
-        _mockPipeline.Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockPipeline
+            .Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(failResult);
 
         var safeAgent = CreateSafeAgent();
@@ -229,10 +282,11 @@ public class SafeAgentTests
 
         // Assert
         _mockAuditLogger.Verify(
-            l => l.LogAsync(
-                It.Is<AuditEntry>(e => e.EventType == AuditEventType.GuardrailTriggered),
-                It.IsAny<CancellationToken>()
-            ),
+            l =>
+                l.LogAsync(
+                    It.Is<AuditEntry>(e => e.EventType == AuditEventType.GuardrailTriggered),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -241,8 +295,11 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldLogRateLimitExceeded_WhenBlocked()
     {
         // Arrange
-        _mockRateLimiter.Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(RateLimitResult.Deny(TimeSpan.FromMinutes(1), DateTimeOffset.UtcNow.AddMinutes(1)));
+        _mockRateLimiter
+            .Setup(r => r.TryAcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                RateLimitResult.Deny(TimeSpan.FromMinutes(1), DateTimeOffset.UtcNow.AddMinutes(1))
+            );
 
         var safeAgent = CreateSafeAgent();
 
@@ -251,10 +308,11 @@ public class SafeAgentTests
 
         // Assert
         _mockAuditLogger.Verify(
-            l => l.LogAsync(
-                It.Is<AuditEntry>(e => e.EventType == AuditEventType.RateLimited),
-                It.IsAny<CancellationToken>()
-            ),
+            l =>
+                l.LogAsync(
+                    It.Is<AuditEntry>(e => e.EventType == AuditEventType.RateLimited),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -264,7 +322,8 @@ public class SafeAgentTests
     {
         // Arrange
         var expectedResponse = AgentResponse.Successful("Hello!", [], TimeSpan.FromSeconds(1));
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Create SafeAgent without optional dependencies (null pipelines, etc.)
@@ -286,7 +345,8 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldHandleAgentException()
     {
         // Arrange
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Agent error"));
 
         var safeAgent = CreateSafeAgent();
@@ -303,7 +363,8 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldLogError_WhenAgentThrows()
     {
         // Arrange
-        _mockAgent.Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Agent error"));
 
         var safeAgent = CreateSafeAgent();
@@ -313,10 +374,11 @@ public class SafeAgentTests
 
         // Assert
         _mockAuditLogger.Verify(
-            l => l.LogAsync(
-                It.Is<AuditEntry>(e => e.EventType == AuditEventType.Error),
-                It.IsAny<CancellationToken>()
-            ),
+            l =>
+                l.LogAsync(
+                    It.Is<AuditEntry>(e => e.EventType == AuditEventType.Error),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }

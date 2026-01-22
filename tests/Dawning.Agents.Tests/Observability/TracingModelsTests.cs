@@ -31,7 +31,9 @@ public class TracingModelsTests
     public void SpanKind_ShouldHaveCorrectValues(SpanKind kind, int expectedValue)
     {
         // Assert
-        ((int)kind).Should().Be(expectedValue);
+        ((int)kind)
+            .Should()
+            .Be(expectedValue);
     }
 
     [Theory]
@@ -41,6 +43,8 @@ public class TracingModelsTests
     public void SpanStatus_ShouldHaveCorrectValues(SpanStatus status, int expectedValue)
     {
         // Assert
-        ((int)status).Should().Be(expectedValue);
+        ((int)status)
+            .Should()
+            .Be(expectedValue);
     }
 }

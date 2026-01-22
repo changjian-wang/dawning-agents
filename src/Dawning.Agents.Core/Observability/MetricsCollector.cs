@@ -143,7 +143,13 @@ public class CounterMetric
     /// 转换为数据
     /// </summary>
     public MetricData ToData() =>
-        new() { Name = Name, Type = "counter", Value = _value, Tags = Tags };
+        new()
+        {
+            Name = Name,
+            Type = "counter",
+            Value = _value,
+            Tags = Tags,
+        };
 }
 
 /// <summary>
@@ -260,5 +266,11 @@ public class GaugeMetric
     /// 转换为数据
     /// </summary>
     public MetricData ToData() =>
-        new() { Name = Name, Type = "gauge", Value = _value, Tags = Tags };
+        new()
+        {
+            Name = Name,
+            Type = "gauge",
+            Value = _value,
+            Tags = Tags,
+        };
 }

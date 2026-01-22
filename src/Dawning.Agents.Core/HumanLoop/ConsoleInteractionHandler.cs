@@ -185,7 +185,11 @@ public class ConsoleInteractionHandler : IHumanInteractionHandler
                     cancellationToken: cancellationToken
                 ),
             },
-            "2" => new EscalationResult { RequestId = request.Id, Action = EscalationAction.Skipped },
+            "2" => new EscalationResult
+            {
+                RequestId = request.Id,
+                Action = EscalationAction.Skipped,
+            },
             _ => new EscalationResult { RequestId = request.Id, Action = EscalationAction.Aborted },
         };
     }
@@ -250,7 +254,10 @@ public class ConsoleInteractionHandler : IHumanInteractionHandler
         return Task.FromResult(Console.ReadLine() ?? "");
     }
 
-    private static Task<(string selectedOption, string? modifiedContent)> GetReviewConfirmationAsync(
+    private static Task<(
+        string selectedOption,
+        string? modifiedContent
+    )> GetReviewConfirmationAsync(
         string currentContent,
         IReadOnlyList<ConfirmationOption> options,
         CancellationToken cancellationToken

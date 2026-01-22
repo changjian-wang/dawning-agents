@@ -43,7 +43,9 @@ public class ScalingModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("MinInstances must be at least 1");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("MinInstances must be at least 1");
     }
 
     [Fact]
@@ -53,7 +55,9 @@ public class ScalingModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("MaxInstances must be >= MinInstances");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("MaxInstances must be >= MinInstances");
     }
 
     [Theory]
@@ -65,7 +69,9 @@ public class ScalingModelsTests
 
         var act = () => options.Validate();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("TargetCpuPercent must be between 1 and 100");
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("TargetCpuPercent must be between 1 and 100");
     }
 
     [Fact]

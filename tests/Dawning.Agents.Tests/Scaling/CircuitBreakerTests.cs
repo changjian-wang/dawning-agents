@@ -34,8 +34,8 @@ public class CircuitBreakerTests
         // 2 failures (under threshold of 3)
         for (int i = 0; i < 2; i++)
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
             );
         }
 
@@ -50,8 +50,8 @@ public class CircuitBreakerTests
 
         for (int i = 0; i < 3; i++)
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
             );
         }
 
@@ -64,24 +64,27 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1);
 
         // Open the circuit
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
 
         // Next call should throw CircuitBreakerOpenException
-        await Assert.ThrowsAsync<CircuitBreakerOpenException>(
-            () => breaker.ExecuteAsync(() => Task.FromResult(42))
+        await Assert.ThrowsAsync<CircuitBreakerOpenException>(() =>
+            breaker.ExecuteAsync(() => Task.FromResult(42))
         );
     }
 
     [Fact]
     public async Task ExecuteAsync_AfterResetTimeout_TransitionsToHalfOpen()
     {
-        var breaker = new CircuitBreaker(failureThreshold: 1, resetTimeout: TimeSpan.FromMilliseconds(50));
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromMilliseconds(50)
+        );
 
         // Open the circuit
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
 
         breaker.State.Should().Be(CircuitState.Open);
@@ -95,11 +98,14 @@ public class CircuitBreakerTests
     [Fact]
     public async Task ExecuteAsync_SuccessInHalfOpen_ClosesCircuit()
     {
-        var breaker = new CircuitBreaker(failureThreshold: 1, resetTimeout: TimeSpan.FromMilliseconds(50));
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromMilliseconds(50)
+        );
 
         // Open the circuit
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
 
         // Wait for half-open
@@ -134,8 +140,8 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1);
 
         // Open the circuit
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
 
         breaker.Reset();
@@ -150,8 +156,8 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 3);
 
         // Some failures
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
         breaker.FailureCount.Should().Be(1);
 

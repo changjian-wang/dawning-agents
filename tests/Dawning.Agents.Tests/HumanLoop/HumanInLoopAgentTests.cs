@@ -292,12 +292,12 @@ public class HumanInLoopAgentTests
         // Arrange
         _mockAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(
-                new AgentEscalationException("Need help", "Agent needs human assistance")
-            );
+            .ThrowsAsync(new AgentEscalationException("Need help", "Agent needs human assistance"));
 
         _mockHandler
-            .Setup(h => h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(h =>
+                h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(
                 (EscalationRequest req, CancellationToken _) =>
                     new EscalationResult
@@ -324,12 +324,12 @@ public class HumanInLoopAgentTests
         // Arrange
         _mockAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(
-                new AgentEscalationException("Need help", "Agent needs human assistance")
-            );
+            .ThrowsAsync(new AgentEscalationException("Need help", "Agent needs human assistance"));
 
         _mockHandler
-            .Setup(h => h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(h =>
+                h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(
                 (EscalationRequest req, CancellationToken _) =>
                     new EscalationResult { RequestId = req.Id, Action = EscalationAction.Skipped }
@@ -351,12 +351,12 @@ public class HumanInLoopAgentTests
         // Arrange
         _mockAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(
-                new AgentEscalationException("Need help", "Agent needs human assistance")
-            );
+            .ThrowsAsync(new AgentEscalationException("Need help", "Agent needs human assistance"));
 
         _mockHandler
-            .Setup(h => h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(h =>
+                h.EscalateAsync(It.IsAny<EscalationRequest>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(
                 (EscalationRequest req, CancellationToken _) =>
                     new EscalationResult { RequestId = req.Id, Action = EscalationAction.Aborted }

@@ -145,7 +145,9 @@ public class ContentFilterGuardrailTests
         var disabled = CreateOptions(false, "test");
 
         // Act & Assert
-        new ContentFilterGuardrail(withKeywords).IsEnabled.Should().BeTrue();
+        new ContentFilterGuardrail(withKeywords)
+            .IsEnabled.Should()
+            .BeTrue();
         new ContentFilterGuardrail(withoutKeywords).IsEnabled.Should().BeFalse();
         new ContentFilterGuardrail(disabled).IsEnabled.Should().BeFalse();
     }
@@ -267,7 +269,9 @@ public class UrlDomainGuardrailTests
         var withNeither = CreateOptions();
 
         // Assert
-        new UrlDomainGuardrail(withAllowed).IsEnabled.Should().BeTrue();
+        new UrlDomainGuardrail(withAllowed)
+            .IsEnabled.Should()
+            .BeTrue();
         new UrlDomainGuardrail(withBlocked).IsEnabled.Should().BeTrue();
         new UrlDomainGuardrail(withNeither).IsEnabled.Should().BeFalse();
     }

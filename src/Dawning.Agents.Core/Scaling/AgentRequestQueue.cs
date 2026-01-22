@@ -37,7 +37,9 @@ public class AgentRequestQueue : IAgentRequestQueue
     }
 
     /// <inheritdoc />
-    public async ValueTask<AgentWorkItem?> DequeueAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<AgentWorkItem?> DequeueAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {

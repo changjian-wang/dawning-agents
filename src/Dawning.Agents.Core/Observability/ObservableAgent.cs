@@ -39,11 +39,7 @@ public class ObservableAgent : IAgent
     {
         _innerAgent = innerAgent;
         _telemetry = telemetry;
-        _agentLogger = new AgentLogger(
-            logger ?? NullLogger.Instance,
-            innerAgent.Name,
-            config
-        );
+        _agentLogger = new AgentLogger(logger ?? NullLogger.Instance, innerAgent.Name, config);
         _tracer = new DistributedTracer(config);
         _metrics = new MetricsCollector();
     }

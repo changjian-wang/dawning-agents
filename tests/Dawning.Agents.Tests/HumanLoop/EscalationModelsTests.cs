@@ -9,7 +9,11 @@ public class EscalationRequestTests
     public void EscalationRequest_ShouldHaveDefaultValues()
     {
         // Act
-        var request = new EscalationRequest { Reason = "Test reason", Description = "Test description" };
+        var request = new EscalationRequest
+        {
+            Reason = "Test reason",
+            Description = "Test description",
+        };
 
         // Assert
         request.Id.Should().NotBeNullOrEmpty();
@@ -92,10 +96,15 @@ public class EscalationSeverityTests
     [InlineData(EscalationSeverity.Medium, 1)]
     [InlineData(EscalationSeverity.High, 2)]
     [InlineData(EscalationSeverity.Critical, 3)]
-    public void EscalationSeverity_ShouldHaveCorrectValues(EscalationSeverity severity, int expected)
+    public void EscalationSeverity_ShouldHaveCorrectValues(
+        EscalationSeverity severity,
+        int expected
+    )
     {
         // Assert
-        ((int)severity).Should().Be(expected);
+        ((int)severity)
+            .Should()
+            .Be(expected);
     }
 }
 
@@ -108,14 +117,12 @@ public class EscalationActionTests
         Enum.GetValues<EscalationAction>().Should().HaveCount(5);
         Enum.GetValues<EscalationAction>()
             .Should()
-            .Contain(
-                [
-                    EscalationAction.Resolved,
-                    EscalationAction.Skipped,
-                    EscalationAction.Aborted,
-                    EscalationAction.Delegated,
-                    EscalationAction.Retried,
-                ]
-            );
+            .Contain([
+                EscalationAction.Resolved,
+                EscalationAction.Skipped,
+                EscalationAction.Aborted,
+                EscalationAction.Delegated,
+                EscalationAction.Retried,
+            ]);
     }
 }

@@ -66,8 +66,18 @@ public class ApprovalWorkflow
             Context = context ?? new Dictionary<string, object>(),
             Options =
             [
-                new ConfirmationOption { Id = "approve", Label = "批准", IsDefault = true },
-                new ConfirmationOption { Id = "reject", Label = "拒绝", IsDangerous = true },
+                new ConfirmationOption
+                {
+                    Id = "approve",
+                    Label = "批准",
+                    IsDefault = true,
+                },
+                new ConfirmationOption
+                {
+                    Id = "reject",
+                    Label = "拒绝",
+                    IsDangerous = true,
+                },
                 new ConfirmationOption { Id = "modify", Label = "修改" },
             ],
             Timeout = _config.ApprovalTimeout,
@@ -136,7 +146,9 @@ public class ApprovalWorkflow
             }
             else
             {
-                rejections.Add((result.ApprovedBy ?? $"审批人-{i + 1}", result.RejectionReason ?? "未知"));
+                rejections.Add(
+                    (result.ApprovedBy ?? $"审批人-{i + 1}", result.RejectionReason ?? "未知")
+                );
                 _logger.LogDebug("收到拒绝：{Reason}", result.RejectionReason);
             }
         }

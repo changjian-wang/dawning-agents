@@ -34,21 +34,13 @@ public record GuardrailResult
     /// 创建通过结果
     /// </summary>
     public static GuardrailResult Pass(string? processedContent = null) =>
-        new()
-        {
-            Passed = true,
-            ProcessedContent = processedContent,
-        };
+        new() { Passed = true, ProcessedContent = processedContent };
 
     /// <summary>
     /// 创建通过结果（带处理后内容）
     /// </summary>
     public static GuardrailResult PassWithContent(string processedContent) =>
-        new()
-        {
-            Passed = true,
-            ProcessedContent = processedContent,
-        };
+        new() { Passed = true, ProcessedContent = processedContent };
 
     /// <summary>
     /// 创建失败结果

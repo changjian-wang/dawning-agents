@@ -42,11 +42,7 @@ public class ScalingComponentsInterfaceTests
     {
         var mockAgent = new MockAgent();
 
-        var instance = new AgentInstance
-        {
-            Agent = mockAgent,
-            Endpoint = "http://localhost:8080",
-        };
+        var instance = new AgentInstance { Agent = mockAgent, Endpoint = "http://localhost:8080" };
 
         instance.Id.Should().NotBeNullOrEmpty();
         instance.Agent.Should().Be(mockAgent);
@@ -95,12 +91,18 @@ public class ScalingComponentsInterfaceTests
         public string Name => "MockAgent";
         public string Instructions => "Mock instructions";
 
-        public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default)
+        public Task<AgentResponse> RunAsync(
+            string input,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult(AgentResponse.Successful("Mock response", [], TimeSpan.Zero));
         }
 
-        public Task<AgentResponse> RunAsync(AgentContext context, CancellationToken cancellationToken = default)
+        public Task<AgentResponse> RunAsync(
+            AgentContext context,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult(AgentResponse.Successful("Mock response", [], TimeSpan.Zero));
         }

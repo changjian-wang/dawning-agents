@@ -29,8 +29,18 @@ public class ConfirmationRequestTests
         // Arrange
         var options = new[]
         {
-            new ConfirmationOption { Id = "yes", Label = "Yes", IsDefault = true },
-            new ConfirmationOption { Id = "no", Label = "No", IsDangerous = true },
+            new ConfirmationOption
+            {
+                Id = "yes",
+                Label = "Yes",
+                IsDefault = true,
+            },
+            new ConfirmationOption
+            {
+                Id = "no",
+                Label = "No",
+                IsDangerous = true,
+            },
         };
 
         // Act
@@ -141,7 +151,9 @@ public class RiskLevelTests
     public void RiskLevel_ShouldHaveCorrectValues(RiskLevel level, int expected)
     {
         // Assert
-        ((int)level).Should().Be(expected);
+        ((int)level)
+            .Should()
+            .Be(expected);
     }
 }
 
@@ -154,13 +166,11 @@ public class ConfirmationTypeTests
         Enum.GetValues<ConfirmationType>().Should().HaveCount(4);
         Enum.GetValues<ConfirmationType>()
             .Should()
-            .Contain(
-                [
-                    ConfirmationType.Binary,
-                    ConfirmationType.MultiChoice,
-                    ConfirmationType.FreeformInput,
-                    ConfirmationType.Review,
-                ]
-            );
+            .Contain([
+                ConfirmationType.Binary,
+                ConfirmationType.MultiChoice,
+                ConfirmationType.FreeformInput,
+                ConfirmationType.Review,
+            ]);
     }
 }

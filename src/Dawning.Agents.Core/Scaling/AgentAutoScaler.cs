@@ -27,7 +27,8 @@ public class AgentAutoScaler : IAgentAutoScaler
     )
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _metricsProvider = metricsProvider ?? throw new ArgumentNullException(nameof(metricsProvider));
+        _metricsProvider =
+            metricsProvider ?? throw new ArgumentNullException(nameof(metricsProvider));
         _scaleAction = scaleAction ?? throw new ArgumentNullException(nameof(scaleAction));
         _logger = logger ?? NullLogger<AgentAutoScaler>.Instance;
         _currentInstances = options.MinInstances;

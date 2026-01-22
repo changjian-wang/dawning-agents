@@ -18,7 +18,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         string,
         TaskCompletionSource<EscalationResult>
     > _pendingEscalations = new();
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingInputs = new();
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingInputs =
+        new();
     private readonly ILogger<AsyncCallbackHandler> _logger;
 
     /// <summary>

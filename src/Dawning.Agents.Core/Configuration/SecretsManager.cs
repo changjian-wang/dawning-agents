@@ -35,7 +35,11 @@ public class EnvironmentSecretsManager : ISecretsManager
     }
 
     /// <inheritdoc />
-    public Task SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+    public Task SetSecretAsync(
+        string name,
+        string value,
+        CancellationToken cancellationToken = default
+    )
     {
         var envName = NormalizeEnvName(name);
         Environment.SetEnvironmentVariable(envName, value);
@@ -92,7 +96,11 @@ public class InMemorySecretsManager : ISecretsManager
     }
 
     /// <inheritdoc />
-    public Task SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+    public Task SetSecretAsync(
+        string name,
+        string value,
+        CancellationToken cancellationToken = default
+    )
     {
         lock (_lock)
         {
@@ -158,21 +166,29 @@ public class CompositeSecretsManager : ISecretsManager
 
     public CompositeSecretsManager(
         IEnumerable<ISecretsManager> managers,
-        ILogger<CompositeSecretsManager>? logger = null)
+        ILogger<CompositeSecretsManager>? logger = null
+    )
     {
         _managers = managers.ToList();
         _logger = logger ?? NullLogger<CompositeSecretsManager>.Instance;
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetSecretAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<string?> GetSecretAsync(
+        string name,
+        CancellationToken cancellationToken = default
+    )
     {
         foreach (var manager in _managers)
         {
             var value = await manager.GetSecretAsync(name, cancellationToken);
             if (value != null)
             {
-                _logger.LogDebug("从 {ManagerType} 获取到密钥: {Name}", manager.GetType().Name, name);
+                _logger.LogDebug(
+                    "从 {ManagerType} 获取到密钥: {Name}",
+                    manager.GetType().Name,
+                    name
+                );
                 return value;
             }
         }
@@ -180,7 +196,11 @@ public class CompositeSecretsManager : ISecretsManager
     }
 
     /// <inheritdoc />
-    public Task SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+    public Task SetSecretAsync(
+        string name,
+        string value,
+        CancellationToken cancellationToken = default
+    )
     {
         // 设置到第一个管理器
         if (_managers.Count > 0)

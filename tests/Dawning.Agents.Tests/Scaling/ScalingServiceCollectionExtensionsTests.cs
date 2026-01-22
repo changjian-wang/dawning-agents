@@ -25,9 +25,8 @@ public class ScalingServiceCollectionExtensionsTests
         services.AddScaling(configuration);
         var provider = services.BuildServiceProvider();
 
-        var options = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<ScalingOptions>
-        >();
+        var options =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ScalingOptions>>();
         options.Value.MinInstances.Should().Be(2);
         options.Value.MaxInstances.Should().Be(20);
         options.Value.TargetCpuPercent.Should().Be(60);
@@ -48,9 +47,8 @@ public class ScalingServiceCollectionExtensionsTests
         services.AddScaling(configuration);
         var provider = services.BuildServiceProvider();
 
-        var options = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<ScalingOptions>
-        >();
+        var options =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ScalingOptions>>();
         options.Value.MinInstances.Should().Be(3);
         options.Value.MaxInstances.Should().Be(30);
     }
@@ -137,24 +135,20 @@ public class ScalingServiceCollectionExtensionsTests
         services.AddDeploymentConfiguration(configuration);
         var provider = services.BuildServiceProvider();
 
-        var agentOptions = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.AgentDeploymentOptions>
-        >();
+        var agentOptions =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.AgentDeploymentOptions>>();
         agentOptions.Value.Name.Should().Be("TestAgent");
 
-        var llmOptions = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.LLMDeploymentOptions>
-        >();
+        var llmOptions =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.LLMDeploymentOptions>>();
         llmOptions.Value.Provider.Should().Be("Azure");
 
-        var cacheOptions = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.CacheOptions>
-        >();
+        var cacheOptions =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<Dawning.Agents.Abstractions.Configuration.CacheOptions>>();
         cacheOptions.Value.Provider.Should().Be("Redis");
 
-        var scalingOptions = provider.GetRequiredService<
-            Microsoft.Extensions.Options.IOptions<ScalingOptions>
-        >();
+        var scalingOptions =
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ScalingOptions>>();
         scalingOptions.Value.MinInstances.Should().Be(5);
     }
 

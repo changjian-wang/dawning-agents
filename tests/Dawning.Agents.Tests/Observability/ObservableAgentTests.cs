@@ -69,9 +69,7 @@ public class ObservableAgentTests
         // Arrange
         _mockInnerAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100))
-            );
+            .ReturnsAsync(AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100)));
 
         var agent = CreateAgent();
 
@@ -97,16 +95,10 @@ public class ObservableAgentTests
         // Arrange
         _mockInnerAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100))
-            );
+            .ReturnsAsync(AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100)));
 
         var agent = CreateAgent();
-        var context = new AgentContext
-        {
-            UserInput = "Test input",
-            SessionId = "session-123",
-        };
+        var context = new AgentContext { UserInput = "Test input", SessionId = "session-123" };
 
         // Act
         var response = await agent.RunAsync(context);
@@ -121,9 +113,7 @@ public class ObservableAgentTests
         // Arrange
         _mockInnerAgent
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100))
-            );
+            .ReturnsAsync(AgentResponse.Successful("Response", [], TimeSpan.FromMilliseconds(100)));
 
         var agent = CreateAgent();
 

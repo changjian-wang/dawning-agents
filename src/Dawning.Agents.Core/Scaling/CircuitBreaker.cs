@@ -36,7 +36,10 @@ public class CircuitBreaker : ICircuitBreaker
         {
             lock (_lock)
             {
-                if (_state == CircuitState.Open && DateTime.UtcNow - _lastFailureTime > _resetTimeout)
+                if (
+                    _state == CircuitState.Open
+                    && DateTime.UtcNow - _lastFailureTime > _resetTimeout
+                )
                 {
                     _state = CircuitState.HalfOpen;
                     _logger.LogInformation("熔断器转换为半开状态");

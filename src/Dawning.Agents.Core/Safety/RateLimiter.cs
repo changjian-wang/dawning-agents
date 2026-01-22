@@ -61,7 +61,10 @@ public class SlidingWindowRateLimiter : IRateLimiter
             );
 
             return Task.FromResult(
-                RateLimitResult.Deny(retryAfter > TimeSpan.Zero ? retryAfter : TimeSpan.Zero, resetTime)
+                RateLimitResult.Deny(
+                    retryAfter > TimeSpan.Zero ? retryAfter : TimeSpan.Zero,
+                    resetTime
+                )
             );
         }
 

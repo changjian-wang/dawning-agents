@@ -94,10 +94,7 @@ public class InMemoryAuditLogger : IAuditLogger
             query = query.Where(e => e.Status == filter.Status.Value);
         }
 
-        var result = query
-            .OrderByDescending(e => e.Timestamp)
-            .Take(filter.MaxResults)
-            .ToList();
+        var result = query.OrderByDescending(e => e.Timestamp).Take(filter.MaxResults).ToList();
 
         return Task.FromResult<IReadOnlyList<AuditEntry>>(result);
     }

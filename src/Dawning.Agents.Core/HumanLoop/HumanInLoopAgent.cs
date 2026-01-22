@@ -116,7 +116,11 @@ public class HumanInLoopAgent : IAgent
             // 返回前审查（如果配置）
             if (_options.ReviewBeforeReturn && response.Success)
             {
-                response = await ReviewResponseAsync(response, stopwatch.Elapsed, cancellationToken);
+                response = await ReviewResponseAsync(
+                    response,
+                    stopwatch.Elapsed,
+                    cancellationToken
+                );
             }
 
             return response;
@@ -253,7 +257,12 @@ public class HumanInLoopAgent : IAgent
                 RiskLevel = RiskLevel.Low,
                 Options =
                 [
-                    new ConfirmationOption { Id = "approve", Label = "批准", IsDefault = true },
+                    new ConfirmationOption
+                    {
+                        Id = "approve",
+                        Label = "批准",
+                        IsDefault = true,
+                    },
                     new ConfirmationOption { Id = "edit", Label = "编辑响应" },
                     new ConfirmationOption { Id = "reject", Label = "拒绝" },
                 ],

@@ -165,11 +165,7 @@ public class InMemoryAuditLoggerTests
             new AuditEntry { EventType = AuditEventType.AgentRunStart, Timestamp = now }
         );
         await logger.LogAsync(
-            new AuditEntry
-            {
-                EventType = AuditEventType.AgentRunStart,
-                Timestamp = now.AddHours(2),
-            }
+            new AuditEntry { EventType = AuditEventType.AgentRunStart, Timestamp = now.AddHours(2) }
         );
 
         var filter = new AuditFilter
@@ -193,13 +189,25 @@ public class InMemoryAuditLoggerTests
         var logger = new InMemoryAuditLogger(options);
 
         await logger.LogAsync(
-            new AuditEntry { EventType = AuditEventType.AgentRunEnd, Status = AuditResultStatus.Success }
+            new AuditEntry
+            {
+                EventType = AuditEventType.AgentRunEnd,
+                Status = AuditResultStatus.Success,
+            }
         );
         await logger.LogAsync(
-            new AuditEntry { EventType = AuditEventType.AgentRunEnd, Status = AuditResultStatus.Failed }
+            new AuditEntry
+            {
+                EventType = AuditEventType.AgentRunEnd,
+                Status = AuditResultStatus.Failed,
+            }
         );
         await logger.LogAsync(
-            new AuditEntry { EventType = AuditEventType.GuardrailTriggered, Status = AuditResultStatus.Blocked }
+            new AuditEntry
+            {
+                EventType = AuditEventType.GuardrailTriggered,
+                Status = AuditResultStatus.Blocked,
+            }
         );
 
         var filter = new AuditFilter { Status = AuditResultStatus.Blocked };
@@ -216,24 +224,14 @@ public class InMemoryAuditLoggerTests
     public async Task LogAsync_ShouldRespectMaxEntries()
     {
         // Arrange
-        var options = Options.Create(
-            new AuditOptions
-            {
-                Enabled = true,
-                MaxInMemoryEntries = 3,
-            }
-        );
+        var options = Options.Create(new AuditOptions { Enabled = true, MaxInMemoryEntries = 3 });
         var logger = new InMemoryAuditLogger(options);
 
         // Act - Add 5 entries
         for (int i = 0; i < 5; i++)
         {
             await logger.LogAsync(
-                new AuditEntry
-                {
-                    EventType = AuditEventType.AgentRunStart,
-                    Input = $"Entry{i}",
-                }
+                new AuditEntry { EventType = AuditEventType.AgentRunStart, Input = $"Entry{i}" }
             );
         }
 
@@ -276,11 +274,7 @@ public class InMemoryAuditLoggerTests
         var longInput = new string('A', 100);
 
         await logger.LogAsync(
-            new AuditEntry
-            {
-                EventType = AuditEventType.AgentRunStart,
-                Input = longInput,
-            }
+            new AuditEntry { EventType = AuditEventType.AgentRunStart, Input = longInput }
         );
 
         // Assert
@@ -293,21 +287,11 @@ public class InMemoryAuditLoggerTests
     public async Task LogAsync_ShouldRedactContentWhenDisabled()
     {
         // Arrange
-        var options = Options.Create(
-            new AuditOptions
-            {
-                Enabled = true,
-                LogInput = false,
-            }
-        );
+        var options = Options.Create(new AuditOptions { Enabled = true, LogInput = false });
         var logger = new InMemoryAuditLogger(options);
 
         await logger.LogAsync(
-            new AuditEntry
-            {
-                EventType = AuditEventType.AgentRunStart,
-                Input = "Sensitive data",
-            }
+            new AuditEntry { EventType = AuditEventType.AgentRunStart, Input = "Sensitive data" }
         );
 
         // Assert

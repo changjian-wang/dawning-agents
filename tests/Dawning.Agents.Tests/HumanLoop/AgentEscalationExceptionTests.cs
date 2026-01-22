@@ -59,11 +59,7 @@ public class AgentEscalationExceptionTests
         var innerException = new InvalidOperationException("Inner error");
 
         // Act
-        var exception = new AgentEscalationException(
-            "Reason",
-            "Description",
-            innerException
-        );
+        var exception = new AgentEscalationException("Reason", "Description", innerException);
 
         // Assert
         exception.InnerException.Should().BeSameAs(innerException);

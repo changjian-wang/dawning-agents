@@ -42,7 +42,12 @@ public class AgentAutoScalerTests
             TargetCpuPercent = 70,
             ScaleUpCooldownSeconds = 0,
         };
-        var metrics = new ScalingMetrics { CpuPercent = 90, MemoryPercent = 50, QueueLength = 5 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 90,
+            MemoryPercent = 50,
+            QueueLength = 5,
+        };
 
         var scaledTo = 0;
         var scaler = CreateScaler(options, metrics, count => scaledTo = count);
@@ -62,7 +67,12 @@ public class AgentAutoScalerTests
             TargetMemoryPercent = 80,
             ScaleUpCooldownSeconds = 0,
         };
-        var metrics = new ScalingMetrics { CpuPercent = 50, MemoryPercent = 95, QueueLength = 5 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 50,
+            MemoryPercent = 95,
+            QueueLength = 5,
+        };
 
         var scaledTo = 0;
         var scaler = CreateScaler(options, metrics, count => scaledTo = count);
@@ -132,7 +142,12 @@ public class AgentAutoScalerTests
             TargetCpuPercent = 70,
             ScaleUpCooldownSeconds = 0,
         };
-        var metrics = new ScalingMetrics { CpuPercent = 200, MemoryPercent = 50, QueueLength = 5 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 200,
+            MemoryPercent = 50,
+            QueueLength = 5,
+        };
 
         var scaledTo = 0;
         var scaler = CreateScaler(options, metrics, count => scaledTo = count);
@@ -154,7 +169,12 @@ public class AgentAutoScalerTests
             TargetMemoryPercent = 80,
             ScaleDownCooldownSeconds = 0,
         };
-        var metrics = new ScalingMetrics { CpuPercent = 10, MemoryPercent = 10, QueueLength = 1 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 10,
+            MemoryPercent = 10,
+            QueueLength = 1,
+        };
 
         var scaledTo = 0;
         var scaler = CreateScaler(options, metrics, count => scaledTo = count);
@@ -175,7 +195,12 @@ public class AgentAutoScalerTests
             TargetCpuPercent = 70,
             ScaleUpCooldownSeconds = 60, // 1 minute cooldown
         };
-        var metrics = new ScalingMetrics { CpuPercent = 90, MemoryPercent = 50, QueueLength = 5 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 90,
+            MemoryPercent = 50,
+            QueueLength = 5,
+        };
 
         var scaleCount = 0;
         var scaler = CreateScaler(options, metrics, _ => scaleCount++);
@@ -207,7 +232,12 @@ public class AgentAutoScalerTests
             TargetCpuPercent = 70,
             ScaleUpCooldownSeconds = 0,
         };
-        var metrics = new ScalingMetrics { CpuPercent = 90, MemoryPercent = 50, QueueLength = 5 };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 90,
+            MemoryPercent = 50,
+            QueueLength = 5,
+        };
 
         var scaler = CreateScaler(options, metrics);
         await scaler.EvaluateAsync();
@@ -222,7 +252,14 @@ public class AgentAutoScalerTests
         Action<int>? onScale = null
     )
     {
-        var defaultMetrics = metrics ?? new ScalingMetrics { CpuPercent = 50, MemoryPercent = 50, QueueLength = 5 };
+        var defaultMetrics =
+            metrics
+            ?? new ScalingMetrics
+            {
+                CpuPercent = 50,
+                MemoryPercent = 50,
+                QueueLength = 5,
+            };
 
         return new AgentAutoScaler(
             options,
