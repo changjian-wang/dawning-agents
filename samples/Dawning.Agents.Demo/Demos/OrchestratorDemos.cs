@@ -22,42 +22,35 @@ public static class OrchestratorDemos
         Console.WriteLine("  • SequentialOrchestrator: 顺序执行（流水线）");
         Console.WriteLine("  • ParallelOrchestrator: 并行执行（多专家）\n");
 
+        // Token 统计收集器
+        var statsCollector = new TokenStatsCollector();
+
         // ====================================================================
         // 1. 顺序编排器演示
         // ====================================================================
         ConsoleHelper.PrintDivider("1️⃣ 顺序编排器 (Sequential)");
         Console.WriteLine("场景：文本处理流水线 - 提取关键词 → 情感分析 → 生成摘要\n");
 
-        // 创建模拟 Agent - 每个 Agent 处理不同任务，输出完全不同的内容
-        var keywordExtractor = new MockAgent(
+        // 创建 LLM Agent - 每个 Agent 处理不同任务
+        var keywordExtractor = new LLMAgentWithStats(
+            provider,
             "关键词提取",
-            async (input, ct) =>
-            {
-                await Task.Delay(100, ct);
-                // 模拟提取关键词
-                return "关键词: AI, 机器学习, 深度学习, 神经网络, 自然语言处理";
-            }
+            "你是关键词提取专家。从用户输入的文本中提取5-8个关键词，用逗号分隔。只输出关键词，不要其他内容。格式：关键词: xxx, xxx, xxx"
         );
 
-        var sentimentAnalyzer = new MockAgent(
+        var sentimentAnalyzer = new LLMAgentWithStats(
+            provider,
             "情感分析",
-            async (input, ct) =>
-            {
-                await Task.Delay(100, ct);
-                // 基于关键词进行情感分析
-                return "情感: 积极 (85%) | 主题: 技术创新 | 领域: 人工智能";
-            }
+            "你是情感分析专家。分析输入内容的情感倾向和主题。输出格式：情感: [积极/消极/中性] (百分比) | 主题: xxx | 领域: xxx"
         );
 
-        var summaryGenerator = new MockAgent(
+        var summaryGenerator = new LLMAgentWithStats(
+            provider,
             "摘要生成",
-            async (input, ct) =>
-            {
-                await Task.Delay(100, ct);
-                // 基于前面的分析生成摘要
-                return "📝 摘要: 这是一篇关于人工智能技术的积极正面文章，涵盖了机器学习和深度学习等核心技术。";
-            }
+            "你是摘要生成专家。基于前面的分析结果，生成一句话摘要。格式：📝 摘要: xxx"
         );
+
+        statsCollector.RegisterRange([keywordExtractor, sentimentAnalyzer, summaryGenerator]);
 
         var sequentialOrchestrator = new SequentialOrchestrator("文本分析流水线")
             .AddAgent(keywordExtractor)
@@ -103,32 +96,25 @@ public static class OrchestratorDemos
         ConsoleHelper.PrintDivider("2️⃣ 并行编排器 (Parallel)");
         Console.WriteLine("场景：多专家分析 - 同时询问多个专家并聚合意见\n");
 
-        var legalExpert = new MockAgent(
+        var legalExpert = new LLMAgentWithStats(
+            provider,
             "法律专家",
-            async (input, ct) =>
-            {
-                await Task.Delay(150, ct);
-                return "从法律角度看，建议重点关注合同条款和合规性问题。";
-            }
+            "你是企业法律顾问。从法律角度简短评估用户提出的项目，重点关注合同、合规和风险。一句话回答。"
         );
 
-        var techExpert = new MockAgent(
+        var techExpert = new LLMAgentWithStats(
+            provider,
             "技术专家",
-            async (input, ct) =>
-            {
-                await Task.Delay(120, ct);
-                return "从技术角度看，需要评估实施可行性和技术风险。";
-            }
+            "你是技术架构师。从技术角度简短评估用户提出的项目，重点关注可行性和实施风险。一句话回答。"
         );
 
-        var financeExpert = new MockAgent(
+        var financeExpert = new LLMAgentWithStats(
+            provider,
             "财务专家",
-            async (input, ct) =>
-            {
-                await Task.Delay(100, ct);
-                return "从财务角度看，ROI 预计为 150%，回收周期约 18 个月。";
-            }
+            "你是财务分析师。从财务角度简短评估用户提出的项目，预估ROI和回收周期。一句话回答。"
         );
+
+        statsCollector.RegisterRange([legalExpert, techExpert, financeExpert]);
 
         var parallelOrchestrator = new ParallelOrchestrator("专家委员会")
             .AddAgent(legalExpert)
@@ -185,7 +171,12 @@ public static class OrchestratorDemos
         }
 
         // ====================================================================
-        // 4. 统计信息
+        // 4. Token 统计
+        // ====================================================================
+        statsCollector.PrintSummary();
+
+        // ====================================================================
+        // 5. 能力总结
         // ====================================================================
         ConsoleHelper.PrintDivider("📊 编排器能力总结");
         Console.WriteLine("  ✅ SequentialOrchestrator - 流水线处理，前一个输出→后一个输入");
@@ -193,49 +184,5 @@ public static class OrchestratorDemos
         Console.WriteLine("  ✅ 聚合策略: LastResult, FirstSuccess, Merge, Vote, Custom");
         Console.WriteLine("  ✅ 支持超时控制、错误处理、并发限制");
         Console.WriteLine("  ✅ 完整的执行记录和追踪");
-    }
-}
-
-/// <summary>
-/// 用于演示的模拟 Agent
-/// </summary>
-public class MockAgent : IAgent
-{
-    private readonly Func<string, CancellationToken, Task<string>> _handler;
-
-    public MockAgent(string name, Func<string, CancellationToken, Task<string>> handler)
-    {
-        Name = name;
-        _handler = handler;
-    }
-
-    public string Name { get; }
-    public string Instructions => $"Mock Agent: {Name}";
-
-    public async Task<AgentResponse> RunAsync(
-        string input,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        try
-        {
-            var result = await _handler(input, cancellationToken);
-            stopwatch.Stop();
-            return AgentResponse.Successful(result, [], stopwatch.Elapsed);
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            return AgentResponse.Failed(ex.Message, [], stopwatch.Elapsed);
-        }
-    }
-
-    public Task<AgentResponse> RunAsync(
-        AgentContext context,
-        CancellationToken cancellationToken = default
-    )
-    {
-        return RunAsync(context.UserInput, cancellationToken);
     }
 }

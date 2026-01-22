@@ -105,6 +105,9 @@ switch (runMode)
     case RunMode.Orchestrator:
         await OrchestratorDemos.RunOrchestratorDemo(provider);
         break;
+    case RunMode.Handoff:
+        await HandoffDemos.RunHandoffDemo(provider);
+        break;
     case RunMode.All:
         await ChatDemos.RunChatDemo(provider);
         await AgentDemos.RunAgentDemo(agent);
@@ -161,6 +164,10 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.Orchestrator;
     }
+    else if (args.Contains("--handoff") || args.Contains("-hf"))
+    {
+        mode = RunMode.Handoff;
+    }
 
     return (showHelp, mode);
 }
@@ -176,10 +183,11 @@ static RunMode ShowMenu()
     Console.WriteLine("  [6] Agent + Memory    - Agent 多轮对话");
     Console.WriteLine("  [7] 包管理工具        - PackageManagerTool");
     Console.WriteLine("  [8] 多 Agent 编排器   - Orchestrator 演示");
+    Console.WriteLine("  [9] Handoff 协作      - Agent 任务转交");
     Console.WriteLine("  [A] 运行全部          - 依次运行 1-3");
     Console.WriteLine("  [Q] 退出");
     Console.WriteLine();
-    Console.Write("请输入选项 (1-8/A/Q): ");
+    Console.Write("请输入选项 (1-9/A/Q): ");
 
     var input = Console.ReadLine()?.Trim().ToUpperInvariant();
 
@@ -193,6 +201,7 @@ static RunMode ShowMenu()
         "6" => RunMode.AgentMemory,
         "7" => RunMode.PackageManager,
         "8" => RunMode.Orchestrator,
+        "9" => RunMode.Handoff,
         "A" => RunMode.All,
         "Q" or "" or null => RunMode.Menu, // 返回 Menu 表示退出
         _ => RunMode.Menu,
@@ -216,6 +225,7 @@ static void ShowHelp()
           -am, --agent-memory  演示 Agent + Memory 多轮对话
           -pm, --package-manager  演示 PackageManagerTool 包管理工具
           -o, --orchestrator  演示多 Agent 编排器
+          -hf, --handoff  演示 Handoff Agent 协作
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):

@@ -34,4 +34,7 @@ public enum RunMode
 
     /// <summary>编排器演示</summary>
     Orchestrator,
+
+    /// <summary>Handoff 协作演示</summary>
+    Handoff,
 }
