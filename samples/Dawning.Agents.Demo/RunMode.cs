@@ -37,4 +37,16 @@ public enum RunMode
 
     /// <summary>Handoff 协作演示</summary>
     Handoff,
+
+    /// <summary>Safety &amp; Guardrails 演示</summary>
+    Safety,
+
+    /// <summary>Human-in-the-Loop 演示</summary>
+    HumanLoop,
+
+    /// <summary>Observability 演示</summary>
+    Observability,
+
+    /// <summary>Scaling 演示</summary>
+    Scaling,
 }
