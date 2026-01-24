@@ -28,6 +28,7 @@
 ```
 
 **前置条件**：
+
 ```bash
 # 安装 Ollama
 brew install ollama    # macOS
@@ -52,6 +53,7 @@ ollama pull qwen2.5:0.5b
 ```
 
 **代码配置**：
+
 ```csharp
 // 需要使用 Dawning.Agents.OpenAI 包
 services.AddOpenAIProvider("sk-your-api-key", "gpt-4o-mini");
@@ -73,6 +75,7 @@ services.AddOpenAIProvider("sk-your-api-key", "gpt-4o-mini");
 ```
 
 **代码配置**：
+
 ```csharp
 // 需要使用 Dawning.Agents.Azure 包
 services.AddAzureOpenAIProvider(
@@ -138,6 +141,7 @@ dotnet run -- --help    # 显示帮助
 ## 故障排除
 
 ### Ollama 连接失败
+
 ```bash
 # 检查 Ollama 是否运行
 curl http://localhost:11434/api/tags
@@ -147,6 +151,7 @@ ollama serve
 ```
 
 ### 模型不存在
+
 ```bash
 # 列出已安装的模型
 ollama list
