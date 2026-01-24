@@ -5,6 +5,7 @@ using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Memory;
+using Dawning.Agents.Core.Scaling;
 using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Demo;
@@ -108,6 +109,15 @@ switch (runMode)
     case RunMode.Handoff:
         await HandoffDemos.RunHandoffDemo(provider);
         break;
+    case RunMode.HumanLoop:
+        await HumanLoopDemos.RunHumanLoopDemo();
+        break;
+    case RunMode.Observability:
+        await ObservabilityDemos.RunObservabilityDemo();
+        break;
+    case RunMode.Scaling:
+        await ScalingDemos.RunScalingDemo();
+        break;
     case RunMode.All:
         await ChatDemos.RunChatDemo(provider);
         await AgentDemos.RunAgentDemo(agent);
@@ -168,6 +178,18 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.Handoff;
     }
+    else if (args.Contains("--human-loop") || args.Contains("-hl"))
+    {
+        mode = RunMode.HumanLoop;
+    }
+    else if (args.Contains("--observability") || args.Contains("-ob"))
+    {
+        mode = RunMode.Observability;
+    }
+    else if (args.Contains("--scaling") || args.Contains("-sc"))
+    {
+        mode = RunMode.Scaling;
+    }
 
     return (showHelp, mode);
 }
@@ -184,10 +206,13 @@ static RunMode ShowMenu()
     Console.WriteLine("  [7] 包管理工具        - PackageManagerTool");
     Console.WriteLine("  [8] 多 Agent 编排器   - Orchestrator 演示");
     Console.WriteLine("  [9] Handoff 协作      - Agent 任务转交");
+    Console.WriteLine("  [H] 人机协作          - Human-in-the-Loop");
+    Console.WriteLine("  [O] 可观测性          - Observability 演示");
+    Console.WriteLine("  [S] 扩展与部署        - Scaling 演示");
     Console.WriteLine("  [A] 运行全部          - 依次运行 1-3");
     Console.WriteLine("  [Q] 退出");
     Console.WriteLine();
-    Console.Write("请输入选项 (1-9/A/Q): ");
+    Console.Write("请输入选项 (1-9/H/O/S/A/Q): ");
 
     var input = Console.ReadLine()?.Trim().ToUpperInvariant();
 
@@ -202,6 +227,9 @@ static RunMode ShowMenu()
         "7" => RunMode.PackageManager,
         "8" => RunMode.Orchestrator,
         "9" => RunMode.Handoff,
+        "H" => RunMode.HumanLoop,
+        "O" => RunMode.Observability,
+        "S" => RunMode.Scaling,
         "A" => RunMode.All,
         "Q" or "" or null => RunMode.Menu, // 返回 Menu 表示退出
         _ => RunMode.Menu,
@@ -226,6 +254,9 @@ static void ShowHelp()
           -pm, --package-manager  演示 PackageManagerTool 包管理工具
           -o, --orchestrator  演示多 Agent 编排器
           -hf, --handoff  演示 Handoff Agent 协作
+          -hl, --human-loop  演示人机协作 (Week 10)
+          -ob, --observability  演示可观测性 (Week 11)
+          -sc, --scaling  演示扩展与部署 (Week 12)
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):
