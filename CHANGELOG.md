@@ -55,14 +55,90 @@ dotnet run
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
 - ✅ Week 6: PackageManagerTool + RAG 完成（233 测试通过）
 - ✅ Week 7: 多 Agent 协作完成（736 测试通过）
-- 🔜 Week 8: Agent 通信机制
+- ✅ Week 8: Agent 通信机制完成（781 测试通过）
+- ✅ Week 9: 安全护栏完成（781 测试通过）
+- 🔜 Week 10: 人机协作（Human-in-the-Loop）
 
 ### 下一步任务
 
-1. `IAgentBus` 接口设计 - Agent 消息总线
-2. `MessageBroker` - 消息代理实现
-3. `SharedMemory` - 共享内存
-4. 消息类型定义
+1. `IHumanApproval` 接口 - 人工审批
+2. `InteractiveAgent` - 交互式 Agent
+3. `ConfirmationDialog` - 确认对话
+4. 审批工作流
+
+---
+
+## [2026-01-24] Phase 5: Week 9 安全护栏完成
+
+### 已实现的文件结构
+```
+src/Dawning.Agents.Abstractions/Safety/
+├── IGuardrail.cs              # 护栏接口
+├── GuardrailResult.cs         # 检查结果
+├── SafetyOptions.cs           # 安全配置
+├── IAuditLogger.cs            # 审计日志接口
+└── IRateLimiter.cs            # 速率限制接口
+
+src/Dawning.Agents.Core/Safety/
+├── ContentFilterGuardrail.cs  # 内容过滤护栏
+├── SensitiveDataGuardrail.cs  # 敏感数据护栏
+├── MaxLengthGuardrail.cs      # 长度限制护栏
+├── GuardrailPipeline.cs       # 护栏管道
+├── RateLimiter.cs             # 速率限制器
+├── AuditLogger.cs             # 审计日志
+├── ContentModerator.cs        # 内容审核
+├── SafeAgent.cs               # 安全 Agent 包装
+└── SafetyServiceCollectionExtensions.cs
+```
+
+### 核心功能
+- **ContentFilterGuardrail** - 提示词注入检测、有害内容过滤
+- **SensitiveDataGuardrail** - PII 检测与脱敏（邮箱、电话、身份证等）
+- **MaxLengthGuardrail** - 输入/输出长度限制
+- **GuardrailPipeline** - 多护栏链式执行
+- **RateLimiter** - Token 级和请求级速率限制
+- **SafeAgent** - 带护栏的 Agent 包装器
+
+---
+
+## [2026-01-24] Phase 4: Week 8 Agent 通信机制完成
+
+### 新增的文件结构
+```
+src/Dawning.Agents.Abstractions/
+└── Communication/
+    ├── AgentMessage.cs        # 消息基类及派生类型
+    ├── IMessageBus.cs         # 消息总线接口
+    └── ISharedState.cs        # 共享状态接口
+
+src/Dawning.Agents.Core/
+└── Communication/
+    ├── InMemoryMessageBus.cs                      # 内存消息总线
+    ├── InMemorySharedState.cs                     # 内存共享状态
+    └── CommunicationServiceCollectionExtensions.cs
+```
+
+### 消息类型
+- `AgentMessage` - 基础消息（Id, SenderId, ReceiverId, Timestamp）
+- `TaskMessage` - 任务请求（Task, Priority, Timeout, CorrelationId）
+- `ResponseMessage` - 任务响应（CorrelationId, Result, IsSuccess, Error）
+- `StatusMessage` - 状态更新（Status, CurrentTask, Progress）
+- `EventMessage` - 事件通知（EventType, Payload）
+
+### 通信模式
+- 点对点：`SendAsync()` 向特定 Agent 发送
+- 广播：`BroadcastAsync()` 向所有 Agent 发送
+- 发布/订阅：`PublishAsync()` + `Subscribe(topic)` 主题订阅
+- 请求/响应：`RequestAsync()` 同步等待响应（带超时）
+
+### 共享状态
+- 类型安全的键值存储
+- 通配符模式匹配（`GetKeysAsync("agent:*")`）
+- 变更通知（`OnChange()`）
+
+### 测试统计
+- 新增测试: 45 个
+- 总测试数: 781 个（全部通过）
 
 ---
 
