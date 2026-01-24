@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-        <PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.1" />
-        <PackageReference Include="Azure.Identity" Version="1.17.1" />
         <PackageReference
             Include="Microsoft.Extensions.Configuration.Abstractions"
             Version="10.0.2"
@@ -17,12 +15,9 @@
             Include="Microsoft.Extensions.Options.ConfigurationExtensions"
             Version="10.0.2"
         />
-        <PackageReference Include="OpenAI" Version="2.2.0-beta.1" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Dawning.Agents.Abstractions\Dawning.Agents.Abstractions.csproj" />
-        <ProjectReference Include="..\Dawning.Agents.OpenAI\Dawning.Agents.OpenAI.csproj" />
-        <ProjectReference Include="..\Dawning.Agents.Azure\Dawning.Agents.Azure.csproj" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Dawning.Agents.Tests" />

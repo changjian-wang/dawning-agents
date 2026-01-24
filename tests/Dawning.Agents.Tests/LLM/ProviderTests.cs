@@ -114,15 +114,10 @@ public class LLMProviderDITests
     }
 
     [Fact]
-    public void AddLLMProvider_WithOpenAIOptions_ReturnsOpenAIProvider()
+    public void AddOpenAIProvider_ReturnsOpenAIProvider()
     {
         var services = new ServiceCollection();
-        services.AddLLMProvider(options =>
-        {
-            options.ProviderType = LLMProviderType.OpenAI;
-            options.Model = "gpt-4o";
-            options.ApiKey = "fake-key";
-        });
+        services.AddOpenAIProvider("fake-key", "gpt-4o");
 
         var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
@@ -131,16 +126,14 @@ public class LLMProviderDITests
     }
 
     [Fact]
-    public void AddLLMProvider_WithAzureOpenAIOptions_ReturnsAzureOpenAIProvider()
+    public void AddAzureOpenAIProvider_ReturnsAzureOpenAIProvider()
     {
         var services = new ServiceCollection();
-        services.AddLLMProvider(options =>
-        {
-            options.ProviderType = LLMProviderType.AzureOpenAI;
-            options.Model = "gpt-4o";
-            options.ApiKey = "fake-key";
-            options.Endpoint = "https://test.openai.azure.com";
-        });
+        services.AddAzureOpenAIProvider(
+            "https://test.openai.azure.com",
+            "fake-key",
+            "gpt-4o"
+        );
 
         var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
@@ -149,19 +142,19 @@ public class LLMProviderDITests
     }
 
     [Fact]
-    public void AddLLMProvider_WithOpenAIOptionsMissingApiKey_ThrowsOnResolve()
+    public void AddLLMProvider_WithNonOllamaType_ThrowsOnResolve()
     {
         var services = new ServiceCollection();
         services.AddLLMProvider(options =>
         {
             options.ProviderType = LLMProviderType.OpenAI;
             options.Model = "gpt-4o";
-            // Missing ApiKey
+            options.ApiKey = "fake-key";
         });
 
         var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*仅支持 Ollama*");
     }
 }
 
