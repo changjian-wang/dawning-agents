@@ -18,6 +18,9 @@ namespace Dawning.Agents.Abstractions.Scaling;
 /// </remarks>
 public record ScalingOptions
 {
+    /// <summary>
+    /// 配置节名称
+    /// </summary>
     public const string SectionName = "Scaling";
 
     /// <summary>

@@ -8,10 +8,30 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
+    <!-- NuGet 包元数据 -->
     <PropertyGroup>
+        <Version>0.1.0</Version>
         <Authors>changjian-wang</Authors>
-        <Company>dawning-agents</Company>
+        <Company>Dawning Agents</Company>
+        <Product>Dawning.Agents</Product>
+        <Description>A minimalist .NET AI Agent framework inspired by OpenAI Agents SDK</Description>
+        <Copyright>Copyright © 2025-2026 changjian-wang</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/changjian-wang/dawning-agents</PackageProjectUrl>
         <RepositoryUrl>https://github.com/changjian-wang/dawning-agents</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <PackageTags>ai;agent;llm;openai;ollama;azure;multi-agent;rag</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- 缺失 XML 注释暂时不作为错误 -->
+        <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    </PropertyGroup>
+
+    <!-- 源代码链接 -->
+    <PropertyGroup>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 </Project>

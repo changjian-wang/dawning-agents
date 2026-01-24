@@ -19,6 +19,9 @@ namespace Dawning.Agents.Abstractions.Configuration;
 /// </remarks>
 public record AgentDeploymentOptions
 {
+    /// <summary>
+    /// 配置节名称
+    /// </summary>
     public const string SectionName = "Agent";
 
     /// <summary>
@@ -91,6 +94,9 @@ public record AgentDeploymentOptions
 /// </remarks>
 public record LLMDeploymentOptions
 {
+    /// <summary>
+    /// 配置节名称
+    /// </summary>
     public const string SectionName = "LLM";
 
     /// <summary>
@@ -172,6 +178,9 @@ public record LLMDeploymentOptions
 /// </remarks>
 public record CacheOptions
 {
+    /// <summary>
+    /// 配置节名称
+    /// </summary>
     public const string SectionName = "Cache";
 
     /// <summary>
