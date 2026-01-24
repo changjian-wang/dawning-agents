@@ -57,14 +57,107 @@ dotnet run
 - ✅ Week 7: 多 Agent 协作完成（736 测试通过）
 - ✅ Week 8: Agent 通信机制完成（781 测试通过）
 - ✅ Week 9: 安全护栏完成（781 测试通过）
-- 🔜 Week 10: 人机协作（Human-in-the-Loop）
+- ✅ Week 10: 人机协作完成（781 测试通过）
+- ✅ Week 11: 可观测性完成（781 测试通过）
+- ✅ Week 12: 部署与扩展完成（781 测试通过）
 
-### 下一步任务
+### 🎉 12 周学习计划全部完成！
 
-1. `IHumanApproval` 接口 - 人工审批
-2. `InteractiveAgent` - 交互式 Agent
-3. `ConfirmationDialog` - 确认对话
-4. 审批工作流
+恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-24] Phase 6: Week 12 部署与扩展完成
+
+### 已实现的文件结构
+```
+src/Dawning.Agents.Abstractions/
+├── Configuration/
+│   ├── ConfigurationModels.cs    # 配置模型（AgentOptions, LLMOptions, ScalingOptions）
+│   └── ISecretsManager.cs        # 密钥管理接口
+└── Scaling/
+    ├── IScalingComponents.cs     # 扩展组件接口
+    └── ScalingModels.cs          # 扩展模型（ScalingMetrics, ScalingDecision）
+
+src/Dawning.Agents.Core/
+├── Configuration/
+│   └── SecretsManager.cs         # 密钥管理实现
+└── Scaling/
+    ├── AgentRequestQueue.cs      # 请求队列
+    ├── AgentWorkerPool.cs        # 工作池
+    ├── AgentLoadBalancer.cs      # 负载均衡
+    ├── CircuitBreaker.cs         # 熔断器
+    ├── AgentAutoScaler.cs        # 自动扩展
+    └── ScalingServiceCollectionExtensions.cs
+```
+
+### 核心功能
+- **AgentRequestQueue** - 带优先级的请求队列
+- **AgentWorkerPool** - 多工作线程处理池
+- **AgentLoadBalancer** - 轮询/最小负载均衡
+- **CircuitBreaker** - 熔断器（Closed/Open/HalfOpen）
+- **AgentAutoScaler** - 基于 CPU/内存/队列长度的自动扩展
+- **SecretsManager** - 环境变量密钥管理
+
+---
+
+## [2026-01-24] Phase 6: Week 11 可观测性完成
+
+### 已实现的文件结构
+```
+src/Dawning.Agents.Abstractions/Observability/
+├── HealthModels.cs               # 健康检查模型
+├── MetricsModels.cs              # 指标模型
+├── TelemetryConfig.cs            # 遥测配置
+└── TracingModels.cs              # 追踪模型
+
+src/Dawning.Agents.Core/Observability/
+├── AgentHealthCheck.cs           # Agent 健康检查
+├── AgentLogger.cs                # 结构化日志
+├── AgentTelemetry.cs             # 遥测收集
+├── DistributedTracer.cs          # 分布式追踪
+├── LogContext.cs                 # 日志上下文
+├── MetricsCollector.cs           # 指标收集
+├── ObservableAgent.cs            # 可观测 Agent 包装
+└── ObservabilityServiceCollectionExtensions.cs
+```
+
+### 核心功能
+- **ObservableAgent** - 带遥测的 Agent 包装器
+- **AgentTelemetry** - 请求/延迟/错误指标
+- **MetricsCollector** - Prometheus 风格指标
+- **DistributedTracer** - 分布式追踪
+- **AgentHealthCheck** - 健康检查端点
+
+---
+
+## [2026-01-24] Phase 6: Week 10 人机协作完成
+
+### 已实现的文件结构
+```
+src/Dawning.Agents.Abstractions/HumanLoop/
+├── ApprovalResult.cs             # 审批结果
+├── ConfirmationRequest.cs        # 确认请求
+├── ConfirmationResponse.cs       # 确认响应
+├── EscalationRequest.cs          # 升级请求
+├── HumanLoopOptions.cs           # 配置选项
+└── IHumanInteractionHandler.cs   # 人机交互接口
+
+src/Dawning.Agents.Core/HumanLoop/
+├── AgentEscalationException.cs   # 升级异常
+├── ApprovalWorkflow.cs           # 审批工作流
+├── AsyncCallbackHandler.cs       # 异步回调处理
+├── ConsoleInteractionHandler.cs  # 控制台交互
+├── HumanInLoopAgent.cs           # 人机协作 Agent
+└── HumanLoopServiceCollectionExtensions.cs
+```
+
+### 核心功能
+- **HumanInLoopAgent** - 带人工审批的 Agent
+- **ApprovalWorkflow** - 多级审批工作流
+- **AsyncCallbackHandler** - 异步回调处理
+- **ConsoleInteractionHandler** - 控制台交互
+- **ConfirmationRequest/Response** - 确认对话
 
 ---
 
