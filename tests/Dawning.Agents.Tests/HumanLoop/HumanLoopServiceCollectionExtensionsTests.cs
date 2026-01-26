@@ -8,7 +8,7 @@ namespace Dawning.Agents.Tests.HumanLoop;
 public class HumanLoopServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddHumanLoop_ShouldRegisterConsoleHandler()
+    public void AddHumanLoop_ShouldRegisterAutoApprovalHandler()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -21,7 +21,7 @@ public class HumanLoopServiceCollectionExtensionsTests
         // Assert
         var handler = provider.GetRequiredService<IHumanInteractionHandler>();
         handler.Should().NotBeNull();
-        handler.Should().BeOfType<ConsoleInteractionHandler>();
+        handler.Should().BeOfType<AutoApprovalHandler>();
     }
 
     [Fact]
@@ -64,19 +64,19 @@ public class HumanLoopServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddConsoleInteractionHandler_ShouldRegisterHandler()
+    public void AddAutoApprovalHandler_ShouldRegisterHandler()
     {
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging();
 
         // Act
-        services.AddConsoleInteractionHandler();
+        services.AddAutoApprovalHandler();
         var provider = services.BuildServiceProvider();
 
         // Assert
         var handler = provider.GetRequiredService<IHumanInteractionHandler>();
-        handler.Should().BeOfType<ConsoleInteractionHandler>();
+        handler.Should().BeOfType<AutoApprovalHandler>();
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class HumanLoopServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddConsoleInteractionHandler();
+        services.AddAutoApprovalHandler();
 
         // Act
         services.AddApprovalWorkflow(config =>

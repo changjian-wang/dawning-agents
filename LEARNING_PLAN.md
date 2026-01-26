@@ -454,23 +454,32 @@ tests/Dawning.Agents.Tests/
 #### Day 1-2: 深度学习开源实现 ✅
 
 - [x] **阅读**: MS Agent Framework HandoffBuilder 源码
+  - `agent-framework/python/packages/agent-framework/handoffs/`
+  - `agent-framework/dotnet/src/Microsoft.Agents.AI/`
 - [x] **阅读**: OpenAI Agents SDK Handoff 源码
+  - `openai-agents-python/src/agents/handoffs.py`
 - [x] **阅读**: CrewAI 源码
-- [x] **笔记**: 协作模式设计对比
+  - `crewai/crew.py`
+  - `crewai/task.py`
+- [x] **笔记**: 协作模式设计对比（Workflow 编排 vs 状态机编排）
 
-#### Day 3-4: 顺序执行模式 ✅
+#### Day 3-4: 顺序/并行执行模式 ✅
 
 - [x] **设计**: 顺序执行工作流
 - [x] **代码**: 实现 `IOrchestrator` 接口
 - [x] **代码**: 实现任务链
-- [x] **测试**: 审批流程示例
-
-#### Day 5-7: 并行执行模式 ✅
-
-- [x] **设计**: 并行执行工作流
 - [x] **代码**: 实现 `ParallelOrchestrator`
 - [x] **代码**: 实现结果聚合器
-- [x] **测试**: 数据分析示例
+- [x] **测试**: 审批流程示例
+
+#### Day 5-7: Handoff 与 Agent 切换 ✅
+
+- [x] **设计**: Handoff 工作流
+- [x] **代码**: 实现 `IHandoff` 接口
+- [x] **代码**: 实现 `Handoff<TAgent>` 泛型类
+- [x] **代码**: 实现 `HandoffFilter`
+- [x] **代码**: 实现 Agent 路由
+- [x] **测试**: 多 Agent 协作示例
 
 ### Week 8: 高级协作模式 ✅ 已完成
 
@@ -529,16 +538,24 @@ src/Dawning.Agents.Core/
 #### Day 1-2: 架构设计 ✅
 
 - [x] **设计**: 输入/输出验证框架
-- [x] **设计**: 安全检测链
-- [x] **设计**: 验证结果模型
+- [x] **代码**: 实现 `IGuardrail` 接口
+- [x] **代码**: 实现 `GuardrailResult` 数据模型
 - [x] **文档**: 安全策略文档
 
 #### Day 3-4: 输入护栏实现 ✅
 
 - [x] **代码**: 设计 `IInputGuardrail` 接口
 - [x] **代码**: 实现 `ContentFilter` (内容过滤)
-- [x] **代码**: 实现 `InputValidator` (输入验证)
+- [x] **代码**: 实现敏感数据检测（信用卡、邮箱、电话、身份证）
+- [x] **代码**: 实现最大长度限制
 - [x] **代码**: 实现 `PromptInjectionDetector` (提示注入检测)
+
+```csharp
+// 实际用法
+services.AddGuardrails();
+var guardrail = sp.GetRequiredService<IGuardrail>();
+var result = await guardrail.ValidateAsync(input);
+```
 
 #### Day 5-7: 输出护栏实现 ✅
 
@@ -555,19 +572,21 @@ src/Dawning.Agents.Core/
 - [x] **设计**: 确认请求模型
 - [x] **代码**: 实现 `IHumanInteraction` 接口
 - [x] **代码**: 实现 `ConfirmationRequest` 类型
-- [x] **代码**: 实现 `UserInputRequest` 类型
+- [x] **代码**: 实现 `ConfirmationType` 枚举（Binary/MultiChoice/FreeformInput/Review）
 
 #### Day 3-4: 审批工作流 ✅
 
+- [x] **代码**: 实现 `IApprovalHandler` 接口
 - [x] **代码**: 实现 `ApprovalWorkflow` (审批工作流)
+- [x] **代码**: 实现基于风险等级的审批策略（Low→Critical）
 - [x] **代码**: 实现 `EscalationHandler` (上升处理)
-- [x] **代码**: 实现 `NotificationService` (通知服务)
 - [x] **代码**: 配置驱动的审批策略
 
 #### Day 5-7: DI 集成与测试 ✅
 
 - [x] **代码**: 实现 `HumanLoopOptions` 配置
 - [x] **代码**: 实现 DI 扩展方法 (`AddHumanLoop`)
+- [x] **代码**: 实现超时处理和回调通知
 - [x] **测试**: Human Loop 单元测试 (24 个测试)
 
 **Week 10 产出物**:
@@ -611,18 +630,21 @@ src/Dawning.Agents.Core/
 
 - [x] **代码**: 设计 `ITelemetryProvider` 接口
 - [x] **代码**: 实现 `TelemetryConfiguration` 配置
-- [x] **代码**: 实现 `AgentMetrics` 指标收集
-- [x] **代码**: 实现 `AgentTracing` 分布式追踪
+- [x] **代码**: 实现 `IMetricsCollector` 接口
+- [x] **代码**: 实现 `MetricsCollector`（Counter/Histogram/Gauge）
+- [x] **代码**: 实现 `MetricsSnapshot` 数据模型
 
 #### Day 3-4: 健康检查 ✅
 
 - [x] **代码**: 设计 `IHealthCheck` 接口
-- [x] **代码**: 实现 `HealthCheckResult` 模型
+- [x] **代码**: 实现 `HealthStatus` 枚举（Healthy/Degraded/Unhealthy）
 - [x] **代码**: 实现 `HealthCheckService` 服务
 - [x] **代码**: 实现 `AgentHealthCheck` 健康检查
 
-#### Day 5-7: DI 集成与测试 ✅
+#### Day 5-7: 分布式追踪与 DI 集成 ✅
 
+- [x] **代码**: 实现追踪上下文
+- [x] **代码**: 实现 Span 管理
 - [x] **代码**: 实现 `ObservabilityOptions` 配置
 - [x] **代码**: 实现 DI 扩展方法 (`AddObservability`)
 - [x] **测试**: Observability 单元测试 (38 个测试)
@@ -632,6 +654,7 @@ src/Dawning.Agents.Core/
 #### Day 1-2: 弹性模式 ✅
 
 - [x] **代码**: 实现 `CircuitBreaker` (熔断器)
+- [x] **代码**: 实现状态机（Closed/Open/HalfOpen）
 - [x] **代码**: 实现 `RequestQueue` (请求队列)
 - [x] **代码**: 实现 `RateLimiter` (限流器)
 - [x] **代码**: 实现 `RetryPolicy` (重试策略)
@@ -645,10 +668,13 @@ src/Dawning.Agents.Core/
 
 #### Day 5-7: 示例与文档 ✅
 
-- [x] **代码**: Demo 示例项目 (12 种运行模式)
+- [x] **代码**: SafetyDemos.cs - 安全护栏演示
+- [x] **代码**: HumanLoopDemos.cs - 人机协作演示
+- [x] **代码**: ObservabilityDemos.cs - 可观测性演示
+- [x] **代码**: ScalingDemos.cs - 扩缩容演示
 - [x] **文档**: README.md
 - [x] **文档**: CHANGELOG.md
-- [x] **测试**: Scaling 单元测试 (31 个测试)
+- [x] **测试**: 781 个单元测试全部通过
 
 **Week 12 产出物**:
 

@@ -118,11 +118,7 @@ public class InMemoryMessageBusTests
         bus.Subscribe("agent2", _ => Interlocked.Increment(ref receivedCount));
         bus.Subscribe("agent3", _ => Interlocked.Increment(ref receivedCount));
 
-        var message = new StatusMessage
-        {
-            SenderId = "system",
-            Status = AgentStatus.Idle,
-        };
+        var message = new StatusMessage { SenderId = "system", Status = AgentStatus.Idle };
 
         await bus.BroadcastAsync(message);
 
@@ -134,11 +130,7 @@ public class InMemoryMessageBusTests
     {
         var bus = new InMemoryMessageBus();
 
-        var message = new StatusMessage
-        {
-            SenderId = "system",
-            Status = AgentStatus.Idle,
-        };
+        var message = new StatusMessage { SenderId = "system", Status = AgentStatus.Idle };
 
         var act = () => bus.BroadcastAsync(message);
 

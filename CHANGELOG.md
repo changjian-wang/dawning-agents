@@ -53,15 +53,15 @@ dotnet run
 - ✅ Week 4: Memory 系统完成（150 测试通过）
 - ✅ Week 5: Tools/Skills 系统完成（74 测试通过）
 - ✅ Week 5.5: Tool Sets 与 Virtual Tools 完成（106 测试通过）
-- ✅ Week 6: PackageManagerTool + RAG 完成（233 测试通过）
 - ✅ Week 7: 多 Agent 协作完成（736 测试通过）
 - ✅ Week 8: Agent 通信机制完成（781 测试通过）
 - ✅ Week 9: 安全护栏完成（781 测试通过）
 - ✅ Week 10: 人机协作完成（781 测试通过）
 - ✅ Week 11: 可观测性完成（781 测试通过）
 - ✅ Week 12: 部署与扩展完成（781 测试通过）
+- ✅ Demo: Week 8-12 演示更新完成
 
-### 🎉 12 周学习计划全部完成！
+### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
 
@@ -70,6 +70,7 @@ dotnet run
 ## [2026-01-24] Phase 6: Week 12 部署与扩展完成
 
 ### 已实现的文件结构
+
 ```
 src/Dawning.Agents.Abstractions/
 ├── Configuration/
@@ -92,6 +93,7 @@ src/Dawning.Agents.Core/
 ```
 
 ### 核心功能
+
 - **AgentRequestQueue** - 带优先级的请求队列
 - **AgentWorkerPool** - 多工作线程处理池
 - **AgentLoadBalancer** - 轮询/最小负载均衡
@@ -104,6 +106,7 @@ src/Dawning.Agents.Core/
 ## [2026-01-24] Phase 6: Week 11 可观测性完成
 
 ### 已实现的文件结构
+
 ```
 src/Dawning.Agents.Abstractions/Observability/
 ├── HealthModels.cs               # 健康检查模型
@@ -123,6 +126,7 @@ src/Dawning.Agents.Core/Observability/
 ```
 
 ### 核心功能
+
 - **ObservableAgent** - 带遥测的 Agent 包装器
 - **AgentTelemetry** - 请求/延迟/错误指标
 - **MetricsCollector** - Prometheus 风格指标
@@ -134,6 +138,7 @@ src/Dawning.Agents.Core/Observability/
 ## [2026-01-24] Phase 6: Week 10 人机协作完成
 
 ### 已实现的文件结构
+
 ```
 src/Dawning.Agents.Abstractions/HumanLoop/
 ├── ApprovalResult.cs             # 审批结果
@@ -153,6 +158,7 @@ src/Dawning.Agents.Core/HumanLoop/
 ```
 
 ### 核心功能
+
 - **HumanInLoopAgent** - 带人工审批的 Agent
 - **ApprovalWorkflow** - 多级审批工作流
 - **AsyncCallbackHandler** - 异步回调处理
@@ -161,133 +167,239 @@ src/Dawning.Agents.Core/HumanLoop/
 
 ---
 
-## [2026-01-24] Phase 5: Week 9 安全护栏完成
+## [2026-01-22] Week 8-12 Demo 更新
 
-### 已实现的文件结构
-```
-src/Dawning.Agents.Abstractions/Safety/
-├── IGuardrail.cs              # 护栏接口
-├── GuardrailResult.cs         # 检查结果
-├── SafetyOptions.cs           # 安全配置
-├── IAuditLogger.cs            # 审计日志接口
-└── IRateLimiter.cs            # 速率限制接口
+### 新增的演示文件
 
-src/Dawning.Agents.Core/Safety/
-├── ContentFilterGuardrail.cs  # 内容过滤护栏
-├── SensitiveDataGuardrail.cs  # 敏感数据护栏
-├── MaxLengthGuardrail.cs      # 长度限制护栏
-├── GuardrailPipeline.cs       # 护栏管道
-├── RateLimiter.cs             # 速率限制器
-├── AuditLogger.cs             # 审计日志
-├── ContentModerator.cs        # 内容审核
-├── SafeAgent.cs               # 安全 Agent 包装
-└── SafetyServiceCollectionExtensions.cs
+```text
+samples/Dawning.Agents.Demo/
+├── SafetyDemos.cs          ← 安全护栏演示（敏感数据检测、最大长度限制）
+├── HumanLoopDemos.cs       ← 人机协作演示（确认请求、风险等级策略）
+├── ObservabilityDemos.cs   ← 可观测性演示（指标收集、健康检查、追踪）
+└── ScalingDemos.cs         ← 扩缩容演示（请求队列、负载均衡、熔断器）
 ```
 
-### 核心功能
-- **ContentFilterGuardrail** - 提示词注入检测、有害内容过滤
-- **SensitiveDataGuardrail** - PII 检测与脱敏（邮箱、电话、身份证等）
-- **MaxLengthGuardrail** - 输入/输出长度限制
-- **GuardrailPipeline** - 多护栏链式执行
-- **RateLimiter** - Token 级和请求级速率限制
-- **SafeAgent** - 带护栏的 Agent 包装器
+### 修改的文件
+
+- **RunMode.cs**: 添加 `Safety`, `HumanLoop`, `Observability`, `Scaling` 枚举值
+- **Program.cs**: 添加菜单选项 `[S] Safety`, `[H] Human-in-Loop`, `[O] Observability`, `[C] Scaling`
 
 ---
 
-## [2026-01-24] Phase 4: Week 8 Agent 通信机制完成
+## [2026-01-22] Phase 6: Week 12 Deployment & Scaling 完成
 
-### 新增的文件结构
-```
-src/Dawning.Agents.Abstractions/
-└── Communication/
-    ├── AgentMessage.cs        # 消息基类及派生类型
-    ├── IMessageBus.cs         # 消息总线接口
-    └── ISharedState.cs        # 共享状态接口
+### 新增的文件
 
-src/Dawning.Agents.Core/
-└── Communication/
-    ├── InMemoryMessageBus.cs                      # 内存消息总线
-    ├── InMemorySharedState.cs                     # 内存共享状态
-    └── CommunicationServiceCollectionExtensions.cs
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/Scaling/
+├── ILoadBalancer.cs        ← 负载均衡接口
+├── IAutoScaler.cs          ← 自动扩缩容接口
+├── ICircuitBreaker.cs      ← 熔断器接口
+├── CircuitState.cs         ← 熔断器状态枚举（Closed/Open/HalfOpen）
+└── ScalingOptions.cs       ← 扩缩容配置选项
 ```
 
-### 消息类型
-- `AgentMessage` - 基础消息（Id, SenderId, ReceiverId, Timestamp）
-- `TaskMessage` - 任务请求（Task, Priority, Timeout, CorrelationId）
-- `ResponseMessage` - 任务响应（CorrelationId, Result, IsSuccess, Error）
-- `StatusMessage` - 状态更新（Status, CurrentTask, Progress）
-- `EventMessage` - 事件通知（EventType, Payload）
+**Core:**
 
-### 通信模式
-- 点对点：`SendAsync()` 向特定 Agent 发送
-- 广播：`BroadcastAsync()` 向所有 Agent 发送
-- 发布/订阅：`PublishAsync()` + `Subscribe(topic)` 主题订阅
-- 请求/响应：`RequestAsync()` 同步等待响应（带超时）
-
-### 共享状态
-- 类型安全的键值存储
-- 通配符模式匹配（`GetKeysAsync("agent:*")`）
-- 变更通知（`OnChange()`）
-
-### 测试统计
-- 新增测试: 45 个
-- 总测试数: 781 个（全部通过）
-
----
-
-## [2026-01-24] Phase 4: Week 7 多 Agent 协作完成
-
-### 新增的文件结构
-```
-src/Dawning.Agents.Abstractions/
-├── Orchestration/
-│   ├── IOrchestrator.cs           # 编排器接口
-│   ├── OrchestrationContext.cs    # 编排上下文
-│   ├── OrchestrationResult.cs     # 编排结果
-│   └── OrchestratorOptions.cs     # 编排器配置
-└── Handoff/
-    ├── HandoffRequest.cs          # Handoff 请求
-    ├── HandoffResult.cs           # Handoff 结果
-    └── HandoffOptions.cs          # Handoff 配置
-
-src/Dawning.Agents.Core/
-├── Orchestration/
-│   ├── OrchestratorBase.cs                        # 编排器基类
-│   ├── SequentialOrchestrator.cs                  # 顺序编排器
-│   ├── ParallelOrchestrator.cs                    # 并行编排器
-│   └── OrchestrationServiceCollectionExtensions.cs
-└── Handoff/
-    ├── HandoffHandler.cs                          # Handoff 处理器
-    └── HandoffServiceCollectionExtensions.cs
+```text
+src/Dawning.Agents.Core/Scaling/
+├── RoundRobinLoadBalancer.cs      ← 轮询负载均衡
+├── LeastLoadedLoadBalancer.cs     ← 最小负载均衡
+├── SimpleAutoScaler.cs            ← 简单自动扩缩容
+├── DefaultCircuitBreaker.cs       ← 默认熔断器实现
+└── ScalingServiceCollectionExtensions.cs ← DI 扩展方法
 ```
 
 ### 核心组件
 
-**IOrchestrator 接口**：
-```csharp
-public interface IOrchestrator
-{
-    string Name { get; }
-    IReadOnlyList<IAgent> Agents { get; }
-    Task<OrchestrationResult> RunAsync(string input, CancellationToken ct = default);
-}
+| 组件 | 职责 | 实现 |
+|------|------|------|
+| `ILoadBalancer` | 请求分发 | `RoundRobinLoadBalancer`, `LeastLoadedLoadBalancer` |
+| `IAutoScaler` | 自动扩缩容 | `SimpleAutoScaler` |
+| `ICircuitBreaker` | 故障隔离 | `DefaultCircuitBreaker` |
+
+---
+
+## [2026-01-22] Phase 6: Week 11 Observability & Monitoring 完成
+
+### 新增的文件
+
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/Observability/
+├── IMetricsCollector.cs    ← 指标收集接口
+├── IHealthCheck.cs         ← 健康检查接口
+├── HealthStatus.cs         ← 健康状态枚举（Healthy/Degraded/Unhealthy）
+└── MetricsSnapshot.cs      ← 指标快照数据模型
 ```
 
-**编排模式**：
-- `SequentialOrchestrator` - 流水线执行：A → B → C
-- `ParallelOrchestrator` - 并行执行 + 结果聚合
+**Core:**
 
-**Handoff 机制**：
-- `HandoffHandler` - Agent 间任务交接
-- 支持条件路由和动态选择
+```text
+src/Dawning.Agents.Core/Observability/
+├── MetricsCollector.cs                    ← 指标收集器实现
+├── CompositeHealthCheck.cs                ← 复合健康检查
+└── ObservabilityServiceCollectionExtensions.cs ← DI 扩展方法
+```
 
-### 测试统计
-- 新增测试: 503 个
-- 总测试数: 736 个（全部通过）
+### 核心功能
 
-### Bug 修复
-- SecretsManagerTests: 修复环境变量 key 大小写问题
-- PackageManagerToolTests: 添加 Windows 平台检查
+| 功能 | 方法 | 说明 |
+|------|------|------|
+| Counter | `IncrementCounter()` | 递增计数器 |
+| Histogram | `RecordHistogram()` | 记录直方图 |
+| Gauge | `SetGauge()` | 设置仪表值 |
+| Snapshot | `GetSnapshot()` | 获取指标快照 |
+
+---
+
+## [2026-01-22] Phase 5: Week 10 Human-in-the-Loop 完成
+
+### 新增的文件
+
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/HumanLoop/
+├── IApprovalHandler.cs       ← 审批处理接口
+├── ConfirmationRequest.cs    ← 确认请求数据模型
+├── ConfirmationType.cs       ← 确认类型枚举（Binary/MultiChoice/FreeformInput/Review）
+├── ApprovalStrategy.cs       ← 审批策略枚举（AlwaysApprove/AlwaysDeny/RiskBased/Interactive）
+└── HumanLoopOptions.cs       ← 人机协作配置选项
+```
+
+**Core:**
+
+```text
+src/Dawning.Agents.Core/HumanLoop/
+├── RiskBasedApprovalHandler.cs           ← 基于风险等级的审批处理
+├── InteractiveApprovalHandler.cs         ← 交互式审批处理
+└── HumanLoopServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 风险等级策略
+
+| 风险等级 | 行为 |
+|---------|------|
+| Low | 自动批准 |
+| Medium | 记录日志后批准 |
+| High | 需要确认 |
+| Critical | 需要多重确认 |
+
+---
+
+## [2026-01-22] Phase 5: Week 9 Safety & Guardrails 完成
+
+### 新增的文件
+
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/Safety/
+├── IGuardrail.cs           ← 安全护栏接口
+├── IInputGuardrail.cs      ← 输入验证接口
+├── IOutputGuardrail.cs     ← 输出过滤接口
+├── GuardrailResult.cs      ← 护栏结果数据模型
+└── SafetyOptions.cs        ← 安全配置选项
+```
+
+**Core:**
+
+```text
+src/Dawning.Agents.Core/Safety/
+├── SensitiveDataGuardrail.cs            ← 敏感数据检测（信用卡、邮箱、电话、身份证）
+├── MaxLengthGuardrail.cs                ← 最大长度限制
+├── CompositeGuardrail.cs                ← 复合护栏
+└── SafetyServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 敏感数据检测模式
+
+```csharp
+// 支持的敏感数据类型
+- 信用卡号: \b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b
+- 邮箱地址: \b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b
+- 电话号码: \b1[3-9]\d{9}\b
+- 身份证号: \b\d{17}[\dXx]\b
+```
+
+---
+
+## [2026-01-22] Phase 4: Week 8 Token Usage Tracking 完成
+
+### 新增的文件
+
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/Telemetry/
+├── ITokenTracker.cs        ← Token 追踪接口
+├── ITelemetryCollector.cs  ← 遥测收集接口
+├── TokenUsage.cs           ← Token 使用量数据模型
+├── TelemetryData.cs        ← 遥测数据模型
+└── TelemetryOptions.cs     ← 遥测配置选项
+```
+
+**Core:**
+
+```text
+src/Dawning.Agents.Core/Telemetry/
+├── DefaultTokenTracker.cs                  ← 默认 Token 追踪器
+├── InMemoryTelemetryCollector.cs           ← 内存遥测收集器
+└── TelemetryServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### DI 注册方式
+
+```csharp
+services.AddTelemetry(configuration);       // 根据配置自动选择
+services.AddTokenTracker();                 // Token 追踪
+services.AddTelemetryCollector();           // 遥测收集
+```
+
+---
+
+## [2026-01-21] Phase 4: Week 7 Handoff 多 Agent 协作完成
+
+### 新增的文件
+
+**Abstractions:**
+
+```text
+src/Dawning.Agents.Abstractions/Handoff/
+├── IHandoff.cs             ← Handoff 接口
+├── Handoff.cs              ← 泛型 Handoff 实现
+├── HandoffFilter.cs        ← Handoff 过滤器
+└── HandoffOptions.cs       ← Handoff 配置选项
+```
+
+**Core:**
+
+```text
+src/Dawning.Agents.Core/Handoff/
+├── HandoffExecutor.cs                    ← Handoff 执行器
+├── ConditionalHandoff.cs                 ← 条件 Handoff
+└── HandoffServiceCollectionExtensions.cs ← DI 扩展方法
+```
+
+### 核心概念
+
+| 概念 | 说明 |
+|------|------|
+| `IHandoff` | Agent 切换接口 |
+| `Handoff<TAgent>` | 泛型 Handoff，指定目标 Agent 类型 |
+| `HandoffFilter` | 切换条件过滤器 |
+| `HandoffExecutor` | 执行 Agent 切换 |
+
+### DI 注册方式
+
+```csharp
+services.AddHandoff<ResearchAgent>();       // 注册 Handoff
+services.AddHandoffExecutor();              // 注册执行器
+```
 
 ---
 
@@ -296,6 +408,7 @@ public interface IOrchestrator
 ### 新增的文件
 
 **Abstractions:**
+
 ```text
 src/Dawning.Agents.Abstractions/RAG/
 ├── IEmbeddingProvider.cs      ← 嵌入向量提供者接口
@@ -305,6 +418,7 @@ src/Dawning.Agents.Abstractions/RAG/
 ```
 
 **Core:**
+
 ```text
 src/Dawning.Agents.Core/RAG/
 ├── SimpleEmbeddingProvider.cs       ← 基于哈希的本地嵌入（开发测试用）
@@ -316,6 +430,7 @@ src/Dawning.Agents.Core/RAG/
 ```
 
 **Tests:**
+
 ```text
 tests/Dawning.Agents.Tests/RAG/
 ├── DocumentChunkerTests.cs              ← 9 个测试
@@ -391,18 +506,21 @@ services.AddKnowledgeBase();
 ### 新增的文件
 
 **Abstractions:**
+
 ```text
 src/Dawning.Agents.Abstractions/Tools/
 └── PackageManagerOptions.cs     ← 包管理工具配置
 ```
 
 **Core:**
+
 ```text
 src/Dawning.Agents.Core/Tools/BuiltIn/
 └── PackageManagerTool.cs        ← 19 个包管理工具方法
 ```
 
 **Tests:**
+
 ```text
 tests/Dawning.Agents.Tests/Tools/
 └── PackageManagerToolTests.cs   ← 23 个单元测试

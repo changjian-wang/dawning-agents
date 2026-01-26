@@ -1,11 +1,13 @@
+using System.Text;
 using Dawning.Agents.Abstractions.Agent;
+using Dawning.Agents.Abstractions.HumanLoop;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Memory;
-using Dawning.Agents.Core.Scaling;
+using Dawning.Agents.Core.HumanLoop;
 using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Demo;
@@ -14,6 +16,9 @@ using Dawning.Agents.Demo.Helpers;
 using Dawning.Agents.Demo.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 // 解析命令行参数
 var (showHelp, runMode) = ParseArgs(args);
@@ -26,16 +31,8 @@ if (showHelp)
 
 ConsoleHelper.PrintBanner();
 
-// 如果没有指定模式，显示交互式菜单
-if (runMode == RunMode.Menu)
-{
-    runMode = ShowMenu();
-    if (runMode == RunMode.Menu)
-    {
-        Console.WriteLine("\n再见！");
-        return;
-    }
-}
+// 是否为交互式菜单模式（循环运行）
+var isInteractiveMenu = runMode == RunMode.Menu;
 
 // 构建 Host
 var builder = Host.CreateApplicationBuilder(args);
@@ -53,6 +50,14 @@ builder.Services.AddPackageManagerTools(options =>
 
 // 注册 Memory 服务
 builder.Services.AddWindowMemory(windowSize: 6);
+
+// 注册 Human-in-the-Loop 服务（使用控制台处理器覆盖默认的自动审批处理器）
+builder.Services.AddHumanLoop(options =>
+{
+    options.DefaultTimeout = TimeSpan.FromMinutes(5);
+    options.RequireApprovalForMediumRisk = true;
+});
+builder.Services.AddSingleton<IHumanInteractionHandler, ConsoleInteractionHandler>();
 
 builder.Services.AddReActAgent(options =>
 {
@@ -75,59 +80,102 @@ if (provider == null)
 
 var agent = host.Services.GetRequiredService<IAgent>();
 
-// 根据模式运行
-switch (runMode)
+// 主循环
+do
 {
-    case RunMode.Chat:
-        await ChatDemos.RunChatDemo(provider);
+    // 交互式菜单模式：每次循环显示菜单
+    if (isInteractiveMenu)
+    {
+        runMode = ShowMenu();
+        if (runMode == RunMode.Menu)
+        {
+            break; // 用户选择退出
+        }
+    }
+
+    // 根据模式运行
+    await RunDemo(runMode, provider, agent, host.Services);
+
+    // 非菜单模式只运行一次
+    if (!isInteractiveMenu)
+    {
         break;
-    case RunMode.Agent:
-        await AgentDemos.RunAgentDemo(agent);
-        break;
-    case RunMode.Stream:
-        await ChatDemos.RunStreamDemo(provider);
-        break;
-    case RunMode.Interactive:
-        await ChatDemos.RunInteractiveChat(provider);
-        break;
-    case RunMode.Memory:
-        var memory = host.Services.GetRequiredService<IConversationMemory>();
-        var tokenCounter = host.Services.GetRequiredService<ITokenCounter>();
-        await MemoryDemos.RunMemoryDemo(provider, memory, tokenCounter);
-        break;
-    case RunMode.AgentMemory:
-        var agentMemory = host.Services.GetRequiredService<IConversationMemory>();
-        await AgentDemos.RunAgentMemoryDemo(agent, agentMemory);
-        break;
-    case RunMode.PackageManager:
-        var registry = host.Services.GetRequiredService<IToolRegistry>();
-        await ToolDemos.RunPackageManagerDemo(registry);
-        break;
-    case RunMode.Orchestrator:
-        await OrchestratorDemos.RunOrchestratorDemo(provider);
-        break;
-    case RunMode.Handoff:
-        await HandoffDemos.RunHandoffDemo(provider);
-        break;
-    case RunMode.HumanLoop:
-        await HumanLoopDemos.RunHumanLoopDemo();
-        break;
-    case RunMode.Observability:
-        await ObservabilityDemos.RunObservabilityDemo();
-        break;
-    case RunMode.Scaling:
-        await ScalingDemos.RunScalingDemo();
-        break;
-    case RunMode.All:
-        await ChatDemos.RunChatDemo(provider);
-        await AgentDemos.RunAgentDemo(agent);
-        await ChatDemos.RunStreamDemo(provider);
-        break;
-    default:
-        break;
-}
+    }
+
+    // 等待用户按键后继续
+    Console.WriteLine("\n按任意键返回菜单...");
+    Console.ReadKey(true);
+    Console.Clear();
+    ConsoleHelper.PrintBanner();
+} while (true);
 
 Console.WriteLine("\n再见！");
+
+// ============================================================================
+// Demo 运行方法
+// ============================================================================
+
+static async Task RunDemo(
+    RunMode mode,
+    ILLMProvider provider,
+    IAgent agent,
+    IServiceProvider services
+)
+{
+    switch (mode)
+    {
+        case RunMode.Chat:
+            await ChatDemos.RunChatDemo(provider);
+            break;
+        case RunMode.Agent:
+            await AgentDemos.RunAgentDemo(agent);
+            break;
+        case RunMode.Stream:
+            await ChatDemos.RunStreamDemo(provider);
+            break;
+        case RunMode.Interactive:
+            await ChatDemos.RunInteractiveChat(provider);
+            break;
+        case RunMode.Memory:
+            var memory = services.GetRequiredService<IConversationMemory>();
+            var tokenCounter = services.GetRequiredService<ITokenCounter>();
+            await MemoryDemos.RunMemoryDemo(provider, memory, tokenCounter);
+            break;
+        case RunMode.AgentMemory:
+            var agentMemory = services.GetRequiredService<IConversationMemory>();
+            await AgentDemos.RunAgentMemoryDemo(agent, agentMemory);
+            break;
+        case RunMode.PackageManager:
+            var registry = services.GetRequiredService<IToolRegistry>();
+            await ToolDemos.RunPackageManagerDemo(registry);
+            break;
+        case RunMode.Orchestrator:
+            await OrchestratorDemos.RunOrchestratorDemo(provider);
+            break;
+        case RunMode.Handoff:
+            await HandoffDemos.RunHandoffDemo(provider);
+            break;
+        case RunMode.Safety:
+            await SafetyDemos.RunSafetyDemo(provider);
+            break;
+        case RunMode.HumanLoop:
+            await HumanLoopDemos.RunHumanLoopDemo(services);
+            break;
+        case RunMode.Observability:
+            await ObservabilityDemos.RunObservabilityDemo(provider);
+            break;
+        case RunMode.Scaling:
+            await ScalingDemos.RunScalingDemo(provider);
+            break;
+        case RunMode.All:
+            await ChatDemos.RunChatDemo(provider);
+            await AgentDemos.RunAgentDemo(agent);
+            await ChatDemos.RunStreamDemo(provider);
+            break;
+        default:
+            break;
+    }
+}
 
 // ============================================================================
 // 辅助方法
@@ -178,6 +226,10 @@ static (bool showHelp, RunMode mode) ParseArgs(string[] args)
     {
         mode = RunMode.Handoff;
     }
+    else if (args.Contains("--safety") || args.Contains("-s"))
+    {
+        mode = RunMode.Safety;
+    }
     else if (args.Contains("--human-loop") || args.Contains("-hl"))
     {
         mode = RunMode.HumanLoop;
@@ -206,13 +258,14 @@ static RunMode ShowMenu()
     Console.WriteLine("  [7] 包管理工具        - PackageManagerTool");
     Console.WriteLine("  [8] 多 Agent 编排器   - Orchestrator 演示");
     Console.WriteLine("  [9] Handoff 协作      - Agent 任务转交");
-    Console.WriteLine("  [H] 人机协作          - Human-in-the-Loop");
-    Console.WriteLine("  [O] 可观测性          - Observability 演示");
-    Console.WriteLine("  [S] 扩展与部署        - Scaling 演示");
+    Console.WriteLine("  [S] Safety 安全       - Guardrails 护栏");
+    Console.WriteLine("  [H] Human-in-Loop     - 交互式人工审批");
+    Console.WriteLine("  [O] Observability     - 可观测性监控");
+    Console.WriteLine("  [C] Scaling 扩缩容    - 负载均衡熔断");
     Console.WriteLine("  [A] 运行全部          - 依次运行 1-3");
     Console.WriteLine("  [Q] 退出");
     Console.WriteLine();
-    Console.Write("请输入选项 (1-9/H/O/S/A/Q): ");
+    Console.Write("请输入选项 (1-9/S/H/O/C/A/Q): ");
 
     var input = Console.ReadLine()?.Trim().ToUpperInvariant();
 
@@ -227,9 +280,10 @@ static RunMode ShowMenu()
         "7" => RunMode.PackageManager,
         "8" => RunMode.Orchestrator,
         "9" => RunMode.Handoff,
+        "S" => RunMode.Safety,
         "H" => RunMode.HumanLoop,
         "O" => RunMode.Observability,
-        "S" => RunMode.Scaling,
+        "C" => RunMode.Scaling,
         "A" => RunMode.All,
         "Q" or "" or null => RunMode.Menu, // 返回 Menu 表示退出
         _ => RunMode.Menu,
@@ -254,9 +308,10 @@ static void ShowHelp()
           -pm, --package-manager  演示 PackageManagerTool 包管理工具
           -o, --orchestrator  演示多 Agent 编排器
           -hf, --handoff  演示 Handoff Agent 协作
-          -hl, --human-loop  演示人机协作 (Week 10)
-          -ob, --observability  演示可观测性 (Week 11)
-          -sc, --scaling  演示扩展与部署 (Week 12)
+          -s, --safety    演示 Safety & Guardrails 安全护栏
+          -hl, --human-loop  演示 Human-in-the-Loop 人工审批
+          -ob, --observability  演示可观测性监控
+          -sc, --scaling  演示 Scaling 扩缩容
           -h, --help      显示帮助信息
 
         配置提供者 (编辑 appsettings.json):

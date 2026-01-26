@@ -1,332 +1,233 @@
+using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Scaling;
-using Dawning.Agents.Core.Scaling;
 using Dawning.Agents.Demo.Helpers;
 
 namespace Dawning.Agents.Demo.Demos;
 
 /// <summary>
-/// Week 12: 部署与扩展演示
+/// Scaling &amp; Deployment 演示
 /// </summary>
 public static class ScalingDemos
 {
     /// <summary>
-    /// 扩展与部署演示
+    /// 运行 Scaling 演示
     /// </summary>
-    public static async Task RunScalingDemo()
+    public static async Task RunScalingDemo(ILLMProvider provider)
     {
-        ConsoleHelper.PrintDivider("🚀 部署与扩展 (Scaling) 演示");
+        ConsoleHelper.PrintSection("Scaling & Deployment 演示");
+        Console.WriteLine("演示请求队列、负载均衡、熔断器、自动扩缩容等功能\n");
 
-        Console.WriteLine("\n生产级部署组件：");
-        Console.WriteLine("  • CircuitBreaker: 熔断器保护");
-        Console.WriteLine("  • RequestQueue: 请求队列");
-        Console.WriteLine("  • LoadBalancer: 负载均衡");
-        Console.WriteLine("  • AutoScaler: 自动扩展\n");
+        // 1. 请求队列演示
+        await RunRequestQueueDemo();
 
-        // ====================================================================
-        // 1. 熔断器演示
-        // ====================================================================
-        ConsoleHelper.PrintDivider("1️⃣ 熔断器 (Circuit Breaker)");
-        Console.WriteLine("场景：保护系统免受级联故障影响\n");
+        // 2. 负载均衡器演示
+        await RunLoadBalancerDemo();
 
-        var circuitBreaker = new CircuitBreaker(
-            failureThreshold: 3,
-            resetTimeout: TimeSpan.FromSeconds(5)
-        );
+        // 3. 熔断器演示
+        await RunCircuitBreakerDemo();
 
-        Console.WriteLine($"配置: 失败阈值=3, 重置超时=5秒");
-        Console.WriteLine($"初始状态: {circuitBreaker.State}\n");
+        // 4. 自动扩缩容演示
+        await RunAutoScalerDemo();
 
-        // 模拟请求
-        for (var i = 1; i <= 6; i++)
+        // 5. 生产部署配置说明
+        PrintDeploymentConfig();
+
+        ConsoleHelper.PrintSuccess("\nScaling 演示完成！");
+    }
+
+    private static async Task RunRequestQueueDemo()
+    {
+        ConsoleHelper.PrintDivider("1. 请求队列 (AgentRequestQueue)");
+
+        Console.WriteLine("  基于 Channel<T> 的有界队列实现:\n");
+
+        // 模拟队列操作
+        var queueCapacity = 100;
+        var currentCount = 0;
+
+        Console.WriteLine($"  队列容量: {queueCapacity}");
+        Console.WriteLine($"  当前长度: {currentCount}");
+
+        // 模拟入队
+        Console.WriteLine("\n  模拟入队操作:");
+        for (int i = 1; i <= 3; i++)
         {
-            var shouldFail = i <= 4; // 前4次失败
-
-            try
-            {
-                var result = await circuitBreaker.ExecuteAsync(async () =>
-                {
-                    await Task.Delay(50);
-                    if (shouldFail)
-                    {
-                        throw new Exception("模拟服务故障");
-                    }
-                    return $"请求 {i} 成功";
-                });
-
-                ConsoleHelper.PrintSuccess($"  请求 {i}: {result}");
-            }
-            catch (CircuitBreakerOpenException)
-            {
-                ConsoleHelper.PrintError($"  请求 {i}: 熔断器打开，请求被拒绝");
-            }
-            catch (Exception ex)
-            {
-                ConsoleHelper.PrintWarning($"  请求 {i}: 失败 - {ex.Message}");
-            }
-
-            Console.WriteLine($"    状态: {circuitBreaker.State}, 失败计数: {circuitBreaker.FailureCount}");
+            currentCount++;
+            Console.WriteLine($"    ✅ 请求 {i} 已入队 (队列: {currentCount}/{queueCapacity})");
         }
 
-        // 等待熔断器恢复
-        Console.WriteLine("\n等待熔断器恢复 (5秒)...");
-        await Task.Delay(5500);
+        // 模拟出队
+        Console.WriteLine("\n  模拟出队处理:");
+        currentCount--;
+        Console.WriteLine($"    处理请求 1 (队列: {currentCount}/{queueCapacity})");
 
-        Console.WriteLine($"恢复后状态: {circuitBreaker.State}");
+        Console.WriteLine("\n  队列特性:");
+        Console.WriteLine("    - 有界队列防止内存溢出");
+        Console.WriteLine("    - 背压机制：队列满时阻塞生产者");
+        Console.WriteLine("    - 支持优雅关闭");
 
-        // 成功请求将关闭熔断器
-        try
+        Console.WriteLine();
+        await Task.CompletedTask;
+    }
+
+    private static async Task RunLoadBalancerDemo()
+    {
+        ConsoleHelper.PrintDivider("2. 负载均衡器 (AgentLoadBalancer)");
+
+        Console.WriteLine("  支持 Round-Robin 和最少负载策略:\n");
+
+        // 模拟实例
+        var instances = new[]
         {
-            await circuitBreaker.ExecuteAsync(async () =>
+            new
             {
-                await Task.Delay(50);
-                return "恢复成功";
-            });
-            ConsoleHelper.PrintSuccess($"  恢复请求成功，熔断器状态: {circuitBreaker.State}");
-        }
-        catch (Exception ex)
-        {
-            ConsoleHelper.PrintError($"  恢复请求失败: {ex.Message}");
-        }
-
-        // ====================================================================
-        // 2. 请求队列演示
-        // ====================================================================
-        ConsoleHelper.PrintDivider("2️⃣ 请求队列 (Request Queue)");
-        Console.WriteLine("场景：异步处理请求，削峰填谷\n");
-
-        var queue = new AgentRequestQueue(capacity: 100);
-
-        Console.WriteLine($"队列容量: 100");
-        Console.WriteLine($"初始队列长度: {queue.Count}\n");
-
-        // 入队多个请求
-        Console.WriteLine("入队 5 个请求...");
-
-        for (var i = 1; i <= 5; i++)
-        {
-            var workItem = new AgentWorkItem
+                Id = "instance-1",
+                Endpoint = "http://localhost:8001",
+                Load = 5,
+                Healthy = true,
+            },
+            new
             {
-                Input = $"任务 {i}: 处理数据",
-                CompletionSource = new TaskCompletionSource<Dawning.Agents.Abstractions.Agent.AgentResponse>(),
-                Priority = i % 2 == 0 ? 1 : 0, // 偶数任务高优先级
-            };
-
-            await queue.EnqueueAsync(workItem);
-            Console.WriteLine($"  入队: {workItem.Input} (优先级: {workItem.Priority})");
-        }
-
-        Console.WriteLine($"\n当前队列长度: {queue.Count}");
-
-        // 模拟出队处理
-        Console.WriteLine("\n出队处理...");
-        while (queue.Count > 0)
-        {
-            var item = await queue.DequeueAsync();
-            if (item != null)
+                Id = "instance-2",
+                Endpoint = "http://localhost:8002",
+                Load = 2,
+                Healthy = true,
+            },
+            new
             {
-                ConsoleHelper.PrintSuccess($"  处理: {item.Input}");
-                await Task.Delay(100);
-            }
-        }
-
-        Console.WriteLine($"处理完成，队列长度: {queue.Count}");
-
-        // ====================================================================
-        // 3. 负载均衡演示
-        // ====================================================================
-        ConsoleHelper.PrintDivider("3️⃣ 负载均衡 (Load Balancer)");
-        Console.WriteLine("场景：在多个 Agent 实例间分配请求\n");
-
-        var loadBalancer = new AgentLoadBalancer();
-
-        // 使用模拟的 Agent 接口
-        var mockAgent = new MockAgent("MockAgent", "用于演示的模拟 Agent");
-
-        // 注册模拟的 Agent 实例
-        var instances = new AgentInstance[]
-        {
-            new() { Id = "agent-1", Agent = mockAgent, Endpoint = "http://localhost:8001", IsHealthy = true, ActiveRequests = 5 },
-            new() { Id = "agent-2", Agent = mockAgent, Endpoint = "http://localhost:8002", IsHealthy = true, ActiveRequests = 3 },
-            new() { Id = "agent-3", Agent = mockAgent, Endpoint = "http://localhost:8003", IsHealthy = false, ActiveRequests = 0 },
-            new() { Id = "agent-4", Agent = mockAgent, Endpoint = "http://localhost:8004", IsHealthy = true, ActiveRequests = 8 },
+                Id = "instance-3",
+                Endpoint = "http://localhost:8003",
+                Load = 8,
+                Healthy = false,
+            },
         };
 
-        foreach (var instance in instances)
+        Console.WriteLine("  已注册实例:");
+        foreach (var inst in instances)
         {
-            loadBalancer.RegisterInstance(instance);
+            var status = inst.Healthy ? "🟢" : "🔴";
+            Console.WriteLine($"    {status} {inst.Id}: 负载={inst.Load}, {inst.Endpoint}");
         }
 
-        Console.WriteLine("已注册实例:");
-        foreach (var instance in instances)
+        Console.WriteLine("\n  Round-Robin 选择 (跳过不健康实例):");
+        var rrSequence = new[] { "instance-1", "instance-2", "instance-1" };
+        for (int i = 0; i < 3; i++)
         {
-            var status = instance.IsHealthy ? "✅ 健康" : "❌ 不健康";
-            Console.WriteLine($"  • {instance.Id}: {status}, 活跃请求: {instance.ActiveRequests}");
+            Console.WriteLine($"    第 {i + 1} 次: {rrSequence[i]}");
         }
 
-        // 演示轮询
-        Console.WriteLine("\n轮询模式 (Round Robin):");
-        for (var i = 0; i < 5; i++)
-        {
-            var selected = loadBalancer.GetNextInstance();
-            Console.WriteLine($"  请求 {i + 1} → {selected?.Id ?? "无可用实例"}");
-        }
+        Console.WriteLine("\n  最少负载选择:");
+        var leastLoaded = instances.Where(i => i.Healthy).OrderBy(i => i.Load).First();
+        Console.WriteLine($"    选中: {leastLoaded.Id} (负载={leastLoaded.Load})");
 
-        // 演示最小负载
-        Console.WriteLine("\n最小负载模式 (Least Loaded):");
-        for (var i = 0; i < 3; i++)
-        {
-            var selected = loadBalancer.GetLeastLoadedInstance();
-            if (selected != null)
-            {
-                Console.WriteLine($"  请求 {i + 1} → {selected.Id} (当前负载: {selected.ActiveRequests})");
-                selected.ActiveRequests++; // 模拟增加负载
-            }
-        }
+        Console.WriteLine();
+        await Task.CompletedTask;
+    }
 
-        // ====================================================================
-        // 4. 自动扩展演示
-        // ====================================================================
-        ConsoleHelper.PrintDivider("4️⃣ 自动扩展 (Auto Scaler)");
-        Console.WriteLine("场景：根据负载自动调整实例数量\n");
+    private static async Task RunCircuitBreakerDemo()
+    {
+        ConsoleHelper.PrintDivider("3. 熔断器 (CircuitBreaker)");
 
-        var scalingOptions = new ScalingOptions
+        Console.WriteLine("  状态机: Closed → Open → HalfOpen\n");
+
+        Console.WriteLine("  配置:");
+        Console.WriteLine("    失败阈值: 3 次");
+        Console.WriteLine("    重置超时: 30 秒\n");
+
+        // 模拟状态变化
+        var states = new[]
         {
-            MinInstances = 2,
-            MaxInstances = 10,
-            TargetCpuPercent = 70,
-            TargetMemoryPercent = 80,
-            ScaleUpCooldownSeconds = 60,
-            ScaleDownCooldownSeconds = 300,
+            (Action: "成功调用", State: "Closed", Icon: "🟢"),
+            (Action: "失败 1", State: "Closed", Icon: "🟢"),
+            (Action: "失败 2", State: "Closed", Icon: "🟢"),
+            (Action: "失败 3 (触发熔断)", State: "Open", Icon: "🔴"),
+            (Action: "尝试调用", State: "Open (拒绝)", Icon: "🔴"),
+            (Action: "等待 30 秒...", State: "HalfOpen", Icon: "🟡"),
+            (Action: "探测成功", State: "Closed", Icon: "🟢"),
         };
 
-        Console.WriteLine("扩展配置:");
-        Console.WriteLine($"  最小实例: {scalingOptions.MinInstances}");
-        Console.WriteLine($"  最大实例: {scalingOptions.MaxInstances}");
-        Console.WriteLine($"  目标 CPU: {scalingOptions.TargetCpuPercent}%");
-        Console.WriteLine($"  目标内存: {scalingOptions.TargetMemoryPercent}%");
-        Console.WriteLine($"  扩容冷却: {scalingOptions.ScaleUpCooldownSeconds}s");
-        Console.WriteLine($"  缩容冷却: {scalingOptions.ScaleDownCooldownSeconds}s");
-
-        // 模拟不同负载场景
-        var scenarios = new (string Name, double Cpu, double Memory, int Queue)[]
+        Console.WriteLine("  状态变化模拟:");
+        foreach (var s in states)
         {
-            ("低负载", 30.0, 40.0, 5),
-            ("正常负载", 65.0, 70.0, 20),
-            ("高负载", 85.0, 75.0, 100),
-            ("峰值负载", 95.0, 90.0, 500),
+            Console.WriteLine($"    {s.Icon} {s.Action, -20} → {s.State}");
+        }
+
+        Console.WriteLine("\n  熔断器用途:");
+        Console.WriteLine("    - 防止级联故障");
+        Console.WriteLine("    - 快速失败，避免资源耗尽");
+        Console.WriteLine("    - 自动恢复检测");
+
+        Console.WriteLine();
+        await Task.CompletedTask;
+    }
+
+    private static async Task RunAutoScalerDemo()
+    {
+        ConsoleHelper.PrintDivider("4. 自动扩缩容 (AgentAutoScaler)");
+
+        Console.WriteLine("  基于指标的自动扩缩容决策:\n");
+
+        Console.WriteLine("  配置:");
+        Console.WriteLine("    最小实例: 1");
+        Console.WriteLine("    最大实例: 10");
+        Console.WriteLine("    目标 CPU: 70%");
+        Console.WriteLine("    扩容冷却: 60 秒");
+        Console.WriteLine("    缩容冷却: 300 秒\n");
+
+        // 模拟不同场景
+        var scenarios = new[]
+        {
+            (Cpu: 30, Queue: 2, Current: 3, Action: "⬇️ ScaleDown", Reason: "CPU 使用率低于阈值"),
+            (Cpu: 65, Queue: 5, Current: 2, Action: "➡️ None", Reason: "指标在正常范围"),
+            (Cpu: 85, Queue: 20, Current: 2, Action: "⬆️ ScaleUp", Reason: "CPU 超过目标值"),
+            (Cpu: 95, Queue: 50, Current: 4, Action: "⬆️ ScaleUp", Reason: "队列积压严重"),
         };
 
-        Console.WriteLine("\n扩展决策模拟:\n");
-
-        var currentInstances = 3;
-        foreach (var scenario in scenarios)
+        Console.WriteLine("  决策模拟:");
+        foreach (var s in scenarios)
         {
-            var metrics = new ScalingMetrics
-            {
-                CpuPercent = scenario.Cpu,
-                MemoryPercent = scenario.Memory,
-                QueueLength = scenario.Queue,
-                ActiveRequests = scenario.Queue / 2,
-            };
-
-            var decision = SimulateScalingDecision(metrics, scalingOptions, currentInstances);
-
-            var decisionIcon = decision.Action switch
-            {
-                ScalingAction.ScaleUp => "⬆️",
-                ScalingAction.ScaleDown => "⬇️",
-                _ => "➡️",
-            };
-
-            Console.WriteLine($"  📊 {scenario.Name}:");
-            Console.WriteLine($"     CPU: {scenario.Cpu}%, 内存: {scenario.Memory}%, 队列: {scenario.Queue}");
-            Console.WriteLine($"     决策: {decisionIcon} {decision.Action} (当前: {currentInstances} 实例)");
-
-            if (decision.Action != ScalingAction.None)
-            {
-                var newCount = decision.Action == ScalingAction.ScaleUp
-                    ? Math.Min(currentInstances + decision.Delta, scalingOptions.MaxInstances)
-                    : Math.Max(currentInstances - decision.Delta, scalingOptions.MinInstances);
-                Console.WriteLine($"     目标: {newCount} 实例 ({(decision.Delta > 0 ? "+" : "")}{decision.Delta})");
-                currentInstances = newCount;
-            }
+            Console.WriteLine($"    CPU={s.Cpu}%, 队列={s.Queue}, 实例={s.Current}");
+            Console.WriteLine($"      {s.Action}: {s.Reason}");
             Console.WriteLine();
         }
 
-        ConsoleHelper.PrintDivider("演示结束");
-        Console.WriteLine("\n部署与扩展组件帮助您构建高可用、可扩展的 Agent 系统，");
-        Console.WriteLine("从容应对生产环境的各种挑战。\n");
+        await Task.CompletedTask;
     }
 
-    private static ScalingDecision SimulateScalingDecision(
-        ScalingMetrics metrics,
-        ScalingOptions options,
-        int currentInstances)
+    private static void PrintDeploymentConfig()
     {
-        // 检查是否需要扩容
-        if (metrics.CpuPercent > options.TargetCpuPercent ||
-            metrics.MemoryPercent > options.TargetMemoryPercent ||
-            metrics.QueueLength > currentInstances * 10)
-        {
-            var cpuRatio = metrics.CpuPercent / options.TargetCpuPercent;
-            var memoryRatio = metrics.MemoryPercent / options.TargetMemoryPercent;
-            var targetRatio = Math.Max(cpuRatio, memoryRatio);
-            var delta = Math.Max(1, (int)Math.Ceiling(currentInstances * (targetRatio - 1)));
+        ConsoleHelper.PrintDivider("5. 生产部署配置");
 
-            return new ScalingDecision
-            {
-                Action = ScalingAction.ScaleUp,
-                Delta = delta,
-                Reason = $"CPU: {metrics.CpuPercent}%, Memory: {metrics.MemoryPercent}%",
-            };
-        }
+        Console.WriteLine(
+            """
+              ScalingOptions 配置:
 
-        // 检查是否可以缩容
-        if (metrics.CpuPercent < options.TargetCpuPercent * 0.5 &&
-            metrics.MemoryPercent < options.TargetMemoryPercent * 0.5 &&
-            metrics.QueueLength < currentInstances * 2)
-        {
-            return new ScalingDecision
-            {
-                Action = ScalingAction.ScaleDown,
-                Delta = 1,
-                Reason = "低利用率",
-            };
-        }
+              {
+                "Scaling": {
+                  "MinInstances": 2,
+                  "MaxInstances": 10,
+                  "TargetCpuPercent": 70,
+                  "TargetMemoryPercent": 80,
+                  "ScaleUpCooldownSeconds": 60,
+                  "ScaleDownCooldownSeconds": 300,
+                  "QueueCapacity": 1000,
+                  "WorkerCount": 0  // 0 = ProcessorCount * 2
+                }
+              }
 
-        return new ScalingDecision { Action = ScalingAction.None };
-    }
+              DI 注册:
+              services.AddScaling(configuration);
+              services.AddCircuitBreaker();
+              services.AddProductionDeployment(configuration);
 
-    /// <summary>
-    /// 用于演示的模拟 Agent
-    /// </summary>
-    private class MockAgent : Dawning.Agents.Abstractions.Agent.IAgent
-    {
-        public string Name { get; }
-        public string Instructions { get; }
+              生产部署包含:
+              - 请求队列 + 工作线程池
+              - 负载均衡器
+              - 熔断器
+              - 自动扩缩容器
+              - 健康检查端点
 
-        public MockAgent(string name, string instructions)
-        {
-            Name = name;
-            Instructions = instructions;
-        }
-
-        public Task<Dawning.Agents.Abstractions.Agent.AgentResponse> RunAsync(
-            string input,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new Dawning.Agents.Abstractions.Agent.AgentResponse
-            {
-                Success = true,
-                FinalAnswer = $"模拟响应: {input}",
-            });
-        }
-
-        public Task<Dawning.Agents.Abstractions.Agent.AgentResponse> RunAsync(
-            Dawning.Agents.Abstractions.Agent.AgentContext context,
-            CancellationToken cancellationToken = default)
-        {
-            return RunAsync(context.UserInput, cancellationToken);
-        }
+            """
+        );
     }
 }
