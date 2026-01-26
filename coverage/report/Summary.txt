@@ -1,25 +1,25 @@
 Summary
-  Generated on: 1/26/2026 - 8:39:53 PM
-  Coverage date: 1/26/2026 - 8:39:44 PM
+  Generated on: 1/26/2026 - 8:55:15 PM
+  Coverage date: 1/26/2026 - 8:55:07 PM
   Parser: Cobertura
   Assemblies: 4
   Classes: 174
   Files: 124
-  Line coverage: 67.7%
-  Covered lines: 7235
-  Uncovered lines: 3443
+  Line coverage: 70.2%
+  Covered lines: 7501
+  Uncovered lines: 3177
   Coverable lines: 10678
   Total lines: 21233
-  Branch coverage: 56.6% (1590 of 2805)
-  Covered branches: 1590
+  Branch coverage: 58.1% (1631 of 2805)
+  Covered branches: 1631
   Total branches: 2805
-  Method coverage: 81.8% (1035 of 1265)
-  Full method coverage: 72% (911 of 1265)
-  Covered methods: 1035
-  Fully covered methods: 911
+  Method coverage: 84.1% (1064 of 1265)
+  Full method coverage: 74.1% (938 of 1265)
+  Covered methods: 1064
+  Fully covered methods: 938
   Total methods: 1265
 
-Dawning.Agents.Abstractions                                                                                                                          90.4%
+Dawning.Agents.Abstractions                                                                                                                          91.1%
   Dawning.Agents.Abstractions.Agent.AgentContext                                                                                                      100%
   Dawning.Agents.Abstractions.Agent.AgentOptions                                                                                                      100%
   Dawning.Agents.Abstractions.Agent.AgentResponse                                                                                                     100%
@@ -50,7 +50,7 @@ Dawning.Agents.Abstractions                                                     
   Dawning.Agents.Abstractions.LLM.ChatMessage                                                                                                         100%
   Dawning.Agents.Abstractions.LLM.LLMOptions                                                                                                         73.9%
   Dawning.Agents.Abstractions.Memory.ConversationMessage                                                                                             83.3%
-  Dawning.Agents.Abstractions.Memory.MemoryOptions                                                                                                      0%
+  Dawning.Agents.Abstractions.Memory.MemoryOptions                                                                                                    100%
   Dawning.Agents.Abstractions.Observability.ComponentHealth                                                                                           100%
   Dawning.Agents.Abstractions.Observability.HealthCheckResult                                                                                         100%
   Dawning.Agents.Abstractions.Observability.MetricData                                                                                                100%
@@ -93,10 +93,10 @@ Dawning.Agents.Azure                                                            
   Dawning.Agents.Azure.AzureOpenAIProviderOptions                                                                                                       0%
   Dawning.Agents.Azure.AzureOpenAIServiceCollectionExtensions                                                                                        32.1%
 
-Dawning.Agents.Core                                                                                                                                  67.1%
+Dawning.Agents.Core                                                                                                                                  69.7%
   Dawning.Agents.Core.Agent.AgentBase                                                                                                                  95%
   Dawning.Agents.Core.Agent.ReActAgent                                                                                                               79.7%
-  Dawning.Agents.Core.AgentServiceCollectionExtensions                                                                                                  0%
+  Dawning.Agents.Core.AgentServiceCollectionExtensions                                                                                                100%
   Dawning.Agents.Core.Communication.CommunicationServiceCollectionExtensions                                                                          100%
   Dawning.Agents.Core.Communication.InMemoryMessageBus                                                                                               90.7%
   Dawning.Agents.Core.Communication.InMemorySharedState                                                                                              91.3%
@@ -115,7 +115,7 @@ Dawning.Agents.Core                                                             
   Dawning.Agents.Core.LLM.LLMServiceCollectionExtensions                                                                                             50.5%
   Dawning.Agents.Core.LLM.OllamaProvider                                                                                                               12%
   Dawning.Agents.Core.Memory.BufferMemory                                                                                                             100%
-  Dawning.Agents.Core.Memory.MemoryServiceCollectionExtensions                                                                                          0%
+  Dawning.Agents.Core.Memory.MemoryServiceCollectionExtensions                                                                                       98.5%
   Dawning.Agents.Core.Memory.SimpleTokenCounter                                                                                                       100%
   Dawning.Agents.Core.Memory.SummaryMemory                                                                                                           94.9%
   Dawning.Agents.Core.Memory.WindowMemory                                                                                                             100%
@@ -137,7 +137,7 @@ Dawning.Agents.Core                                                             
   Dawning.Agents.Core.Orchestration.OrchestratorBase                                                                                                 75.4%
   Dawning.Agents.Core.Orchestration.ParallelOrchestrator                                                                                             86.2%
   Dawning.Agents.Core.Orchestration.SequentialOrchestrator                                                                                            100%
-  Dawning.Agents.Core.Prompts.AgentPrompts                                                                                                              0%
+  Dawning.Agents.Core.Prompts.AgentPrompts                                                                                                            100%
   Dawning.Agents.Core.Prompts.PromptTemplate                                                                                                          100%
   Dawning.Agents.Core.RAG.DocumentChunker                                                                                                            90.8%
   Dawning.Agents.Core.RAG.InMemoryVectorStore                                                                                                          87%
@@ -147,8 +147,8 @@ Dawning.Agents.Core                                                             
   Dawning.Agents.Core.RAG.VectorRetriever                                                                                                            85.1%
   Dawning.Agents.Core.Safety.AuditLoggerExtensions                                                                                                      0%
   Dawning.Agents.Core.Safety.ContentFilterGuardrail                                                                                                  91.2%
-  Dawning.Agents.Core.Safety.ContentModerator                                                                                                           0%
-  Dawning.Agents.Core.Safety.ContentModeratorOptions                                                                                                    0%
+  Dawning.Agents.Core.Safety.ContentModerator                                                                                                        92.3%
+  Dawning.Agents.Core.Safety.ContentModeratorOptions                                                                                                  100%
   Dawning.Agents.Core.Safety.GuardrailPipeline                                                                                                        100%
   Dawning.Agents.Core.Safety.InMemoryAuditLogger                                                                                                      100%
   Dawning.Agents.Core.Safety.MaxLengthGuardrail                                                                                                       100%
