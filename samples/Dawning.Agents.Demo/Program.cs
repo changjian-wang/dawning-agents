@@ -257,7 +257,7 @@ static RunMode ShowMenu()
     Console.WriteLine("  [8] 多 Agent 编排器   - Orchestrator 演示");
     Console.WriteLine("  [9] Handoff 协作      - Agent 任务转交");
     Console.WriteLine("  [S] Safety 安全       - Guardrails 护栏");
-    Console.WriteLine("  [H] Human-in-Loop     - 人工审批流程");
+    Console.WriteLine("  [H] Human-in-Loop     - 交互式人工审批");
     Console.WriteLine("  [O] Observability     - 可观测性监控");
     Console.WriteLine("  [C] Scaling 扩缩容    - 负载均衡熔断");
     Console.WriteLine("  [A] 运行全部          - 依次运行 1-3");
