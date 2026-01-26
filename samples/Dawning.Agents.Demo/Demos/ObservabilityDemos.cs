@@ -1,14 +1,13 @@
-using Dawning.Agents.Abstractions.Agent;
+using System.Diagnostics;
+using System.Net.Sockets;
 using Dawning.Agents.Abstractions.LLM;
-using Dawning.Agents.Abstractions.Observability;
-using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core.Observability;
 using Dawning.Agents.Demo.Helpers;
 
 namespace Dawning.Agents.Demo.Demos;
 
 /// <summary>
-/// Observability &amp; Monitoring 演示
+/// Observability &amp; Monitoring 演示 - 使用真实 LLM 调用收集数据
 /// </summary>
 public static class ObservabilityDemos
 {
@@ -18,16 +17,16 @@ public static class ObservabilityDemos
     public static async Task RunObservabilityDemo(ILLMProvider provider)
     {
         ConsoleHelper.PrintSection("Observability & Monitoring 演示");
-        Console.WriteLine("演示指标收集、健康检查、分布式追踪等功能\n");
+        Console.WriteLine("使用真实 LLM 调用演示指标收集、健康检查、分布式追踪\n");
 
-        // 1. 指标收集器演示
-        await RunMetricsCollectorDemo();
+        // 1. 指标收集器演示 - 真实 LLM 调用
+        await RunMetricsCollectorDemo(provider);
 
-        // 2. 健康检查演示
-        await RunHealthCheckDemo();
+        // 2. 健康检查演示 - 真实服务检测
+        await RunHealthCheckDemo(provider);
 
-        // 3. 追踪模型演示
-        RunTracingDemo();
+        // 3. 追踪模型演示 - 真实调用链
+        await RunTracingDemo(provider);
 
         // 4. 遥测配置说明
         PrintTelemetryConfig();
@@ -35,145 +34,237 @@ public static class ObservabilityDemos
         ConsoleHelper.PrintSuccess("\nObservability 演示完成！");
     }
 
-    private static async Task RunMetricsCollectorDemo()
+    private static async Task RunMetricsCollectorDemo(ILLMProvider provider)
     {
-        ConsoleHelper.PrintDivider("1. 指标收集器 (MetricsCollector)");
+        ConsoleHelper.PrintDivider("1. 指标收集器 (MetricsCollector) - 真实数据");
 
         var collector = new MetricsCollector();
+        var tags = new Dictionary<string, string> { ["provider"] = "Ollama" };
 
-        Console.WriteLine("  记录各种指标...\n");
+        Console.WriteLine("  发送 3 次真实 LLM 请求并收集指标...\n");
 
-        // 记录计数器
-        collector.IncrementCounter(
-            "agent.requests.total",
-            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
-        collector.IncrementCounter(
-            "agent.requests.total",
-            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
-        collector.IncrementCounter(
-            "agent.requests.total",
-            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
+        var prompts = new[]
+        {
+            "说一个字",
+            "1+1=?",
+            "今天星期几？只回答数字",
+        };
 
-        // 记录直方图 (响应时间)
-        collector.RecordHistogram(
-            "agent.response_time_ms",
-            120,
-            new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
-        collector.RecordHistogram(
-            "agent.response_time_ms",
-            85,
-            new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
-        collector.RecordHistogram(
-            "agent.response_time_ms",
-            200,
-            new Dictionary<string, string> { ["agent"] = "TestAgent" }
-        );
+        var responseTimes = new List<long>();
+
+        foreach (var prompt in prompts)
+        {
+            Console.Write($"    请求: \"{prompt}\" ... ");
+
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                var messages = new List<ChatMessage> { new("user", prompt) };
+                var response = await provider.ChatAsync(messages);
+                sw.Stop();
+
+                collector.IncrementCounter("llm.requests.total", 1, tags);
+                collector.IncrementCounter("llm.requests.success", 1, tags);
+                collector.RecordHistogram("llm.response_time_ms", sw.ElapsedMilliseconds, tags);
+                responseTimes.Add(sw.ElapsedMilliseconds);
+
+                var shortResponse =
+                    response.Content.Length > 20
+                        ? response.Content[..20] + "..."
+                        : response.Content;
+                Console.WriteLine($"✅ {sw.ElapsedMilliseconds}ms - \"{shortResponse.Trim()}\"");
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                collector.IncrementCounter("llm.requests.total", 1, tags);
+                collector.IncrementCounter("llm.requests.failed", 1, tags);
+                Console.WriteLine($"❌ 失败: {ex.Message}");
+            }
+        }
 
         // 设置仪表
-        collector.SetGauge("agent.active_instances", 3);
-        collector.SetGauge("agent.queue_length", 5);
+        collector.SetGauge("llm.active_connections", 1);
 
         // 获取快照
         var snapshot = collector.GetSnapshot();
 
-        Console.WriteLine("  📊 指标快照:");
+        Console.WriteLine("\n  📊 指标快照:");
         Console.WriteLine($"    时间戳: {snapshot.Timestamp:HH:mm:ss}");
-        Console.WriteLine($"    计数器数量: {snapshot.Counters.Count}");
-        Console.WriteLine($"    直方图数量: {snapshot.Histograms.Count}");
-        Console.WriteLine($"    仪表数量: {snapshot.Gauges.Count}");
 
-        // 显示具体值
-        var requestCount = collector.GetCounter(
-            "agent.requests.total",
-            new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        var totalRequests = collector.GetCounter("llm.requests.total", tags) ?? 0;
+        var successRequests = collector.GetCounter("llm.requests.success", tags) ?? 0;
+
+        Console.WriteLine($"    总请求数: {totalRequests}");
+        Console.WriteLine($"    成功请求: {successRequests}");
+        Console.WriteLine(
+            $"    成功率: {(totalRequests > 0 ? (double)successRequests / totalRequests : 0):P0}"
         );
-        var activeInstances = collector.GetGauge("agent.active_instances");
 
-        Console.WriteLine($"\n    agent.requests.total: {requestCount}");
-        Console.WriteLine($"    agent.active_instances: {activeInstances}");
+        if (responseTimes.Count > 0)
+        {
+            Console.WriteLine($"    平均响应时间: {responseTimes.Average():F0}ms");
+            Console.WriteLine($"    最快响应: {responseTimes.Min()}ms");
+            Console.WriteLine($"    最慢响应: {responseTimes.Max()}ms");
+        }
 
         Console.WriteLine();
-        await Task.CompletedTask;
     }
 
-    private static async Task RunHealthCheckDemo()
+    private static async Task RunHealthCheckDemo(ILLMProvider provider)
     {
-        ConsoleHelper.PrintDivider("2. 健康检查 (HealthCheck)");
+        ConsoleHelper.PrintDivider("2. 健康检查 (HealthCheck) - 真实服务检测");
 
-        Console.WriteLine("  AgentHealthCheck 检查 Agent 系统健康状态:\n");
+        Console.WriteLine("  检查 LLM 服务健康状态...\n");
 
-        // 模拟健康检查结果
-        var healthyScenario = new
+        var sw = Stopwatch.StartNew();
+        var isHealthy = false;
+        var responseTime = 0L;
+        string? errorMessage = null;
+
+        // 检查 Ollama 服务是否可达
+        try
         {
-            Status = "Healthy",
-            SuccessRate = 0.98,
-            AvgResponseTime = 150,
-            ErrorRate = 0.02,
-        };
+            // 1. 检查 TCP 连接
+            Console.Write("    检查 Ollama 服务端口... ");
+            using var tcpClient = new TcpClient();
+            var connectTask = tcpClient.ConnectAsync("localhost", 11434);
+            if (await Task.WhenAny(connectTask, Task.Delay(3000)) == connectTask)
+            {
+                Console.WriteLine("✅ 端口可达");
 
-        var degradedScenario = new
+                // 2. 发送简单请求测试
+                Console.Write("    发送测试请求... ");
+                var testSw = Stopwatch.StartNew();
+                var messages = new List<ChatMessage> { new("user", "hi") };
+                await provider.ChatAsync(messages);
+                testSw.Stop();
+                responseTime = testSw.ElapsedMilliseconds;
+                isHealthy = true;
+                Console.WriteLine($"✅ 响应正常 ({responseTime}ms)");
+            }
+            else
+            {
+                Console.WriteLine("❌ 连接超时");
+                errorMessage = "连接超时";
+            }
+        }
+        catch (Exception ex)
         {
-            Status = "Degraded",
-            SuccessRate = 0.85,
-            AvgResponseTime = 800,
-            ErrorRate = 0.15,
-        };
+            Console.WriteLine($"❌ {ex.Message}");
+            errorMessage = ex.Message;
+        }
 
-        Console.WriteLine("  场景 1: 健康状态");
-        Console.WriteLine($"    ✅ 状态: {healthyScenario.Status}");
-        Console.WriteLine($"    成功率: {healthyScenario.SuccessRate:P0}");
-        Console.WriteLine($"    平均响应: {healthyScenario.AvgResponseTime}ms");
-        Console.WriteLine($"    错误率: {healthyScenario.ErrorRate:P0}");
+        sw.Stop();
 
-        Console.WriteLine("\n  场景 2: 降级状态");
-        Console.WriteLine($"    ⚠️ 状态: {degradedScenario.Status}");
-        Console.WriteLine($"    成功率: {degradedScenario.SuccessRate:P0}");
-        Console.WriteLine($"    平均响应: {degradedScenario.AvgResponseTime}ms");
-        Console.WriteLine($"    错误率: {degradedScenario.ErrorRate:P0}");
+        // 显示健康检查结果
+        Console.WriteLine("\n  📋 健康检查结果:");
+
+        var status = isHealthy ? "Healthy" : "Unhealthy";
+        var statusIcon = isHealthy ? "✅" : "❌";
+
+        Console.WriteLine($"    {statusIcon} 状态: {status}");
+        Console.WriteLine($"    检查耗时: {sw.ElapsedMilliseconds}ms");
+
+        if (isHealthy)
+        {
+            Console.WriteLine($"    LLM 响应时间: {responseTime}ms");
+
+            // 基于响应时间评估健康等级
+            var healthLevel =
+                responseTime < 1000 ? "良好"
+                : responseTime < 3000 ? "正常"
+                : "较慢";
+            Console.WriteLine($"    响应等级: {healthLevel}");
+        }
+        else
+        {
+            Console.WriteLine($"    错误信息: {errorMessage}");
+        }
 
         Console.WriteLine("\n  健康状态枚举:");
-        Console.WriteLine("    Healthy   - 所有指标正常");
-        Console.WriteLine("    Degraded  - 部分指标异常，服务可用");
-        Console.WriteLine("    Unhealthy - 关键指标异常，服务不可用");
+        Console.WriteLine("    Healthy   - 服务正常响应，延迟在可接受范围");
+        Console.WriteLine("    Degraded  - 服务响应较慢，但仍可用");
+        Console.WriteLine("    Unhealthy - 服务不可达或响应异常");
 
         Console.WriteLine();
-        await Task.CompletedTask;
     }
 
-    private static void RunTracingDemo()
+    private static async Task RunTracingDemo(ILLMProvider provider)
     {
-        ConsoleHelper.PrintDivider("3. 分布式追踪 (Tracing)");
+        ConsoleHelper.PrintDivider("3. 分布式追踪 (Tracing) - 真实调用链");
 
-        Console.WriteLine("  TraceContext 和 SpanInfo 用于追踪请求流程:\n");
-
-        // 模拟追踪
         var traceId = Guid.NewGuid().ToString("N")[..16];
         Console.WriteLine($"  Trace ID: {traceId}");
-        Console.WriteLine("  操作: AgentRequest\n");
+        Console.WriteLine("  操作: 完整 LLM 调用流程\n");
 
-        var spans = new[]
+        var spans = new List<(string Name, long DurationMs, string? Parent)>();
+
+        // Span 1: 输入验证
+        var totalSw = Stopwatch.StartNew();
+        var spanSw = Stopwatch.StartNew();
+        var userInput = "计算 2 + 3 的结果";
+        _ = !string.IsNullOrWhiteSpace(userInput); // 验证输入
+        spanSw.Stop();
+        spans.Add(("ValidateInput", spanSw.ElapsedMilliseconds, null));
+
+        // Span 2: 构建消息
+        spanSw.Restart();
+        var messages = new List<ChatMessage>
         {
-            (Name: "ValidateInput", Duration: 5, Parent: (string?)null),
-            (Name: "ProcessRequest", Duration: 120, Parent: (string?)null),
-            (Name: "CallTool", Duration: 45, Parent: "ProcessRequest"),
-            (Name: "LLMInference", Duration: 65, Parent: "ProcessRequest"),
-            (Name: "GenerateResponse", Duration: 10, Parent: (string?)null),
+            new("system", "你是一个计算器助手，只返回计算结果数字"),
+            new("user", userInput),
         };
+        spanSw.Stop();
+        spans.Add(("BuildMessages", spanSw.ElapsedMilliseconds, null));
 
-        Console.WriteLine("  📍 Spans:");
+        // Span 3: LLM 推理 (真实调用)
+        Console.Write("  执行真实 LLM 调用... ");
+        spanSw.Restart();
+        string? responseContent = null;
+        try
+        {
+            var response = await provider.ChatAsync(messages);
+            responseContent = response.Content;
+            spanSw.Stop();
+            spans.Add(("LLMInference", spanSw.ElapsedMilliseconds, null));
+            Console.WriteLine($"✅ ({spanSw.ElapsedMilliseconds}ms)");
+        }
+        catch (Exception ex)
+        {
+            spanSw.Stop();
+            spans.Add(("LLMInference", spanSw.ElapsedMilliseconds, null));
+            Console.WriteLine($"❌ 失败: {ex.Message}");
+        }
+
+        // Span 4: 响应处理
+        spanSw.Restart();
+        var result = responseContent?.Trim() ?? "N/A";
+        spanSw.Stop();
+        spans.Add(("ProcessResponse", spanSw.ElapsedMilliseconds, null));
+
+        totalSw.Stop();
+
+        // 显示追踪结果
+        Console.WriteLine("\n  📍 Spans (真实耗时):");
         foreach (var span in spans)
         {
             var indent = span.Parent != null ? "      " : "    ";
-            Console.WriteLine($"{indent}[{span.Name}] {span.Duration}ms");
+            var bar = new string('█', Math.Min((int)(span.DurationMs / 10), 50));
+            Console.WriteLine($"{indent}[{span.Name}] {span.DurationMs}ms {bar}");
         }
 
-        var totalDuration = spans.Where(s => s.Parent == null).Sum(s => s.Duration);
-        Console.WriteLine($"\n  Trace 总耗时: {totalDuration}ms");
+        Console.WriteLine($"\n  Trace 总耗时: {totalSw.ElapsedMilliseconds}ms");
+        Console.WriteLine($"  LLM 返回结果: \"{result}\"");
+
+        // 分析耗时占比
+        var llmSpan = spans.FirstOrDefault(s => s.Name == "LLMInference");
+        if (llmSpan.DurationMs > 0)
+        {
+            var llmPercent = (double)llmSpan.DurationMs / totalSw.ElapsedMilliseconds * 100;
+            Console.WriteLine($"  LLM 推理占比: {llmPercent:F1}%");
+        }
+
         Console.WriteLine();
     }
 
