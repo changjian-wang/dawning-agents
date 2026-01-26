@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.HumanLoop;
 public static class HumanLoopServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加人机协作服务（使用控制台处理器）
+    /// 添加人机协作服务（使用自动审批处理器）
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <param name="configuration">配置</param>
@@ -26,14 +26,14 @@ public static class HumanLoopServiceCollectionExtensions
         );
 
         services.TryAddSingleton<ApprovalConfig>();
-        services.TryAddSingleton<IHumanInteractionHandler, ConsoleInteractionHandler>();
+        services.TryAddSingleton<IHumanInteractionHandler, AutoApprovalHandler>();
         services.TryAddSingleton<ApprovalWorkflow>();
 
         return services;
     }
 
     /// <summary>
-    /// 添加人机协作服务（使用控制台处理器）
+    /// 添加人机协作服务（使用自动审批处理器）
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <param name="configure">配置委托</param>
@@ -53,20 +53,20 @@ public static class HumanLoopServiceCollectionExtensions
         }
 
         services.TryAddSingleton<ApprovalConfig>();
-        services.TryAddSingleton<IHumanInteractionHandler, ConsoleInteractionHandler>();
+        services.TryAddSingleton<IHumanInteractionHandler, AutoApprovalHandler>();
         services.TryAddSingleton<ApprovalWorkflow>();
 
         return services;
     }
 
     /// <summary>
-    /// 添加控制台交互处理器
+    /// 添加自动审批处理器
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
-    public static IServiceCollection AddConsoleInteractionHandler(this IServiceCollection services)
+    public static IServiceCollection AddAutoApprovalHandler(this IServiceCollection services)
     {
-        services.TryAddSingleton<IHumanInteractionHandler, ConsoleInteractionHandler>();
+        services.TryAddSingleton<IHumanInteractionHandler, AutoApprovalHandler>();
         return services;
     }
 

@@ -2,11 +2,14 @@ using Dawning.Agents.Abstractions.HumanLoop;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Dawning.Agents.Core.HumanLoop;
+namespace Dawning.Agents.Demo.Helpers;
 
 /// <summary>
 /// 基于控制台的人机交互处理器
 /// </summary>
+/// <remarks>
+/// 仅用于 CLI/Demo 应用，生产环境请使用其他实现
+/// </remarks>
 public class ConsoleInteractionHandler : IHumanInteractionHandler
 {
     private readonly ILogger<ConsoleInteractionHandler> _logger;

@@ -1,5 +1,6 @@
 using System.Text;
 using Dawning.Agents.Abstractions.Agent;
+using Dawning.Agents.Abstractions.HumanLoop;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Abstractions.Tools;
@@ -50,12 +51,13 @@ builder.Services.AddPackageManagerTools(options =>
 // 注册 Memory 服务
 builder.Services.AddWindowMemory(windowSize: 6);
 
-// 注册 Human-in-the-Loop 服务
+// 注册 Human-in-the-Loop 服务（使用控制台处理器覆盖默认的自动审批处理器）
 builder.Services.AddHumanLoop(options =>
 {
     options.DefaultTimeout = TimeSpan.FromMinutes(5);
     options.RequireApprovalForMediumRisk = true;
 });
+builder.Services.AddSingleton<IHumanInteractionHandler, ConsoleInteractionHandler>();
 
 builder.Services.AddReActAgent(options =>
 {
