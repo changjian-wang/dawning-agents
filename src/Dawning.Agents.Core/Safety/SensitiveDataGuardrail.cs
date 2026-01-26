@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 敏感数据检测护栏 - 检测并脱敏敏感信息
 /// </summary>
-public class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
+public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
 {
     private readonly SafetyOptions _options;
     private readonly ILogger<SensitiveDataGuardrail> _logger;

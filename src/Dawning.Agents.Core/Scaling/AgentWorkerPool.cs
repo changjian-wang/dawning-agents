@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// Agent 工作池实现
 /// </summary>
-public class AgentWorkerPool : IAgentWorkerPool
+public sealed class AgentWorkerPool : IAgentWorkerPool
 {
     private readonly IAgent _agent;
     private readonly IAgentRequestQueue _queue;

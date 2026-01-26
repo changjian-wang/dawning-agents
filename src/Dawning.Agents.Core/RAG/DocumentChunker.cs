@@ -17,7 +17,7 @@ namespace Dawning.Agents.Core.RAG;
 /// <item>按句子分块</item>
 /// </list>
 /// </remarks>
-public class DocumentChunker
+public sealed class DocumentChunker
 {
     private readonly RAGOptions _options;
     private readonly ILogger<DocumentChunker> _logger;

@@ -21,7 +21,7 @@ using Microsoft.Extensions.Options;
 /// - 逐步推理：分析 → 计划 → 执行
 /// - 数据转换：提取 → 清洗 → 存储
 /// </remarks>
-public class SequentialOrchestrator : OrchestratorBase
+public sealed class SequentialOrchestrator : OrchestratorBase
 {
     /// <summary>
     /// 输入转换器（在传递给下一个 Agent 前转换输出）

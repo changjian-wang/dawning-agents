@@ -6,7 +6,7 @@ using Dawning.Agents.Abstractions.Observability;
 /// <summary>
 /// 用于开发/测试的内存指标收集器
 /// </summary>
-public class MetricsCollector
+public sealed class MetricsCollector
 {
     private readonly ConcurrentDictionary<string, CounterMetric> _counters = new();
     private readonly ConcurrentDictionary<string, HistogramMetric> _histograms = new();
@@ -106,7 +106,7 @@ public class MetricsCollector
 /// <summary>
 /// 计数器指标
 /// </summary>
-public class CounterMetric
+public sealed class CounterMetric
 {
     private long _value;
 
@@ -155,7 +155,7 @@ public class CounterMetric
 /// <summary>
 /// 直方图指标
 /// </summary>
-public class HistogramMetric
+public sealed class HistogramMetric
 {
     private readonly List<double> _values = [];
     private readonly object _lock = new();
@@ -229,7 +229,7 @@ public class HistogramMetric
 /// <summary>
 /// 仪表指标
 /// </summary>
-public class GaugeMetric
+public sealed class GaugeMetric
 {
     private double _value;
 

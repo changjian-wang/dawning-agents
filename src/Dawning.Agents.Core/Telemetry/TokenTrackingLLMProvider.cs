@@ -16,7 +16,7 @@ namespace Dawning.Agents.Core.Telemetry;
 /// var trackingProvider = new TokenTrackingLLMProvider(originalProvider, tracker, "MyAgent");
 /// </code>
 /// </remarks>
-public class TokenTrackingLLMProvider : ILLMProvider
+public sealed class TokenTrackingLLMProvider : ILLMProvider
 {
     private readonly ILLMProvider _innerProvider;
     private readonly ITokenUsageTracker _tracker;

@@ -20,7 +20,7 @@ namespace Dawning.Agents.Core.RAG;
 /// 4. 归一化向量
 /// </para>
 /// </remarks>
-public class SimpleEmbeddingProvider : IEmbeddingProvider
+public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
 {
     private readonly int _dimensions;
     private readonly ILogger<SimpleEmbeddingProvider> _logger;

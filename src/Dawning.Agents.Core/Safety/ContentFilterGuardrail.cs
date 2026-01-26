@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 内容过滤护栏 - 检测并阻止包含禁用关键词的内容
 /// </summary>
-public class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
+public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 {
     private readonly SafetyOptions _options;
     private readonly ILogger<ContentFilterGuardrail> _logger;
@@ -109,7 +109,7 @@ public class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 /// <summary>
 /// URL 域名检查护栏 - 检查 URL 是否在允许列表中
 /// </summary>
-public class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
+public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 {
     private static readonly Regex UrlRegex = new(
         @"https?://([^/\s]+)",

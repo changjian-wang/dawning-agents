@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 基于 LLM 的内容审核护栏
 /// </summary>
-public class ContentModerator : IInputGuardrail, IOutputGuardrail
+public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
 {
     private readonly ILLMProvider _llmProvider;
     private readonly ContentModeratorOptions _options;
@@ -214,7 +214,7 @@ public class ContentModerator : IInputGuardrail, IOutputGuardrail
 /// <summary>
 /// 内容审核配置选项
 /// </summary>
-public class ContentModeratorOptions
+public sealed class ContentModeratorOptions
 {
     /// <summary>
     /// 启用内容审核

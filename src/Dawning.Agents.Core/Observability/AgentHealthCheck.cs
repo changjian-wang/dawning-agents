@@ -5,7 +5,7 @@ using Dawning.Agents.Abstractions.Observability;
 /// <summary>
 /// Agent 系统健康检查
 /// </summary>
-public class AgentHealthCheck
+public sealed class AgentHealthCheck
 {
     private readonly List<IHealthCheckProvider> _providers = [];
 

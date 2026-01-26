@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// Agent 自动扩展器实现
 /// </summary>
-public class AgentAutoScaler : IAgentAutoScaler
+public sealed class AgentAutoScaler : IAgentAutoScaler
 {
     private readonly ScalingOptions _options;
     private readonly Func<Task<ScalingMetrics>> _metricsProvider;

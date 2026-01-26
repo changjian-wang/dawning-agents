@@ -22,7 +22,7 @@ using Microsoft.Extensions.Options;
 /// - 冗余执行：多个 Agent 执行相同任务，选择最优结果
 /// - 分而治之：将大任务分解给多个 Agent 并行处理
 /// </remarks>
-public class ParallelOrchestrator : OrchestratorBase
+public sealed class ParallelOrchestrator : OrchestratorBase
 {
     /// <summary>
     /// 自定义结果聚合器

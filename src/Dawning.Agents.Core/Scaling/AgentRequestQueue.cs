@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// Agent 请求队列实现
 /// </summary>
-public class AgentRequestQueue : IAgentRequestQueue
+public sealed class AgentRequestQueue : IAgentRequestQueue
 {
     private readonly Channel<AgentWorkItem> _channel;
     private readonly ILogger<AgentRequestQueue> _logger;

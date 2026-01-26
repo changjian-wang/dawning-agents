@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <item>请求/响应模式</item>
 /// </list>
 /// </remarks>
-public class InMemoryMessageBus : IMessageBus
+public sealed class InMemoryMessageBus : IMessageBus
 {
     private readonly ConcurrentDictionary<string, List<Action<AgentMessage>>> _subscribers = new();
     private readonly ConcurrentDictionary<

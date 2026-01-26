@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 安全 Agent 包装器 - 为 Agent 添加护栏、速率限制和审计功能
 /// </summary>
-public class SafeAgent : IAgent
+public sealed class SafeAgent : IAgent
 {
     private readonly IAgent _innerAgent;
     private readonly IGuardrailPipeline? _guardrailPipeline;

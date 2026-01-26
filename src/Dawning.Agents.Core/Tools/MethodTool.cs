@@ -10,7 +10,7 @@ namespace Dawning.Agents.Core.Tools;
 /// <remarks>
 /// 将标记了 [FunctionTool] 的方法包装为 ITool 实例
 /// </remarks>
-public class MethodTool : ITool
+public sealed class MethodTool : ITool
 {
     private readonly MethodInfo _method;
     private readonly object? _instance;
@@ -93,11 +93,11 @@ public class MethodTool : ITool
             {
                 await task.ConfigureAwait(false);
 
-                // 获取 Task<T> 的结果
-                var resultProperty = task.GetType().GetProperty("Result");
-                if (resultProperty != null)
+                // 使用类型检查获取泛型 Task<T> 的结果
+                var taskType = task.GetType();
+                if (taskType.IsGenericType)
                 {
-                    result = resultProperty.GetValue(task);
+                    result = ((dynamic)task).Result;
                 }
                 else
                 {
@@ -113,6 +113,16 @@ public class MethodTool : ITool
                 null => ToolResult.Ok(string.Empty),
                 _ => ToolResult.Ok(result.ToString() ?? string.Empty),
             };
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消操作不视为错误，重新抛出
+            throw;
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is OperationCanceledException)
+        {
+            // 内部方法的取消操作
+            throw ex.InnerException;
         }
         catch (TargetInvocationException ex) when (ex.InnerException != null)
         {
@@ -149,16 +159,8 @@ public class MethodTool : ITool
             return args;
         }
 
-        // 尝试解析 JSON 输入
-        JsonDocument? jsonDoc = null;
-        try
-        {
-            jsonDoc = JsonDocument.Parse(input);
-        }
-        catch
-        {
-            // 不是 JSON，使用默认值
-        }
+        // 尝试解析 JSON 输入（使用 using 确保释放）
+        using var jsonDoc = TryParseJson(input);
 
         for (int i = 0; i < methodParams.Length; i++)
         {
@@ -191,6 +193,21 @@ public class MethodTool : ITool
         }
 
         return args;
+    }
+
+    /// <summary>
+    /// 尝试解析 JSON，失败返回 null
+    /// </summary>
+    private static JsonDocument? TryParseJson(string input)
+    {
+        try
+        {
+            return JsonDocument.Parse(input);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>

@@ -7,7 +7,7 @@ using Dawning.Agents.Abstractions.Observability;
 /// <summary>
 /// Agent 遥测提供者
 /// </summary>
-public class AgentTelemetry : IDisposable
+public sealed class AgentTelemetry : IDisposable
 {
     private readonly TelemetryConfig _config;
     private readonly ActivitySource _activitySource;

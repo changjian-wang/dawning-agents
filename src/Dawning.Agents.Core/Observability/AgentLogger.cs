@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Agent 结构化日志器
 /// </summary>
-public class AgentLogger
+public sealed class AgentLogger
 {
     private readonly ILogger _logger;
     private readonly string _agentName;

@@ -10,7 +10,7 @@ namespace Dawning.Agents.Core.Telemetry;
 /// 线程安全的内存实现，适用于单进程场景。
 /// 对于分布式场景，可以实现基于 Redis 或数据库的追踪器。
 /// </remarks>
-public class InMemoryTokenUsageTracker : ITokenUsageTracker
+public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
 {
     private readonly ConcurrentBag<TokenUsageRecord> _records = [];
     private int _totalPromptTokens;

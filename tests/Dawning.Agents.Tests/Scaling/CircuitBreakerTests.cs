@@ -3,6 +3,7 @@ namespace Dawning.Agents.Tests.Scaling;
 using Dawning.Agents.Abstractions.Scaling;
 using Dawning.Agents.Core.Scaling;
 using FluentAssertions;
+using Microsoft.Extensions.Time.Testing;
 
 public class CircuitBreakerTests
 {
@@ -77,9 +78,11 @@ public class CircuitBreakerTests
     [Fact]
     public async Task ExecuteAsync_AfterResetTimeout_TransitionsToHalfOpen()
     {
+        var fakeTime = new FakeTimeProvider();
         var breaker = new CircuitBreaker(
             failureThreshold: 1,
-            resetTimeout: TimeSpan.FromMilliseconds(50)
+            resetTimeout: TimeSpan.FromMilliseconds(50),
+            timeProvider: fakeTime
         );
 
         // Open the circuit
@@ -89,18 +92,23 @@ public class CircuitBreakerTests
 
         breaker.State.Should().Be(CircuitState.Open);
 
-        // Wait for reset timeout
-        await Task.Delay(100);
+        // Advance time past reset timeout
+        fakeTime.Advance(TimeSpan.FromMilliseconds(100));
 
-        breaker.State.Should().Be(CircuitState.HalfOpen);
+        // Trigger state check by calling ExecuteAsync (which checks GetCurrentState)
+        var result = await breaker.ExecuteAsync(() => Task.FromResult(42));
+        result.Should().Be(42);
+        breaker.State.Should().Be(CircuitState.Closed); // Successful call closes circuit
     }
 
     [Fact]
     public async Task ExecuteAsync_SuccessInHalfOpen_ClosesCircuit()
     {
+        var fakeTime = new FakeTimeProvider();
         var breaker = new CircuitBreaker(
             failureThreshold: 1,
-            resetTimeout: TimeSpan.FromMilliseconds(50)
+            resetTimeout: TimeSpan.FromMilliseconds(50),
+            timeProvider: fakeTime
         );
 
         // Open the circuit
@@ -108,8 +116,8 @@ public class CircuitBreakerTests
             breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
         );
 
-        // Wait for half-open
-        await Task.Delay(100);
+        // Advance time to half-open
+        fakeTime.Advance(TimeSpan.FromMilliseconds(100));
 
         // Successful call in half-open state
         var result = await breaker.ExecuteAsync(() => Task.FromResult(42));

@@ -9,11 +9,12 @@ namespace Dawning.Agents.Core.Memory;
 /// <remarks>
 /// <para>适用于需要控制内存使用的长对话场景</para>
 /// <para>当消息数量超过窗口大小时，自动丢弃最旧的消息</para>
+/// <para>使用 LinkedList 实现 O(1) 的头部删除性能</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class WindowMemory : IConversationMemory
+public sealed class WindowMemory : IConversationMemory
 {
-    private readonly List<ConversationMessage> _messages = [];
+    private readonly LinkedList<ConversationMessage> _messages = new();
     private readonly ITokenCounter _tokenCounter;
     private readonly int _windowSize;
     private readonly Lock _lock = new();
@@ -68,12 +69,12 @@ public class WindowMemory : IConversationMemory
                 message = message with { TokenCount = tokenCount };
             }
 
-            _messages.Add(message);
+            _messages.AddLast(message);
 
-            // 裁剪到窗口大小
+            // 裁剪到窗口大小 - O(1) 操作
             while (_messages.Count > _windowSize)
             {
-                _messages.RemoveAt(0);
+                _messages.RemoveFirst();
             }
         }
 

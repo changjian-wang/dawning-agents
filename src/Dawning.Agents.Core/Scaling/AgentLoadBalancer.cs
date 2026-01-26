@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// Agent 负载均衡器实现
 /// </summary>
-public class AgentLoadBalancer : IAgentLoadBalancer
+public sealed class AgentLoadBalancer : IAgentLoadBalancer
 {
     private readonly List<AgentInstance> _instances = [];
     private readonly object _lock = new();

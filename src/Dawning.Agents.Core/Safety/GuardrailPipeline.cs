@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Dawning.Agents.Abstractions.Safety;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5,12 +6,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 护栏管道 - 管理多个护栏的执行
+/// 护栏管道 - 管理多个护栏的执行（线程安全）
 /// </summary>
-public class GuardrailPipeline : IGuardrailPipeline
+public sealed class GuardrailPipeline : IGuardrailPipeline
 {
-    private readonly List<IInputGuardrail> _inputGuardrails = [];
-    private readonly List<IOutputGuardrail> _outputGuardrails = [];
+    private ImmutableList<IInputGuardrail> _inputGuardrails = ImmutableList<IInputGuardrail>.Empty;
+    private ImmutableList<IOutputGuardrail> _outputGuardrails = ImmutableList<IOutputGuardrail>.Empty;
     private readonly ILogger<GuardrailPipeline> _logger;
 
     public GuardrailPipeline(ILogger<GuardrailPipeline>? logger = null)
@@ -28,7 +29,7 @@ public class GuardrailPipeline : IGuardrailPipeline
     public IGuardrailPipeline AddInputGuardrail(IInputGuardrail guardrail)
     {
         ArgumentNullException.ThrowIfNull(guardrail);
-        _inputGuardrails.Add(guardrail);
+        ImmutableInterlocked.Update(ref _inputGuardrails, list => list.Add(guardrail));
         _logger.LogDebug("添加输入护栏: {GuardrailName}", guardrail.Name);
         return this;
     }
@@ -37,7 +38,7 @@ public class GuardrailPipeline : IGuardrailPipeline
     public IGuardrailPipeline AddOutputGuardrail(IOutputGuardrail guardrail)
     {
         ArgumentNullException.ThrowIfNull(guardrail);
-        _outputGuardrails.Add(guardrail);
+        ImmutableInterlocked.Update(ref _outputGuardrails, list => list.Add(guardrail));
         _logger.LogDebug("添加输出护栏: {GuardrailName}", guardrail.Name);
         return this;
     }
@@ -83,10 +84,7 @@ public class GuardrailPipeline : IGuardrailPipeline
                 continue;
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             _logger.LogDebug("{Phase}护栏检查: {GuardrailName}", phase, guardrail.Name);
 

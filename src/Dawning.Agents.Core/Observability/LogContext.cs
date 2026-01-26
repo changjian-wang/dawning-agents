@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 /// <summary>
 /// 为日志提供上下文信息
 /// </summary>
-public class LogContext : IDisposable
+public sealed class LogContext : IDisposable
 {
     private static readonly AsyncLocal<LogContext?> s_current = new();
     private readonly ConcurrentDictionary<string, object> _properties = new();

@@ -7,26 +7,29 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// 熔断器实现
 /// </summary>
-public class CircuitBreaker : ICircuitBreaker
+public sealed class CircuitBreaker : ICircuitBreaker
 {
     private readonly int _failureThreshold;
     private readonly TimeSpan _resetTimeout;
     private readonly ILogger<CircuitBreaker> _logger;
+    private readonly TimeProvider _timeProvider;
 
     private int _failureCount;
-    private DateTime _lastFailureTime;
+    private DateTimeOffset _lastFailureTime;
     private CircuitState _state = CircuitState.Closed;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     public CircuitBreaker(
         int failureThreshold = 5,
         TimeSpan? resetTimeout = null,
-        ILogger<CircuitBreaker>? logger = null
+        ILogger<CircuitBreaker>? logger = null,
+        TimeProvider? timeProvider = null
     )
     {
         _failureThreshold = failureThreshold;
         _resetTimeout = resetTimeout ?? TimeSpan.FromSeconds(30);
         _logger = logger ?? NullLogger<CircuitBreaker>.Instance;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <inheritdoc />
@@ -36,14 +39,6 @@ public class CircuitBreaker : ICircuitBreaker
         {
             lock (_lock)
             {
-                if (
-                    _state == CircuitState.Open
-                    && DateTime.UtcNow - _lastFailureTime > _resetTimeout
-                )
-                {
-                    _state = CircuitState.HalfOpen;
-                    _logger.LogInformation("熔断器转换为半开状态");
-                }
                 return _state;
             }
         }
@@ -67,7 +62,8 @@ public class CircuitBreaker : ICircuitBreaker
         CancellationToken cancellationToken = default
     )
     {
-        if (State == CircuitState.Open)
+        var currentState = GetCurrentState();
+        if (currentState == CircuitState.Open)
         {
             _logger.LogWarning("熔断器处于打开状态，拒绝请求");
             throw new CircuitBreakerOpenException("熔断器处于打开状态");
@@ -78,6 +74,11 @@ public class CircuitBreaker : ICircuitBreaker
             var result = await action();
             OnSuccess();
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消操作不计入失败
+            throw;
         }
         catch (Exception ex) when (ex is not CircuitBreakerOpenException)
         {
@@ -110,6 +111,25 @@ public class CircuitBreaker : ICircuitBreaker
         }
     }
 
+    /// <summary>
+    /// 获取当前状态（检查是否需要从 Open 转换为 HalfOpen）
+    /// </summary>
+    private CircuitState GetCurrentState()
+    {
+        lock (_lock)
+        {
+            if (
+                _state == CircuitState.Open
+                && _timeProvider.GetUtcNow() - _lastFailureTime > _resetTimeout
+            )
+            {
+                _state = CircuitState.HalfOpen;
+                _logger.LogInformation("熔断器转换为半开状态");
+            }
+            return _state;
+        }
+    }
+
     private void OnSuccess()
     {
         lock (_lock)
@@ -128,7 +148,7 @@ public class CircuitBreaker : ICircuitBreaker
         lock (_lock)
         {
             _failureCount++;
-            _lastFailureTime = DateTime.UtcNow;
+            _lastFailureTime = _timeProvider.GetUtcNow();
 
             if (_failureCount >= _failureThreshold)
             {
@@ -142,7 +162,7 @@ public class CircuitBreaker : ICircuitBreaker
 /// <summary>
 /// 熔断器打开异常
 /// </summary>
-public class CircuitBreakerOpenException : Exception
+public sealed class CircuitBreakerOpenException : Exception
 {
     public CircuitBreakerOpenException(string message)
         : base(message) { }

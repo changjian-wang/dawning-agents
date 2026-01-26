@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 长度限制护栏 - 检查输入/输出的长度
 /// </summary>
-public class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
+public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
 {
     private readonly int _maxLength;
     private readonly bool _isInputGuardrail;

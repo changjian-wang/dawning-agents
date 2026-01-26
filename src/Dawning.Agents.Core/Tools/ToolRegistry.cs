@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5,14 +6,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 工具注册表实现
+/// 工具注册表实现（线程安全）
 /// </summary>
-public class ToolRegistry : IToolRegistry
+public sealed class ToolRegistry : IToolRegistry
 {
-    private readonly Dictionary<string, ITool> _tools = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, IToolSet> _toolSets = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<IVirtualTool> _virtualTools = [];
+    private readonly ConcurrentDictionary<string, ITool> _tools = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IToolSet> _toolSets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentBag<IVirtualTool> _virtualTools = [];
     private readonly ILogger<ToolRegistry> _logger;
+
+    // 缓存，注册/移除工具时失效
+    private volatile IReadOnlyList<ITool>? _cachedAllTools;
+    private volatile IReadOnlyList<IToolSet>? _cachedAllToolSets;
+    private volatile IReadOnlyList<string>? _cachedCategories;
 
     public ToolRegistry(ILogger<ToolRegistry>? logger = null)
     {
@@ -33,6 +39,7 @@ public class ToolRegistry : IToolRegistry
         }
 
         _tools[tool.Name] = tool;
+        InvalidateCache();
         _logger.LogDebug("已注册工具: {Name} - {Description}", tool.Name, tool.Description);
     }
 
@@ -48,9 +55,12 @@ public class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 获取所有已注册的工具
+    /// 获取所有已注册的工具（带缓存）
     /// </summary>
-    public IReadOnlyList<ITool> GetAllTools() => _tools.Values.ToList().AsReadOnly();
+    public IReadOnlyList<ITool> GetAllTools()
+    {
+        return _cachedAllTools ??= _tools.Values.ToList().AsReadOnly();
+    }
 
     /// <summary>
     /// 检查工具是否已注册
@@ -84,12 +94,12 @@ public class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 获取所有工具分类
+    /// 获取所有工具分类（带缓存）
     /// </summary>
     /// <returns>分类名称列表</returns>
     public IReadOnlyList<string> GetCategories()
     {
-        return _tools
+        return _cachedCategories ??= _tools
             .Values.Where(t => !string.IsNullOrWhiteSpace(t.Category))
             .Select(t => t.Category!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -118,6 +128,7 @@ public class ToolRegistry : IToolRegistry
             Register(tool);
         }
 
+        InvalidateCache();
         _logger.LogDebug(
             "已注册工具集: {Name} - {Description} ({Count} 个工具)",
             toolSet.Name,
@@ -138,9 +149,12 @@ public class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 获取所有已注册的工具集
+    /// 获取所有已注册的工具集（带缓存）
     /// </summary>
-    public IReadOnlyList<IToolSet> GetAllToolSets() => _toolSets.Values.ToList().AsReadOnly();
+    public IReadOnlyList<IToolSet> GetAllToolSets()
+    {
+        return _cachedAllToolSets ??= _toolSets.Values.ToList().AsReadOnly();
+    }
 
     /// <summary>
     /// 注册虚拟工具
@@ -167,7 +181,7 @@ public class ToolRegistry : IToolRegistry
     /// <summary>
     /// 获取所有虚拟工具
     /// </summary>
-    public IReadOnlyList<IVirtualTool> GetVirtualTools() => _virtualTools.AsReadOnly();
+    public IReadOnlyList<IVirtualTool> GetVirtualTools() => _virtualTools.ToList().AsReadOnly();
 
     /// <summary>
     /// 从类型扫描并注册所有 [FunctionTool] 标记的方法
@@ -196,5 +210,15 @@ public class ToolRegistry : IToolRegistry
         {
             Register(tool);
         }
+    }
+
+    /// <summary>
+    /// 使缓存失效
+    /// </summary>
+    private void InvalidateCache()
+    {
+        _cachedAllTools = null;
+        _cachedAllToolSets = null;
+        _cachedCategories = null;
     }
 }

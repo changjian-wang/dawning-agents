@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// 用完整可观测性包装 Agent
 /// </summary>
-public class ObservableAgent : IAgent
+public sealed class ObservableAgent : IAgent
 {
     private readonly IAgent _innerAgent;
     private readonly AgentTelemetry _telemetry;

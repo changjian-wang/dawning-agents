@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.RAG;
 /// <summary>
 /// 向量检索器 - 结合 Embedding 和 VectorStore 提供语义搜索
 /// </summary>
-public class VectorRetriever : IRetriever
+public sealed class VectorRetriever : IRetriever
 {
     private readonly IEmbeddingProvider _embeddingProvider;
     private readonly IVectorStore _vectorStore;

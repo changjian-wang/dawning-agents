@@ -13,7 +13,7 @@ namespace Dawning.Agents.Core.RAG;
 /// 1. 添加文档 → 自动分块 → 生成嵌入 → 存储
 /// 2. 查询 → 语义检索 → 返回相关内容
 /// </remarks>
-public class KnowledgeBase
+public sealed class KnowledgeBase
 {
     private readonly IEmbeddingProvider _embeddingProvider;
     private readonly IVectorStore _vectorStore;

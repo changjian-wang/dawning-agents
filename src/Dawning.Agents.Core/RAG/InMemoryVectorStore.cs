@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Numerics.Tensors;
 using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,8 +12,9 @@ namespace Dawning.Agents.Core.RAG;
 /// <remarks>
 /// 适用于小规模数据集或开发测试场景。
 /// 数据存储在内存中，重启后数据丢失。
+/// 使用 SIMD 加速的余弦相似度计算。
 /// </remarks>
-public class InMemoryVectorStore : IVectorStore
+public sealed class InMemoryVectorStore : IVectorStore
 {
     private readonly ConcurrentDictionary<string, DocumentChunk> _chunks = new();
     private readonly ILogger<InMemoryVectorStore> _logger;
@@ -165,38 +167,28 @@ public class InMemoryVectorStore : IVectorStore
     }
 
     /// <summary>
-    /// 计算余弦相似度
+    /// 计算余弦相似度（使用 SIMD 加速）
     /// </summary>
     /// <param name="a">向量 A</param>
     /// <param name="b">向量 B</param>
-    /// <returns>相似度 (0-1)</returns>
-    private static float CosineSimilarity(float[] a, float[] b)
+    /// <returns>相似度 (0-1)，归一化后的值</returns>
+    private static float CosineSimilarity(ReadOnlySpan<float> a, ReadOnlySpan<float> b)
     {
         if (a.Length != b.Length)
         {
             throw new ArgumentException("Vectors must have the same length");
         }
 
-        var dotProduct = 0f;
-        var normA = 0f;
-        var normB = 0f;
+        // 使用 System.Numerics.Tensors 的 SIMD 优化实现
+        var similarity = TensorPrimitives.CosineSimilarity(a, b);
 
-        for (var i = 0; i < a.Length; i++)
-        {
-            dotProduct += a[i] * b[i];
-            normA += a[i] * a[i];
-            normB += b[i] * b[i];
-        }
-
-        var denominator = MathF.Sqrt(normA) * MathF.Sqrt(normB);
-
-        if (denominator == 0)
+        // 处理 NaN（当向量为零向量时）
+        if (float.IsNaN(similarity))
         {
             return 0;
         }
 
         // 余弦相似度范围是 [-1, 1]，归一化到 [0, 1]
-        var similarity = dotProduct / denominator;
         return (similarity + 1) / 2;
     }
 }

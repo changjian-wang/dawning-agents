@@ -6,7 +6,7 @@ using Dawning.Agents.Abstractions.Observability;
 /// <summary>
 /// 分布式追踪器
 /// </summary>
-public class DistributedTracer
+public sealed class DistributedTracer
 {
     private readonly ActivitySource _source;
     private readonly TelemetryConfig _config;
