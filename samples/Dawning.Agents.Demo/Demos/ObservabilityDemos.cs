@@ -44,14 +44,35 @@ public static class ObservabilityDemos
         Console.WriteLine("  记录各种指标...\n");
 
         // 记录计数器
-        collector.IncrementCounter("agent.requests.total", tags: new Dictionary<string, string> { ["agent"] = "TestAgent" });
-        collector.IncrementCounter("agent.requests.total", tags: new Dictionary<string, string> { ["agent"] = "TestAgent" });
-        collector.IncrementCounter("agent.requests.total", tags: new Dictionary<string, string> { ["agent"] = "TestAgent" });
+        collector.IncrementCounter(
+            "agent.requests.total",
+            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
+        collector.IncrementCounter(
+            "agent.requests.total",
+            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
+        collector.IncrementCounter(
+            "agent.requests.total",
+            tags: new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
 
         // 记录直方图 (响应时间)
-        collector.RecordHistogram("agent.response_time_ms", 120, new Dictionary<string, string> { ["agent"] = "TestAgent" });
-        collector.RecordHistogram("agent.response_time_ms", 85, new Dictionary<string, string> { ["agent"] = "TestAgent" });
-        collector.RecordHistogram("agent.response_time_ms", 200, new Dictionary<string, string> { ["agent"] = "TestAgent" });
+        collector.RecordHistogram(
+            "agent.response_time_ms",
+            120,
+            new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
+        collector.RecordHistogram(
+            "agent.response_time_ms",
+            85,
+            new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
+        collector.RecordHistogram(
+            "agent.response_time_ms",
+            200,
+            new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
 
         // 设置仪表
         collector.SetGauge("agent.active_instances", 3);
@@ -67,7 +88,10 @@ public static class ObservabilityDemos
         Console.WriteLine($"    仪表数量: {snapshot.Gauges.Count}");
 
         // 显示具体值
-        var requestCount = collector.GetCounter("agent.requests.total", new Dictionary<string, string> { ["agent"] = "TestAgent" });
+        var requestCount = collector.GetCounter(
+            "agent.requests.total",
+            new Dictionary<string, string> { ["agent"] = "TestAgent" }
+        );
         var activeInstances = collector.GetGauge("agent.active_instances");
 
         Console.WriteLine($"\n    agent.requests.total: {requestCount}");

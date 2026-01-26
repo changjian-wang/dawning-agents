@@ -174,11 +174,7 @@ public class InMemoryMessageBus : IMessageBus
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug(
-            "发布事件 {EventType} 到主题 {Topic}",
-            message.EventType,
-            topic
-        );
+        _logger.LogDebug("发布事件 {EventType} 到主题 {Topic}", message.EventType, topic);
 
         if (_topicSubscribers.TryGetValue(topic, out var subscribers))
         {

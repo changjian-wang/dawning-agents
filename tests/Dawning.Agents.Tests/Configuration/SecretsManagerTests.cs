@@ -15,7 +15,11 @@ public class SecretsManagerTests
         // Arrange
         var manager = new EnvironmentSecretsManager();
         var testKey = GenerateTestKey();
-        Environment.SetEnvironmentVariable(testKey, "test-value", EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable(
+            testKey,
+            "test-value",
+            EnvironmentVariableTarget.Process
+        );
 
         try
         {
@@ -53,7 +57,10 @@ public class SecretsManagerTests
             await manager.SetSecretAsync(testKey, "new-value");
 
             // NormalizeEnvName 转大写，所以用大写 key 检查
-            Environment.GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process).Should().Be("new-value");
+            Environment
+                .GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process)
+                .Should()
+                .Be("new-value");
         }
         finally
         {
@@ -70,7 +77,10 @@ public class SecretsManagerTests
 
         await manager.DeleteSecretAsync(testKey);
 
-        Environment.GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process).Should().BeNull();
+        Environment
+            .GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process)
+            .Should()
+            .BeNull();
     }
 
     [Fact]

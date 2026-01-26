@@ -74,10 +74,7 @@ public static class SafetyDemos
         await Task.CompletedTask;
     }
 
-    private static string? DetectSensitiveData(
-        string text,
-        Dictionary<string, string> patterns
-    )
+    private static string? DetectSensitiveData(string text, Dictionary<string, string> patterns)
     {
         foreach (var (name, pattern) in patterns)
         {

@@ -51,7 +51,11 @@ public interface IMessageBus
     /// <param name="topic">主题名称</param>
     /// <param name="message">事件消息</param>
     /// <param name="cancellationToken">取消令牌</param>
-    Task PublishAsync(string topic, EventMessage message, CancellationToken cancellationToken = default);
+    Task PublishAsync(
+        string topic,
+        EventMessage message,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 请求/响应模式：发送请求并等待响应

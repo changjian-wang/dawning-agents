@@ -40,10 +40,34 @@ public static class HumanLoopDemos
         // 模拟不同类型的确认请求
         var requests = new[]
         {
-            new { Type = "Binary", Action = "DeleteFile", Desc = "删除 /tmp/test.txt", Risk = "High" },
-            new { Type = "MultiChoice", Action = "SelectModel", Desc = "选择 LLM 模型", Risk = "Low" },
-            new { Type = "FreeformInput", Action = "ProvideReason", Desc = "输入拒绝原因", Risk = "Medium" },
-            new { Type = "Review", Action = "ReviewCode", Desc = "审核生成的代码", Risk = "Medium" },
+            new
+            {
+                Type = "Binary",
+                Action = "DeleteFile",
+                Desc = "删除 /tmp/test.txt",
+                Risk = "High",
+            },
+            new
+            {
+                Type = "MultiChoice",
+                Action = "SelectModel",
+                Desc = "选择 LLM 模型",
+                Risk = "Low",
+            },
+            new
+            {
+                Type = "FreeformInput",
+                Action = "ProvideReason",
+                Desc = "输入拒绝原因",
+                Risk = "Medium",
+            },
+            new
+            {
+                Type = "Review",
+                Action = "ReviewCode",
+                Desc = "审核生成的代码",
+                Risk = "Medium",
+            },
         };
 
         foreach (var req in requests)
@@ -74,7 +98,7 @@ public static class HumanLoopDemos
 
         foreach (var risk in riskLevels)
         {
-            Console.WriteLine($"  {risk.Icon} {risk.Level,-10} {risk.Policy}");
+            Console.WriteLine($"  {risk.Icon} {risk.Level, -10} {risk.Policy}");
         }
 
         Console.WriteLine("\n  示例场景:");

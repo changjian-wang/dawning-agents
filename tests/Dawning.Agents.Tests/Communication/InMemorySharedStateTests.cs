@@ -38,7 +38,12 @@ public class InMemorySharedStateTests
     {
         var state = new InMemorySharedState();
 
-        var data = new TestData { Id = 1, Name = "test", IsActive = true };
+        var data = new TestData
+        {
+            Id = 1,
+            Name = "test",
+            IsActive = true,
+        };
         await state.SetAsync("data", data);
 
         var value = await state.GetAsync<TestData>("data");
@@ -186,11 +191,14 @@ public class InMemorySharedStateTests
         string? changedKey = null;
         object? changedValue = null;
 
-        state.OnChange("watched-key", (key, value) =>
-        {
-            changedKey = key;
-            changedValue = value;
-        });
+        state.OnChange(
+            "watched-key",
+            (key, value) =>
+            {
+                changedKey = key;
+                changedValue = value;
+            }
+        );
 
         await state.SetAsync("watched-key", "new-value");
 
@@ -207,11 +215,14 @@ public class InMemorySharedStateTests
         string? changedKey = null;
         object? changedValue = "not-null";
 
-        state.OnChange("key", (key, value) =>
-        {
-            changedKey = key;
-            changedValue = value;
-        });
+        state.OnChange(
+            "key",
+            (key, value) =>
+            {
+                changedKey = key;
+                changedValue = value;
+            }
+        );
 
         await state.DeleteAsync("key");
 

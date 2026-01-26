@@ -79,9 +79,27 @@ public static class ScalingDemos
         // 模拟实例
         var instances = new[]
         {
-            new { Id = "instance-1", Endpoint = "http://localhost:8001", Load = 5, Healthy = true },
-            new { Id = "instance-2", Endpoint = "http://localhost:8002", Load = 2, Healthy = true },
-            new { Id = "instance-3", Endpoint = "http://localhost:8003", Load = 8, Healthy = false },
+            new
+            {
+                Id = "instance-1",
+                Endpoint = "http://localhost:8001",
+                Load = 5,
+                Healthy = true,
+            },
+            new
+            {
+                Id = "instance-2",
+                Endpoint = "http://localhost:8002",
+                Load = 2,
+                Healthy = true,
+            },
+            new
+            {
+                Id = "instance-3",
+                Endpoint = "http://localhost:8003",
+                Load = 8,
+                Healthy = false,
+            },
         };
 
         Console.WriteLine("  已注册实例:");
@@ -131,7 +149,7 @@ public static class ScalingDemos
         Console.WriteLine("  状态变化模拟:");
         foreach (var s in states)
         {
-            Console.WriteLine($"    {s.Icon} {s.Action,-20} → {s.State}");
+            Console.WriteLine($"    {s.Icon} {s.Action, -20} → {s.State}");
         }
 
         Console.WriteLine("\n  熔断器用途:");
