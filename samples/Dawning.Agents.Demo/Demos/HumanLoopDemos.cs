@@ -1,8 +1,6 @@
-using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.HumanLoop;
-using Dawning.Agents.Abstractions.LLM;
-using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Demo.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dawning.Agents.Demo.Demos;
 
@@ -14,77 +12,203 @@ public static class HumanLoopDemos
     /// <summary>
     /// 运行 Human-in-the-Loop 演示
     /// </summary>
-    public static async Task RunHumanLoopDemo(ILLMProvider provider)
+    public static async Task RunHumanLoopDemo(IServiceProvider services)
     {
         ConsoleHelper.PrintSection("Human-in-the-Loop 演示");
         Console.WriteLine("演示人工审批、交互式确认、升级处理等功能\n");
 
-        // 1. 确认请求模型演示
-        await RunConfirmationModelDemo();
+        var handler = services.GetRequiredService<IHumanInteractionHandler>();
 
-        // 2. 风险级别演示
-        await RunRiskLevelDemo();
+        // 1. Binary 确认演示
+        await RunBinaryConfirmationDemo(handler);
 
-        // 3. 审批流程说明
-        PrintApprovalWorkflow();
+        // 2. MultiChoice 确认演示
+        await RunMultiChoiceDemo(handler);
+
+        // 3. FreeformInput 演示
+        await RunFreeformInputDemo(handler);
+
+        // 4. Review 确认演示
+        await RunReviewDemo(handler);
+
+        // 5. 风险级别说明
+        PrintRiskLevelInfo();
 
         ConsoleHelper.PrintSuccess("\nHuman-in-the-Loop 演示完成！");
     }
 
-    private static async Task RunConfirmationModelDemo()
+    private static async Task RunBinaryConfirmationDemo(IHumanInteractionHandler handler)
     {
-        ConsoleHelper.PrintDivider("1. 确认请求模型 (ConfirmationRequest)");
+        ConsoleHelper.PrintDivider("1. Binary 确认 (是/否)");
 
-        Console.WriteLine("  Human-in-the-Loop 系统使用结构化的确认请求:\n");
-
-        // 模拟不同类型的确认请求
-        var requests = new[]
+        var request = new ConfirmationRequest
         {
-            new
+            Action = "DeleteFile",
+            Description = "确认删除文件 /tmp/test.txt？此操作不可恢复。",
+            Type = ConfirmationType.Binary,
+            RiskLevel = RiskLevel.High,
+            Context = new Dictionary<string, object>
             {
-                Type = "Binary",
-                Action = "DeleteFile",
-                Desc = "删除 /tmp/test.txt",
-                Risk = "High",
-            },
-            new
-            {
-                Type = "MultiChoice",
-                Action = "SelectModel",
-                Desc = "选择 LLM 模型",
-                Risk = "Low",
-            },
-            new
-            {
-                Type = "FreeformInput",
-                Action = "ProvideReason",
-                Desc = "输入拒绝原因",
-                Risk = "Medium",
-            },
-            new
-            {
-                Type = "Review",
-                Action = "ReviewCode",
-                Desc = "审核生成的代码",
-                Risk = "Medium",
+                ["文件路径"] = "/tmp/test.txt",
+                ["文件大小"] = "1.2 MB",
+                ["最后修改"] = "2026-01-26 10:30:00",
             },
         };
 
-        foreach (var req in requests)
+        Console.WriteLine("  发送 Binary 类型确认请求...\n");
+
+        var response = await handler.RequestConfirmationAsync(request);
+
+        Console.WriteLine();
+        var isApproved = response.SelectedOption.Equals("yes", StringComparison.OrdinalIgnoreCase)
+            || response.SelectedOption.Equals("approve", StringComparison.OrdinalIgnoreCase)
+            || response.SelectedOption.Equals("y", StringComparison.OrdinalIgnoreCase);
+
+        if (isApproved)
         {
-            Console.WriteLine($"  📋 {req.Type} 类型:");
-            Console.WriteLine($"     操作: {req.Action}");
-            Console.WriteLine($"     描述: {req.Desc}");
-            Console.WriteLine($"     风险: {req.Risk}");
-            Console.WriteLine();
+            ConsoleHelper.PrintSuccess("  ✅ 用户批准，可以执行删除操作");
+        }
+        else
+        {
+            ConsoleHelper.PrintWarning($"  ❌ 用户拒绝: {response.Reason ?? "无理由"}");
         }
 
-        await Task.CompletedTask;
+        Console.WriteLine();
     }
 
-    private static async Task RunRiskLevelDemo()
+    private static async Task RunMultiChoiceDemo(IHumanInteractionHandler handler)
     {
-        ConsoleHelper.PrintDivider("2. 风险级别策略");
+        ConsoleHelper.PrintDivider("2. MultiChoice 确认 (多选一)");
+
+        var request = new ConfirmationRequest
+        {
+            Action = "SelectModel",
+            Description = "请选择要使用的 LLM 模型：",
+            Type = ConfirmationType.MultiChoice,
+            RiskLevel = RiskLevel.Low,
+            Options =
+            [
+                new ConfirmationOption
+                {
+                    Id = "fast",
+                    Label = "qwen2.5:0.5b (快速)",
+                    IsDefault = true,
+                },
+                new ConfirmationOption { Id = "balanced", Label = "qwen2.5:7b (平衡)" },
+                new ConfirmationOption { Id = "quality", Label = "qwen2.5:72b (高质量)" },
+            ],
+        };
+
+        Console.WriteLine("  发送 MultiChoice 类型确认请求...\n");
+
+        var response = await handler.RequestConfirmationAsync(request);
+
+        Console.WriteLine();
+        if (!string.IsNullOrWhiteSpace(response.SelectedOption))
+        {
+            ConsoleHelper.PrintSuccess($"  ✅ 用户选择: {response.SelectedOption}");
+        }
+        else
+        {
+            ConsoleHelper.PrintWarning("  ❌ 用户取消选择");
+        }
+
+        Console.WriteLine();
+    }
+
+    private static async Task RunFreeformInputDemo(IHumanInteractionHandler handler)
+    {
+        ConsoleHelper.PrintDivider("3. FreeformInput 确认 (自由输入)");
+
+        var request = new ConfirmationRequest
+        {
+            Action = "ProvideReason",
+            Description = "请输入拒绝此操作的原因：",
+            Type = ConfirmationType.FreeformInput,
+            RiskLevel = RiskLevel.Medium,
+        };
+
+        Console.WriteLine("  发送 FreeformInput 类型确认请求...\n");
+
+        var response = await handler.RequestConfirmationAsync(request);
+
+        Console.WriteLine();
+        if (!string.IsNullOrWhiteSpace(response.FreeformInput))
+        {
+            ConsoleHelper.PrintSuccess($"  📝 用户输入: {response.FreeformInput}");
+        }
+        else
+        {
+            ConsoleHelper.PrintWarning("  ❌ 用户未提供输入");
+        }
+
+        Console.WriteLine();
+    }
+
+    private static async Task RunReviewDemo(IHumanInteractionHandler handler)
+    {
+        ConsoleHelper.PrintDivider("4. Review 确认 (审核内容)");
+
+        var codeToReview = """
+            public class Calculator
+            {
+                public int Add(int a, int b) => a + b;
+                public int Subtract(int a, int b) => a - b;
+            }
+            """;
+
+        var request = new ConfirmationRequest
+        {
+            Action = "ReviewCode",
+            Description = codeToReview,
+            Type = ConfirmationType.Review,
+            RiskLevel = RiskLevel.Medium,
+            Options =
+            [
+                new ConfirmationOption { Id = "approve", Label = "批准" },
+                new ConfirmationOption { Id = "modify", Label = "修改后批准" },
+                new ConfirmationOption
+                {
+                    Id = "reject",
+                    Label = "拒绝",
+                    IsDangerous = true,
+                },
+            ],
+        };
+
+        Console.WriteLine("  发送 Review 类型确认请求（审核代码）...\n");
+
+        var response = await handler.RequestConfirmationAsync(request);
+
+        Console.WriteLine();
+        var isApproved = response.SelectedOption.Equals(
+                "approve",
+                StringComparison.OrdinalIgnoreCase
+            ) || response.SelectedOption.Equals("modify", StringComparison.OrdinalIgnoreCase);
+
+        if (isApproved)
+        {
+            if (!string.IsNullOrWhiteSpace(response.ModifiedContent))
+            {
+                ConsoleHelper.PrintSuccess("  ✅ 用户批准（有修改）:");
+                Console.WriteLine($"  {response.ModifiedContent}");
+            }
+            else
+            {
+                ConsoleHelper.PrintSuccess("  ✅ 用户批准原内容");
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintWarning($"  ❌ 用户拒绝: {response.Reason ?? "无理由"}");
+        }
+
+        Console.WriteLine();
+    }
+
+    private static void PrintRiskLevelInfo()
+    {
+        ConsoleHelper.PrintDivider("5. 风险级别说明");
 
         Console.WriteLine("  不同风险级别的处理策略:\n");
 
@@ -98,59 +222,13 @@ public static class HumanLoopDemos
 
         foreach (var risk in riskLevels)
         {
-            Console.WriteLine($"  {risk.Icon} {risk.Level, -10} {risk.Policy}");
+            Console.WriteLine($"  {risk.Icon} {risk.Level,-10} {risk.Policy}");
         }
 
         Console.WriteLine("\n  示例场景:");
-        Console.WriteLine("    Low:      读取配置文件");
-        Console.WriteLine("    Medium:   修改用户设置");
-        Console.WriteLine("    High:     删除用户数据");
-        Console.WriteLine("    Critical: 部署到生产环境");
-
-        Console.WriteLine();
-        await Task.CompletedTask;
-    }
-
-    private static void PrintApprovalWorkflow()
-    {
-        ConsoleHelper.PrintDivider("3. 审批工作流说明");
-
-        Console.WriteLine(
-            """
-              HumanInLoopAgent 工作流程:
-
-              1. Agent 执行请求
-                 │
-                 ▼
-              2. 检查操作风险级别
-                 │
-                 ├─ Low → 自动批准 (如果启用)
-                 │
-                 └─ Medium/High/Critical
-                    │
-                    ▼
-              3. 创建 ConfirmationRequest
-                 │
-                 ▼
-              4. 调用 IHumanInteractionHandler
-                 │
-                 ├─ ConsoleInteractionHandler: 命令行交互
-                 ├─ AsyncCallbackHandler: 异步回调
-                 └─ 自定义实现: Web API, Slack, Email 等
-                    │
-                    ▼
-              5. 等待人工响应 (带超时)
-                 │
-                 ├─ 批准 → 继续执行
-                 ├─ 拒绝 → 返回拒绝结果
-                 └─ 超时 → 根据配置处理
-
-              关键接口:
-              - IHumanInteractionHandler: 人机交互处理器
-              - ApprovalWorkflow: 审批流程管理
-              - HumanInLoopAgent: 包装 Agent 添加人工干预
-
-            """
-        );
+        Console.WriteLine("    Low:      读取配置文件、查询数据");
+        Console.WriteLine("    Medium:   修改用户设置、发送通知");
+        Console.WriteLine("    High:     删除用户数据、执行系统命令");
+        Console.WriteLine("    Critical: 部署到生产环境、修改权限");
     }
 }

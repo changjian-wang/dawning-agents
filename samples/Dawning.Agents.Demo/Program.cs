@@ -1,3 +1,4 @@
+using System.Text;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
@@ -5,6 +6,7 @@ using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Memory;
+using Dawning.Agents.Core.HumanLoop;
 using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Demo;
@@ -13,6 +15,9 @@ using Dawning.Agents.Demo.Helpers;
 using Dawning.Agents.Demo.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 // 解析命令行参数
 var (showHelp, runMode) = ParseArgs(args);
@@ -44,6 +49,13 @@ builder.Services.AddPackageManagerTools(options =>
 
 // 注册 Memory 服务
 builder.Services.AddWindowMemory(windowSize: 6);
+
+// 注册 Human-in-the-Loop 服务
+builder.Services.AddHumanLoop(options =>
+{
+    options.DefaultTimeout = TimeSpan.FromMinutes(5);
+    options.RequireApprovalForMediumRisk = true;
+});
 
 builder.Services.AddReActAgent(options =>
 {
@@ -101,7 +113,12 @@ Console.WriteLine("\n再见！");
 // Demo 运行方法
 // ============================================================================
 
-static async Task RunDemo(RunMode mode, ILLMProvider provider, IAgent agent, IServiceProvider services)
+static async Task RunDemo(
+    RunMode mode,
+    ILLMProvider provider,
+    IAgent agent,
+    IServiceProvider services
+)
 {
     switch (mode)
     {
@@ -140,7 +157,7 @@ static async Task RunDemo(RunMode mode, ILLMProvider provider, IAgent agent, ISe
             await SafetyDemos.RunSafetyDemo(provider);
             break;
         case RunMode.HumanLoop:
-            await HumanLoopDemos.RunHumanLoopDemo(provider);
+            await HumanLoopDemos.RunHumanLoopDemo(services);
             break;
         case RunMode.Observability:
             await ObservabilityDemos.RunObservabilityDemo(provider);
