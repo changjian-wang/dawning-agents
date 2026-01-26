@@ -1,0 +1,202 @@
+Summary
+  Generated on: 1/26/2026 - 8:39:53 PM
+  Coverage date: 1/26/2026 - 8:39:44 PM
+  Parser: Cobertura
+  Assemblies: 4
+  Classes: 174
+  Files: 124
+  Line coverage: 67.7%
+  Covered lines: 7235
+  Uncovered lines: 3443
+  Coverable lines: 10678
+  Total lines: 21233
+  Branch coverage: 56.6% (1590 of 2805)
+  Covered branches: 1590
+  Total branches: 2805
+  Method coverage: 81.8% (1035 of 1265)
+  Full method coverage: 72% (911 of 1265)
+  Covered methods: 1035
+  Fully covered methods: 911
+  Total methods: 1265
+
+Dawning.Agents.Abstractions                                                                                                                          90.4%
+  Dawning.Agents.Abstractions.Agent.AgentContext                                                                                                      100%
+  Dawning.Agents.Abstractions.Agent.AgentOptions                                                                                                      100%
+  Dawning.Agents.Abstractions.Agent.AgentResponse                                                                                                     100%
+  Dawning.Agents.Abstractions.Agent.AgentStep                                                                                                         100%
+  Dawning.Agents.Abstractions.Communication.AgentMessage                                                                                              100%
+  Dawning.Agents.Abstractions.Communication.EventMessage                                                                                              100%
+  Dawning.Agents.Abstractions.Communication.ResponseMessage                                                                                           100%
+  Dawning.Agents.Abstractions.Communication.StatusMessage                                                                                             100%
+  Dawning.Agents.Abstractions.Communication.TaskMessage                                                                                               100%
+  Dawning.Agents.Abstractions.Configuration.AgentDeploymentOptions                                                                                   78.9%
+  Dawning.Agents.Abstractions.Configuration.CacheOptions                                                                                               75%
+  Dawning.Agents.Abstractions.Configuration.LLMDeploymentOptions                                                                                     71.4%
+  Dawning.Agents.Abstractions.Handoff.AgentResponseHandoffExtensions                                                                                 90.4%
+  Dawning.Agents.Abstractions.Handoff.HandoffOptions                                                                                                  100%
+  Dawning.Agents.Abstractions.Handoff.HandoffRecord                                                                                                   100%
+  Dawning.Agents.Abstractions.Handoff.HandoffRequest                                                                                                  100%
+  Dawning.Agents.Abstractions.Handoff.HandoffResult                                                                                                   100%
+  Dawning.Agents.Abstractions.HumanLoop.ApprovalConfig                                                                                                100%
+  Dawning.Agents.Abstractions.HumanLoop.ApprovalResult                                                                                                100%
+  Dawning.Agents.Abstractions.HumanLoop.ConfirmationOption                                                                                            100%
+  Dawning.Agents.Abstractions.HumanLoop.ConfirmationRequest                                                                                           100%
+  Dawning.Agents.Abstractions.HumanLoop.ConfirmationResponse                                                                                          100%
+  Dawning.Agents.Abstractions.HumanLoop.EscalationRequest                                                                                             100%
+  Dawning.Agents.Abstractions.HumanLoop.EscalationResult                                                                                              100%
+  Dawning.Agents.Abstractions.HumanLoop.HumanLoopOptions                                                                                              100%
+  Dawning.Agents.Abstractions.LLM.ChatCompletionOptions                                                                                               100%
+  Dawning.Agents.Abstractions.LLM.ChatCompletionResponse                                                                                              100%
+  Dawning.Agents.Abstractions.LLM.ChatMessage                                                                                                         100%
+  Dawning.Agents.Abstractions.LLM.LLMOptions                                                                                                         73.9%
+  Dawning.Agents.Abstractions.Memory.ConversationMessage                                                                                             83.3%
+  Dawning.Agents.Abstractions.Memory.MemoryOptions                                                                                                      0%
+  Dawning.Agents.Abstractions.Observability.ComponentHealth                                                                                           100%
+  Dawning.Agents.Abstractions.Observability.HealthCheckResult                                                                                         100%
+  Dawning.Agents.Abstractions.Observability.MetricData                                                                                                100%
+  Dawning.Agents.Abstractions.Observability.MetricsSnapshot                                                                                           100%
+  Dawning.Agents.Abstractions.Observability.TelemetryConfig                                                                                           100%
+  Dawning.Agents.Abstractions.Observability.TraceContext                                                                                              100%
+  Dawning.Agents.Abstractions.Orchestration.AgentExecutionRecord                                                                                      100%
+  Dawning.Agents.Abstractions.Orchestration.OrchestrationContext                                                                                      100%
+  Dawning.Agents.Abstractions.Orchestration.OrchestrationResult                                                                                       100%
+  Dawning.Agents.Abstractions.Orchestration.OrchestratorOptions                                                                                       100%
+  Dawning.Agents.Abstractions.RAG.DocumentChunk                                                                                                       100%
+  Dawning.Agents.Abstractions.RAG.RAGOptions                                                                                                         29.1%
+  Dawning.Agents.Abstractions.RAG.SearchResult                                                                                                        100%
+  Dawning.Agents.Abstractions.Safety.AuditEntry                                                                                                      86.6%
+  Dawning.Agents.Abstractions.Safety.AuditFilter                                                                                                      100%
+  Dawning.Agents.Abstractions.Safety.AuditOptions                                                                                                     100%
+  Dawning.Agents.Abstractions.Safety.GuardrailIssue                                                                                                   100%
+  Dawning.Agents.Abstractions.Safety.GuardrailResult                                                                                                  100%
+  Dawning.Agents.Abstractions.Safety.RateLimitOptions                                                                                                 100%
+  Dawning.Agents.Abstractions.Safety.RateLimitResult                                                                                                  100%
+  Dawning.Agents.Abstractions.Safety.RateLimitStatus                                                                                                  100%
+  Dawning.Agents.Abstractions.Safety.SafetyOptions                                                                                                   87.5%
+  Dawning.Agents.Abstractions.Safety.SensitivePattern                                                                                                 100%
+  Dawning.Agents.Abstractions.Scaling.AgentInstance                                                                                                   100%
+  Dawning.Agents.Abstractions.Scaling.AgentWorkItem                                                                                                  71.4%
+  Dawning.Agents.Abstractions.Scaling.ScalingDecision                                                                                                 100%
+  Dawning.Agents.Abstractions.Scaling.ScalingMetrics                                                                                                  100%
+  Dawning.Agents.Abstractions.Scaling.ScalingOptions                                                                                                 71.4%
+  Dawning.Agents.Abstractions.Telemetry.SourceUsage                                                                                                   100%
+  Dawning.Agents.Abstractions.Telemetry.TokenUsageRecord                                                                                              100%
+  Dawning.Agents.Abstractions.Telemetry.TokenUsageSummary                                                                                              80%
+  Dawning.Agents.Abstractions.Tools.FunctionToolAttribute                                                                                             100%
+  Dawning.Agents.Abstractions.Tools.IToolSet                                                                                                            0%
+  Dawning.Agents.Abstractions.Tools.PackageManagerOptions                                                                                            91.6%
+  Dawning.Agents.Abstractions.Tools.ToolParameterAttribute                                                                                            100%
+  Dawning.Agents.Abstractions.Tools.ToolResult                                                                                                        100%
+
+Dawning.Agents.Azure                                                                                                                                   15%
+  Dawning.Agents.Azure.AzureOpenAIProvider                                                                                                           11.9%
+  Dawning.Agents.Azure.AzureOpenAIProviderOptions                                                                                                       0%
+  Dawning.Agents.Azure.AzureOpenAIServiceCollectionExtensions                                                                                        32.1%
+
+Dawning.Agents.Core                                                                                                                                  67.1%
+  Dawning.Agents.Core.Agent.AgentBase                                                                                                                  95%
+  Dawning.Agents.Core.Agent.ReActAgent                                                                                                               79.7%
+  Dawning.Agents.Core.AgentServiceCollectionExtensions                                                                                                  0%
+  Dawning.Agents.Core.Communication.CommunicationServiceCollectionExtensions                                                                          100%
+  Dawning.Agents.Core.Communication.InMemoryMessageBus                                                                                               90.7%
+  Dawning.Agents.Core.Communication.InMemorySharedState                                                                                              91.3%
+  Dawning.Agents.Core.Configuration.CompositeSecretsManager                                                                                            75%
+  Dawning.Agents.Core.Configuration.EnvironmentSecretsManager                                                                                         100%
+  Dawning.Agents.Core.Configuration.InMemorySecretsManager                                                                                            100%
+  Dawning.Agents.Core.Handoff.HandoffAgentRegistration                                                                                                100%
+  Dawning.Agents.Core.Handoff.HandoffHandler                                                                                                         72.1%
+  Dawning.Agents.Core.Handoff.HandoffServiceCollectionExtensions                                                                                     86.8%
+  Dawning.Agents.Core.HumanLoop.AgentEscalationException                                                                                              100%
+  Dawning.Agents.Core.HumanLoop.ApprovalWorkflow                                                                                                     97.9%
+  Dawning.Agents.Core.HumanLoop.AsyncCallbackHandler                                                                                                 92.8%
+  Dawning.Agents.Core.HumanLoop.AutoApprovalHandler                                                                                                  11.1%
+  Dawning.Agents.Core.HumanLoop.HumanInLoopAgent                                                                                                     74.8%
+  Dawning.Agents.Core.HumanLoop.HumanLoopServiceCollectionExtensions                                                                                 64.5%
+  Dawning.Agents.Core.LLM.LLMServiceCollectionExtensions                                                                                             50.5%
+  Dawning.Agents.Core.LLM.OllamaProvider                                                                                                               12%
+  Dawning.Agents.Core.Memory.BufferMemory                                                                                                             100%
+  Dawning.Agents.Core.Memory.MemoryServiceCollectionExtensions                                                                                          0%
+  Dawning.Agents.Core.Memory.SimpleTokenCounter                                                                                                       100%
+  Dawning.Agents.Core.Memory.SummaryMemory                                                                                                           94.9%
+  Dawning.Agents.Core.Memory.WindowMemory                                                                                                             100%
+  Dawning.Agents.Core.Observability.ActivitySpan                                                                                                        0%
+  Dawning.Agents.Core.Observability.AgentHealthCheck                                                                                                  100%
+  Dawning.Agents.Core.Observability.AgentLogger                                                                                                      44.2%
+  Dawning.Agents.Core.Observability.AgentTelemetry                                                                                                    100%
+  Dawning.Agents.Core.Observability.CounterMetric                                                                                                     100%
+  Dawning.Agents.Core.Observability.DistributedTracer                                                                                                  55%
+  Dawning.Agents.Core.Observability.GaugeMetric                                                                                                       100%
+  Dawning.Agents.Core.Observability.HistogramMetric                                                                                                    95%
+  Dawning.Agents.Core.Observability.LogContext                                                                                                        100%
+  Dawning.Agents.Core.Observability.LogContextExtensions                                                                                              100%
+  Dawning.Agents.Core.Observability.MetricsCollector                                                                                                  100%
+  Dawning.Agents.Core.Observability.NoOpSpan                                                                                                          100%
+  Dawning.Agents.Core.Observability.ObservabilityServiceCollectionExtensions                                                                         23.8%
+  Dawning.Agents.Core.Observability.ObservableAgent                                                                                                   100%
+  Dawning.Agents.Core.Orchestration.OrchestrationServiceCollectionExtensions                                                                          100%
+  Dawning.Agents.Core.Orchestration.OrchestratorBase                                                                                                 75.4%
+  Dawning.Agents.Core.Orchestration.ParallelOrchestrator                                                                                             86.2%
+  Dawning.Agents.Core.Orchestration.SequentialOrchestrator                                                                                            100%
+  Dawning.Agents.Core.Prompts.AgentPrompts                                                                                                              0%
+  Dawning.Agents.Core.Prompts.PromptTemplate                                                                                                          100%
+  Dawning.Agents.Core.RAG.DocumentChunker                                                                                                            90.8%
+  Dawning.Agents.Core.RAG.InMemoryVectorStore                                                                                                          87%
+  Dawning.Agents.Core.RAG.KnowledgeBase                                                                                                              74.4%
+  Dawning.Agents.Core.RAG.RAGServiceCollectionExtensions                                                                                              100%
+  Dawning.Agents.Core.RAG.SimpleEmbeddingProvider                                                                                                    97.9%
+  Dawning.Agents.Core.RAG.VectorRetriever                                                                                                            85.1%
+  Dawning.Agents.Core.Safety.AuditLoggerExtensions                                                                                                      0%
+  Dawning.Agents.Core.Safety.ContentFilterGuardrail                                                                                                  91.2%
+  Dawning.Agents.Core.Safety.ContentModerator                                                                                                           0%
+  Dawning.Agents.Core.Safety.ContentModeratorOptions                                                                                                    0%
+  Dawning.Agents.Core.Safety.GuardrailPipeline                                                                                                        100%
+  Dawning.Agents.Core.Safety.InMemoryAuditLogger                                                                                                      100%
+  Dawning.Agents.Core.Safety.MaxLengthGuardrail                                                                                                       100%
+  Dawning.Agents.Core.Safety.SafeAgent                                                                                                               92.6%
+  Dawning.Agents.Core.Safety.SafetyServiceCollectionExtensions                                                                                       62.2%
+  Dawning.Agents.Core.Safety.SensitiveDataGuardrail                                                                                                  89.4%
+  Dawning.Agents.Core.Safety.SlidingWindowRateLimiter                                                                                                 100%
+  Dawning.Agents.Core.Safety.TokenRateLimiter                                                                                                         100%
+  Dawning.Agents.Core.Safety.UrlDomainGuardrail                                                                                                      92.8%
+  Dawning.Agents.Core.Scaling.AgentAutoScaler                                                                                                        91.7%
+  Dawning.Agents.Core.Scaling.AgentLoadBalancer                                                                                                      95.2%
+  Dawning.Agents.Core.Scaling.AgentRequestQueue                                                                                                      91.1%
+  Dawning.Agents.Core.Scaling.AgentWorkerPool                                                                                                           0%
+  Dawning.Agents.Core.Scaling.CircuitBreaker                                                                                                         96.6%
+  Dawning.Agents.Core.Scaling.CircuitBreakerOpenException                                                                                              50%
+  Dawning.Agents.Core.Scaling.ScalingServiceCollectionExtensions                                                                                       94%
+  Dawning.Agents.Core.Telemetry.InMemoryTokenUsageTracker                                                                                            71.7%
+  Dawning.Agents.Core.Telemetry.ServiceCollectionDecoratorExtensions                                                                                 75.6%
+  Dawning.Agents.Core.Telemetry.TokenTrackingLLMProvider                                                                                              100%
+  Dawning.Agents.Core.Telemetry.TokenTrackingServiceCollectionExtensions                                                                             78.9%
+  Dawning.Agents.Core.Tools.BuiltIn.BuiltInToolExtensions                                                                                            58.8%
+  Dawning.Agents.Core.Tools.BuiltIn.DateTimeTool                                                                                                      100%
+  Dawning.Agents.Core.Tools.BuiltIn.FileSystemTool                                                                                                     15%
+  Dawning.Agents.Core.Tools.BuiltIn.GitTool                                                                                                             0%
+  Dawning.Agents.Core.Tools.BuiltIn.HttpTool                                                                                                            0%
+  Dawning.Agents.Core.Tools.BuiltIn.JsonTool                                                                                                         60.5%
+  Dawning.Agents.Core.Tools.BuiltIn.MathTool                                                                                                         95.5%
+  Dawning.Agents.Core.Tools.BuiltIn.PackageManagerTool                                                                                               20.8%
+  Dawning.Agents.Core.Tools.BuiltIn.ProcessTool                                                                                                      22.1%
+  Dawning.Agents.Core.Tools.BuiltIn.ProcessToolOptions                                                                                                 75%
+  Dawning.Agents.Core.Tools.BuiltIn.UtilityTool                                                                                                      95.5%
+  Dawning.Agents.Core.Tools.DefaultToolApprovalHandler                                                                                               89.5%
+  Dawning.Agents.Core.Tools.DefaultToolSelector                                                                                                      88.3%
+  Dawning.Agents.Core.Tools.MethodTool                                                                                                                 73%
+  Dawning.Agents.Core.Tools.ToolRegistration                                                                                                           80%
+  Dawning.Agents.Core.Tools.ToolRegistry                                                                                                             85.7%
+  Dawning.Agents.Core.Tools.ToolScanner                                                                                                                24%
+  Dawning.Agents.Core.Tools.ToolServiceCollectionExtensions                                                                                          71.7%
+  Dawning.Agents.Core.Tools.ToolSet                                                                                                                  96.5%
+  Dawning.Agents.Core.Tools.VirtualTool                                                                                                              74.4%
+  System.Text.RegularExpressions.Generated                                                                                                           75.2%
+  System.Text.RegularExpressions.Generated.<RegexGenerator_g>FE014021F1961512D7A2B8CF113360C1ADDDCD924865A92A770EA6DCD4E3149EA__ActionInputRegex_2   74.4%
+  System.Text.RegularExpressions.Generated.<RegexGenerator_g>FE014021F1961512D7A2B8CF113360C1ADDDCD924865A92A770EA6DCD4E3149EA__ActionRegex_1        75.8%
+  System.Text.RegularExpressions.Generated.<RegexGenerator_g>FE014021F1961512D7A2B8CF113360C1ADDDCD924865A92A770EA6DCD4E3149EA__FinalAnswerRegex_3   73.9%
+  System.Text.RegularExpressions.Generated.<RegexGenerator_g>FE014021F1961512D7A2B8CF113360C1ADDDCD924865A92A770EA6DCD4E3149EA__PlaceholderRegex_4   71.4%
+  System.Text.RegularExpressions.Generated.<RegexGenerator_g>FE014021F1961512D7A2B8CF113360C1ADDDCD924865A92A770EA6DCD4E3149EA__ThoughtRegex_0       75.6%
+
+Dawning.Agents.OpenAI                                                                                                                                15.6%
+  Dawning.Agents.OpenAI.OpenAIProvider                                                                                                               12.1%
+  Dawning.Agents.OpenAI.OpenAIProviderOptions                                                                                                           0%
+  Dawning.Agents.OpenAI.OpenAIServiceCollectionExtensions                                                                                              50%
