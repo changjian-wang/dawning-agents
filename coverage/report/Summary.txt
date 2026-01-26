@@ -1,22 +1,22 @@
 Summary
-  Generated on: 1/26/2026 - 8:55:15 PM
-  Coverage date: 1/26/2026 - 8:55:07 PM
+  Generated on: 1/26/2026 - 9:19:43 PM
+  Coverage date: 1/26/2026 - 9:19:36 PM
   Parser: Cobertura
   Assemblies: 4
   Classes: 174
   Files: 124
-  Line coverage: 70.2%
-  Covered lines: 7501
-  Uncovered lines: 3177
+  Line coverage: 71.2%
+  Covered lines: 7609
+  Uncovered lines: 3069
   Coverable lines: 10678
   Total lines: 21233
-  Branch coverage: 58.1% (1631 of 2805)
-  Covered branches: 1631
+  Branch coverage: 59.7% (1676 of 2805)
+  Covered branches: 1676
   Total branches: 2805
-  Method coverage: 84.1% (1064 of 1265)
-  Full method coverage: 74.1% (938 of 1265)
-  Covered methods: 1064
-  Fully covered methods: 938
+  Method coverage: 84.9% (1074 of 1265)
+  Full method coverage: 74.7% (946 of 1265)
+  Covered methods: 1074
+  Fully covered methods: 946
   Total methods: 1265
 
 Dawning.Agents.Abstractions                                                                                                                          91.1%
@@ -93,7 +93,7 @@ Dawning.Agents.Azure                                                            
   Dawning.Agents.Azure.AzureOpenAIProviderOptions                                                                                                       0%
   Dawning.Agents.Azure.AzureOpenAIServiceCollectionExtensions                                                                                        32.1%
 
-Dawning.Agents.Core                                                                                                                                  69.7%
+Dawning.Agents.Core                                                                                                                                  70.9%
   Dawning.Agents.Core.Agent.AgentBase                                                                                                                  95%
   Dawning.Agents.Core.Agent.ReActAgent                                                                                                               79.7%
   Dawning.Agents.Core.AgentServiceCollectionExtensions                                                                                                100%
@@ -109,7 +109,7 @@ Dawning.Agents.Core                                                             
   Dawning.Agents.Core.HumanLoop.AgentEscalationException                                                                                              100%
   Dawning.Agents.Core.HumanLoop.ApprovalWorkflow                                                                                                     97.9%
   Dawning.Agents.Core.HumanLoop.AsyncCallbackHandler                                                                                                 92.8%
-  Dawning.Agents.Core.HumanLoop.AutoApprovalHandler                                                                                                  11.1%
+  Dawning.Agents.Core.HumanLoop.AutoApprovalHandler                                                                                                  97.2%
   Dawning.Agents.Core.HumanLoop.HumanInLoopAgent                                                                                                     74.8%
   Dawning.Agents.Core.HumanLoop.HumanLoopServiceCollectionExtensions                                                                                 64.5%
   Dawning.Agents.Core.LLM.LLMServiceCollectionExtensions                                                                                             50.5%
@@ -182,10 +182,10 @@ Dawning.Agents.Core                                                             
   Dawning.Agents.Core.Tools.BuiltIn.UtilityTool                                                                                                      95.5%
   Dawning.Agents.Core.Tools.DefaultToolApprovalHandler                                                                                               89.5%
   Dawning.Agents.Core.Tools.DefaultToolSelector                                                                                                      88.3%
-  Dawning.Agents.Core.Tools.MethodTool                                                                                                                 73%
+  Dawning.Agents.Core.Tools.MethodTool                                                                                                               74.8%
   Dawning.Agents.Core.Tools.ToolRegistration                                                                                                           80%
   Dawning.Agents.Core.Tools.ToolRegistry                                                                                                             85.7%
-  Dawning.Agents.Core.Tools.ToolScanner                                                                                                                24%
+  Dawning.Agents.Core.Tools.ToolScanner                                                                                                              81.3%
   Dawning.Agents.Core.Tools.ToolServiceCollectionExtensions                                                                                          71.7%
   Dawning.Agents.Core.Tools.ToolSet                                                                                                                  96.5%
   Dawning.Agents.Core.Tools.VirtualTool                                                                                                              74.4%
