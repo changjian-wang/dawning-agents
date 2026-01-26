@@ -217,8 +217,15 @@ public class PackageManagerToolTests
     #region Tool Validation Tests
 
     [Fact]
+    [Trait("Category", "Windows")]
     public async Task WingetSearch_EmptyQuery_ShouldFail()
     {
+        // Skip on non-Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            return; // winget only available on Windows
+        }
+
         // Arrange
         var tool = new PackageManagerTool();
 
@@ -231,8 +238,15 @@ public class PackageManagerToolTests
     }
 
     [Fact]
+    [Trait("Category", "Windows")]
     public async Task WingetInstall_BlacklistedPackage_ShouldFail()
     {
+        // Skip on non-Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            return; // winget only available on Windows
+        }
+
         // Arrange
         var options = new PackageManagerOptions { BlacklistedPackages = ["*hack*", "*malware*"] };
         var tool = new PackageManagerTool(options);
@@ -246,8 +260,15 @@ public class PackageManagerToolTests
     }
 
     [Fact]
+    [Trait("Category", "Windows")]
     public async Task WingetInstall_NotInWhitelist_ShouldFail()
     {
+        // Skip on non-Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            return; // winget only available on Windows
+        }
+
         // Arrange
         var options = new PackageManagerOptions
         {

@@ -5,13 +5,17 @@ using FluentAssertions;
 
 public class SecretsManagerTests
 {
+    // 辅助方法：生成测试用的环境变量名（大写，与 NormalizeEnvName 一致）
+    private static string GenerateTestKey() =>
+        "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N").ToUpperInvariant();
+
     [Fact]
     public async Task EnvironmentSecretsManager_GetSecretAsync_ReturnsEnvironmentVariable()
     {
         // Arrange
         var manager = new EnvironmentSecretsManager();
-        var testKey = "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N");
-        Environment.SetEnvironmentVariable(testKey, "test-value");
+        var testKey = GenerateTestKey();
+        Environment.SetEnvironmentVariable(testKey, "test-value", EnvironmentVariableTarget.Process);
 
         try
         {
@@ -23,7 +27,7 @@ public class SecretsManagerTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(testKey, null);
+            Environment.SetEnvironmentVariable(testKey, null, EnvironmentVariableTarget.Process);
         }
     }
 
@@ -31,7 +35,7 @@ public class SecretsManagerTests
     public async Task EnvironmentSecretsManager_GetSecretAsync_ReturnsNullWhenNotFound()
     {
         var manager = new EnvironmentSecretsManager();
-        var nonExistentKey = "NON_EXISTENT_KEY_" + Guid.NewGuid().ToString("N");
+        var nonExistentKey = "NON_EXISTENT_KEY_" + Guid.NewGuid().ToString("N").ToUpperInvariant();
 
         var value = await manager.GetSecretAsync(nonExistentKey);
 
@@ -42,17 +46,18 @@ public class SecretsManagerTests
     public async Task EnvironmentSecretsManager_SetSecretAsync_SetsEnvironmentVariable()
     {
         var manager = new EnvironmentSecretsManager();
-        var testKey = "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N");
+        var testKey = GenerateTestKey();
 
         try
         {
             await manager.SetSecretAsync(testKey, "new-value");
 
-            Environment.GetEnvironmentVariable(testKey).Should().Be("new-value");
+            // NormalizeEnvName 转大写，所以用大写 key 检查
+            Environment.GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process).Should().Be("new-value");
         }
         finally
         {
-            Environment.SetEnvironmentVariable(testKey, null);
+            Environment.SetEnvironmentVariable(testKey, null, EnvironmentVariableTarget.Process);
         }
     }
 
@@ -60,20 +65,20 @@ public class SecretsManagerTests
     public async Task EnvironmentSecretsManager_DeleteSecretAsync_RemovesEnvironmentVariable()
     {
         var manager = new EnvironmentSecretsManager();
-        var testKey = "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N");
-        Environment.SetEnvironmentVariable(testKey, "to-delete");
+        var testKey = GenerateTestKey();
+        Environment.SetEnvironmentVariable(testKey, "to-delete", EnvironmentVariableTarget.Process);
 
         await manager.DeleteSecretAsync(testKey);
 
-        Environment.GetEnvironmentVariable(testKey).Should().BeNull();
+        Environment.GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process).Should().BeNull();
     }
 
     [Fact]
     public async Task EnvironmentSecretsManager_ExistsAsync_ReturnsTrueWhenExists()
     {
         var manager = new EnvironmentSecretsManager();
-        var testKey = "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N");
-        Environment.SetEnvironmentVariable(testKey, "exists");
+        var testKey = GenerateTestKey();
+        Environment.SetEnvironmentVariable(testKey, "exists", EnvironmentVariableTarget.Process);
 
         try
         {
@@ -83,7 +88,7 @@ public class SecretsManagerTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(testKey, null);
+            Environment.SetEnvironmentVariable(testKey, null, EnvironmentVariableTarget.Process);
         }
     }
 
