@@ -60,10 +60,92 @@ dotnet run
 - ✅ Week 11: 可观测性完成（781 测试通过）
 - ✅ Week 12: 部署与扩展完成（781 测试通过）
 - ✅ Demo: Week 8-12 演示更新完成
+- ✅ 企业级转型: 代码优化 + 测试覆盖率提升至 72.9%（1183 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-26] 企业级转型: 代码优化与测试覆盖率提升
+
+### 目标
+将 dawning-agents 从学习项目转型为企业级 AI Agent 框架，提升代码质量和测试覆盖率。
+
+### 代码优化（已完成）
+
+#### 性能优化
+- **SIMD 向量计算**: `InMemoryVectorStore.CosineSimilarity` 使用 `TensorPrimitives` 优化
+- **内存优化**: `WindowMemory` 改用 `LinkedList<T>` 实现 O(1) 移除
+- **缓存优化**: `ToolRegistry` 添加 `_cachedAllTools/ToolSets/Categories` 缓存
+
+#### 线程安全
+- `ToolRegistry`: 改用 `ConcurrentDictionary` + `InvalidateCache()` 模式
+- `GuardrailPipeline`: 使用 `ImmutableList` + `ImmutableInterlocked.Update()`
+- `CircuitBreaker`: 修复 `State` getter 副作用 + `TimeProvider` 注入
+
+#### 内存泄漏修复
+- `MethodTool.ExecuteAsync`: 添加 `using` 确保 `JsonDocument` 释放
+
+#### 代码规范
+- 50+ Core 类添加 `sealed` 关键字
+
+### 测试覆盖率提升
+
+| 指标 | 起始 | 最终 | 变化 |
+|------|------|------|------|
+| 行覆盖率 | 64.1% | **72.9%** | +8.8% |
+| 分支覆盖率 | - | 62.6% | - |
+| 方法覆盖率 | - | 86.3% | - |
+| 测试数量 | 781 | **1183** | +402 |
+
+### 新增测试文件
+
+```
+tests/Dawning.Agents.Tests/
+├── RAG/RAGOptionsTests.cs                           # 22 用例 - RAG 配置验证
+├── Scaling/AgentWorkerPoolTests.cs                  # 18 用例 - 工作池功能
+├── Tools/
+│   ├── VirtualToolTests.cs                          # 21 用例 - 虚拟工具展开/折叠
+│   ├── MethodToolTests.cs                           # 23 用例 - 方法工具执行和参数解析
+│   ├── DefaultToolApprovalHandlerTests.cs           # 43 用例 - 工具审批策略
+│   ├── DefaultToolSelectorTests.cs                  # 21 用例 - 工具智能选择
+│   └── BuiltIn/BuiltInToolExtensionsTests.cs        # 13 用例 - 内置工具 DI 扩展
+├── Memory/MemoryServiceCollectionExtensionsTests.cs # Memory DI 扩展
+├── Agent/AgentServiceCollectionExtensionsTests.cs   # Agent DI 扩展
+├── Prompts/AgentPromptsTests.cs                     # Agent 提示词模板
+├── Safety/ContentModeratorTests.cs                  # 内容审核
+├── HumanLoop/AutoApprovalHandlerTests.cs            # 自动审批处理器
+└── Tools/ToolScannerTests.cs                        # 工具扫描器
+```
+
+### 后续可继续的工作
+
+#### 可提升覆盖率的区域
+- `BuiltInToolExtensions` 58.8%
+- `LLMServiceCollectionExtensions` 50.5%
+- `AgentLogger` 44.2%
+- `ObservabilityServiceCollectionExtensions` 23.8%
+
+#### 需要外部服务的区域（难以单元测试）
+- `AzureOpenAIProvider` 11.9%
+- `OpenAIProvider` 12.1%
+- `OllamaProvider` 12%
+- `HttpTool`, `GitTool`, `ProcessTool` (需要实际 IO)
+
+### 常用命令
+
+```bash
+# 运行测试
+dotnet test
+
+# 生成覆盖率报告
+dotnet test --collect:"XPlat Code Coverage" --results-directory ./TestResults
+reportgenerator -reports:"./TestResults/**/coverage.cobertura.xml" \
+  -targetdir:"./TestResults/CoverageReport" -reporttypes:"TextSummary"
+cat ./TestResults/CoverageReport/Summary.txt
+```
 
 ---
 
