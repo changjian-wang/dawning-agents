@@ -25,16 +25,8 @@ if (showHelp)
 
 ConsoleHelper.PrintBanner();
 
-// 如果没有指定模式，显示交互式菜单
-if (runMode == RunMode.Menu)
-{
-    runMode = ShowMenu();
-    if (runMode == RunMode.Menu)
-    {
-        Console.WriteLine("\n再见！");
-        return;
-    }
-}
+// 是否为交互式菜单模式（循环运行）
+var isInteractiveMenu = runMode == RunMode.Menu;
 
 // 构建 Host
 var builder = Host.CreateApplicationBuilder(args);
@@ -74,62 +66,97 @@ if (provider == null)
 
 var agent = host.Services.GetRequiredService<IAgent>();
 
-// 根据模式运行
-switch (runMode)
+// 主循环
+do
 {
-    case RunMode.Chat:
-        await ChatDemos.RunChatDemo(provider);
+    // 交互式菜单模式：每次循环显示菜单
+    if (isInteractiveMenu)
+    {
+        runMode = ShowMenu();
+        if (runMode == RunMode.Menu)
+        {
+            break; // 用户选择退出
+        }
+    }
+
+    // 根据模式运行
+    await RunDemo(runMode, provider, agent, host.Services);
+
+    // 非菜单模式只运行一次
+    if (!isInteractiveMenu)
+    {
         break;
-    case RunMode.Agent:
-        await AgentDemos.RunAgentDemo(agent);
-        break;
-    case RunMode.Stream:
-        await ChatDemos.RunStreamDemo(provider);
-        break;
-    case RunMode.Interactive:
-        await ChatDemos.RunInteractiveChat(provider);
-        break;
-    case RunMode.Memory:
-        var memory = host.Services.GetRequiredService<IConversationMemory>();
-        var tokenCounter = host.Services.GetRequiredService<ITokenCounter>();
-        await MemoryDemos.RunMemoryDemo(provider, memory, tokenCounter);
-        break;
-    case RunMode.AgentMemory:
-        var agentMemory = host.Services.GetRequiredService<IConversationMemory>();
-        await AgentDemos.RunAgentMemoryDemo(agent, agentMemory);
-        break;
-    case RunMode.PackageManager:
-        var registry = host.Services.GetRequiredService<IToolRegistry>();
-        await ToolDemos.RunPackageManagerDemo(registry);
-        break;
-    case RunMode.Orchestrator:
-        await OrchestratorDemos.RunOrchestratorDemo(provider);
-        break;
-    case RunMode.Handoff:
-        await HandoffDemos.RunHandoffDemo(provider);
-        break;
-    case RunMode.Safety:
-        await SafetyDemos.RunSafetyDemo(provider);
-        break;
-    case RunMode.HumanLoop:
-        await HumanLoopDemos.RunHumanLoopDemo(provider);
-        break;
-    case RunMode.Observability:
-        await ObservabilityDemos.RunObservabilityDemo(provider);
-        break;
-    case RunMode.Scaling:
-        await ScalingDemos.RunScalingDemo(provider);
-        break;
-    case RunMode.All:
-        await ChatDemos.RunChatDemo(provider);
-        await AgentDemos.RunAgentDemo(agent);
-        await ChatDemos.RunStreamDemo(provider);
-        break;
-    default:
-        break;
-}
+    }
+
+    // 等待用户按键后继续
+    Console.WriteLine("\n按任意键返回菜单...");
+    Console.ReadKey(true);
+    Console.Clear();
+    ConsoleHelper.PrintBanner();
+} while (true);
 
 Console.WriteLine("\n再见！");
+
+// ============================================================================
+// Demo 运行方法
+// ============================================================================
+
+static async Task RunDemo(RunMode mode, ILLMProvider provider, IAgent agent, IServiceProvider services)
+{
+    switch (mode)
+    {
+        case RunMode.Chat:
+            await ChatDemos.RunChatDemo(provider);
+            break;
+        case RunMode.Agent:
+            await AgentDemos.RunAgentDemo(agent);
+            break;
+        case RunMode.Stream:
+            await ChatDemos.RunStreamDemo(provider);
+            break;
+        case RunMode.Interactive:
+            await ChatDemos.RunInteractiveChat(provider);
+            break;
+        case RunMode.Memory:
+            var memory = services.GetRequiredService<IConversationMemory>();
+            var tokenCounter = services.GetRequiredService<ITokenCounter>();
+            await MemoryDemos.RunMemoryDemo(provider, memory, tokenCounter);
+            break;
+        case RunMode.AgentMemory:
+            var agentMemory = services.GetRequiredService<IConversationMemory>();
+            await AgentDemos.RunAgentMemoryDemo(agent, agentMemory);
+            break;
+        case RunMode.PackageManager:
+            var registry = services.GetRequiredService<IToolRegistry>();
+            await ToolDemos.RunPackageManagerDemo(registry);
+            break;
+        case RunMode.Orchestrator:
+            await OrchestratorDemos.RunOrchestratorDemo(provider);
+            break;
+        case RunMode.Handoff:
+            await HandoffDemos.RunHandoffDemo(provider);
+            break;
+        case RunMode.Safety:
+            await SafetyDemos.RunSafetyDemo(provider);
+            break;
+        case RunMode.HumanLoop:
+            await HumanLoopDemos.RunHumanLoopDemo(provider);
+            break;
+        case RunMode.Observability:
+            await ObservabilityDemos.RunObservabilityDemo(provider);
+            break;
+        case RunMode.Scaling:
+            await ScalingDemos.RunScalingDemo(provider);
+            break;
+        case RunMode.All:
+            await ChatDemos.RunChatDemo(provider);
+            await AgentDemos.RunAgentDemo(agent);
+            await ChatDemos.RunStreamDemo(provider);
+            break;
+        default:
+            break;
+    }
+}
 
 // ============================================================================
 // 辅助方法
