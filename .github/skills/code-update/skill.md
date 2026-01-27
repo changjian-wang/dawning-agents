@@ -1,47 +1,65 @@
 ---
 name: code-update
-description: Update code in Dawning.Agents project following established patterns
+description: >
+  Make code changes in Dawning.Agents following project patterns. Provides 
+  templates for services, interfaces, DI extensions, and options classes.
+  Use when asked to "modify code", "implement feature", "add method", "fix bug",
+  "create class", or "update file".
 ---
 
 # Code Update Skill
 
-Make code changes in the Dawning.Agents project following established patterns and conventions.
+## What This Skill Does
+
+Makes code changes in the Dawning.Agents project following established patterns and conventions.
 
 ## When to Use
 
-- When asked to modify, update, or change code
-- When asked to implement a new feature
-- When asked to fix a bug
+- "Modify this code"
+- "Implement this feature"
+- "Add a new method/class"
+- "Fix this bug"
+- "Create a service for..."
+- "Update the file to..."
 
 ## Before Making Changes
 
-1. **Understand the context** - Read related files first
-2. **Check existing patterns** - Look at similar implementations
-3. **Consider impact** - Check for usages and dependencies
+1. **Read context** - Understand related files first
+2. **Check patterns** - Look at similar implementations
+3. **Consider impact** - Check usages and dependencies
 
 ## Code Templates
 
-### New Service Interface (in Abstractions/)
+### New Interface (Abstractions/)
 
 ```csharp
 namespace Dawning.Agents.Abstractions;
 
 /// <summary>
-/// Service description
+/// Brief description of the service.
 /// </summary>
 public interface IMyService
 {
+    /// <summary>
+    /// Method description.
+    /// </summary>
+    /// <param name="input">Input description.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Return description.</returns>
     Task<Result> DoSomethingAsync(
         Input input,
         CancellationToken cancellationToken = default);
 }
 ```
 
-### New Service Implementation (in Core/)
+### New Implementation (Core/)
 
 ```csharp
 namespace Dawning.Agents.Core;
 
+/// <summary>
+/// Implementation of <see cref="IMyService"/>.
+/// </summary>
 public class MyService : IMyService
 {
     private readonly ILogger<MyService> _logger;
@@ -51,12 +69,16 @@ public class MyService : IMyService
         _logger = logger ?? NullLogger<MyService>.Instance;
     }
 
+    /// <inheritdoc />
     public async Task<Result> DoSomethingAsync(
         Input input,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Processing...");
-        // Implementation
+        _logger.LogDebug("Processing {Input}...", input);
+        
+        // Implementation here
+        
+        return new Result();
     }
 }
 ```
@@ -68,6 +90,9 @@ namespace Dawning.Agents.Core;
 
 public static class MyServiceExtensions
 {
+    /// <summary>
+    /// Adds <see cref="IMyService"/> to the service collection.
+    /// </summary>
     public static IServiceCollection AddMyService(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -88,8 +113,14 @@ public static class MyServiceExtensions
 namespace Dawning.Agents.Abstractions;
 
 /// <summary>
-/// Service configuration options
+/// Configuration options for MyService.
 /// </summary>
+/// <remarks>
+/// appsettings.json:
+/// <code>
+/// { "My": { "Option1": "value" } }
+/// </code>
+/// </remarks>
 public class MyOptions
 {
     public const string SectionName = "My";
@@ -98,25 +129,29 @@ public class MyOptions
 }
 ```
 
-## Change Guidelines
+## Guidelines
 
 ### Do ✅
 
-- Use find-and-replace with sufficient context (3+ lines before/after)
-- Follow CSharpier formatting rules
+- Use sufficient context in find-and-replace (3+ lines before/after)
+- Follow CSharpier formatting
 - Add XML documentation on public APIs
 - Include `CancellationToken` in async methods
 - Use `ILogger` with `NullLogger` fallback
 
 ### Don't ❌
 
-- Create static factories or allow direct `new` for services
+- Create static factories or use `new` for services
 - Hardcode configuration values
 - Use `[Obsolete]` - delete old APIs directly
 - Skip unit tests for new functionality
 
-## After Making Changes
+## After Changes
 
-1. Verify build: `dotnet build`
-2. Run tests: `dotnet test`
-3. Format code: `dotnet csharpier .`
+Run these commands to verify:
+
+```powershell
+dotnet build --nologo -v q    # Build
+dotnet test --nologo          # Test
+dotnet csharpier .            # Format
+```

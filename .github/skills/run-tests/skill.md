@@ -1,20 +1,36 @@
 ---
 name: run-tests
-description: Run and manage tests for Dawning.Agents project
+description: >
+  Run and manage xUnit tests for Dawning.Agents project using FluentAssertions 
+  and Moq. Use when asked to "run tests", "verify changes", "check if it works",
+  "test this", or after making code changes.
 ---
 
 # Run Tests Skill
 
-Execute and manage tests for the Dawning.Agents project.
+## What This Skill Does
+
+Executes and manages unit tests for the Dawning.Agents project using xUnit, FluentAssertions, and Moq.
 
 ## When to Use
 
-- When asked to run tests
-- When asked to verify changes
-- When asked to check if something works
-- After making code changes
+- "Run tests"
+- "Run the test suite"
+- "Verify my changes"
+- "Does this work?"
+- "Test this feature"
+- After making any code changes
 
 ## Test Commands
+
+### Quick Reference
+
+| Command | Purpose |
+|---------|---------|
+| `dotnet test --nologo` | Run all tests |
+| `dotnet test --filter "ClassName"` | Run tests in class |
+| `dotnet test --filter "MethodName"` | Run specific test |
+| `dotnet test --collect:"XPlat Code Coverage"` | With coverage |
 
 ### Run All Tests
 
@@ -23,33 +39,22 @@ cd C:\github\dawning-agents
 dotnet test --nologo
 ```
 
-### Run Tests with Verbose Output
+### Run Specific Tests
 
 ```powershell
-dotnet test --nologo -v n
+# By class name
+dotnet test --filter "FullyQualifiedName~OllamaProviderTests"
+
+# By method name
+dotnet test --filter "FullyQualifiedName~ChatAsync_WithValidInput_ReturnsResponse"
+
+# By namespace
+dotnet test --filter "Namespace~Dawning.Agents.Tests.Tools"
 ```
 
-### Run Specific Test File
+## Test Structure
 
-```powershell
-dotnet test --filter "FullyQualifiedName~ClassName"
-```
-
-### Run Single Test
-
-```powershell
-dotnet test --filter "FullyQualifiedName~ClassName.MethodName"
-```
-
-### Run Tests with Coverage
-
-```powershell
-dotnet test --collect:"XPlat Code Coverage"
-```
-
-## Test Patterns in This Project
-
-### Test File Location
+### File Location
 
 ```
 tests/Dawning.Agents.Tests/
@@ -59,28 +64,29 @@ tests/Dawning.Agents.Tests/
 │   └── ReActAgentTests.cs
 ├── Tools/
 │   └── ToolRegistryTests.cs
+├── Memory/
+│   └── BufferMemoryTests.cs
 └── ...
 ```
 
 ### Test Naming Convention
 
-```csharp
-public class MyServiceTests
-{
-    [Fact]
-    public async Task MethodName_Scenario_ExpectedResult()
-    {
-        // Arrange
-        // Act
-        // Assert
-    }
-}
+```
+MethodName_Scenario_ExpectedResult
 ```
 
-### Test Template
+Examples:
+- `ChatAsync_WithValidInput_ReturnsResponse`
+- `GetTool_WithUnknownName_ReturnsNull`
+- `AddMessage_WhenMemoryFull_RemovesOldest`
+
+## Test Template
+
+Use this template when creating new tests:
 
 ```csharp
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -89,12 +95,16 @@ namespace Dawning.Agents.Tests;
 public class MyServiceTests
 {
     private readonly Mock<ILogger<MyService>> _loggerMock;
-    private readonly MyService _sut;
+    private readonly Mock<IDependency> _dependencyMock;
+    private readonly MyService _sut; // System Under Test
 
     public MyServiceTests()
     {
         _loggerMock = new Mock<ILogger<MyService>>();
-        _sut = new MyService(_loggerMock.Object);
+        _dependencyMock = new Mock<IDependency>();
+        _sut = new MyService(
+            _dependencyMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -102,6 +112,9 @@ public class MyServiceTests
     {
         // Arrange
         var input = new Input { Value = "test" };
+        _dependencyMock
+            .Setup(x => x.ProcessAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("processed");
 
         // Act
         var result = await _sut.DoSomethingAsync(input);
@@ -114,6 +127,7 @@ public class MyServiceTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public async Task DoSomething_WithInvalidInput_ThrowsException(string? value)
     {
         // Arrange
@@ -128,18 +142,19 @@ public class MyServiceTests
 }
 ```
 
-## Current Test Status
+## Current Status
 
-- **Test Framework**: xUnit
-- **Assertions**: FluentAssertions
-- **Mocking**: Moq
-- **Total Tests**: ~1,183
-- **Coverage**: ~72.9%
+| Metric | Value |
+|--------|-------|
+| Framework | xUnit |
+| Assertions | FluentAssertions |
+| Mocking | Moq |
+| Total Tests | ~1,183 |
+| Coverage | ~72.9% |
 
 ## After Running Tests
 
-1. If tests pass: Proceed with commit
-2. If tests fail: 
-   - Read error message carefully
-   - Check the failing test code
-   - Fix the issue and re-run
+| Result | Action |
+|--------|--------|
+| ✅ All pass | Proceed with commit |
+| ❌ Failures | Read error, fix issue, re-run |

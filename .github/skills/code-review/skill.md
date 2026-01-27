@@ -1,47 +1,42 @@
 ---
 name: code-review
-description: Review .NET code for Dawning.Agents project following established patterns and best practices
+description: >
+  Review .NET code for Dawning.Agents project. Checks architecture compliance 
+  (DI, interface separation), CSharpier formatting, naming conventions, and 
+  best practices. Use when asked to "review code", "check this code", "is this 
+  code good", "code quality", or "PR review".
 ---
 
 # Code Review Skill
 
-Review code changes for the Dawning.Agents project, ensuring they follow the established patterns and best practices.
+## What This Skill Does
+
+Reviews code changes in the Dawning.Agents project to ensure they follow established patterns, conventions, and best practices.
 
 ## When to Use
 
-- When asked to review code, PR, or changes
-- When asked to check code quality
-- When asked "is this code good?"
+- "Review this code"
+- "Check code quality"
+- "Is this implementation correct?"
+- "Review my PR/changes"
+- "What's wrong with this code?"
 
 ## Review Checklist
 
 ### 1. Architecture Compliance
 
-- [ ] Uses DI (Dependency Injection) - no `new` for services
-- [ ] Interfaces in `Abstractions/`, implementations in `Core/`
-- [ ] Supports `ILogger<T>` with `NullLogger` fallback
-- [ ] Supports `CancellationToken` on all async methods
-- [ ] Uses `IOptions<T>` for configuration
+| Check | Requirement |
+|-------|-------------|
+| DI | All services via dependency injection, no `new` for services |
+| Separation | Interfaces in `Abstractions/`, implementations in `Core/` |
+| Logger | `ILogger<T>` with `NullLogger` fallback |
+| Async | `CancellationToken` on all async methods |
+| Config | `IOptions<T>` for configuration |
 
-### 2. API Design (Minimal API Principle)
-
-```csharp
-// ✅ Good - Simple, one-line registration
-services.AddLLMProvider(configuration);
-
-// ❌ Avoid - Over-engineered Builder pattern
-services.AddLLMProvider(builder => builder.UseFactory(...).WithRetry(...));
-```
-
-### 3. Code Style (CSharpier)
-
-- Long parameter lists: one parameter per line
-- Collection initializers: elements on separate lines with trailing comma
-- Method chains: one call per line
-- Always use braces for `if` statements
+### 2. Code Style (CSharpier)
 
 ```csharp
-// ✅ Good
+// ✅ Long parameter lists: one per line
 public MyService(
     ILLMProvider llmProvider,
     IOptions<MyOptions> options,
@@ -50,43 +45,78 @@ public MyService(
 {
 }
 
-// ✅ Good
-var messages = new List<ChatMessage>
+// ✅ Collections: trailing comma
+var list = new List<string>
 {
-    new("system", systemPrompt),
-    new("user", userInput),
+    "item1",
+    "item2",
 };
+
+// ✅ Method chains: one call per line
+var result = items
+    .Where(x => x.IsActive)
+    .Select(x => x.Name)
+    .ToList();
+
+// ✅ Always use braces
+if (condition)
+{
+    DoSomething();
+}
 ```
 
-### 4. Naming Conventions
+### 3. Naming Conventions
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Interface | `I` prefix | `ILLMProvider`, `IAgent` |
-| Config class | `Options` suffix | `LLMOptions`, `AgentOptions` |
-| DI extension | `Add` prefix | `AddLLMProvider`, `AddAgent` |
-| Async method | `Async` suffix | `ChatAsync`, `RunAsync` |
-| Stream method | `StreamAsync` suffix | `ChatStreamAsync` |
+| Interface | `I` prefix | `ILLMProvider` |
+| Config | `Options` suffix | `LLMOptions` |
+| DI extension | `Add` prefix | `AddLLMProvider` |
+| Async method | `Async` suffix | `ChatAsync` |
 
-### 5. Required Elements
+### 4. Required Elements
 
-- [ ] XML documentation comments on public APIs
+- [ ] XML documentation on public APIs
 - [ ] Unit tests for new functionality
 - [ ] No hardcoded configuration values
 
-## Review Output Format
+## Output Format
 
-```
+Use this template for review results:
+
+```markdown
 ## Code Review Summary
 
 ### ✅ Good
 - [list positive aspects]
 
 ### ⚠️ Suggestions
-- [list suggestions with examples]
+- [suggestions with code examples]
+
+### ❌ Issues (must fix)
+- [critical issues]
+
+### Overall: [Pass / Pass with suggestions / Needs changes]
+```
+
+## Example Review
+
+**Input:** A new service class
+
+**Output:**
+```
+## Code Review Summary
+
+### ✅ Good
+- Correct interface separation
+- Proper DI pattern used
+
+### ⚠️ Suggestions
+- Add XML documentation to public methods
+- Consider adding unit tests
 
 ### ❌ Issues
-- [list issues that must be fixed]
+- Missing CancellationToken on async method
 
-### Overall: [Pass/Pass with suggestions/Needs changes]
+### Overall: Needs changes
 ```
