@@ -29,7 +29,7 @@ Phase 6 (Week 11-12) : 可观测性 + 生产扩展       ✅
 ## 📋 升级规划总览
 
 ```text
-Phase A (Week 13-14) : 分布式基础设施           ⬜ 未开始
+Phase A (Week 13-14) : 分布式基础设施           🔄 进行中
 Phase B (Week 15-16) : 容器化与编排             ⬜ 未开始
 Phase C (Week 17-18) : 可观测性增强             ⬜ 未开始
 Phase D (Week 19-20) : 生产级特性               ⬜ 未开始
@@ -96,14 +96,14 @@ Phase D (Week 19-20) : 生产级特性               ⬜ 未开始
 
 ## 🏗️ Phase A: 分布式基础设施 (Week 13-14)
 
-### Week 13: Redis 集成
+### Week 13: Redis 集成 ✅
 
-#### Day 1-2: 分布式缓存 ⬜
+#### Day 1-2: 分布式缓存 ✅
 
-- [ ] 添加 `StackExchange.Redis` 依赖
-- [ ] 实现 `IDistributedCache` 适配器
-- [ ] 创建 `RedisMemoryStore` 替代 `BufferMemory`
-- [ ] 会话状态跨节点共享
+- [x] 添加 `StackExchange.Redis` 依赖
+- [x] 实现 `IDistributedCache` 适配器
+- [x] 创建 `RedisMemoryStore` 替代 `BufferMemory`
+- [x] 会话状态跨节点共享
 
 ```csharp
 // 目标接口
@@ -114,12 +114,12 @@ public interface IDistributedMemory : IConversationMemory
 }
 ```
 
-#### Day 3-4: 分布式队列 ⬜
+#### Day 3-4: 分布式队列 ✅
 
-- [ ] 实现 `RedisAgentQueue` (基于 Redis Streams)
-- [ ] 支持优先级队列
-- [ ] 支持延迟任务
-- [ ] 支持死信队列
+- [x] 实现 `RedisAgentQueue` (基于 Redis Streams)
+- [x] 支持优先级队列
+- [x] 支持延迟任务
+- [x] 支持死信队列
 
 ```csharp
 // 目标接口
@@ -131,26 +131,37 @@ public interface IDistributedAgentQueue : IAgentRequestQueue
 }
 ```
 
-#### Day 5-7: 分布式锁与协调 ⬜
+#### Day 5-7: 分布式锁与协调 ✅
 
-- [ ] 实现 `RedisDistributedLock`
-- [ ] 支持工具执行互斥
-- [ ] 支持 Agent 实例选举
-- [ ] 测试并发场景
+- [x] 实现 `RedisDistributedLock`
+- [x] 支持工具执行互斥
+- [x] 支持 Agent 实例选举
+- [x] 测试并发场景
 
-**Week 13 产出物**:
+**Week 13 产出物**: ✅ 已完成
 
 ```text
 src/Dawning.Agents.Redis/
 ├── Cache/
-│   ├── RedisDistributedCache.cs
-│   └── RedisMemoryStore.cs
+│   └── RedisDistributedCache.cs     ✅
+├── Memory/
+│   └── RedisMemoryStore.cs          ✅
 ├── Queue/
-│   ├── RedisAgentQueue.cs
-│   └── RedisDeadLetterQueue.cs
+│   └── RedisAgentQueue.cs           ✅ (含死信队列、延迟任务)
 ├── Lock/
-│   └── RedisDistributedLock.cs
-└── RedisServiceCollectionExtensions.cs
+│   └── RedisDistributedLock.cs      ✅
+└── RedisServiceCollectionExtensions.cs ✅
+
+src/Dawning.Agents.Abstractions/Distributed/
+├── IDistributedMemory.cs            ✅
+├── IDistributedLock.cs              ✅
+├── IDistributedAgentQueue.cs        ✅
+└── DistributedOptions.cs            ✅
+
+tests/Dawning.Agents.Tests/Redis/
+├── RedisDistributedCacheTests.cs    ✅ (11 tests)
+├── RedisDistributedLockTests.cs     ✅ (10 tests)
+└── DistributedOptionsTests.cs       ✅ (10 tests)
 ```
 
 ### Week 14: 服务发现与健康检查
