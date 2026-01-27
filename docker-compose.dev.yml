@@ -1,0 +1,48 @@
+version: '3.9'
+services:
+  dawning-agents:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    container_name: dawning-agents-dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Redis__ConnectionString: redis:6379
+      PostgreSQL__ConnectionString: Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=agents
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./:/src:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: dawning-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: dawning-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: agents
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+volumes:
+  redis-data:
+  pg-data:
