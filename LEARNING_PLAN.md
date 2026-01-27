@@ -31,7 +31,7 @@ Phase 6 (Week 11-12) : 可观测性 + 生产扩展       ✅
 ```text
 Phase A (Week 13-14) : 分布式基础设施           ✅ 已完成
 Phase B (Week 15-16) : 容器化与编排             ✅ 已完成
-Phase C (Week 17-18) : 可观测性增强             ⬜ 未开始
+Phase C (Week 17-18) : 可观测性增强             ✅ 已完成
 Phase D (Week 19-20) : 生产级特性               ⬜ 未开始
 ```
 
@@ -299,75 +299,83 @@ deploy/k8s/
 
 ---
 
-## 📊 Phase C: 可观测性增强 (Week 17-18)
+## 📊 Phase C: 可观测性增强 (Week 17-18) ✅
 
-### Week 17: OpenTelemetry 集成
+### Week 17: OpenTelemetry 集成 ✅
 
-#### Day 1-3: 分布式追踪 ⬜
+#### Day 1-3: 分布式追踪 ✅
 
-- [ ] 集成 OpenTelemetry .NET SDK
-- [ ] 配置追踪导出 (Jaeger/Zipkin)
-- [ ] Agent 调用链追踪
-- [ ] 工具执行追踪
-- [ ] LLM 调用追踪
+- [x] 集成 OpenTelemetry .NET SDK
+- [x] 配置追踪导出 (OTLP/Console)
+- [x] Agent 调用链追踪
+- [x] 工具执行追踪
+- [x] LLM 调用追踪
 
-#### Day 4-5: 指标收集 ⬜
+#### Day 4-5: 指标收集 ✅
 
-- [ ] Prometheus 指标导出
-- [ ] 自定义业务指标
+- [x] Prometheus 指标导出
+- [x] 自定义业务指标
   - `agent_requests_total`
   - `agent_request_duration_seconds`
   - `agent_tool_executions_total`
   - `llm_tokens_used_total`
   - `queue_depth`
 
-#### Day 6-7: 日志聚合 ⬜
+#### Day 6-7: 日志聚合 ✅
 
-- [ ] 结构化日志 (JSON)
-- [ ] 关联 TraceId/SpanId
-- [ ] 日志级别动态调整
-- [ ] 敏感信息脱敏
+- [x] 结构化日志 (JSON)
+- [x] 关联 TraceId/SpanId
+- [x] 日志级别动态调整
+- [x] OTEL Collector 集成
 
-**Week 17 产出物**:
+**Week 17 产出物**: ✅ 已完成
 
 ```text
 src/Dawning.Agents.Core/
-└── Telemetry/
-    ├── OpenTelemetryExtensions.cs
-    ├── AgentInstrumentation.cs
-    ├── LLMInstrumentation.cs
-    └── MetricsDefinitions.cs
+├── Observability/
+│   ├── AgentInstrumentation.cs        ✅ (计数器/直方图/仪表盘)
+│   └── OpenTelemetryExtensions.cs     ✅ (追踪/指标 DI 扩展)
+└── Dawning.Agents.Core.csproj         ✅ (OpenTelemetry 包依赖)
 ```
 
-### Week 18: 监控 Dashboard
+### Week 18: 监控 Dashboard ✅
 
-#### Day 1-3: Grafana Dashboard ⬜
+#### Day 1-3: Grafana Dashboard ✅
 
-- [ ] Agent 概览 Dashboard
-- [ ] 性能分析 Dashboard
-- [ ] 资源使用 Dashboard
-- [ ] 告警规则配置
+- [x] Agent 概览 Dashboard
+- [x] 请求/延迟/成功率面板
+- [x] 工具调用趋势面板
+- [x] LLM 使用情况面板
 
-#### Day 4-5: 告警系统 ⬜
+#### Day 4-5: 可观测性基础设施 ✅
 
-- [ ] Prometheus AlertManager 配置
-- [ ] 关键告警定义
-  - Agent 不可用
-  - 队列积压
-  - LLM 调用失败率高
-  - 延迟 P99 超标
+- [x] Prometheus 配置
+- [x] Loki 日志聚合配置
+- [x] Tempo 分布式追踪配置
+- [x] OTEL Collector 配置
 
-#### Day 6-7: 日志分析 ⬜
+#### Day 6-7: Grafana 集成 ✅
 
-- [ ] ELK/Loki 集成
-- [ ] 日志查询 Dashboard
-- [ ] 错误分析视图
+- [x] 数据源自动配置 (Prometheus/Loki/Tempo)
+- [x] Dashboard 自动导入
+- [x] 追踪→日志→指标联动
 
-**Week 18 产出物**:
+**Week 18 产出物**: ✅ 已完成
 
 ```text
-deploy/
-├── monitoring/
+deploy/observability/
+├── docker-compose.yml                 ✅ (Prometheus/Grafana/Loki/Tempo)
+├── prometheus.yml                     ✅
+├── loki-config.yml                    ✅
+├── tempo-config.yml                   ✅
+├── otel-collector-config.yml          ✅
+└── grafana/
+    ├── provisioning/
+    │   ├── datasources/datasources.yml ✅
+    │   └── dashboards/dashboards.yml   ✅
+    └── dashboards/
+        └── agent-overview.json         ✅
+```
 │   ├── prometheus/
 │   │   ├── prometheus.yml
 │   │   └── alerts.yml
