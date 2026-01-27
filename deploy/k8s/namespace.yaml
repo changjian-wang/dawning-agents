@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dawning-agents
+  labels:
+    app.kubernetes.io/name: dawning-agents
+    app.kubernetes.io/part-of: dawning-platform

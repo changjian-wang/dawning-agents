@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dawning-agents-config
+  namespace: dawning-agents
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  Redis__ConnectionString: "redis-service:6379"
+  ServiceRegistry__HeartbeatIntervalSeconds: "10"
+  ServiceRegistry__ServiceExpireSeconds: "30"
+  DistributedLoadBalancer__Strategy: "RoundRobin"
+  DistributedLoadBalancer__VirtualNodeCount: "150"
+  DistributedLoadBalancer__FailoverRetries: "3"
