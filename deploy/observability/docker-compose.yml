@@ -1,0 +1,98 @@
+version: '3.9'
+
+# 可观测性基础设施 (Week 18)
+# 包含 Prometheus, Grafana, Loki, Tempo
+
+services:
+  # Prometheus - 指标收集
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: dawning-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+
+  # Grafana - 可视化仪表盘
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: dawning-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - observability
+
+  # Loki - 日志聚合
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: dawning-loki
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - observability
+
+  # Tempo - 分布式追踪
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: dawning-tempo
+    volumes:
+      - ./tempo-config.yml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"   # otlp grpc
+      - "4318:4318"   # otlp http
+    networks:
+      - observability
+
+  # OTEL Collector - 遥测数据收集
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.118.0
+    container_name: dawning-otel-collector
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    ports:
+      - "4319:4317"   # otlp grpc (映射到不同端口避免冲突)
+      - "4320:4318"   # otlp http
+      - "8888:8888"   # prometheus metrics
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - observability
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  tempo-data:
+
+networks:
+  observability:
+    driver: bridge
