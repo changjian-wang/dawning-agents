@@ -54,14 +54,19 @@ public record AgentInstance
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// Agent 实例
+    /// Agent 实例 (本地模式)
     /// </summary>
-    public required IAgent Agent { get; init; }
+    public IAgent? Agent { get; init; }
 
     /// <summary>
-    /// 端点地址
+    /// 端点地址 (分布式模式)
     /// </summary>
     public string Endpoint { get; init; } = "";
+
+    /// <summary>
+    /// 服务名称
+    /// </summary>
+    public string ServiceName { get; init; } = "";
 
     /// <summary>
     /// 是否健康
@@ -72,6 +77,11 @@ public record AgentInstance
     /// 活跃请求数
     /// </summary>
     public int ActiveRequests { get; set; }
+
+    /// <summary>
+    /// 权重 (用于加权负载均衡)
+    /// </summary>
+    public int Weight { get; init; } = 100;
 
     /// <summary>
     /// 最后健康检查时间

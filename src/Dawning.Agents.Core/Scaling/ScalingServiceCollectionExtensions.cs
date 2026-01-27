@@ -1,6 +1,7 @@
 namespace Dawning.Agents.Core.Scaling;
 
 using Dawning.Agents.Abstractions.Configuration;
+using Dawning.Agents.Abstractions.Discovery;
 using Dawning.Agents.Abstractions.Scaling;
 using Dawning.Agents.Core.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -63,6 +64,31 @@ public static class ScalingServiceCollectionExtensions
             var logger = sp.GetService<ILogger<AgentLoadBalancer>>();
             return new AgentLoadBalancer(logger);
         });
+        return services;
+    }
+
+    /// <summary>
+    /// 添加分布式负载均衡器（支持一致性哈希、权重路由、故障转移）
+    /// </summary>
+    public static IServiceCollection AddDistributedLoadBalancer(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<DistributedLoadBalancerOptions>(
+            configuration.GetSection(DistributedLoadBalancerOptions.SectionName));
+
+        services.TryAddSingleton<IAgentLoadBalancer>(sp =>
+        {
+            var serviceRegistry = sp.GetService<IServiceRegistry>();
+            var options = sp.GetService<Microsoft.Extensions.Options.IOptions<DistributedLoadBalancerOptions>>();
+            var logger = sp.GetService<ILogger<DistributedLoadBalancer>>();
+            return new DistributedLoadBalancer(serviceRegistry, options, logger);
+        });
+
+        // 同时注册具体类型，便于访问扩展方法
+        services.TryAddSingleton<DistributedLoadBalancer>(sp =>
+            (DistributedLoadBalancer)sp.GetRequiredService<IAgentLoadBalancer>());
+
         return services;
     }
 
