@@ -28,16 +28,26 @@ public class LLMProviderHealthCheck : IHealthCheck
     {
         try
         {
-            var result = await _llmProvider.PingAsync(cancellationToken);
-            if (result)
+            // 发送一个简单的测试请求来验证 LLM 可用性
+            var testMessages = new[]
+            {
+                new ChatMessage("user", "ping"),
+            };
+
+            var response = await _llmProvider.ChatAsync(
+                testMessages,
+                new ChatCompletionOptions { MaxTokens = 1 },
+                cancellationToken);
+
+            if (!string.IsNullOrEmpty(response.Content))
             {
                 _logger.LogDebug("LLMProviderHealthCheck: LLM 正常");
-                return HealthCheckResult.Healthy("LLMProvider 正常");
+                return HealthCheckResult.Healthy($"LLMProvider ({_llmProvider.Name}) 正常");
             }
             else
             {
-                _logger.LogWarning("LLMProviderHealthCheck: LLM 不可用");
-                return HealthCheckResult.Unhealthy("LLMProvider 不可用");
+                _logger.LogWarning("LLMProviderHealthCheck: LLM 响应为空");
+                return HealthCheckResult.Degraded("LLMProvider 响应异常");
             }
         }
         catch (System.Exception ex)
