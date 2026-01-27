@@ -230,9 +230,19 @@ dotnet run
 
 ## 📖 文档
 
-- [CHANGELOG](CHANGELOG.md) - 变更日志
-- [LEARNING_PLAN](LEARNING_PLAN.md) - 12 周学习计划
-- [docs/readings/](docs/readings/) - 学习材料
+### 入门指南
+- [快速入门](docs/QUICKSTART.md) - 5 分钟运行第一个 Agent
+- [API 参考](docs/API_REFERENCE.md) - 核心接口和类
+
+### 学习资料
+- [学习资源索引](docs/LEARNING_RESOURCES.md) - 整合的学习材料
+- [12 周学习计划](LEARNING_PLAN.md) - 完整学习路线
+- [阅读材料](docs/readings/) - 16 个主题的详细资料
+
+### 开发参考
+- [变更日志](CHANGELOG.md) - 版本更新记录
+- [企业路线图](docs/ENTERPRISE_ROADMAP.md) - 企业级转型规划
+- [开发指南](.github/copilot-instructions.md) - 代码规范
 
 ## 🧪 测试
 
@@ -240,7 +250,10 @@ dotnet run
 dotnet test
 ```
 
-**测试覆盖**: 781 个测试
+**测试统计**:
+- 测试数量: 1,183 个
+- 行覆盖率: 72.9%
+- 分支覆盖率: 62.6%
 
 ## 🤝 贡献
 
