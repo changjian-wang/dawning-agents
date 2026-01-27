@@ -29,7 +29,7 @@ Phase 6 (Week 11-12) : 可观测性 + 生产扩展       ✅
 ## 📋 升级规划总览
 
 ```text
-Phase A (Week 13-14) : 分布式基础设施           🔄 进行中
+Phase A (Week 13-14) : 分布式基础设施           ✅ 已完成
 Phase B (Week 15-16) : 容器化与编排             ⬜ 未开始
 Phase C (Week 17-18) : 可观测性增强             ⬜ 未开始
 Phase D (Week 19-20) : 生产级特性               ⬜ 未开始
@@ -164,14 +164,14 @@ tests/Dawning.Agents.Tests/Redis/
 └── DistributedOptionsTests.cs       ✅ (10 tests)
 ```
 
-### Week 14: 服务发现与健康检查
+### Week 14: 服务发现与健康检查 ✅
 
-#### Day 1-2: 健康检查 API ⬜
+#### Day 1-2: 健康检查 API ✅
 
-- [ ] 实现 `/health/live` 端点 (存活检查)
-- [ ] 实现 `/health/ready` 端点 (就绪检查)
-- [ ] 实现 `/health/startup` 端点 (启动检查)
-- [ ] 集成 `AspNetCore.HealthChecks`
+- [x] 实现 `/health/live` 端点 (存活检查)
+- [x] 实现 `/health/ready` 端点 (就绪检查)
+- [x] 实现 `/health/startup` 端点 (启动检查)
+- [x] 集成 `AspNetCore.HealthChecks`
 
 ```csharp
 // 健康检查示例
@@ -181,32 +181,38 @@ services.AddHealthChecks()
     .AddCheck<AgentHealthCheck>("agent");
 ```
 
-#### Day 3-4: 服务注册 ⬜
+#### Day 3-4: 服务注册 ✅
 
-- [ ] 实现 `IServiceRegistry` 接口
-- [ ] 实现 `ConsulServiceRegistry` (可选)
-- [ ] 实现 `KubernetesServiceRegistry` (通过 Endpoints)
-- [ ] Agent 节点自动注册/注销
+- [x] 实现 `IServiceRegistry` 接口
+- [x] 实现 `InMemoryServiceRegistry` (开发/测试)
+- [x] 实现 `KubernetesServiceRegistry` (通过 Endpoints)
+- [x] Agent 节点自动注册/注销
 
-#### Day 5-7: 负载均衡升级 ⬜
+#### Day 5-7: 负载均衡升级 ✅
 
-- [ ] 升级 `AgentLoadBalancer` 支持分布式
-- [ ] 支持一致性哈希 (会话粘性)
-- [ ] 支持权重路由
-- [ ] 支持故障转移
+- [x] 升级 `AgentLoadBalancer` 支持分布式
+- [x] 支持一致性哈希 (会话粘性)
+- [x] 支持权重路由
+- [x] 支持故障转移
 
-**Week 14 产出物**:
+**Week 14 产出物**: ✅ 已完成
 
 ```text
+src/Dawning.Agents.Abstractions/Discovery/
+└── IServiceRegistry.cs                    ✅
+
 src/Dawning.Agents.Core/
 ├── Health/
-│   ├── AgentHealthCheck.cs
-│   ├── RedisHealthCheck.cs
-│   └── LLMProviderHealthCheck.cs
-└── Discovery/
-    ├── IServiceRegistry.cs
-    ├── InMemoryServiceRegistry.cs
-    └── KubernetesServiceRegistry.cs
+│   ├── AgentHealthCheck.cs                ✅
+│   ├── RedisHealthCheck.cs                ✅
+│   ├── LLMProviderHealthCheck.cs          ✅
+│   └── HealthServiceCollectionExtensions.cs ✅
+├── Discovery/
+│   ├── InMemoryServiceRegistry.cs         ✅
+│   ├── KubernetesServiceRegistry.cs       ✅
+│   └── DiscoveryServiceCollectionExtensions.cs ✅
+└── Scaling/
+    └── DistributedLoadBalancer.cs         ✅ (5种策略+故障转移)
 ```
 
 ---
