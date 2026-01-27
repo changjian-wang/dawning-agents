@@ -3,8 +3,8 @@
 > 本文档整合所有学习资料，便于快速查阅
 
 **相关文档**:
-- [学习计划概览](../LEARNING_PLAN.md) - 12 周学习路线总览
-- [完整学习计划](LEARNING_PLAN_FULL.md) - 详细任务清单
+- [完整学习计划](LEARNING_PLAN_FULL.md) - 12 周详细任务清单
+- [企业转型路线图](ENTERPRISE_ROADMAP.md) - 下一步规划
 
 ---
 

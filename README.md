@@ -236,7 +236,7 @@ dotnet run
 
 ### 学习资料
 - [学习资源索引](docs/LEARNING_RESOURCES.md) - 整合的学习材料
-- [12 周学习计划](LEARNING_PLAN.md) - 完整学习路线
+- [完整学习计划](docs/LEARNING_PLAN_FULL.md) - 12 周详细任务清单
 - [阅读材料](docs/readings/) - 16 个主题的详细资料
 
 ### 开发参考
