@@ -764,6 +764,7 @@ public string DeleteFile(string path) => ...;
   - `GitTool` (18) - Git 操作 ✨
 
 #### 安全机制（参考 GitHub Copilot）
+
 - [x] `ToolRiskLevel` 枚举 (Low/Medium/High)
 - [x] `RequiresConfirmation` 属性
 - [x] `Category` 工具分类
@@ -772,6 +773,7 @@ public string DeleteFile(string path) => ...;
 ### Week 5.5: Tool Sets 与 Virtual Tools ✅ 已完成
 
 #### 背景：GitHub Copilot 工具管理策略
+
 - 默认 40 个工具精简为 13 个核心工具
 - 非核心工具分为 Virtual Tool 组（按需展开）
 - Embedding-Guided Tool Routing 智能选择
@@ -938,6 +940,7 @@ tests/Dawning.Agents.Tests/Tools/
 - [x] **测试**: RAG 单元测试 (50 个测试)
 
 **Bug 修复:**
+
 - [x] `DocumentChunker`: 修复 `SplitLargeParagraph` 无限循环导致 17GB 内存耗尽
 - [x] `ProcessTool`: 修复 `Process` 对象未释放导致内存泄漏
 
