@@ -34,9 +34,27 @@ Executes and manages unit tests for the Dawning.Agents project using xUnit, Flue
 
 ### Run All Tests
 
-```powershell
+```bash
+# Windows (PowerShell)
 cd C:\github\dawning-agents
 dotnet test --nologo
+
+# macOS/Linux (Bash)
+cd ~/github/dawning-agents
+dotnet test --nologo
+```
+
+### Using Scripts
+
+```bash
+# Windows (PowerShell)
+./.github/skills/run-tests/scripts/run-tests.ps1
+./.github/skills/run-tests/scripts/run-tests.ps1 -Filter "ToolRegistry" -Coverage
+
+# macOS/Linux (Bash)
+chmod +x ./.github/skills/run-tests/scripts/run-tests.sh
+./.github/skills/run-tests/scripts/run-tests.sh
+./.github/skills/run-tests/scripts/run-tests.sh -f "ToolRegistry" --coverage
 ```
 
 ### Run Specific Tests

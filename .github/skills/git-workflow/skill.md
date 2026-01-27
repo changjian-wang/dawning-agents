@@ -36,8 +36,12 @@ Manages Git operations for the Dawning.Agents project with conventional commit m
 
 ### Full Workflow
 
-```powershell
+```bash
+# Windows (PowerShell)
 cd C:\github\dawning-agents
+
+# macOS/Linux (Bash)
+cd ~/github/dawning-agents
 
 # 1. Check status
 git status
@@ -53,6 +57,19 @@ git commit -m "type(scope): description"
 
 # 5. Push
 git push
+```
+
+### Pre-commit Script
+
+```bash
+# Windows (PowerShell)
+./.github/skills/git-workflow/scripts/pre-commit.ps1
+./.github/skills/git-workflow/scripts/pre-commit.ps1 -SkipFormat
+
+# macOS/Linux (Bash)
+chmod +x ./.github/skills/git-workflow/scripts/pre-commit.sh
+./.github/skills/git-workflow/scripts/pre-commit.sh
+./.github/skills/git-workflow/scripts/pre-commit.sh --skip-format
 ```
 
 ## Commit Message Convention

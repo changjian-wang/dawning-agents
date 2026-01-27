@@ -33,9 +33,27 @@ Builds and compiles the Dawning.Agents .NET project, handling common build issue
 
 ### Standard Build
 
-```powershell
+```bash
+# Windows (PowerShell)
 cd C:\github\dawning-agents
 dotnet build --nologo -v q
+
+# macOS/Linux (Bash)
+cd ~/github/dawning-agents
+dotnet build --nologo -v q
+```
+
+### Using Scripts
+
+```bash
+# Windows (PowerShell)
+./.github/skills/build-project/scripts/build.ps1
+./.github/skills/build-project/scripts/build.ps1 -Configuration Release -Clean
+
+# macOS/Linux (Bash)
+chmod +x ./.github/skills/build-project/scripts/build.sh
+./.github/skills/build-project/scripts/build.sh
+./.github/skills/build-project/scripts/build.sh -c Release --clean
 ```
 
 ### Build Specific Project
