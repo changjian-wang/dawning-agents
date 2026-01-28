@@ -20,11 +20,11 @@ Phase 6 (Week 11-12) : 可观测性 + 生产扩展       ✅
 
 ---
 
-# 🚀 分布式架构升级计划（进行中）
+# 🚀 分布式架构升级计划 ✅ 已完成
 
 > **目标**: 将 dawning-agents 升级为支持分布式集群的生产级 Agent 框架
 > **周期**: 8周（约2个月）
-> **前置**: 12周学习计划已完成
+> **状态**: ✅ 已完成
 
 ## 📋 升级规划总览
 
@@ -34,6 +34,327 @@ Phase B (Week 15-16) : 容器化与编排             ✅ 已完成
 Phase C (Week 17-18) : 可观测性增强             ✅ 已完成
 Phase D (Week 19-20) : 生产级特性               ✅ 已完成
 ```
+
+---
+
+# 🏢 企业级增强计划 (进行中)
+
+> **目标**: 将框架打磨为生产就绪的企业级产品
+> **周期**: 8周（约2个月）
+> **前置**: Week 1-20 已完成
+
+## 📋 企业级增强总览
+
+```text
+Phase E (Week 21-22) : 弹性与配置增强           [ ] 规划中
+Phase F (Week 23-24) : 日志与诊断               [ ] 规划中
+Phase G (Week 25-26) : 多租户与认证             [ ] 规划中
+Phase H (Week 27-28) : AI 平台特性              [ ] 规划中
+```
+
+---
+
+## 🔧 Phase E: 弹性与配置增强 (Week 21-22)
+
+### Week 21: Polly 弹性策略
+
+#### Day 1-2: Polly V8 集成
+
+- [ ] **学习**: Polly V8 新特性 (ResiliencePipeline)
+- [ ] **代码**: 实现 `IResilienceProvider` 接口
+- [ ] **代码**: 集成到 `ILLMProvider` 调用链
+- [ ] **代码**: 实现高级重试策略 (指数退避 + 抖动)
+
+```csharp
+// 目标 API
+services.AddLLMProvider(configuration)
+    .WithResilience(pipeline => pipeline
+        .AddRetry(new RetryStrategyOptions
+        {
+            MaxRetryAttempts = 3,
+            BackoffType = DelayBackoffType.Exponential
+        })
+        .AddCircuitBreaker(new CircuitBreakerStrategyOptions
+        {
+            FailureRatio = 0.5,
+            MinimumThroughput = 10
+        })
+        .AddTimeout(TimeSpan.FromSeconds(30)));
+```
+
+#### Day 3-4: 舱壁隔离与组合策略
+
+- [ ] **代码**: 实现舱壁隔离 (Bulkhead Isolation)
+- [ ] **代码**: 组合策略 (Retry + CircuitBreaker + Timeout)
+- [ ] **代码**: 针对不同 LLM Provider 的策略配置
+- [ ] **测试**: 弹性策略单元测试
+
+#### Day 5-7: 与现有组件集成
+
+- [ ] **代码**: 替换现有 `CircuitBreaker` 实现
+- [ ] **代码**: 更新 DI 扩展方法
+- [ ] **代码**: 配置驱动的策略选择
+- [ ] **文档**: 弹性策略配置文档
+
+**Week 21 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── Resilience/
+│   ├── IResilienceProvider.cs         ← Polly 集成接口
+│   ├── PollyResilienceProvider.cs     ← Polly V8 实现
+│   ├── ResilienceOptions.cs           ← 配置选项
+│   └── ResilienceServiceCollectionExtensions.cs
+```
+
+### Week 22: 配置管理增强
+
+#### Day 1-2: FluentValidation 集成
+
+- [ ] **代码**: 为所有 Options 类添加验证器
+- [ ] **代码**: 实现 `IValidateOptions<T>` 集成
+- [ ] **代码**: 启动时配置验证
+- [ ] **测试**: 配置验证测试
+
+```csharp
+// 目标 API - 配置验证
+public class LLMOptionsValidator : AbstractValidator<LLMOptions>
+{
+    public LLMOptionsValidator()
+    {
+        RuleFor(x => x.Endpoint).NotEmpty().Must(BeValidUri);
+        RuleFor(x => x.Model).NotEmpty();
+        RuleFor(x => x.MaxTokens).GreaterThan(0);
+    }
+}
+```
+
+#### Day 3-4: 配置热重载
+
+- [ ] **代码**: 实现配置变更监听
+- [ ] **代码**: `IOptionsMonitor<T>` 集成
+- [ ] **代码**: 动态更新运行时配置
+- [ ] **测试**: 热重载测试
+
+#### Day 5-7: .env 文件支持
+
+- [ ] **代码**: 集成 DotNetEnv
+- [ ] **代码**: 环境变量优先级处理
+- [ ] **代码**: 敏感配置加密存储
+- [ ] **文档**: 配置最佳实践文档
+
+**Week 22 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── Configuration/
+│   ├── Validators/
+│   │   ├── LLMOptionsValidator.cs
+│   │   ├── AgentOptionsValidator.cs
+│   │   └── ...
+│   ├── ConfigurationValidationExtensions.cs
+│   └── EnvironmentConfigurationExtensions.cs
+
+samples/Dawning.Agents.Demo/
+├── .env.example                       ← 环境变量模板
+└── appsettings.json                   ← 更新配置示例
+```
+
+---
+
+## 📊 Phase F: 日志与诊断 (Week 23-24)
+
+### Week 23: Serilog 集成
+
+#### Day 1-3: 结构化日志
+
+- [ ] **代码**: Serilog 集成
+- [ ] **代码**: JSON 格式化输出
+- [ ] **代码**: 丰富器 (Enrichers) - 请求ID、用户上下文
+- [ ] **代码**: 日志上下文传播
+
+```csharp
+// 目标 API
+services.AddAgentLogging(config =>
+{
+    config.UseSerilog()
+        .WithConsole()
+        .WithFile("logs/agent-.log", rollingInterval: RollingInterval.Day)
+        .WithElasticsearch("http://localhost:9200");
+});
+```
+
+#### Day 4-7: 日志聚合与查询
+
+- [ ] **代码**: Elasticsearch Sink 配置
+- [ ] **代码**: Seq Sink 配置 (开发环境)
+- [ ] **代码**: 日志级别动态调整
+- [ ] **文档**: 日志查询指南
+
+**Week 23 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── Logging/
+│   ├── SerilogExtensions.cs
+│   ├── AgentLogEnricher.cs
+│   └── LoggingServiceCollectionExtensions.cs
+```
+
+### Week 24: 诊断与 Profiling
+
+#### Day 1-3: 诊断端点
+
+- [ ] **代码**: `/diagnostics` 端点
+- [ ] **代码**: 线程池状态
+- [ ] **代码**: GC 统计信息
+- [ ] **代码**: 内存使用详情
+
+#### Day 4-7: 性能 Profiling
+
+- [ ] **代码**: MiniProfiler 集成
+- [ ] **代码**: 慢查询检测
+- [ ] **代码**: LLM 调用 Profiling
+- [ ] **文档**: 性能调优指南
+
+**Week 24 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── Diagnostics/
+│   ├── DiagnosticsEndpoint.cs
+│   ├── PerformanceProfiler.cs
+│   └── DiagnosticsServiceCollectionExtensions.cs
+```
+
+---
+
+## 🔐 Phase G: 多租户与认证 (Week 25-26)
+
+### Week 25: OAuth 2.0 / OIDC 集成
+
+#### Day 1-4: 身份认证
+
+- [ ] **代码**: JWT Bearer 认证
+- [ ] **代码**: OIDC 集成 (Azure AD / Keycloak)
+- [ ] **代码**: API Key + OAuth 混合认证
+- [ ] **测试**: 认证测试
+
+#### Day 5-7: 基于策略的授权
+
+- [ ] **代码**: Policy-based Authorization
+- [ ] **代码**: 资源级别权限
+- [ ] **代码**: 动态权限评估
+
+**Week 25 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── Authentication/
+│   ├── JwtBearerAuthenticationExtensions.cs
+│   ├── OidcAuthenticationExtensions.cs
+│   └── HybridAuthenticationHandler.cs
+```
+
+### Week 26: 多租户支持
+
+#### Day 1-4: 租户隔离
+
+- [ ] **代码**: `ITenantProvider` 接口
+- [ ] **代码**: 租户上下文传播
+- [ ] **代码**: 配置隔离
+- [ ] **代码**: 数据隔离策略
+
+#### Day 5-7: 租户管理
+
+- [ ] **代码**: 租户注册/注销
+- [ ] **代码**: 资源配额
+- [ ] **代码**: 用量统计
+
+**Week 26 产出物**:
+
+```text
+src/Dawning.Agents.Abstractions/
+├── Tenancy/
+│   ├── ITenantProvider.cs
+│   ├── TenantContext.cs
+│   └── TenantOptions.cs
+
+src/Dawning.Agents.Core/
+├── Tenancy/
+│   ├── TenantMiddleware.cs
+│   ├── TenantIsolationStrategy.cs
+│   └── TenancyServiceCollectionExtensions.cs
+```
+
+---
+
+## 🤖 Phase H: AI 平台特性 (Week 27-28)
+
+### Week 27: 向量数据库集成
+
+#### Day 1-4: Qdrant 集成
+
+- [ ] **代码**: `IVectorDatabase` 接口
+- [ ] **代码**: Qdrant 实现
+- [ ] **代码**: 向量索引管理
+- [ ] **测试**: 向量搜索测试
+
+#### Day 5-7: 混合检索
+
+- [ ] **代码**: 语义 + 关键词混合搜索
+- [ ] **代码**: 重排序 (Reranking)
+- [ ] **代码**: RAG 流程优化
+
+**Week 27 产出物**:
+
+```text
+src/Dawning.Agents.Qdrant/
+├── QdrantVectorStore.cs
+├── QdrantOptions.cs
+└── QdrantServiceCollectionExtensions.cs
+```
+
+### Week 28: 模型路由与管理
+
+#### Day 1-4: 多模型路由
+
+- [ ] **代码**: `IModelRouter` 接口
+- [ ] **代码**: 成本优化路由
+- [ ] **代码**: 延迟优化路由
+- [ ] **代码**: 负载均衡路由
+
+#### Day 5-7: 模型管理 API
+
+- [ ] **代码**: 模型注册/注销
+- [ ] **代码**: 模型健康检查
+- [ ] **代码**: 使用量统计
+- [ ] **文档**: 模型管理指南
+
+**Week 28 产出物**:
+
+```text
+src/Dawning.Agents.Core/
+├── ModelManagement/
+│   ├── IModelRouter.cs
+│   ├── CostOptimizedRouter.cs
+│   ├── LatencyOptimizedRouter.cs
+│   └── ModelManagementServiceCollectionExtensions.cs
+```
+
+---
+
+## 📈 企业级增强成功指标
+
+| 指标 | 目标 |
+|------|------|
+| Polly 弹性策略 | 100% LLM 调用覆盖 |
+| 配置验证 | 所有 Options 类 |
+| 日志结构化 | 100% 操作可追踪 |
+| 多租户隔离 | 完整数据隔离 |
+| 向量数据库 | Qdrant 生产就绪 |
+
+---
 
 ## 当前架构 vs 目标架构
 
