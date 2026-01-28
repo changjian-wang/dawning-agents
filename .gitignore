@@ -29,6 +29,11 @@ bld/
 # NuGet packages output
 nupkgs/
 
+# DocFX output
+docs/_site/
+docs/api/*.yml
+docs/api/.manifest
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json

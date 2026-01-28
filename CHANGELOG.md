@@ -81,7 +81,7 @@ dotnet run
 | 优先级 | 任务 | 描述 | 状态 |
 |--------|------|------|------|
 | P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ✅ |
-| P1 | **文档站点** | DocFX 生成 API 文档站点 | ⏳ |
+| P1 | **文档站点** | DocFX 生成 API 文档站点 | ✅ |
 | P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ⏳ |
 | P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ⏳ |
 | P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ⏳ |
@@ -96,6 +96,61 @@ dotnet run
 - **P2 性能基准**：企业级框架需要性能数据支撑
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
+
+---
+
+## [2026-01-28] P1: 文档站点 (DocFX)
+
+### 功能概述
+
+使用 DocFX 生成完整的 API 文档站点，支持 GitHub Pages 自动部署。
+
+### 文档结构
+
+```
+docs/
+├── docfx.json          # DocFX 配置
+├── index.md            # 首页
+├── toc.yml             # 顶级导航
+├── articles/           # 教程文章
+│   ├── getting-started.md
+│   ├── llm-providers.md
+│   ├── tools.md
+│   ├── memory.md
+│   ├── rag.md
+│   └── multi-agent.md
+├── api/                # API 文档（自动生成）
+└── images/             # 图片资源
+```
+
+### 文章列表
+
+| 文章 | 描述 |
+|------|------|
+| Getting Started | 安装和快速入门 |
+| LLM Providers | Ollama, OpenAI, Azure 配置 |
+| Tools & Skills | 64+ 内置工具，自定义工具 |
+| Memory | 缓冲、滑动窗口、摘要记忆 |
+| RAG | Qdrant, Pinecone 向量存储 |
+| Multi-Agent | 多 Agent 协作模式 |
+
+### 部署方式
+
+**自动部署（推荐）**
+
+推送到 main 分支后，GitHub Actions 自动构建并部署到 GitHub Pages。
+
+**本地预览**
+
+```bash
+cd docs
+docfx docfx.json --serve
+# 访问 http://localhost:8080
+```
+
+### 访问地址
+
+https://changjian-wang.github.io/dawning-agents/
 
 ---
 
