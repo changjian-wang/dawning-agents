@@ -70,6 +70,7 @@ dotnet run
 - ✅ Week 27: Pinecone 向量存储（1581 测试通过）
 - ✅ CSharpier Tool: 代码格式化工具（1594 测试通过）
 - ✅ P3: Chroma 向量存储（1608 测试通过）
+- ✅ P4: Weaviate 向量存储（1630 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
@@ -85,7 +86,7 @@ dotnet run
 | P1 | **文档站点** | DocFX 生成 API 文档站点 | ✅ |
 | P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ✅ |
 | P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ✅ |
-| P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ⏳ |
+| P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ✅ |
 | P5 | **MCP 协议** | 支持 Anthropic Model Context Protocol | ⏳ |
 | P6 | **Semantic Kernel 集成** | 与微软 Semantic Kernel 互操作 | ⏳ |
 | P7 | **LangChain 兼容层** | 与 LangChain 工具链集成 | ⏳ |
@@ -97,6 +98,86 @@ dotnet run
 - **P2 性能基准**：企业级框架需要性能数据支撑
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
+
+---
+
+## [2026-01-28] P4: Weaviate 向量存储
+
+### 功能概述
+
+Weaviate 是一个开源的向量搜索引擎，支持 GraphQL 和 REST API，提供多种向量索引类型和混合搜索能力。
+
+### 核心组件
+
+| 组件 | 描述 |
+|------|------|
+| `WeaviateOptions` | Weaviate 连接配置（Host, Port, ClassName 等） |
+| `WeaviateVectorStore` | IVectorStore 实现，支持 GraphQL 搜索 |
+| `WeaviateServiceCollectionExtensions` | DI 注册扩展 |
+
+### 配置选项
+
+```json
+{
+  "Weaviate": {
+    "Host": "localhost",
+    "Port": 8080,
+    "GrpcPort": 50051,
+    "ClassName": "Document",
+    "Scheme": "http",
+    "ApiKey": null,
+    "TimeoutSeconds": 30,
+    "VectorDimension": 1536,
+    "DistanceMetric": "Cosine",
+    "VectorIndexType": "Hnsw"
+  }
+}
+```
+
+### 使用方式
+
+```csharp
+// 通过配置注册
+services.AddWeaviateVectorStore(configuration);
+
+// 通过委托配置
+services.AddWeaviateVectorStore(options =>
+{
+    options.Host = "localhost";
+    options.Port = 8080;
+    options.ClassName = "MyDocuments";
+});
+```
+
+### 运行 Weaviate
+
+```bash
+# Docker 运行 Weaviate
+docker run -p 8080:8080 -p 50051:50051 semitechnologies/weaviate:latest
+
+# Docker Compose（推荐）
+docker compose up -d
+```
+
+### 特性支持
+
+- **GraphQL API** - 灵活的查询语言
+- **多种索引类型** - HNSW (默认), Flat, Dynamic
+- **多种距离度量** - Cosine, Dot, L2, Hamming, Manhattan
+- **批量操作** - 高效的批量导入和删除
+
+### 新增文件
+
+- `src/Dawning.Agents.Weaviate/WeaviateOptions.cs` - 配置选项
+- `src/Dawning.Agents.Weaviate/WeaviateVectorStore.cs` - IVectorStore 实现
+- `src/Dawning.Agents.Weaviate/WeaviateServiceCollectionExtensions.cs` - DI 扩展
+- `tests/Dawning.Agents.Tests/Weaviate/WeaviateVectorStoreTests.cs` - 单元测试（22 测试）
+
+### 测试统计
+
+- 新增测试：22
+- 总测试数：1630
+- 全部通过 ✅
 
 ---
 

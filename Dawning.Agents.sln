@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dawning.Agents.Benchmarks",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dawning.Agents.Chroma", "src\Dawning.Agents.Chroma\Dawning.Agents.Chroma.csproj", "{EEA134F9-0D9C-4931-9625-B07AE0A02939}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dawning.Agents.Weaviate", "src\Dawning.Agents.Weaviate\Dawning.Agents.Weaviate.csproj", "{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,18 @@ Global
 		{EEA134F9-0D9C-4931-9625-B07AE0A02939}.Release|x64.Build.0 = Release|Any CPU
 		{EEA134F9-0D9C-4931-9625-B07AE0A02939}.Release|x86.ActiveCfg = Release|Any CPU
 		{EEA134F9-0D9C-4931-9625-B07AE0A02939}.Release|x86.Build.0 = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Debug|x86.Build.0 = Debug|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|x64.Build.0 = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -191,5 +205,6 @@ Global
 		{E67DC3C1-0CF8-451B-A2F2-A22106461BE9} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{837A36D0-B51A-452D-9741-111208DBE2CB} = {66320409-64EC-F7C5-3DEF-65E7510DAAD1}
 		{EEA134F9-0D9C-4931-9625-B07AE0A02939} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{03830473-D1AF-4EF7-BC0B-B776A6E0F1E5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

@@ -27,6 +27,7 @@
         <ProjectReference Include="..\..\src\Dawning.Agents.Qdrant\Dawning.Agents.Qdrant.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Pinecone\Dawning.Agents.Pinecone.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Chroma\Dawning.Agents.Chroma.csproj" />
+        <ProjectReference Include="..\..\src\Dawning.Agents.Weaviate\Dawning.Agents.Weaviate.csproj" />
     </ItemGroup>
 
     <ItemGroup>
