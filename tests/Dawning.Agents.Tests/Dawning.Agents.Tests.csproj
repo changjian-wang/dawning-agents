@@ -24,6 +24,7 @@
         <ProjectReference Include="..\..\src\Dawning.Agents.OpenAI\Dawning.Agents.OpenAI.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Azure\Dawning.Agents.Azure.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Redis\Dawning.Agents.Redis.csproj" />
+        <ProjectReference Include="..\..\src\Dawning.Agents.Qdrant\Dawning.Agents.Qdrant.csproj" />
     </ItemGroup>
 
     <ItemGroup>

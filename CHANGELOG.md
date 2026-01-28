@@ -66,6 +66,7 @@ dotnet run
 - ✅ Week 23: 配置热重载 IOptionsMonitor（1470 测试通过）
 - ✅ Week 24: 统一 Provider 工厂模式（1470 测试通过）
 - ✅ Week 25: 真实 Embedding Provider（1517 测试通过）
+- ✅ Week 26: Qdrant 向量存储（1547 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
@@ -73,9 +74,91 @@ dotnet run
 
 ---
 
+## [2026-01-28] Week 26: Qdrant 向量存储
+
+### 功能概述
+添加 Qdrant 向量数据库支持，提供生产级向量存储能力。Qdrant 是高性能开源向量数据库，支持本地部署和云服务。
+
+### 新增包
+
+```
+src/Dawning.Agents.Qdrant/
+├── Dawning.Agents.Qdrant.csproj     # 新包（依赖 Qdrant.Client）
+├── QdrantOptions.cs                  # 配置选项
+├── QdrantVectorStore.cs              # IVectorStore 实现
+└── QdrantServiceCollectionExtensions.cs  # DI 扩展方法
+```
+
+### 配置示例
+
+```json
+{
+  "Qdrant": {
+    "Host": "localhost",
+    "Port": 6334,
+    "CollectionName": "documents",
+    "VectorSize": 1536,
+    "ApiKey": null,
+    "UseTls": false
+  }
+}
+```
+
+### 核心 API
+
+```csharp
+// 使用配置文件
+services.AddQdrantVectorStore(configuration);
+
+// 使用配置委托
+services.AddQdrantVectorStore(options => {
+    options.Host = "localhost";
+    options.Port = 6334;
+    options.CollectionName = "my-docs";
+    options.VectorSize = 1536;
+});
+
+// 快速配置（本地）
+services.AddQdrantVectorStore(host: "localhost", port: 6334);
+
+// Qdrant Cloud
+services.AddQdrantCloud(
+    cloudUrl: "xxx.aws.cloud.qdrant.io",
+    apiKey: "your-api-key",
+    collectionName: "documents"
+);
+```
+
+### IVectorStore 实现
+
+```csharp
+// QdrantVectorStore 实现 IVectorStore 接口
+await vectorStore.AddAsync(chunk);                    // 添加单个文档块
+await vectorStore.AddBatchAsync(chunks);              // 批量添加
+var results = await vectorStore.SearchAsync(embedding, topK: 5);  // 向量搜索
+await vectorStore.DeleteAsync(id);                    // 删除单个
+await vectorStore.DeleteByDocumentIdAsync(docId);     // 按文档删除
+await vectorStore.ClearAsync();                       // 清空集合
+var chunk = await vectorStore.GetAsync(id);           // 获取单个
+```
+
+### 安装 Qdrant（Docker）
+
+```bash
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+```
+
+### 测试统计
+
+- 新增测试: 30 个
+- 总测试数: 1547
+
+---
+
 ## [2026-01-28] Week 25: 真实 Embedding Provider
 
 ### 功能概述
+
 实现真实的 Embedding Provider，支持 OpenAI、Azure OpenAI 和 Ollama 三种嵌入模型服务。
 
 ### 新增文件
@@ -123,6 +206,7 @@ services.AddOllamaEmbedding("nomic-embed-text");
 | Ollama | all-minilm | 384 |
 
 ### 测试统计
+
 - 新增测试: 47 个
 - 总测试数: 1470 → 1517
 
@@ -131,6 +215,7 @@ services.AddOllamaEmbedding("nomic-embed-text");
 ## [2026-01-28] Week 24: 统一 Provider 工厂模式
 
 ### 功能概述
+
 统一 LLM Provider 注册方式，`AddLLMProvider()` 现在根据配置自动选择 Ollama、OpenAI 或 Azure OpenAI。
 
 ### 核心改进
@@ -181,6 +266,7 @@ Dawning.Agents.Core (统一入口)
 ## [2026-01-27] Week 23: 配置热重载 IOptionsMonitor
 
 ### 功能概述
+
 实现配置热重载机制，允许在运行时动态更新 LLM 配置而无需重启应用。
 
 ### 新增文件
@@ -244,6 +330,7 @@ services.AddHotReloadableLLMProvider(configuration);
 ```
 
 ### 测试统计
+
 - 新增测试: 33 个
 - 总测试数: 1437 → 1470
 
@@ -252,6 +339,7 @@ services.AddHotReloadableLLMProvider(configuration);
 ## [2026-01-27] Week 23: Serilog 结构化日志
 
 ### 功能概述
+
 集成 Serilog 日志框架，提供企业级结构化日志能力。
 
 ### 新增文件
@@ -284,6 +372,7 @@ services.AddSerilogAgentLogger(customLogger);
 ```
 
 ### 测试统计
+
 - 新增测试: 52 个
 - 总测试数: 1385 → 1437
 
@@ -292,14 +381,17 @@ services.AddSerilogAgentLogger(customLogger);
 ## [2026-01-26] Week 21: Polly V8 弹性策略 + FluentValidation
 
 ### 功能概述
+
 集成 Polly V8 弹性策略和 FluentValidation 验证框架。
 
 ### 已完成内容
+
 - Polly V8 弹性管道（重试、熔断、超时、回退）
 - FluentValidation 配置验证
 - 企业级错误处理
 
 ### 测试统计
+
 - 总测试数: 1183 → 1385 (+202)
 
 ---
@@ -307,24 +399,29 @@ services.AddSerilogAgentLogger(customLogger);
 ## [2026-01-26] 企业级转型: 代码优化与测试覆盖率提升
 
 ### 目标
+
 将 dawning-agents 从学习项目转型为企业级 AI Agent 框架，提升代码质量和测试覆盖率。
 
 ### 代码优化（已完成）
 
 #### 性能优化
+
 - **SIMD 向量计算**: `InMemoryVectorStore.CosineSimilarity` 使用 `TensorPrimitives` 优化
 - **内存优化**: `WindowMemory` 改用 `LinkedList<T>` 实现 O(1) 移除
 - **缓存优化**: `ToolRegistry` 添加 `_cachedAllTools/ToolSets/Categories` 缓存
 
 #### 线程安全
+
 - `ToolRegistry`: 改用 `ConcurrentDictionary` + `InvalidateCache()` 模式
 - `GuardrailPipeline`: 使用 `ImmutableList` + `ImmutableInterlocked.Update()`
 - `CircuitBreaker`: 修复 `State` getter 副作用 + `TimeProvider` 注入
 
 #### 内存泄漏修复
+
 - `MethodTool.ExecuteAsync`: 添加 `using` 确保 `JsonDocument` 释放
 
 #### 代码规范
+
 - 50+ Core 类添加 `sealed` 关键字
 
 ### 测试覆盖率提升
@@ -359,12 +456,14 @@ tests/Dawning.Agents.Tests/
 ### 后续可继续的工作
 
 #### 可提升覆盖率的区域
+
 - `BuiltInToolExtensions` 58.8%
 - `LLMServiceCollectionExtensions` 50.5%
 - `AgentLogger` 44.2%
 - `ObservabilityServiceCollectionExtensions` 23.8%
 
 #### 需要外部服务的区域（难以单元测试）
+
 - `AzureOpenAIProvider` 11.9%
 - `OpenAIProvider` 12.1%
 - `OllamaProvider` 12%
