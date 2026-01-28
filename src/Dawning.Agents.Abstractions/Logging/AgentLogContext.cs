@@ -37,11 +37,6 @@ public class AgentLogContext
     public string? UserId { get; set; }
 
     /// <summary>
-    /// 租户 ID
-    /// </summary>
-    public string? TenantId { get; set; }
-
-    /// <summary>
     /// 当前工具名称
     /// </summary>
     public string? ToolName { get; set; }
@@ -58,8 +53,7 @@ public class AgentLogContext
         string? agentName = null,
         string? requestId = null,
         string? sessionId = null,
-        string? userId = null,
-        string? tenantId = null
+        string? userId = null
     )
     {
         var previous = Current;
@@ -69,7 +63,6 @@ public class AgentLogContext
             RequestId = requestId ?? previous?.RequestId ?? Guid.NewGuid().ToString("N")[..8],
             SessionId = sessionId ?? previous?.SessionId,
             UserId = userId ?? previous?.UserId,
-            TenantId = tenantId ?? previous?.TenantId,
         };
         return new LogContextScope(previous);
     }

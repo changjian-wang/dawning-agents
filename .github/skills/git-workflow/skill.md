@@ -1,9 +1,6 @@
 ---
 name: git-workflow
-description: >
-  Git operations for Dawning.Agents with conventional commit messages.
-  Use when asked to "commit", "push", "check status", "view history",
-  "stage changes", or "create branch".
+description: "Git operations for Dawning.Agents with conventional commit messages. Trigger phrases: commit, push, 提交, check status, view history, stage changes, create branch"
 ---
 
 # Git Workflow Skill

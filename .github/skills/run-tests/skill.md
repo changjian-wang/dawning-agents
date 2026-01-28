@@ -1,9 +1,6 @@
 ---
 name: run-tests
-description: >
-  Run and manage xUnit tests for Dawning.Agents project using FluentAssertions 
-  and Moq. Use when asked to "run tests", "verify changes", "check if it works",
-  "test this", or after making code changes.
+description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq. Trigger phrases: run tests, 跑测试, verify changes, 验证改动, does this work, 能用吗, test coverage, 测试覆盖率"
 ---
 
 # Run Tests Skill
@@ -14,11 +11,11 @@ Executes and manages unit tests for the Dawning.Agents project using xUnit, Flue
 
 ## When to Use
 
-- "Run tests"
-- "Run the test suite"
-- "Verify my changes"
-- "Does this work?"
-- "Test this feature"
+- "Run tests" / "跑测试"
+- "Verify my changes" / "验证我的改动"
+- "Does this work?" / "能用吗"
+- "Test this feature" / "测试这个功能"
+- "Check test coverage" / "看看测试覆盖率"
 - After making any code changes
 
 ## Test Commands

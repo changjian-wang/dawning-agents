@@ -1,9 +1,11 @@
+using System.Threading.RateLimiting;
 using Dawning.Agents.Abstractions.Resilience;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.CircuitBreaker;
+using Polly.RateLimiting;
 using Polly.Retry;
 using Polly.Timeout;
 
@@ -12,6 +14,13 @@ namespace Dawning.Agents.Core.Resilience;
 /// <summary>
 /// 基于 Polly V8 的弹性策略提供者实现
 /// </summary>
+/// <remarks>
+/// 支持的策略（按执行顺序）：
+/// 1. 超时 (Timeout) - 最外层，限制总执行时间
+/// 2. 舱壁隔离 (Bulkhead) - 限制并发数
+/// 3. 重试 (Retry) - 失败后重试
+/// 4. 断路器 (CircuitBreaker) - 防止级联故障
+/// </remarks>
 public class PollyResilienceProvider : IResilienceProvider
 {
     private readonly ResiliencePipeline _pipeline;
@@ -78,7 +87,41 @@ public class PollyResilienceProvider : IResilienceProvider
             );
         }
 
-        // 2. 重试策略
+        // 2. 舱壁隔离策略（并发限制）
+        if (options.Bulkhead.Enabled)
+        {
+            var limiter = new ConcurrencyLimiter(
+                new ConcurrencyLimiterOptions
+                {
+                    PermitLimit = options.Bulkhead.MaxConcurrency,
+                    QueueLimit = options.Bulkhead.MaxQueuedActions,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                }
+            );
+
+            builder.AddRateLimiter(
+                new RateLimiterStrategyOptions
+                {
+                    RateLimiter = args => limiter.AcquireAsync(cancellationToken: args.Context.CancellationToken),
+                    OnRejected = args =>
+                    {
+                        _logger.LogWarning(
+                            "舱壁隔离：并发请求过多，已拒绝请求。当前限制: {MaxConcurrency}",
+                            options.Bulkhead.MaxConcurrency
+                        );
+                        return default;
+                    },
+                }
+            );
+
+            _logger.LogDebug(
+                "舱壁隔离已启用，最大并发: {MaxConcurrency}，最大排队: {MaxQueued}",
+                options.Bulkhead.MaxConcurrency,
+                options.Bulkhead.MaxQueuedActions
+            );
+        }
+
+        // 3. 重试策略
         if (options.Retry.Enabled)
         {
             builder.AddRetry(
@@ -108,7 +151,7 @@ public class PollyResilienceProvider : IResilienceProvider
             );
         }
 
-        // 3. 断路器策略（最内层）
+        // 4. 断路器策略（最内层）
         if (options.CircuitBreaker.Enabled)
         {
             builder.AddCircuitBreaker(

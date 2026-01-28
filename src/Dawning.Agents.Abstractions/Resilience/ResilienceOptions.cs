@@ -44,6 +44,11 @@ public class ResilienceOptions
     /// 超时策略配置
     /// </summary>
     public TimeoutOptions Timeout { get; set; } = new();
+
+    /// <summary>
+    /// 舱壁隔离策略配置
+    /// </summary>
+    public BulkheadOptions Bulkhead { get; set; } = new();
 }
 
 /// <summary>
@@ -122,4 +127,28 @@ public class TimeoutOptions
     /// 超时时间（秒）
     /// </summary>
     public int TimeoutSeconds { get; set; } = 120;
+}
+
+/// <summary>
+/// 舱壁隔离策略配置
+/// </summary>
+/// <remarks>
+/// 舱壁隔离用于限制并发请求数，防止资源耗尽。
+/// </remarks>
+public class BulkheadOptions
+{
+    /// <summary>
+    /// 是否启用舱壁隔离
+    /// </summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>
+    /// 最大并发执行数
+    /// </summary>
+    public int MaxConcurrency { get; set; } = 10;
+
+    /// <summary>
+    /// 最大排队等待数
+    /// </summary>
+    public int MaxQueuedActions { get; set; } = 20;
 }

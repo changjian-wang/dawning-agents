@@ -93,6 +93,93 @@ public class LoggingOptions
         ["Microsoft"] = "Warning",
         ["System"] = "Warning",
     };
+
+    /// <summary>
+    /// Elasticsearch 配置
+    /// </summary>
+    public ElasticsearchLoggingOptions? Elasticsearch { get; set; }
+
+    /// <summary>
+    /// Seq 配置（开发环境推荐）
+    /// </summary>
+    public SeqLoggingOptions? Seq { get; set; }
+}
+
+/// <summary>
+/// Elasticsearch 日志配置
+/// </summary>
+public class ElasticsearchLoggingOptions
+{
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>
+    /// Elasticsearch 节点地址
+    /// </summary>
+    public string[] NodeUris { get; set; } = ["http://localhost:9200"];
+
+    /// <summary>
+    /// 索引格式（支持日期占位符）
+    /// </summary>
+    public string IndexFormat { get; set; } = "dawning-agents-{0:yyyy.MM.dd}";
+
+    /// <summary>
+    /// 自动注册索引模板
+    /// </summary>
+    public bool AutoRegisterTemplate { get; set; } = true;
+
+    /// <summary>
+    /// API Key（可选）
+    /// </summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// 用户名（可选，Basic Auth）
+    /// </summary>
+    public string? Username { get; set; }
+
+    /// <summary>
+    /// 密码（可选，Basic Auth）
+    /// </summary>
+    public string? Password { get; set; }
+
+    /// <summary>
+    /// 批量发送大小
+    /// </summary>
+    public int BatchSize { get; set; } = 50;
+
+    /// <summary>
+    /// 批量发送间隔（秒）
+    /// </summary>
+    public int BatchIntervalSeconds { get; set; } = 2;
+}
+
+/// <summary>
+/// Seq 日志配置
+/// </summary>
+public class SeqLoggingOptions
+{
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>
+    /// Seq 服务器地址
+    /// </summary>
+    public string ServerUrl { get; set; } = "http://localhost:5341";
+
+    /// <summary>
+    /// API Key（可选）
+    /// </summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// 批量发送间隔（秒）
+    /// </summary>
+    public int BatchIntervalSeconds { get; set; } = 2;
 }
 
 /// <summary>

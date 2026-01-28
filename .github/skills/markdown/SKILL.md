@@ -1,8 +1,6 @@
 ---
 name: markdown
-description: >
-  Markdown formatting rules and conventions for Dawning.Agents documentation.
-  Use when writing README, CHANGELOG, API docs, or any .md files.
+description: "Markdown formatting rules and conventions for Dawning.Agents documentation. Trigger phrases: write markdown, 写文档, README, CHANGELOG, API docs, documentation"
 ---
 
 # Markdown Formatting Skill

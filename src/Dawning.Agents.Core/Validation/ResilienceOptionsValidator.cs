@@ -13,6 +13,7 @@ public class ResilienceOptionsValidator : AbstractValidator<ResilienceOptions>
         RuleFor(x => x.Retry).SetValidator(new RetryOptionsValidator());
         RuleFor(x => x.CircuitBreaker).SetValidator(new CircuitBreakerOptionsValidator());
         RuleFor(x => x.Timeout).SetValidator(new TimeoutOptionsValidator());
+        RuleFor(x => x.Bulkhead).SetValidator(new BulkheadOptionsValidator());
     }
 }
 
@@ -78,5 +79,26 @@ public class TimeoutOptionsValidator : AbstractValidator<TimeoutOptions>
             .WithMessage("TimeoutSeconds 必须大于 0")
             .LessThanOrEqualTo(600)
             .WithMessage("TimeoutSeconds 不能超过 600");
+    }
+}
+
+/// <summary>
+/// 舱壁隔离配置验证器
+/// </summary>
+public class BulkheadOptionsValidator : AbstractValidator<BulkheadOptions>
+{
+    public BulkheadOptionsValidator()
+    {
+        RuleFor(x => x.MaxConcurrency)
+            .GreaterThan(0)
+            .WithMessage("MaxConcurrency 必须大于 0")
+            .LessThanOrEqualTo(1000)
+            .WithMessage("MaxConcurrency 不能超过 1000");
+
+        RuleFor(x => x.MaxQueuedActions)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("MaxQueuedActions 不能为负数")
+            .LessThanOrEqualTo(10000)
+            .WithMessage("MaxQueuedActions 不能超过 10000");
     }
 }

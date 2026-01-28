@@ -1,8 +1,14 @@
 using Dawning.Agents.Abstractions.Logging;
+using Elastic.Channels;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Ingest.Elasticsearch.DataStreams;
+using Elastic.Serilog.Sinks;
+using Elastic.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 
@@ -123,8 +129,27 @@ public static class LoggingServiceCollectionExtensions
             }
         }
 
+        // Elasticsearch 输出
+        if (options.Elasticsearch?.Enabled == true)
+        {
+            ConfigureElasticsearchSink(loggerConfig, options.Elasticsearch);
+        }
+
+        // Seq 输出（开发环境推荐）
+        if (options.Seq?.Enabled == true)
+        {
+            ConfigureSeqSink(loggerConfig, options.Seq);
+        }
+
         // 创建全局 Logger
         Log.Logger = loggerConfig.CreateLogger();
+
+        // 注册日志级别开关（用于动态调整）
+        var levelSwitch = new LoggingLevelSwitch(minLevel);
+        services.AddSingleton(levelSwitch);
+        services.AddSingleton<ILogLevelController>(sp =>
+            new LogLevelController(sp.GetRequiredService<LoggingLevelSwitch>())
+        );
 
         // 替换 Microsoft.Extensions.Logging
         services.AddLogging(builder =>
@@ -134,6 +159,74 @@ public static class LoggingServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// 配置 Elasticsearch Sink
+    /// </summary>
+    private static void ConfigureElasticsearchSink(
+        LoggerConfiguration loggerConfig,
+        ElasticsearchLoggingOptions esOptions
+    )
+    {
+        var nodes = esOptions.NodeUris.Select(uri => new Uri(uri)).ToArray();
+
+        // 配置传输
+        TransportConfiguration transportConfig;
+
+        if (!string.IsNullOrEmpty(esOptions.ApiKey))
+        {
+            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]))
+                .Authentication(new ApiKey(esOptions.ApiKey));
+        }
+        else if (
+            !string.IsNullOrEmpty(esOptions.Username) && !string.IsNullOrEmpty(esOptions.Password)
+        )
+        {
+            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]))
+                .Authentication(new BasicAuthentication(esOptions.Username, esOptions.Password));
+        }
+        else
+        {
+            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]));
+        }
+
+        loggerConfig.WriteTo.Elasticsearch(
+            nodes,
+            opts =>
+            {
+                opts.DataStream = new DataStreamName("logs", "dawning-agents");
+                opts.BootstrapMethod = BootstrapMethod.Failure;
+            },
+            transport =>
+            {
+                if (!string.IsNullOrEmpty(esOptions.ApiKey))
+                {
+                    transport.Authentication(new ApiKey(esOptions.ApiKey));
+                }
+                else if (
+                    !string.IsNullOrEmpty(esOptions.Username)
+                    && !string.IsNullOrEmpty(esOptions.Password)
+                )
+                {
+                    transport.Authentication(
+                        new BasicAuthentication(esOptions.Username, esOptions.Password)
+                    );
+                }
+            }
+        );
+    }
+
+    /// <summary>
+    /// 配置 Seq Sink
+    /// </summary>
+    private static void ConfigureSeqSink(LoggerConfiguration loggerConfig, SeqLoggingOptions seqOptions)
+    {
+        loggerConfig.WriteTo.Seq(
+            seqOptions.ServerUrl,
+            apiKey: seqOptions.ApiKey,
+            period: TimeSpan.FromSeconds(seqOptions.BatchIntervalSeconds)
+        );
     }
 
     /// <summary>

@@ -46,13 +46,6 @@ public sealed class AgentContextEnricher : ILogEventEnricher
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserId", context.UserId));
         }
 
-        if (!string.IsNullOrEmpty(context.TenantId))
-        {
-            logEvent.AddPropertyIfAbsent(
-                propertyFactory.CreateProperty("TenantId", context.TenantId)
-            );
-        }
-
         if (!string.IsNullOrEmpty(context.ToolName))
         {
             logEvent.AddPropertyIfAbsent(

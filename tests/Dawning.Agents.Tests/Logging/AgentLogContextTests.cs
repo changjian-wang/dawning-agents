@@ -147,8 +147,7 @@ public class AgentLogContextTests
             agentName: "TestAgent",
             requestId: "req-123",
             sessionId: "sess-456",
-            userId: "user-789",
-            tenantId: "tenant-abc"
+            userId: "user-789"
         );
 
         // Assert
@@ -157,7 +156,6 @@ public class AgentLogContextTests
         ctx.RequestId.Should().Be("req-123");
         ctx.SessionId.Should().Be("sess-456");
         ctx.UserId.Should().Be("user-789");
-        ctx.TenantId.Should().Be("tenant-abc");
     }
 
     [Fact]

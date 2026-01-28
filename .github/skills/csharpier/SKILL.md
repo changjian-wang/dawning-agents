@@ -1,9 +1,6 @@
 ---
 name: csharpier
-description: >
-  CSharpier code formatting rules and conventions for Dawning.Agents.
-  Use when writing or reviewing C# code to ensure consistent formatting.
-  CSharpier is the authoritative formatter - all code must follow these rules.
+description: "CSharpier code formatting rules and conventions for Dawning.Agents. Use when writing or reviewing C# code. Trigger phrases: format code, 格式化代码, csharpier, code style, 代码风格"
 ---
 
 # CSharpier Formatting Skill
