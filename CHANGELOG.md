@@ -65,10 +65,66 @@ dotnet run
 - ✅ Week 23: Serilog 结构化日志（1437 测试通过）
 - ✅ Week 23: 配置热重载 IOptionsMonitor（1470 测试通过）
 - ✅ Week 24: 统一 Provider 工厂模式（1470 测试通过）
+- ✅ Week 25: 真实 Embedding Provider（1517 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-28] Week 25: 真实 Embedding Provider
+
+### 功能概述
+实现真实的 Embedding Provider，支持 OpenAI、Azure OpenAI 和 Ollama 三种嵌入模型服务。
+
+### 新增文件
+
+```
+src/Dawning.Agents.OpenAI/
+└── OpenAIEmbeddingProvider.cs    # OpenAI Embedding Provider
+
+src/Dawning.Agents.Azure/
+└── AzureOpenAIEmbeddingProvider.cs  # Azure OpenAI Embedding Provider
+
+src/Dawning.Agents.Core/RAG/
+├── OllamaEmbeddingProvider.cs    # Ollama Embedding Provider
+└── RAGServiceCollectionExtensions.cs  # 更新 DI 扩展
+
+tests/Dawning.Agents.Tests/RAG/
+├── OpenAIEmbeddingProviderTests.cs       # 11 测试
+├── AzureOpenAIEmbeddingProviderTests.cs  # 11 测试
+├── OllamaEmbeddingProviderTests.cs       # 14 测试
+└── EmbeddingProviderDITests.cs           # 11 测试
+```
+
+### 核心 API
+
+```csharp
+// 统一入口（根据 LLM 配置自动选择）
+services.AddEmbeddingProvider(configuration);
+
+// 独立注册方式
+services.AddOpenAIEmbedding("sk-xxx", "text-embedding-3-small");
+services.AddAzureOpenAIEmbedding(endpoint, apiKey, "embedding-deployment");
+services.AddOllamaEmbedding("nomic-embed-text");
+```
+
+### 支持的模型
+
+| Provider | 模型 | 维度 |
+|----------|------|------|
+| OpenAI | text-embedding-3-small | 1536 |
+| OpenAI | text-embedding-3-large | 3072 |
+| OpenAI | text-embedding-ada-002 | 1536 |
+| Azure | 自定义部署 | 可配置 |
+| Ollama | nomic-embed-text | 768 |
+| Ollama | mxbai-embed-large | 1024 |
+| Ollama | all-minilm | 384 |
+
+### 测试统计
+- 新增测试: 47 个
+- 总测试数: 1470 → 1517
 
 ---
 
