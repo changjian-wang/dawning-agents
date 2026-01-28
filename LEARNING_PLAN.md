@@ -697,6 +697,7 @@ deploy/observability/
     └── dashboards/
         └── agent-overview.json         ✅
 ```
+
 │   ├── prometheus/
 │   │   ├── prometheus.yml
 │   │   └── alerts.yml
@@ -706,6 +707,7 @@ deploy/observability/
 │   │       └── agent-performance.json
 │   └── alertmanager/
 │       └── alertmanager.yml
+
 ```
 
 ---
