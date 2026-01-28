@@ -188,4 +188,39 @@ public static class BuiltInToolExtensions
         services.AddToolsFrom<PackageManagerTool>();
         return services;
     }
+
+    /// <summary>
+    /// 添加 CSharpier 代码格式化工具
+    /// </summary>
+    /// <remarks>
+    /// <para>提供 C# 代码格式化能力，支持:</para>
+    /// <list type="bullet">
+    /// <item>格式化单个文件</item>
+    /// <item>格式化整个目录/项目</item>
+    /// <item>格式化代码字符串</item>
+    /// <item>检查格式是否符合规范</item>
+    /// </list>
+    /// <para>需要先安装 CSharpier: dotnet tool install -g csharpier</para>
+    /// </remarks>
+    public static IServiceCollection AddCSharpierTools(this IServiceCollection services)
+    {
+        services.AddSingleton<CSharpierToolOptions>();
+        services.AddToolsFrom<CSharpierTool>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 CSharpier 代码格式化工具（带配置）
+    /// </summary>
+    public static IServiceCollection AddCSharpierTools(
+        this IServiceCollection services,
+        Action<CSharpierToolOptions> configure
+    )
+    {
+        var options = new CSharpierToolOptions();
+        configure(options);
+        services.AddSingleton(options);
+        services.AddToolsFrom<CSharpierTool>();
+        return services;
+    }
 }

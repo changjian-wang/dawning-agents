@@ -68,10 +68,82 @@ dotnet run
 - ✅ Week 25: 真实 Embedding Provider（1517 测试通过）
 - ✅ Week 26: Qdrant 向量存储（1547 测试通过）
 - ✅ Week 27: Pinecone 向量存储（1581 测试通过）
+- ✅ CSharpier Tool: 代码格式化工具（1594 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-28] CSharpier Tool: 代码格式化工具
+
+### 功能概述
+
+新增 CSharpier 代码格式化工具，让 Agent 能够自动格式化 C# 代码，确保代码风格一致性。
+
+### 核心功能
+
+```csharp
+// CSharpierTool - 6 个工具方法
+public class CSharpierTool
+{
+    // 格式化单个文件
+    [FunctionTool("格式化指定的 C# 文件")]
+    Task<ToolResult> FormatFile(string filePath, bool checkOnly = false);
+    
+    // 格式化目录
+    [FunctionTool("格式化目录下所有 C# 文件")]
+    Task<ToolResult> FormatDirectory(string directoryPath, bool checkOnly = false);
+    
+    // 格式化代码字符串
+    [FunctionTool("格式化 C# 代码字符串")]
+    Task<ToolResult> FormatCode(string code);
+    
+    // 检查安装
+    [FunctionTool("检查 CSharpier 是否已安装")]
+    Task<ToolResult> CheckInstallation();
+    
+    // 安装工具
+    [FunctionTool("安装 CSharpier 全局工具", RequiresConfirmation = true)]
+    Task<ToolResult> Install();
+    
+    // 获取格式化规则
+    [FunctionTool("获取 CSharpier 格式化规则说明")]
+    ToolResult GetFormattingRules();
+}
+```
+
+### 使用方式
+
+```csharp
+// 注册 CSharpier 工具
+services.AddCSharpierTools();
+
+// 自定义配置
+services.AddCSharpierTools(options =>
+{
+    options.CSharpierCommand = "dotnet-csharpier";
+    options.TimeoutSeconds = 120;
+});
+```
+
+### 格式化规则
+
+CSharpier 关键规则：
+- **长参数列表**：每个参数独占一行
+- **集合初始化**：元素换行，尾随逗号
+- **方法链**：每个调用独占一行
+- **if 语句**：始终使用大括号
+
+### 测试统计
+
+| 分类 | 数量 |
+|------|------|
+| CSharpierToolTests | 10 |
+| CSharpierToolOptionsTests | 2 |
+| CSharpierExtensionsTests | 2 |
+| **总计新增** | **13** |
 
 ---
 
