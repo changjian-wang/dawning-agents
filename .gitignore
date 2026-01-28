@@ -34,6 +34,10 @@ docs/_site/
 docs/api/*.yml
 docs/api/.manifest
 
+# Benchmark results
+benchmarks/results/
+BenchmarkDotNet.Artifacts/
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json

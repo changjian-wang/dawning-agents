@@ -82,7 +82,7 @@ dotnet run
 |--------|------|------|------|
 | P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ✅ |
 | P1 | **文档站点** | DocFX 生成 API 文档站点 | ✅ |
-| P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ⏳ |
+| P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ✅ |
 | P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ⏳ |
 | P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ⏳ |
 | P5 | **MCP 协议** | 支持 Anthropic Model Context Protocol | ⏳ |
@@ -96,6 +96,43 @@ dotnet run
 - **P2 性能基准**：企业级框架需要性能数据支撑
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
+
+---
+
+## [2026-01-28] P2: 性能基准测试 (BenchmarkDotNet)
+
+### 功能概述
+
+使用 BenchmarkDotNet 创建性能基准测试套件，测量核心组件性能。
+
+### Benchmark 列表
+
+| Benchmark | 测试项 | 数量 |
+|-----------|--------|------|
+| `TokenCounterBenchmarks` | Token 计数性能 | 5 |
+| `MemoryBenchmarks` | 对话记忆操作 | 4 |
+| `ToolRegistryBenchmarks` | 工具注册表查找 | 5 |
+| `JsonSerializationBenchmarks` | JSON 序列化 | 4 |
+| **总计** | | **18** |
+
+### 运行方式
+
+```powershell
+# 运行所有 benchmarks
+./scripts/benchmark.ps1
+
+# 运行特定 benchmark
+./scripts/benchmark.ps1 -Filter "*Memory*"
+
+# 长时间运行（更精确）
+./scripts/benchmark.ps1 -Job Long
+```
+
+### 新增文件
+
+- `benchmarks/Dawning.Agents.Benchmarks/` - Benchmark 项目
+- `scripts/benchmark.ps1` - 运行脚本
+- `benchmarks/README.md` - 使用说明
 
 ---
 
