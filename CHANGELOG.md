@@ -99,6 +99,34 @@ dotnet run
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
 
+### 📊 向量存储生态系统总结
+
+框架现已支持 **5 种** 向量存储，覆盖从开发测试到生产部署的完整场景：
+
+| 存储 | 包名 | 协议 | 特点 | 适用场景 |
+|------|------|------|------|----------|
+| **InMemory** | Core | - | 零配置、内置 | 单元测试、Demo |
+| **Qdrant** | Dawning.Agents.Qdrant | gRPC | 高性能、开源 | 生产环境 |
+| **Pinecone** | Dawning.Agents.Pinecone | REST | 托管服务 | 无需运维 |
+| **Chroma** | Dawning.Agents.Chroma | REST | 轻量级、嵌入式 | 本地开发 |
+| **Weaviate** | Dawning.Agents.Weaviate | GraphQL | 混合搜索 | 复杂查询 |
+
+**统一接口**：所有存储实现 `IVectorStore` 接口，可无缝切换：
+
+```csharp
+// 开发环境 - Chroma
+services.AddChromaVectorStore(configuration);
+
+// 生产环境 - Qdrant
+services.AddQdrantVectorStore(configuration);
+
+// 托管服务 - Pinecone
+services.AddPineconeVectorStore(configuration);
+
+// 复杂查询 - Weaviate
+services.AddWeaviateVectorStore(configuration);
+```
+
 ---
 
 ## [2026-01-28] P4: Weaviate 向量存储
