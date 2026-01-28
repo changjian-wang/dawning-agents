@@ -90,9 +90,11 @@ var x = 1;
 
 <!-- ❌ Wrong - no blank line -->
 - Item with code:
+
   ```csharp
   var x = 1;
   ```
+
 ```
 
 ### 5. Tables - Aligned Columns
@@ -232,6 +234,7 @@ How to contribute...
 ## License
 
 MIT License
+
 ```
 
 ## CHANGELOG Structure
