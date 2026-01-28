@@ -69,6 +69,7 @@ dotnet run
 - ✅ Week 26: Qdrant 向量存储（1547 测试通过）
 - ✅ Week 27: Pinecone 向量存储（1581 测试通过）
 - ✅ CSharpier Tool: 代码格式化工具（1594 测试通过）
+- ✅ P3: Chroma 向量存储（1608 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
@@ -83,7 +84,7 @@ dotnet run
 | P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ✅ |
 | P1 | **文档站点** | DocFX 生成 API 文档站点 | ✅ |
 | P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ✅ |
-| P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ⏳ |
+| P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ✅ |
 | P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ⏳ |
 | P5 | **MCP 协议** | 支持 Anthropic Model Context Protocol | ⏳ |
 | P6 | **Semantic Kernel 集成** | 与微软 Semantic Kernel 互操作 | ⏳ |
@@ -96,6 +97,80 @@ dotnet run
 - **P2 性能基准**：企业级框架需要性能数据支撑
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
+
+---
+
+## [2026-01-28] P3: Chroma 向量存储
+
+### 功能概述
+
+Chroma 是一个轻量级、开源的嵌入式向量数据库，非常适合本地开发和测试。
+
+### 核心组件
+
+| 组件 | 描述 |
+|------|------|
+| `ChromaOptions` | Chroma 连接配置（Host, Port, Collection 等） |
+| `ChromaVectorStore` | IVectorStore 实现，支持 CRUD + 相似度搜索 |
+| `ChromaServiceCollectionExtensions` | DI 注册扩展 |
+
+### 配置选项
+
+```json
+{
+  "Chroma": {
+    "Host": "localhost",
+    "Port": 8000,
+    "CollectionName": "documents",
+    "Tenant": "default_tenant",
+    "Database": "default_database",
+    "UseHttps": false,
+    "ApiKey": null,
+    "TimeoutSeconds": 30,
+    "VectorDimension": 1536,
+    "DistanceMetric": "Cosine"
+  }
+}
+```
+
+### 使用方式
+
+```csharp
+// 通过配置注册
+services.AddChromaVectorStore(configuration);
+
+// 通过委托配置
+services.AddChromaVectorStore(options =>
+{
+    options.Host = "localhost";
+    options.Port = 8000;
+    options.CollectionName = "my-docs";
+});
+```
+
+### 运行 Chroma
+
+```bash
+# Docker 运行 Chroma
+docker run -p 8000:8000 chromadb/chroma
+
+# 或使用 pip
+pip install chromadb
+chroma run
+```
+
+### 新增文件
+
+- `src/Dawning.Agents.Chroma/ChromaOptions.cs` - 配置选项
+- `src/Dawning.Agents.Chroma/ChromaVectorStore.cs` - IVectorStore 实现
+- `src/Dawning.Agents.Chroma/ChromaServiceCollectionExtensions.cs` - DI 扩展
+- `tests/Dawning.Agents.Tests/Chroma/ChromaVectorStoreTests.cs` - 单元测试（14 测试）
+
+### 测试统计
+
+- 新增测试：14
+- 总测试数：1608
+- 全部通过 ✅
 
 ---
 

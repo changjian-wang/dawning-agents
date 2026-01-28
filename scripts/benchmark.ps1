@@ -15,7 +15,7 @@
 
 .EXAMPLE
     ./scripts/benchmark.ps1
-    
+
 .EXAMPLE
     ./scripts/benchmark.ps1 -Filter "*Memory*"
 
@@ -25,7 +25,7 @@
 
 param(
     [string]$Filter = "*",
-    
+
     [ValidateSet("Short", "Medium", "Long")]
     [string]$Job = "Short"
 )
