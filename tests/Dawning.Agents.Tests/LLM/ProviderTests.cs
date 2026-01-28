@@ -142,9 +142,10 @@ public class LLMProviderDITests
     }
 
     [Fact]
-    public void AddLLMProvider_WithNonOllamaType_ThrowsOnResolve()
+    public void AddLLMProvider_WithOpenAIType_CreatesOpenAIProvider()
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddLLMProvider(options =>
         {
             options.ProviderType = LLMProviderType.OpenAI;
@@ -152,9 +153,10 @@ public class LLMProviderDITests
             options.ApiKey = "fake-key";
         });
 
-        var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("*仅支持 Ollama*");
+        provider.Should().BeOfType<Dawning.Agents.OpenAI.OpenAIProvider>();
+        provider.Name.Should().Be("OpenAI");
     }
 }
 

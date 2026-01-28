@@ -1,4 +1,6 @@
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Azure;
+using Dawning.Agents.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -11,9 +13,8 @@ namespace Dawning.Agents.Core.LLM;
 /// ILLMProvider 的依赖注入扩展
 /// </summary>
 /// <remarks>
-/// 此扩展提供 Ollama（本地 LLM）的支持。
-/// 对于 OpenAI，请使用 Dawning.Agents.OpenAI 包的 AddOpenAIProvider 方法。
-/// 对于 Azure OpenAI，请使用 Dawning.Agents.Azure 包的 AddAzureOpenAIProvider 方法。
+/// 此扩展支持 Ollama（本地 LLM）、OpenAI 和 Azure OpenAI。
+/// 根据配置中的 ProviderType 自动选择对应的 Provider。
 /// </remarks>
 public static class LLMServiceCollectionExtensions
 {
@@ -26,16 +27,45 @@ public static class LLMServiceCollectionExtensions
     /// 从 IConfiguration 添加 LLM Provider 服务
     /// </summary>
     /// <remarks>
-    /// <para>此方法仅支持 Ollama Provider。</para>
-    /// <para>对于 OpenAI/Azure OpenAI，请分别使用对应包的扩展方法。</para>
+    /// <para>根据配置中的 ProviderType 自动选择 Provider:</para>
+    /// <list type="bullet">
+    ///   <item>Ollama - 本地 LLM</item>
+    ///   <item>OpenAI - OpenAI API</item>
+    ///   <item>AzureOpenAI - Azure OpenAI Service</item>
+    /// </list>
     /// <para>
-    /// appsettings.json 示例:
+    /// appsettings.json 示例 (Ollama):
     /// <code>
     /// {
     ///   "LLM": {
     ///     "ProviderType": "Ollama",
     ///     "Model": "qwen2.5:0.5b",
     ///     "Endpoint": "http://localhost:11434"
+    ///   }
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// appsettings.json 示例 (OpenAI):
+    /// <code>
+    /// {
+    ///   "LLM": {
+    ///     "ProviderType": "OpenAI",
+    ///     "Model": "gpt-4o-mini",
+    ///     "ApiKey": "sk-xxx"
+    ///   }
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// appsettings.json 示例 (Azure OpenAI):
+    /// <code>
+    /// {
+    ///   "LLM": {
+    ///     "ProviderType": "AzureOpenAI",
+    ///     "Endpoint": "https://your-resource.openai.azure.com",
+    ///     "Model": "gpt-4o-deployment",
+    ///     "ApiKey": "your-api-key"
     ///   }
     /// }
     /// </code>
@@ -59,23 +89,12 @@ public static class LLMServiceCollectionExtensions
         // 注册 HttpClient（用于 Ollama）
         RegisterOllamaHttpClient(services);
 
-        // 注册 Provider
+        // 注册 Provider（根据配置类型自动选择）
         services.TryAddSingleton<ILLMProvider>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
             options.Validate();
-
-            if (options.ProviderType != LLMProviderType.Ollama)
-            {
-                throw new InvalidOperationException(
-                    $"Dawning.Agents.Core 仅支持 Ollama Provider。"
-                        + $"对于 {options.ProviderType}，请使用对应的扩展包："
-                        + $"OpenAI -> Dawning.Agents.OpenAI, "
-                        + $"AzureOpenAI -> Dawning.Agents.Azure"
-                );
-            }
-
-            return CreateOllamaProvider(sp, options);
+            return CreateProvider(sp, options);
         });
 
         return services;
@@ -150,18 +169,7 @@ public static class LLMServiceCollectionExtensions
         {
             var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
             options.Validate();
-
-            if (options.ProviderType != LLMProviderType.Ollama)
-            {
-                throw new InvalidOperationException(
-                    $"Dawning.Agents.Core 仅支持 Ollama Provider。"
-                        + $"对于 {options.ProviderType}，请使用对应的扩展包："
-                        + $"OpenAI -> Dawning.Agents.OpenAI, "
-                        + $"AzureOpenAI -> Dawning.Agents.Azure"
-                );
-            }
-
-            return CreateOllamaProvider(sp, options);
+            return CreateProvider(sp, options);
         });
 
         return services;
@@ -207,6 +215,22 @@ public static class LLMServiceCollectionExtensions
         );
     }
 
+    /// <summary>
+    /// 根据配置创建对应的 Provider
+    /// </summary>
+    private static ILLMProvider CreateProvider(IServiceProvider sp, LLMOptions options)
+    {
+        var loggerFactory = sp.GetService<ILoggerFactory>();
+
+        return options.ProviderType switch
+        {
+            LLMProviderType.Ollama => CreateOllamaProvider(sp, options),
+            LLMProviderType.OpenAI => CreateOpenAIProvider(options, loggerFactory),
+            LLMProviderType.AzureOpenAI => CreateAzureOpenAIProvider(options, loggerFactory),
+            _ => throw new NotSupportedException($"不支持的 Provider 类型: {options.ProviderType}"),
+        };
+    }
+
     private static OllamaProvider CreateOllamaProvider(IServiceProvider sp, LLMOptions options)
     {
         var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
@@ -217,17 +241,55 @@ public static class LLMServiceCollectionExtensions
         return new OllamaProvider(httpClient, options.Model, logger);
     }
 
+    private static Dawning.Agents.OpenAI.OpenAIProvider CreateOpenAIProvider(
+        LLMOptions options,
+        ILoggerFactory? loggerFactory
+    )
+    {
+        return new Dawning.Agents.OpenAI.OpenAIProvider(options.ApiKey!, options.Model);
+    }
+
+    private static Dawning.Agents.Azure.AzureOpenAIProvider CreateAzureOpenAIProvider(
+        LLMOptions options,
+        ILoggerFactory? loggerFactory
+    )
+    {
+        return new Dawning.Agents.Azure.AzureOpenAIProvider(
+            options.Endpoint!,
+            options.ApiKey!,
+            options.Model
+        );
+    }
+
     /// <summary>
-    /// 应用环境变量到配置（用于 Ollama）
+    /// 应用环境变量到配置
     /// </summary>
     private static void ApplyEnvironmentVariables(LLMOptions options)
     {
-        // 如果已经有配置，不覆盖
-        if (options.ProviderType != LLMProviderType.Ollama)
+        // OpenAI 环境变量
+        var openaiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        if (!string.IsNullOrWhiteSpace(openaiKey) && string.IsNullOrWhiteSpace(options.ApiKey))
         {
+            options.ProviderType = LLMProviderType.OpenAI;
+            options.ApiKey = openaiKey;
+            options.Model = Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-4o-mini";
             return;
         }
 
+        // Azure OpenAI 环境变量
+        var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
+        var azureKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
+        if (!string.IsNullOrWhiteSpace(azureEndpoint) && !string.IsNullOrWhiteSpace(azureKey))
+        {
+            options.ProviderType = LLMProviderType.AzureOpenAI;
+            options.Endpoint = azureEndpoint;
+            options.ApiKey = azureKey;
+            options.Model =
+                Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? options.Model;
+            return;
+        }
+
+        // Ollama 环境变量（默认）
         var ollamaEndpoint = Environment.GetEnvironmentVariable("OLLAMA_ENDPOINT");
         var ollamaModel = Environment.GetEnvironmentVariable("OLLAMA_MODEL");
 

@@ -64,10 +64,61 @@ dotnet run
 - ✅ Week 21: Polly V8 弹性策略 + FluentValidation 验证（1385 测试通过）
 - ✅ Week 23: Serilog 结构化日志（1437 测试通过）
 - ✅ Week 23: 配置热重载 IOptionsMonitor（1470 测试通过）
+- ✅ Week 24: 统一 Provider 工厂模式（1470 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-28] Week 24: 统一 Provider 工厂模式
+
+### 功能概述
+统一 LLM Provider 注册方式，`AddLLMProvider()` 现在根据配置自动选择 Ollama、OpenAI 或 Azure OpenAI。
+
+### 核心改进
+
+**统一配置驱动**:
+```csharp
+// 一个方法支持所有 Provider 类型
+services.AddLLMProvider(configuration);
+
+// 根据配置自动选择:
+// - ProviderType: Ollama → OllamaProvider
+// - ProviderType: OpenAI → OpenAIProvider  
+// - ProviderType: AzureOpenAI → AzureOpenAIProvider
+```
+
+**环境变量自动检测**:
+```bash
+# 设置环境变量后自动使用 OpenAI
+export OPENAI_API_KEY=sk-xxx
+
+# 或自动使用 Azure OpenAI
+export AZURE_OPENAI_ENDPOINT=https://xxx.openai.azure.com
+export AZURE_OPENAI_API_KEY=xxx
+export AZURE_OPENAI_DEPLOYMENT=gpt-4o
+```
+
+### 文件变更
+
+- **LLMServiceCollectionExtensions.cs**: 添加统一 `CreateProvider()` 工厂方法
+- **Dawning.Agents.Core.csproj**: 添加对 OpenAI/Azure 包的项目引用
+- **ProviderTests.cs**: 更新测试以验证统一工厂行为
+
+### 架构说明
+
+```
+Dawning.Agents.Core (统一入口)
+├── AddLLMProvider(configuration)  ← 根据配置自动选择
+│
+├── Dawning.Agents.OpenAI (独立包)
+│   └── OpenAIProvider
+│
+└── Dawning.Agents.Azure (独立包)
+    └── AzureOpenAIProvider
+```
 
 ---
 
