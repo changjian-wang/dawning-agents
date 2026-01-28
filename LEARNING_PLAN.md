@@ -744,39 +744,53 @@ deploy/observability/
 
 ## 🏢 Phase D: 生产级特性 (Week 19-20) ✅
 
-### Week 19: 安全增强 ✅
+### Week 19: 诊断与性能分析 ✅
 
-#### Day 1-3: 认证与授权 ✅
+> **注意**: 原安全模块 (认证/授权/速率限制) 已移至 Phase G，由更成熟的方案替代。
 
-- [x] API Key 认证 (IAuthenticationProvider)
-- [x] 基于角色的授权 (IAuthorizationProvider)
-- [x] 工具级别权限控制
-- [x] Agent 访问权限控制
+#### Day 1-3: 诊断端点 ✅
 
-#### Day 4-5: 速率限制 ✅
+- [x] `IDiagnosticsProvider` 接口
+- [x] 线程池状态（ThreadPoolInfo）
+- [x] GC 统计信息（GCInfo）
+- [x] 内存使用详情（MemoryInfo）
+- [x] 进程信息、环境信息
 
-- [x] 滑动窗口速率限制器 (IRateLimiter)
-- [x] 可配置请求限制
-- [x] 按用户/API Key 限流
+#### Day 4-5: 性能 Profiling ✅
 
-#### Day 6-7: 审计日志 ✅
+- [x] `IPerformanceProfiler` 接口
+- [x] 慢操作检测（GetSlowOperations）
+- [x] LLM 调用 Profiling
+- [x] 工具执行 Profiling
 
-- [x] 审计日志接口 (IAuditLogProvider)
-- [x] 内存审计日志实现
-- [x] 审计日志查询
-- [x] 预定义审计操作类型
+#### Day 6-7: Options 验证器 ✅
+
+- [x] `MemoryOptionsValidator`
+- [x] `RAGOptionsValidator`
+- [x] `SafetyOptionsValidator`
+- [x] `LoggingOptionsValidator`
+- [x] `HumanLoopOptionsValidator`
+- [x] `OrchestratorOptionsValidator`
 
 **Week 19 产出物**: ✅ 已完成
 
 ```text
-src/Dawning.Agents.Abstractions/Security/
-├── ISecurityProvider.cs               ✅ (认证/授权接口)
-└── IAuditLogProvider.cs               ✅ (审计日志接口)
+src/Dawning.Agents.Abstractions/Diagnostics/
+├── IDiagnosticsProvider.cs            ✅ (诊断接口)
+└── IPerformanceProfiler.cs            ✅ (性能分析接口)
 
-src/Dawning.Agents.Core/Security/
-├── SecurityProviders.cs               ✅ (API Key 认证 + RBAC 授权)
-├── RateLimiter.cs                     ✅ (滑动窗口速率限制)
-└── SecurityServiceCollectionExtensions.cs ✅
+src/Dawning.Agents.Core/Diagnostics/
+├── DiagnosticsProvider.cs             ✅
+├── PerformanceProfiler.cs             ✅
+└── DiagnosticsServiceCollectionExtensions.cs ✅
+
+src/Dawning.Agents.Core/Validation/
+├── MemoryOptionsValidator.cs          ✅
+├── RAGOptionsValidator.cs             ✅
+├── SafetyOptionsValidator.cs          ✅
+├── LoggingOptionsValidator.cs         ✅
+├── HumanLoopOptionsValidator.cs       ✅
+└── OrchestratorOptionsValidator.cs    ✅
 ```
 
 ### Week 20: 综合示例与文档 ✅
@@ -785,14 +799,14 @@ src/Dawning.Agents.Core/Security/
 
 - [x] appsettings.production.json 完整配置
 - [x] 所有组件配置示例
-- [x] 安全配置 (API Key/角色权限)
+- [x] .env 文件支持
 
 #### Day 4-7: 分布式部署示例 ✅
 
 - [x] DistributedDeploymentExample.cs
 - [x] 服务发现、负载均衡集成
-- [x] 认证、授权、审计流程演示
-- [x] 速率限制演示
+- [x] 环境配置扩展 (`AddEnvironmentFile`)
+- [x] 诊断和性能分析集成
 
 **Week 20 产出物**: ✅ 已完成
 
