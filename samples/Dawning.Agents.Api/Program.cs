@@ -1,14 +1,19 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.Logging;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Logging;
 using Dawning.Agents.Core.Memory;
 using Dawning.Agents.Core.Resilience;
 using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Core.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ===== Serilog Logging =====
+builder.Services.AddAgentLogging(builder.Configuration);
 
 // ===== LLM Provider =====
 builder.Services.AddLLMProvider(builder.Configuration);
@@ -48,11 +53,21 @@ app.UseCors("AllowAll");
 app.MapHealthChecks("/health");
 
 // ===== Chat Endpoint =====
-app.MapPost("/api/chat", async (ChatRequest request, IAgent agent) =>
+app.MapPost("/api/chat", async (ChatRequest request, IAgent agent, ILogger<Program> logger) =>
 {
+    using var _ = AgentLogContext.BeginScope(agentName: agent.Name);
+    logger.LogInformation("Chat request received: {MessageLength} chars", request.Message.Length);
+
     try
     {
         var response = await agent.RunAsync(request.Message);
+        logger.LogInformation(
+            "Chat completed: Success={Success}, Steps={Steps}, Duration={Duration}ms",
+            response.Success,
+            response.Steps.Count,
+            (int)response.Duration.TotalMilliseconds
+        );
+
         return Results.Ok(new ChatResponse
         {
             Success = response.Success,
@@ -63,6 +78,7 @@ app.MapPost("/api/chat", async (ChatRequest request, IAgent agent) =>
     }
     catch (Exception ex)
     {
+        logger.LogError(ex, "Chat request failed");
         return Results.Ok(new ChatResponse
         {
             Success = false,
