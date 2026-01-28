@@ -80,7 +80,7 @@ dotnet run
 
 | 优先级 | 任务 | 描述 | 状态 |
 |--------|------|------|------|
-| P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ⏳ |
+| P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ✅ |
 | P1 | **文档站点** | DocFX 生成 API 文档站点 | ⏳ |
 | P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ⏳ |
 | P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ⏳ |
@@ -96,6 +96,57 @@ dotnet run
 - **P2 性能基准**：企业级框架需要性能数据支撑
 - **P3-P4 向量存储**：完善 RAG 生态系统
 - **P5-P7 集成**：与主流 AI 框架互操作
+
+---
+
+## [2026-01-28] P0: NuGet 发布准备
+
+### 功能概述
+
+完成 NuGet 包发布的所有准备工作，包括打包配置、CI/CD 工作流和本地打包脚本。
+
+### 发布包列表
+
+| 包名 | 大小 | 描述 |
+|------|------|------|
+| `Dawning.Agents.Abstractions` | 99 KB | 核心接口和模型 |
+| `Dawning.Agents.Core` | 227 KB | 核心实现（Ollama, Memory, Tools, RAG） |
+| `Dawning.Agents.OpenAI` | 16 KB | OpenAI Provider |
+| `Dawning.Agents.Azure` | 16 KB | Azure OpenAI Provider |
+| `Dawning.Agents.Redis` | 31 KB | Redis 分布式组件 |
+| `Dawning.Agents.Qdrant` | 19 KB | Qdrant 向量存储 |
+| `Dawning.Agents.Pinecone` | 22 KB | Pinecone 向量存储 |
+
+### 新增文件
+
+- `.github/workflows/publish-nuget.yml` - GitHub Actions 自动发布工作流
+- `scripts/pack.ps1` - 本地打包脚本
+
+### 版本号
+
+当前版本：`0.1.0-preview.1`（预发布版，因依赖预发布的 OpenAI SDK）
+
+### 发布方式
+
+**方式 1：Git Tag 自动发布**
+```bash
+git tag v0.1.0-preview.1
+git push origin v0.1.0-preview.1
+```
+
+**方式 2：手动触发 GitHub Actions**
+在 GitHub Actions 页面手动运行 "Publish NuGet Packages" 工作流
+
+**方式 3：本地打包**
+```powershell
+./scripts/pack.ps1 -Version 0.1.0-preview.1
+dotnet nuget push "nupkgs/*.nupkg" --api-key YOUR_KEY --source https://api.nuget.org/v3/index.json
+```
+
+### 前置条件
+
+1. 在 GitHub 仓库设置中添加 Secret：`NUGET_API_KEY`
+2. NuGet.org 账户和 API Key
 
 ---
 

@@ -1,0 +1,95 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g., 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          # Extract version from tag (v0.1.0 -> 0.1.0)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Update version in Directory.Build.props
+      run: |
+        VERSION=${{ steps.version.outputs.VERSION }}
+        sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/" Directory.Build.props
+        cat Directory.Build.props
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+    - name: Pack
+      run: |
+        dotnet pack src/Dawning.Agents.Abstractions/Dawning.Agents.Abstractions.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.Core/Dawning.Agents.Core.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.OpenAI/Dawning.Agents.OpenAI.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.Azure/Dawning.Agents.Azure.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.Redis/Dawning.Agents.Redis.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.Qdrant/Dawning.Agents.Qdrant.csproj -c Release -o ./nupkgs --no-build
+        dotnet pack src/Dawning.Agents.Pinecone/Dawning.Agents.Pinecone.csproj -c Release -o ./nupkgs --no-build
+
+    - name: List packages
+      run: ls -la ./nupkgs
+
+    - name: Push to NuGet
+      run: |
+        for package in ./nupkgs/*.nupkg; do
+          dotnet nuget push "$package" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        done
+
+    - name: Push symbols to NuGet
+      run: |
+        for package in ./nupkgs/*.snupkg; do
+          if [ -f "$package" ]; then
+            dotnet nuget push "$package" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          fi
+        done
+      continue-on-error: true
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./nupkgs/*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
