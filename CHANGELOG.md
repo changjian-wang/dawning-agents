@@ -67,10 +67,92 @@ dotnet run
 - ✅ Week 24: 统一 Provider 工厂模式（1470 测试通过）
 - ✅ Week 25: 真实 Embedding Provider（1517 测试通过）
 - ✅ Week 26: Qdrant 向量存储（1547 测试通过）
+- ✅ Week 27: Pinecone 向量存储（1581 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-28] Week 27: Pinecone 向量存储
+
+### 功能概述
+添加 Pinecone 云原生向量数据库支持。Pinecone 是全托管的向量数据库服务，支持 Serverless 和 Pod-based 部署模式。
+
+### 新增包
+
+```
+src/Dawning.Agents.Pinecone/
+├── Dawning.Agents.Pinecone.csproj       # 新包（依赖 Pinecone.NET）
+├── PineconeOptions.cs                    # 配置选项
+├── PineconeVectorStore.cs                # IVectorStore 实现
+└── PineconeServiceCollectionExtensions.cs  # DI 扩展方法
+```
+
+### 配置示例
+
+```json
+{
+  "Pinecone": {
+    "ApiKey": "your-api-key",
+    "IndexName": "documents",
+    "Namespace": "default",
+    "VectorSize": 1536,
+    "Metric": "cosine",
+    "AutoCreateIndex": false,
+    "Cloud": "aws",
+    "Region": "us-east-1"
+  }
+}
+```
+
+### 核心 API
+
+```csharp
+// 使用配置文件
+services.AddPineconeVectorStore(configuration);
+
+// 使用配置委托
+services.AddPineconeVectorStore(options => {
+    options.ApiKey = "your-api-key";
+    options.IndexName = "my-docs";
+    options.VectorSize = 1536;
+});
+
+// 快速配置
+services.AddPineconeVectorStore(
+    apiKey: "your-api-key",
+    indexName: "documents",
+    @namespace: "my-namespace"
+);
+
+// Serverless 模式（自动创建索引）
+services.AddPineconeServerless(
+    apiKey: "your-api-key",
+    indexName: "my-index",
+    vectorSize: 1536,
+    cloud: "aws",
+    region: "us-east-1"
+);
+```
+
+### 支持的度量方式
+
+| Metric | 说明 |
+|--------|------|
+| cosine | 余弦相似度（默认） |
+| dotproduct | 点积 |
+| euclidean | 欧氏距离 |
+
+### 环境变量
+
+- `PINECONE_API_KEY` - 自动覆盖配置中的 ApiKey
+
+### 测试统计
+
+- 新增测试: 34 个
+- 总测试数: 1581
 
 ---
 
