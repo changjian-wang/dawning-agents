@@ -17,7 +17,10 @@ namespace Dawning.Agents.Core.LLM;
 /// </remarks>
 public static class LLMServiceCollectionExtensions
 {
-    private const string OllamaHttpClientName = "Ollama";
+    /// <summary>
+    /// HttpClient 名称常量
+    /// </summary>
+    public const string OllamaHttpClientName = "Ollama";
 
     /// <summary>
     /// 从 IConfiguration 添加 LLM Provider 服务
@@ -54,16 +57,7 @@ public static class LLMServiceCollectionExtensions
         }
 
         // 注册 HttpClient（用于 Ollama）
-        services.AddHttpClient(
-            OllamaHttpClientName,
-            (sp, client) =>
-            {
-                var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
-                var endpoint = options.Endpoint ?? "http://localhost:11434";
-                client.BaseAddress = new Uri(endpoint.TrimEnd('/'));
-                client.Timeout = TimeSpan.FromMinutes(5);
-            }
-        );
+        RegisterOllamaHttpClient(services);
 
         // 注册 Provider
         services.TryAddSingleton<ILLMProvider>(sp =>
@@ -88,6 +82,58 @@ public static class LLMServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 添加支持热重载的 LLM Provider
+    /// </summary>
+    /// <remarks>
+    /// <para>此方法注册的 Provider 会自动响应配置变化。</para>
+    /// <para>当 appsettings.json 中的 LLM 配置修改后，Provider 会自动重建。</para>
+    /// <para>
+    /// 适用场景：
+    /// - 需要运行时切换模型
+    /// - 需要动态调整参数（如 Temperature）
+    /// - 开发/测试环境频繁修改配置
+    /// </para>
+    /// <para>
+    /// appsettings.json 示例:
+    /// <code>
+    /// {
+    ///   "LLM": {
+    ///     "ProviderType": "Ollama",
+    ///     "Model": "qwen2.5:0.5b",
+    ///     "Endpoint": "http://localhost:11434"
+    ///   }
+    /// }
+    /// </code>
+    /// </para>
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddHotReloadableLLMProvider(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        // 绑定配置
+        services.Configure<LLMOptions>(configuration.GetSection(LLMOptions.SectionName));
+
+        // 检查是否有配置，如果没有则回退到环境变量
+        var section = configuration.GetSection(LLMOptions.SectionName);
+        if (!section.Exists())
+        {
+            services.PostConfigure<LLMOptions>(ApplyEnvironmentVariables);
+        }
+
+        // 注册 HttpClient（用于 Ollama）
+        RegisterOllamaHttpClient(services);
+
+        // 注册支持热重载的 Provider
+        services.TryAddSingleton<ILLMProvider, HotReloadableLLMProvider>();
+
+        return services;
+    }
+
+    /// <summary>
     /// 添加 LLM Provider 服务（使用配置委托）
     /// </summary>
     public static IServiceCollection AddLLMProvider(
@@ -98,16 +144,7 @@ public static class LLMServiceCollectionExtensions
         services.Configure(configure);
 
         // 注册 HttpClient
-        services.AddHttpClient(
-            OllamaHttpClientName,
-            (sp, client) =>
-            {
-                var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
-                var endpoint = options.Endpoint ?? "http://localhost:11434";
-                client.BaseAddress = new Uri(endpoint.TrimEnd('/'));
-                client.Timeout = TimeSpan.FromMinutes(5);
-            }
-        );
+        RegisterOllamaHttpClient(services);
 
         services.TryAddSingleton<ILLMProvider>(sp =>
         {
@@ -154,6 +191,20 @@ public static class LLMServiceCollectionExtensions
             options.Model = model;
             options.Endpoint = endpoint;
         });
+    }
+
+    private static void RegisterOllamaHttpClient(IServiceCollection services)
+    {
+        services.AddHttpClient(
+            OllamaHttpClientName,
+            (sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
+                var endpoint = options.Endpoint ?? "http://localhost:11434";
+                client.BaseAddress = new Uri(endpoint.TrimEnd('/'));
+                client.Timeout = TimeSpan.FromMinutes(5);
+            }
+        );
     }
 
     private static OllamaProvider CreateOllamaProvider(IServiceProvider sp, LLMOptions options)

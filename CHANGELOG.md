@@ -61,10 +61,139 @@ dotnet run
 - ✅ Week 12: 部署与扩展完成（781 测试通过）
 - ✅ Demo: Week 8-12 演示更新完成
 - ✅ 企业级转型: 代码优化 + 测试覆盖率提升至 72.9%（1183 测试通过）
+- ✅ Week 21: Polly V8 弹性策略 + FluentValidation 验证（1385 测试通过）
+- ✅ Week 23: Serilog 结构化日志（1437 测试通过）
+- ✅ Week 23: 配置热重载 IOptionsMonitor（1470 测试通过）
 
 ### 🎉 12 周学习计划全部完成
 
 恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+
+---
+
+## [2026-01-27] Week 23: 配置热重载 IOptionsMonitor
+
+### 功能概述
+实现配置热重载机制，允许在运行时动态更新 LLM 配置而无需重启应用。
+
+### 新增文件
+
+```
+src/Dawning.Agents.Abstractions/Configuration/
+└── IConfigurationChangeNotifier.cs  # 配置变更通知接口（更新：添加 Timestamp）
+
+src/Dawning.Agents.Core/Configuration/
+├── ConfigurationChangeNotifier.cs       # 配置变更通知实现（修复：disposed 状态处理）
+└── HotReloadServiceCollectionExtensions.cs  # 热重载 DI 扩展（新增）
+
+src/Dawning.Agents.Core/LLM/
+├── HotReloadableLLMProvider.cs          # 可热重载的 LLM Provider（新增）
+└── LLMServiceCollectionExtensions.cs    # 更新：添加 AddHotReloadableLLMProvider()
+
+tests/Dawning.Agents.Tests/
+├── Configuration/
+│   ├── ConfigurationChangeNotifierTests.cs          # 13 测试用例
+│   └── HotReloadServiceCollectionExtensionsTests.cs # 10 测试用例
+└── LLM/
+    └── HotReloadableLLMProviderTests.cs             # 10 测试用例
+```
+
+### 核心接口
+
+```csharp
+// 配置变更事件
+public class ConfigurationChangedEventArgs<T> : EventArgs
+{
+    public T? OldValue { get; }
+    public T NewValue { get; }
+    public string? Name { get; }
+    public DateTime Timestamp { get; }  // 新增
+}
+
+// 配置变更通知器
+public interface IConfigurationChangeNotifier<T> : IDisposable
+{
+    T CurrentValue { get; }
+    event EventHandler<ConfigurationChangedEventArgs<T>>? ConfigurationChanged;
+}
+
+// 可热重载的 LLM Provider
+public class HotReloadableLLMProvider : ILLMProvider, IDisposable
+{
+    public event EventHandler<ConfigurationChangedEventArgs<LLMOptions>>? ConfigurationChanged;
+    // 配置变更时自动重建底层 Provider
+}
+```
+
+### DI 扩展
+
+```csharp
+// 热重载配置
+services.AddHotReloadOptions<LLMOptions>(configuration, "LLM");
+services.AddHotReloadOptions<LLMOptions>(configuration, "LLM", opts => opts.Validate());
+
+// 可热重载的 LLM Provider
+services.AddHotReloadableLLMProvider(configuration);
+```
+
+### 测试统计
+- 新增测试: 33 个
+- 总测试数: 1437 → 1470
+
+---
+
+## [2026-01-27] Week 23: Serilog 结构化日志
+
+### 功能概述
+集成 Serilog 日志框架，提供企业级结构化日志能力。
+
+### 新增文件
+
+```
+src/Dawning.Agents.Core/Logging/
+├── SerilogAgentLogger.cs                    # Serilog 实现
+└── SerilogServiceCollectionExtensions.cs    # DI 扩展
+
+tests/Dawning.Agents.Tests/Logging/
+├── SerilogAgentLoggerTests.cs               # 27 测试用例
+└── SerilogServiceCollectionExtensionsTests.cs # 25 测试用例
+```
+
+### 核心功能
+
+- **SerilogAgentLogger**: 集成 Serilog 的结构化日志记录器
+- **日志级别映射**: 自动映射 AgentLogLevel → Serilog LogEventLevel
+- **上下文丰富**: 支持结构化属性和作用域
+- **DI 集成**: 无缝集成到服务容器
+
+### DI 扩展
+
+```csharp
+// 使用默认 Serilog 配置
+services.AddSerilogAgentLogger();
+
+// 使用自定义 Logger
+services.AddSerilogAgentLogger(customLogger);
+```
+
+### 测试统计
+- 新增测试: 52 个
+- 总测试数: 1385 → 1437
+
+---
+
+## [2026-01-26] Week 21: Polly V8 弹性策略 + FluentValidation
+
+### 功能概述
+集成 Polly V8 弹性策略和 FluentValidation 验证框架。
+
+### 已完成内容
+- Polly V8 弹性管道（重试、熔断、超时、回退）
+- FluentValidation 配置验证
+- 企业级错误处理
+
+### 测试统计
+- 总测试数: 1183 → 1385 (+202)
 
 ---
 
