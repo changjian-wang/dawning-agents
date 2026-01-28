@@ -81,9 +81,9 @@ app.MapPost("/api/llm/chat", async (ChatRequest request, ILLMProvider llm) =>
         {
             new("user", request.Message)
         };
-        
+
         var response = await llm.ChatAsync(messages);
-        
+
         return Results.Ok(new ChatResponse
         {
             Success = true,
@@ -105,18 +105,18 @@ app.MapPost("/api/llm/chat", async (ChatRequest request, ILLMProvider llm) =>
 app.MapPost("/api/llm/stream", async (ChatRequest request, ILLMProvider llm, HttpResponse response) =>
 {
     response.ContentType = "text/event-stream";
-    
+
     var messages = new List<ChatMessage>
     {
         new("user", request.Message)
     };
-    
+
     await foreach (var chunk in llm.ChatStreamAsync(messages))
     {
         await response.WriteAsync($"data: {chunk}\n\n");
         await response.Body.FlushAsync();
     }
-    
+
     await response.WriteAsync("data: [DONE]\n\n");
 });
 
