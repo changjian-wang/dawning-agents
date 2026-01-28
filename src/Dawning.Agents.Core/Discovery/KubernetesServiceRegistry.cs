@@ -27,14 +27,18 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
     public KubernetesServiceRegistry(
         HttpClient httpClient,
         IOptions<KubernetesOptions>? options = null,
-        ILogger<KubernetesServiceRegistry>? logger = null)
+        ILogger<KubernetesServiceRegistry>? logger = null
+    )
     {
         _httpClient = httpClient;
         _options = options?.Value ?? new KubernetesOptions();
         _logger = logger ?? NullLogger<KubernetesServiceRegistry>.Instance;
     }
 
-    public Task RegisterAsync(ServiceInstance instance, CancellationToken cancellationToken = default)
+    public Task RegisterAsync(
+        ServiceInstance instance,
+        CancellationToken cancellationToken = default
+    )
     {
         // Kubernetes 通过 Pod 自动注册，此处为空实现
         _logger.LogDebug("Kubernetes 模式下服务由 K8s 自动管理，跳过手动注册");
@@ -56,11 +60,13 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
 
     public async Task<IReadOnlyList<ServiceInstance>> GetInstancesAsync(
         string serviceName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
-            var url = $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/endpoints/{serviceName}";
+            var url =
+                $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/endpoints/{serviceName}";
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -70,7 +76,8 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
             }
 
             var endpoints = await response.Content.ReadFromJsonAsync<KubernetesEndpoints>(
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken
+            );
 
             if (endpoints?.Subsets == null)
             {
@@ -88,14 +95,16 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
                 var port = subset.Ports?.FirstOrDefault()?.Port ?? 80;
                 foreach (var address in subset.Addresses)
                 {
-                    instances.Add(new ServiceInstance
-                    {
-                        Id = $"{serviceName}-{address.Ip}:{port}",
-                        ServiceName = serviceName,
-                        Host = address.Ip,
-                        Port = port,
-                        IsHealthy = true
-                    });
+                    instances.Add(
+                        new ServiceInstance
+                        {
+                            Id = $"{serviceName}-{address.Ip}:{port}",
+                            ServiceName = serviceName,
+                            Host = address.Ip,
+                            Port = port,
+                            IsHealthy = true,
+                        }
+                    );
                 }
             }
 
@@ -109,7 +118,9 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         }
     }
 
-    public async Task<IReadOnlyList<string>> GetServicesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<string>> GetServicesAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
@@ -122,10 +133,14 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
             }
 
             var services = await response.Content.ReadFromJsonAsync<KubernetesServiceList>(
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken
+            );
 
-            return services?.Items?.Select(s => s.Metadata?.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).ToList()
-                   ?? (IReadOnlyList<string>)Array.Empty<string>();
+            return services
+                    ?.Items?.Select(s => s.Metadata?.Name ?? "")
+                    .Where(n => !string.IsNullOrEmpty(n))
+                    .ToList()
+                ?? (IReadOnlyList<string>)Array.Empty<string>();
         }
         catch (Exception ex)
         {
@@ -136,14 +151,18 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
 
     public async IAsyncEnumerable<ServiceInstance[]> WatchAsync(
         string serviceName,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         // 简化实现: 轮询模式
         while (!cancellationToken.IsCancellationRequested)
         {
             var instances = await GetInstancesAsync(serviceName, cancellationToken);
             yield return instances.ToArray();
-            await Task.Delay(TimeSpan.FromSeconds(_options.WatchIntervalSeconds), cancellationToken);
+            await Task.Delay(
+                TimeSpan.FromSeconds(_options.WatchIntervalSeconds),
+                cancellationToken
+            );
         }
     }
 

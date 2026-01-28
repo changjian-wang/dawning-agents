@@ -233,9 +233,7 @@ public class ContentModeratorTests
         _mockLLM.Verify(
             x =>
                 x.ChatAsync(
-                    It.Is<IEnumerable<ChatMessage>>(msgs =>
-                        msgs.First().Content.Contains("...")
-                    ),
+                    It.Is<IEnumerable<ChatMessage>>(msgs => msgs.First().Content.Contains("...")),
                     It.IsAny<ChatCompletionOptions>(),
                     It.IsAny<CancellationToken>()
                 ),

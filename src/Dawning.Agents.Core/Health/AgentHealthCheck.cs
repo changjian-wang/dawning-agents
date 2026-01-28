@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace Dawning.Agents.Core.Health;
 
@@ -14,12 +14,15 @@ public class AgentHealthCheck : IHealthCheck
 
     public AgentHealthCheck(ILogger<AgentHealthCheck>? logger = null)
     {
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AgentHealthCheck>.Instance;
+        _logger =
+            logger
+            ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AgentHealthCheck>.Instance;
     }
 
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         _logger.LogDebug("AgentHealthCheck: 正在检查 Agent 存活状态...");
         // 可扩展为自定义存活逻辑

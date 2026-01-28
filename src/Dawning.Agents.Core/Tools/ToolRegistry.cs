@@ -10,8 +10,12 @@ namespace Dawning.Agents.Core.Tools;
 /// </summary>
 public sealed class ToolRegistry : IToolRegistry
 {
-    private readonly ConcurrentDictionary<string, ITool> _tools = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, IToolSet> _toolSets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ITool> _tools = new(
+        StringComparer.OrdinalIgnoreCase
+    );
+    private readonly ConcurrentDictionary<string, IToolSet> _toolSets = new(
+        StringComparer.OrdinalIgnoreCase
+    );
     private readonly ConcurrentBag<IVirtualTool> _virtualTools = [];
     private readonly ILogger<ToolRegistry> _logger;
 

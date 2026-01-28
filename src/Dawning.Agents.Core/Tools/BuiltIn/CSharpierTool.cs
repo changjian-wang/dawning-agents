@@ -235,10 +235,7 @@ public class CSharpierTool
     {
         try
         {
-            var result = await RunDotnetAsync(
-                "tool install -g csharpier",
-                cancellationToken
-            );
+            var result = await RunDotnetAsync("tool install -g csharpier", cancellationToken);
 
             if (result.ExitCode == 0 || result.Output.Contains("already installed"))
             {

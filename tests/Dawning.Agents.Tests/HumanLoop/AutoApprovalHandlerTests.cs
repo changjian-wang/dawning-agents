@@ -120,8 +120,18 @@ public class AutoApprovalHandlerTests
         var handler = CreateHandler();
         var options = new List<ConfirmationOption>
         {
-            new() { Id = "opt1", Label = "Option 1", IsDefault = false },
-            new() { Id = "opt2", Label = "Option 2", IsDefault = true },
+            new()
+            {
+                Id = "opt1",
+                Label = "Option 1",
+                IsDefault = false,
+            },
+            new()
+            {
+                Id = "opt2",
+                Label = "Option 2",
+                IsDefault = true,
+            },
         };
         var request = new ConfirmationRequest
         {
@@ -144,8 +154,18 @@ public class AutoApprovalHandlerTests
         var handler = CreateHandler();
         var options = new List<ConfirmationOption>
         {
-            new() { Id = "first", Label = "First Option", IsDefault = false },
-            new() { Id = "second", Label = "Second Option", IsDefault = false },
+            new()
+            {
+                Id = "first",
+                Label = "First Option",
+                IsDefault = false,
+            },
+            new()
+            {
+                Id = "second",
+                Label = "Second Option",
+                IsDefault = false,
+            },
         };
         var request = new ConfirmationRequest
         {

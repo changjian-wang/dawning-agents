@@ -88,11 +88,8 @@ public class LoggingOptions
     /// <summary>
     /// 针对特定命名空间的日志级别覆盖
     /// </summary>
-    public Dictionary<string, string> Override { get; set; } = new()
-    {
-        ["Microsoft"] = "Warning",
-        ["System"] = "Warning",
-    };
+    public Dictionary<string, string> Override { get; set; } =
+        new() { ["Microsoft"] = "Warning", ["System"] = "Warning" };
 }
 
 /// <summary>

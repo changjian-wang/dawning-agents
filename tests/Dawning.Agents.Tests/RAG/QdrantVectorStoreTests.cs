@@ -19,13 +19,15 @@ public class QdrantVectorStoreTests
     public void Constructor_WithValidOptions_CreatesStore()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test-collection",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test-collection",
+                VectorSize = 384,
+            }
+        );
 
         // Act - 注意：这会尝试连接到 Qdrant，在没有 Qdrant 运行时会失败
         // 这里只测试对象创建，不测试实际连接
@@ -51,12 +53,14 @@ public class QdrantVectorStoreTests
     public void Constructor_WithInvalidOptions_ThrowsOnValidation()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "",  // 无效的 Host
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "", // 无效的 Host
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
 
         // Act
         var act = () => new QdrantVectorStore(options, null);
@@ -69,13 +73,15 @@ public class QdrantVectorStoreTests
     public async Task AddAsync_WithNullChunk_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act
@@ -89,40 +95,43 @@ public class QdrantVectorStoreTests
     public async Task AddAsync_WithMissingEmbedding_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
         var chunk = new DocumentChunk
         {
             Id = "test-1",
             Content = "Test content",
-            Embedding = null
+            Embedding = null,
         };
 
         // Act
         var act = async () => await store.AddAsync(chunk);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*embedding*");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*embedding*");
     }
 
     [Fact]
     public async Task SearchAsync_WithNullEmbedding_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act
@@ -136,34 +145,37 @@ public class QdrantVectorStoreTests
     public async Task SearchAsync_WithEmptyEmbedding_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act
         var act = async () => await store.SearchAsync(Array.Empty<float>());
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*empty*");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*empty*");
     }
 
     [Fact]
     public async Task DeleteAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
@@ -176,13 +188,15 @@ public class QdrantVectorStoreTests
     public async Task DeleteByDocumentIdAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
@@ -194,13 +208,15 @@ public class QdrantVectorStoreTests
     public async Task GetAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
@@ -212,13 +228,15 @@ public class QdrantVectorStoreTests
     public async Task AddBatchAsync_WithNullChunks_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act
@@ -232,13 +250,15 @@ public class QdrantVectorStoreTests
     public async Task DisposeAsync_CanBeCalledMultipleTimes()
     {
         // Arrange
-        var options = Options.Create(new QdrantOptions
-        {
-            Host = "localhost",
-            Port = 6334,
-            CollectionName = "test",
-            VectorSize = 384
-        });
+        var options = Options.Create(
+            new QdrantOptions
+            {
+                Host = "localhost",
+                Port = 6334,
+                CollectionName = "test",
+                VectorSize = 384,
+            }
+        );
         var store = new QdrantVectorStore(options, null);
 
         // Act
@@ -264,7 +284,7 @@ public class QdrantOptionsTests
             Host = "localhost",
             Port = 6334,
             CollectionName = "my-collection",
-            VectorSize = 1536
+            VectorSize = 1536,
         };
 
         // Act
@@ -286,7 +306,7 @@ public class QdrantOptionsTests
             Host = host!,
             Port = 6334,
             CollectionName = "test",
-            VectorSize = 384
+            VectorSize = 384,
         };
 
         // Act
@@ -308,7 +328,7 @@ public class QdrantOptionsTests
             Host = "localhost",
             Port = port,
             CollectionName = "test",
-            VectorSize = 384
+            VectorSize = 384,
         };
 
         // Act
@@ -330,7 +350,7 @@ public class QdrantOptionsTests
             Host = "localhost",
             Port = 6334,
             CollectionName = name!,
-            VectorSize = 384
+            VectorSize = 384,
         };
 
         // Act
@@ -351,7 +371,7 @@ public class QdrantOptionsTests
             Host = "localhost",
             Port = 6334,
             CollectionName = "test",
-            VectorSize = vectorSize
+            VectorSize = vectorSize,
         };
 
         // Act
@@ -394,13 +414,15 @@ public class QdrantServiceCollectionExtensionsTests
         // Arrange
         var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Qdrant:Host"] = "localhost",
-                ["Qdrant:Port"] = "6334",
-                ["Qdrant:CollectionName"] = "test-collection",
-                ["Qdrant:VectorSize"] = "384"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Qdrant:Host"] = "localhost",
+                    ["Qdrant:Port"] = "6334",
+                    ["Qdrant:CollectionName"] = "test-collection",
+                    ["Qdrant:VectorSize"] = "384",
+                }
+            )
             .Build();
 
         // Act
@@ -409,7 +431,9 @@ public class QdrantServiceCollectionExtensionsTests
         // Assert
         var descriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IVectorStore));
         descriptor.Should().NotBeNull();
-        descriptor!.Lifetime.Should().Be(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton);
+        descriptor!
+            .Lifetime.Should()
+            .Be(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton);
         descriptor.ImplementationType.Should().Be(typeof(QdrantVectorStore));
     }
 

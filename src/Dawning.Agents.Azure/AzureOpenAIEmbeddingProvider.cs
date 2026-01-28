@@ -55,10 +55,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
         _deploymentName = deploymentName;
         _dimensions = dimensions;
 
-        var client = new AzureOpenAIClient(
-            new Uri(endpoint),
-            new AzureKeyCredential(apiKey)
-        );
+        var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
         _embeddingClient = client.GetEmbeddingClient(deploymentName);
     }
 

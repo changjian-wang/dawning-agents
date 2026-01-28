@@ -164,7 +164,10 @@ public class ConfigurationChangeNotifierTests
 
         // Assert
         receivedEventArgs.Should().NotBeNull();
-        receivedEventArgs!.Timestamp.Should().BeOnOrAfter(beforeChange).And.BeOnOrBefore(afterChange);
+        receivedEventArgs!
+            .Timestamp.Should()
+            .BeOnOrAfter(beforeChange)
+            .And.BeOnOrBefore(afterChange);
     }
 
     [Fact]

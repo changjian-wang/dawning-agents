@@ -98,7 +98,8 @@ public class AgentInstrumentationTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == AgentInstrumentation.ServiceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                ActivitySamplingResult.AllData,
         };
         ActivitySource.AddActivityListener(listener);
 
@@ -119,7 +120,8 @@ public class AgentInstrumentationTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == AgentInstrumentation.ServiceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                ActivitySamplingResult.AllData,
         };
         ActivitySource.AddActivityListener(listener);
 
@@ -139,7 +141,8 @@ public class AgentInstrumentationTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == AgentInstrumentation.ServiceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                ActivitySamplingResult.AllData,
         };
         ActivitySource.AddActivityListener(listener);
 
@@ -160,7 +163,8 @@ public class AgentInstrumentationTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == AgentInstrumentation.ServiceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                ActivitySamplingResult.AllData,
         };
         ActivitySource.AddActivityListener(listener);
 
@@ -196,9 +200,15 @@ public class AgentInstrumentationTests
             AgentInstrumentation.RequestsTotal.Add(1);
             AgentInstrumentation.RequestsSuccessTotal.Add(1);
             AgentInstrumentation.RequestsFailedTotal.Add(1);
-            AgentInstrumentation.ToolExecutionsTotal.Add(1, new KeyValuePair<string, object?>("tool", "test"));
+            AgentInstrumentation.ToolExecutionsTotal.Add(
+                1,
+                new KeyValuePair<string, object?>("tool", "test")
+            );
             AgentInstrumentation.LLMCallsTotal.Add(1);
-            AgentInstrumentation.LLMTokensUsedTotal.Add(100, new KeyValuePair<string, object?>("type", "input"));
+            AgentInstrumentation.LLMTokensUsedTotal.Add(
+                100,
+                new KeyValuePair<string, object?>("type", "input")
+            );
         };
         act.Should().NotThrow();
     }

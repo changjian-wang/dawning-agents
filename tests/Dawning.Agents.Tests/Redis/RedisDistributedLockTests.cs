@@ -190,7 +190,9 @@ public sealed class RedisDistributedLockFactoryTests
             EnableAutoRenewal = false,
         };
 
-        _connectionMock.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_databaseMock.Object);
+        _connectionMock
+            .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
+            .Returns(_databaseMock.Object);
     }
 
     [Fact]

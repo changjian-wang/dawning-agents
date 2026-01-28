@@ -27,7 +27,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     public InMemoryServiceRegistry(
         IOptions<ServiceRegistryOptions>? options = null,
-        ILogger<InMemoryServiceRegistry>? logger = null)
+        ILogger<InMemoryServiceRegistry>? logger = null
+    )
     {
         _options = options?.Value ?? new ServiceRegistryOptions();
         _logger = logger ?? NullLogger<InMemoryServiceRegistry>.Instance;
@@ -35,14 +36,23 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
             CleanupExpiredInstances,
             null,
             TimeSpan.FromSeconds(_options.HealthCheckIntervalSeconds),
-            TimeSpan.FromSeconds(_options.HealthCheckIntervalSeconds));
+            TimeSpan.FromSeconds(_options.HealthCheckIntervalSeconds)
+        );
     }
 
-    public Task RegisterAsync(ServiceInstance instance, CancellationToken cancellationToken = default)
+    public Task RegisterAsync(
+        ServiceInstance instance,
+        CancellationToken cancellationToken = default
+    )
     {
         _instances[instance.Id] = instance;
-        _logger.LogInformation("服务注册: {ServiceName}@{Host}:{Port} (ID={Id})",
-            instance.ServiceName, instance.Host, instance.Port, instance.Id);
+        _logger.LogInformation(
+            "服务注册: {ServiceName}@{Host}:{Port} (ID={Id})",
+            instance.ServiceName,
+            instance.Host,
+            instance.Port,
+            instance.Id
+        );
         NotifyWatchers(instance.ServiceName);
         return Task.CompletedTask;
     }
@@ -51,7 +61,11 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
     {
         if (_instances.TryRemove(instanceId, out var instance))
         {
-            _logger.LogInformation("服务注销: {ServiceName} (ID={Id})", instance.ServiceName, instanceId);
+            _logger.LogInformation(
+                "服务注销: {ServiceName} (ID={Id})",
+                instance.ServiceName,
+                instanceId
+            );
             NotifyWatchers(instance.ServiceName);
         }
         return Task.CompletedTask;
@@ -70,26 +84,27 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     public Task<IReadOnlyList<ServiceInstance>> GetInstancesAsync(
         string serviceName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var instances = _instances.Values
-            .Where(i => i.ServiceName == serviceName && i.IsHealthy)
+        var instances = _instances
+            .Values.Where(i => i.ServiceName == serviceName && i.IsHealthy)
             .ToList();
         return Task.FromResult<IReadOnlyList<ServiceInstance>>(instances);
     }
 
-    public Task<IReadOnlyList<string>> GetServicesAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<string>> GetServicesAsync(
+        CancellationToken cancellationToken = default
+    )
     {
-        var services = _instances.Values
-            .Select(i => i.ServiceName)
-            .Distinct()
-            .ToList();
+        var services = _instances.Values.Select(i => i.ServiceName).Distinct().ToList();
         return Task.FromResult<IReadOnlyList<string>>(services);
     }
 
     public async IAsyncEnumerable<ServiceInstance[]> WatchAsync(
         string serviceName,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         var channel = Channel.CreateUnbounded<ServiceInstance[]>();
         var watcherId = $"{serviceName}:{Guid.NewGuid():N}";
@@ -114,8 +129,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     private void NotifyWatchers(string serviceName)
     {
-        var instances = _instances.Values
-            .Where(i => i.ServiceName == serviceName && i.IsHealthy)
+        var instances = _instances
+            .Values.Where(i => i.ServiceName == serviceName && i.IsHealthy)
             .ToArray();
 
         foreach (var (watcherId, channel) in _watchers)

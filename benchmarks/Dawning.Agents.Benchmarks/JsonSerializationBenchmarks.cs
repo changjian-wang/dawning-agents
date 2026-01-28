@@ -1,6 +1,6 @@
+using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using System.Text.Json;
 
 namespace Dawning.Agents.Benchmarks;
 
@@ -27,15 +27,17 @@ public class JsonSerializationBenchmarks
         _options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
+            WriteIndented = false,
         };
 
         _simpleMessage = new ChatMessage("user", "Hello, this is a test message for benchmarking.");
 
-        _messageArray = Enumerable.Range(0, MessageCount)
+        _messageArray = Enumerable
+            .Range(0, MessageCount)
             .Select(i => new ChatMessage(
                 i % 2 == 0 ? "user" : "assistant",
-                $"Message {i}: This is a test message with some content for benchmarking purposes."))
+                $"Message {i}: This is a test message with some content for benchmarking purposes."
+            ))
             .ToArray();
 
         _simpleJson = JsonSerializer.Serialize(_simpleMessage, _options);
@@ -43,20 +45,18 @@ public class JsonSerializationBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public string Serialize_SingleMessage()
-        => JsonSerializer.Serialize(_simpleMessage, _options);
+    public string Serialize_SingleMessage() => JsonSerializer.Serialize(_simpleMessage, _options);
 
     [Benchmark]
-    public string Serialize_MessageArray()
-        => JsonSerializer.Serialize(_messageArray, _options);
+    public string Serialize_MessageArray() => JsonSerializer.Serialize(_messageArray, _options);
 
     [Benchmark]
-    public ChatMessage? Deserialize_SingleMessage()
-        => JsonSerializer.Deserialize<ChatMessage>(_simpleJson, _options);
+    public ChatMessage? Deserialize_SingleMessage() =>
+        JsonSerializer.Deserialize<ChatMessage>(_simpleJson, _options);
 
     [Benchmark]
-    public ChatMessage[]? Deserialize_MessageArray()
-        => JsonSerializer.Deserialize<ChatMessage[]>(_arrayJson, _options);
+    public ChatMessage[]? Deserialize_MessageArray() =>
+        JsonSerializer.Deserialize<ChatMessage[]>(_arrayJson, _options);
 
     public record ChatMessage(string Role, string Content);
 }

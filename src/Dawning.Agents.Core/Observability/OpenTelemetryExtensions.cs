@@ -65,31 +65,40 @@ public static class OpenTelemetryServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddOpenTelemetryObservability(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
-        var options = configuration.GetSection(OpenTelemetryOptions.SectionName).Get<OpenTelemetryOptions>()
-                      ?? new OpenTelemetryOptions();
+        var options =
+            configuration.GetSection(OpenTelemetryOptions.SectionName).Get<OpenTelemetryOptions>()
+            ?? new OpenTelemetryOptions();
 
-        services.Configure<OpenTelemetryOptions>(configuration.GetSection(OpenTelemetryOptions.SectionName));
+        services.Configure<OpenTelemetryOptions>(
+            configuration.GetSection(OpenTelemetryOptions.SectionName)
+        );
 
-        var resourceBuilder = ResourceBuilder.CreateDefault()
+        var resourceBuilder = ResourceBuilder
+            .CreateDefault()
             .AddService(
                 serviceName: options.ServiceName,
                 serviceVersion: options.ServiceVersion,
-                serviceInstanceId: System.Environment.MachineName);
+                serviceInstanceId: System.Environment.MachineName
+            );
 
         if (!string.IsNullOrEmpty(options.Environment))
         {
-            resourceBuilder.AddAttributes(new[]
-            {
-                new KeyValuePair<string, object>("deployment.environment", options.Environment),
-            });
+            resourceBuilder.AddAttributes(
+                new[]
+                {
+                    new KeyValuePair<string, object>("deployment.environment", options.Environment),
+                }
+            );
         }
 
         // 配置追踪
         if (options.EnableTracing)
         {
-            services.AddOpenTelemetry()
+            services
+                .AddOpenTelemetry()
                 .WithTracing(builder =>
                 {
                     builder
@@ -116,7 +125,8 @@ public static class OpenTelemetryServiceCollectionExtensions
         // 配置指标
         if (options.EnableMetrics)
         {
-            services.AddOpenTelemetry()
+            services
+                .AddOpenTelemetry()
                 .WithMetrics(builder =>
                 {
                     builder
@@ -150,9 +160,11 @@ public static class OpenTelemetryServiceCollectionExtensions
     public static IServiceCollection AddAgentTracing(
         this IServiceCollection services,
         string? otlpEndpoint = null,
-        double samplingRatio = 1.0)
+        double samplingRatio = 1.0
+    )
     {
-        services.AddOpenTelemetry()
+        services
+            .AddOpenTelemetry()
             .WithTracing(builder =>
             {
                 builder
@@ -178,9 +190,11 @@ public static class OpenTelemetryServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAgentMetrics(
         this IServiceCollection services,
-        string? otlpEndpoint = null)
+        string? otlpEndpoint = null
+    )
     {
-        services.AddOpenTelemetry()
+        services
+            .AddOpenTelemetry()
             .WithMetrics(builder =>
             {
                 builder

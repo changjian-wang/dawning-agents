@@ -77,8 +77,7 @@ public class ChromaOptions
     /// <summary>
     /// 获取 Chroma API 基础 URL
     /// </summary>
-    public string BaseUrl =>
-        $"{(UseHttps ? "https" : "http")}://{Host}:{Port}";
+    public string BaseUrl => $"{(UseHttps ? "https" : "http")}://{Host}:{Port}";
 
     /// <summary>
     /// 验证配置
@@ -125,5 +124,5 @@ public enum ChromaDistanceMetric
     /// <summary>
     /// 内积
     /// </summary>
-    InnerProduct
+    InnerProduct,
 }

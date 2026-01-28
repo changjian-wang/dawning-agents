@@ -40,11 +40,7 @@ public class AzureOpenAIEmbeddingProviderTests
     public void Constructor_WithNullEndpoint_ThrowsArgumentException()
     {
         // Arrange & Act
-        var act = () => new AzureOpenAIEmbeddingProvider(
-            null!,
-            "test-key",
-            "embedding-deployment"
-        );
+        var act = () => new AzureOpenAIEmbeddingProvider(null!, "test-key", "embedding-deployment");
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -54,11 +50,7 @@ public class AzureOpenAIEmbeddingProviderTests
     public void Constructor_WithEmptyEndpoint_ThrowsArgumentException()
     {
         // Arrange & Act
-        var act = () => new AzureOpenAIEmbeddingProvider(
-            "",
-            "test-key",
-            "embedding-deployment"
-        );
+        var act = () => new AzureOpenAIEmbeddingProvider("", "test-key", "embedding-deployment");
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -68,11 +60,12 @@ public class AzureOpenAIEmbeddingProviderTests
     public void Constructor_WithNullApiKey_ThrowsArgumentException()
     {
         // Arrange & Act
-        var act = () => new AzureOpenAIEmbeddingProvider(
-            "https://test.openai.azure.com",
-            null!,
-            "embedding-deployment"
-        );
+        var act = () =>
+            new AzureOpenAIEmbeddingProvider(
+                "https://test.openai.azure.com",
+                null!,
+                "embedding-deployment"
+            );
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -82,11 +75,8 @@ public class AzureOpenAIEmbeddingProviderTests
     public void Constructor_WithNullDeploymentName_ThrowsArgumentException()
     {
         // Arrange & Act
-        var act = () => new AzureOpenAIEmbeddingProvider(
-            "https://test.openai.azure.com",
-            "test-key",
-            null!
-        );
+        var act = () =>
+            new AzureOpenAIEmbeddingProvider("https://test.openai.azure.com", "test-key", null!);
 
         // Assert
         act.Should().Throw<ArgumentException>();

@@ -60,7 +60,8 @@ public static class HumanLoopDemos
         var response = await handler.RequestConfirmationAsync(request);
 
         Console.WriteLine();
-        var isApproved = response.SelectedOption.Equals("yes", StringComparison.OrdinalIgnoreCase)
+        var isApproved =
+            response.SelectedOption.Equals("yes", StringComparison.OrdinalIgnoreCase)
             || response.SelectedOption.Equals("approve", StringComparison.OrdinalIgnoreCase)
             || response.SelectedOption.Equals("y", StringComparison.OrdinalIgnoreCase);
 
@@ -181,10 +182,9 @@ public static class HumanLoopDemos
         var response = await handler.RequestConfirmationAsync(request);
 
         Console.WriteLine();
-        var isApproved = response.SelectedOption.Equals(
-                "approve",
-                StringComparison.OrdinalIgnoreCase
-            ) || response.SelectedOption.Equals("modify", StringComparison.OrdinalIgnoreCase);
+        var isApproved =
+            response.SelectedOption.Equals("approve", StringComparison.OrdinalIgnoreCase)
+            || response.SelectedOption.Equals("modify", StringComparison.OrdinalIgnoreCase);
 
         if (isApproved)
         {
@@ -222,7 +222,7 @@ public static class HumanLoopDemos
 
         foreach (var risk in riskLevels)
         {
-            Console.WriteLine($"  {risk.Icon} {risk.Level,-10} {risk.Policy}");
+            Console.WriteLine($"  {risk.Icon} {risk.Level, -10} {risk.Policy}");
         }
 
         Console.WriteLine("\n  示例场景:");

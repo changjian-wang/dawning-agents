@@ -22,10 +22,7 @@ public interface IDistributedMemory : IConversationMemory
     /// <param name="timeout">锁超时时间</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否成功获取锁</returns>
-    Task<bool> TryLockSessionAsync(
-        TimeSpan timeout,
-        CancellationToken cancellationToken = default
-    );
+    Task<bool> TryLockSessionAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 释放会话锁

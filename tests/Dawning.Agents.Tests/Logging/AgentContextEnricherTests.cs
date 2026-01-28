@@ -217,7 +217,11 @@ public class AgentContextEnricherTests
 
     private sealed class LogEventPropertyFactory : Serilog.Core.ILogEventPropertyFactory
     {
-        public LogEventProperty CreateProperty(string name, object? value, bool destructureObjects = false)
+        public LogEventProperty CreateProperty(
+            string name,
+            object? value,
+            bool destructureObjects = false
+        )
         {
             return new LogEventProperty(name, new ScalarValue(value));
         }

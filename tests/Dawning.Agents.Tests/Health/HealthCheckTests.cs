@@ -71,7 +71,12 @@ public class RedisHealthCheckTests
         var mockDatabase = new Mock<IDatabase>();
         mockDatabase
             .Setup(db => db.PingAsync(It.IsAny<CommandFlags>()))
-            .ThrowsAsync(new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Connection failed"));
+            .ThrowsAsync(
+                new RedisConnectionException(
+                    ConnectionFailureType.UnableToConnect,
+                    "Connection failed"
+                )
+            );
 
         var mockRedis = new Mock<IConnectionMultiplexer>();
         mockRedis
@@ -101,18 +106,16 @@ public class LLMProviderHealthCheckTests
     {
         // Arrange
         var mockProvider = new Mock<ILLMProvider>();
+        mockProvider.SetupGet(p => p.Name).Returns("TestProvider");
         mockProvider
-            .SetupGet(p => p.Name)
-            .Returns("TestProvider");
-        mockProvider
-            .Setup(p => p.ChatAsync(
-                It.IsAny<IReadOnlyList<ChatMessage>>(),
-                It.IsAny<ChatCompletionOptions>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse
-            {
-                Content = "pong",
-            });
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IReadOnlyList<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ChatCompletionResponse { Content = "pong" });
 
         var healthCheck = new LLMProviderHealthCheck(mockProvider.Object);
         var context = new HealthCheckContext
@@ -133,18 +136,16 @@ public class LLMProviderHealthCheckTests
     {
         // Arrange
         var mockProvider = new Mock<ILLMProvider>();
+        mockProvider.SetupGet(p => p.Name).Returns("TestProvider");
         mockProvider
-            .SetupGet(p => p.Name)
-            .Returns("TestProvider");
-        mockProvider
-            .Setup(p => p.ChatAsync(
-                It.IsAny<IReadOnlyList<ChatMessage>>(),
-                It.IsAny<ChatCompletionOptions>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse
-            {
-                Content = "",
-            });
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IReadOnlyList<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ChatCompletionResponse { Content = "" });
 
         var healthCheck = new LLMProviderHealthCheck(mockProvider.Object);
         var context = new HealthCheckContext
@@ -164,14 +165,15 @@ public class LLMProviderHealthCheckTests
     {
         // Arrange
         var mockProvider = new Mock<ILLMProvider>();
+        mockProvider.SetupGet(p => p.Name).Returns("TestProvider");
         mockProvider
-            .SetupGet(p => p.Name)
-            .Returns("TestProvider");
-        mockProvider
-            .Setup(p => p.ChatAsync(
-                It.IsAny<IReadOnlyList<ChatMessage>>(),
-                It.IsAny<ChatCompletionOptions>(),
-                It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IReadOnlyList<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new Exception("LLM connection failed"));
 
         var healthCheck = new LLMProviderHealthCheck(mockProvider.Object);

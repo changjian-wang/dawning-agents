@@ -19,12 +19,14 @@ public class DistributedLoadBalancerTests : IDisposable
 
     public DistributedLoadBalancerTests()
     {
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.RoundRobin,
-            VirtualNodeCount = 150,
-            FailoverRetries = 3,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions
+            {
+                Strategy = LoadBalancingStrategy.RoundRobin,
+                VirtualNodeCount = 150,
+                FailoverRetries = 3,
+            }
+        );
         _balancer = new DistributedLoadBalancer(options: options);
     }
 
@@ -37,7 +39,8 @@ public class DistributedLoadBalancerTests : IDisposable
         string id,
         bool isHealthy = true,
         int weight = 100,
-        int activeRequests = 0)
+        int activeRequests = 0
+    )
     {
         return new AgentInstance
         {
@@ -235,11 +238,13 @@ public class DistributedLoadBalancerTests : IDisposable
     public void GetInstance_WithSessionKey_ConsistentHash_ShouldReturnSameInstance()
     {
         // Arrange
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.ConsistentHash,
-            VirtualNodeCount = 150,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions
+            {
+                Strategy = LoadBalancingStrategy.ConsistentHash,
+                VirtualNodeCount = 150,
+            }
+        );
         using var balancer = new DistributedLoadBalancer(options: options);
 
         balancer.RegisterInstance(CreateInstance("1"));
@@ -263,10 +268,9 @@ public class DistributedLoadBalancerTests : IDisposable
     public void GetInstance_ConsistentHash_NullKey_ShouldFallbackToRoundRobin()
     {
         // Arrange
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.ConsistentHash,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions { Strategy = LoadBalancingStrategy.ConsistentHash }
+        );
         using var balancer = new DistributedLoadBalancer(options: options);
 
         balancer.RegisterInstance(CreateInstance("1"));
@@ -314,21 +318,23 @@ public class DistributedLoadBalancerTests : IDisposable
         _balancer.RegisterInstance(CreateInstance("3"));
 
         // Act & Assert
-        var act = async () => await _balancer.ExecuteWithFailoverAsync<string>(
-            _ => throw new Exception("Always fail"));
+        var act = async () =>
+            await _balancer.ExecuteWithFailoverAsync<string>(_ =>
+                throw new Exception("Always fail")
+            );
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*故障转移失败*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*故障转移失败*");
     }
 
     [Fact]
     public async Task ExecuteWithFailoverAsync_NoInstances_ShouldThrow()
     {
         // Act & Assert
-        var act = async () => await _balancer.ExecuteWithFailoverAsync<string>(
-            _ => Task.FromResult("success"));
+        var act = async () =>
+            await _balancer.ExecuteWithFailoverAsync<string>(_ => Task.FromResult("success"));
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*没有可用的健康实例*");
     }
 }
@@ -339,26 +345,29 @@ public class LoadBalancingStrategyTests
     public void LeastConnections_ShouldSelectLowest()
     {
         // Arrange
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.LeastConnections,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions { Strategy = LoadBalancingStrategy.LeastConnections }
+        );
         using var balancer = new DistributedLoadBalancer(options: options);
 
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "1",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8081",
-            ActiveRequests = 10,
-        });
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "2",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8082",
-            ActiveRequests = 2,
-        });
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "1",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8081",
+                ActiveRequests = 10,
+            }
+        );
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "2",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8082",
+                ActiveRequests = 2,
+            }
+        );
 
         // Act
         var result = balancer.GetNextInstance();
@@ -371,24 +380,27 @@ public class LoadBalancingStrategyTests
     public void Random_ShouldReturnAnyInstance()
     {
         // Arrange
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.Random,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions { Strategy = LoadBalancingStrategy.Random }
+        );
         using var balancer = new DistributedLoadBalancer(options: options);
 
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "1",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8081",
-        });
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "2",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8082",
-        });
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "1",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8081",
+            }
+        );
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "2",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8082",
+            }
+        );
 
         // Act
         var result = balancer.GetNextInstance();
@@ -402,27 +414,33 @@ public class LoadBalancingStrategyTests
     public void WeightedRoundRobin_ShouldFavorHigherWeight()
     {
         // Arrange
-        var options = Options.Create(new DistributedLoadBalancerOptions
-        {
-            Strategy = LoadBalancingStrategy.WeightedRoundRobin,
-        });
+        var options = Options.Create(
+            new DistributedLoadBalancerOptions
+            {
+                Strategy = LoadBalancingStrategy.WeightedRoundRobin,
+            }
+        );
         using var balancer = new DistributedLoadBalancer(options: options);
 
         // Instance 2 has 3x the weight
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "1",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8081",
-            Weight = 100,
-        });
-        balancer.RegisterInstance(new AgentInstance
-        {
-            Id = "2",
-            ServiceName = "test",
-            Endpoint = "http://localhost:8082",
-            Weight = 300,
-        });
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "1",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8081",
+                Weight = 100,
+            }
+        );
+        balancer.RegisterInstance(
+            new AgentInstance
+            {
+                Id = "2",
+                ServiceName = "test",
+                Endpoint = "http://localhost:8082",
+                Weight = 300,
+            }
+        );
 
         // Act - Get many instances
         var counts = new Dictionary<string, int> { ["1"] = 0, ["2"] = 0 };
@@ -516,7 +534,8 @@ public class DistributedLoadBalancerServiceRegistryIntegrationTests : IDisposabl
         using var balancerWithoutRegistry = new DistributedLoadBalancer();
 
         // Act & Assert
-        var act = async () => await balancerWithoutRegistry.SyncFromServiceRegistryAsync("test-service");
+        var act = async () =>
+            await balancerWithoutRegistry.SyncFromServiceRegistryAsync("test-service");
         await act.Should().NotThrowAsync();
     }
 }

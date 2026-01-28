@@ -145,12 +145,18 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Chroma add failed: {response.StatusCode} - {error}");
+            throw new InvalidOperationException(
+                $"Chroma add failed: {response.StatusCode} - {error}"
+            );
         }
 
         _count += chunkList.Count;
 
-        _logger.LogDebug("Added {Count} chunks to Chroma collection {Collection}", chunkList.Count, _options.CollectionName);
+        _logger.LogDebug(
+            "Added {Count} chunks to Chroma collection {Collection}",
+            chunkList.Count,
+            _options.CollectionName
+        );
     }
 
     /// <inheritdoc />
@@ -180,7 +186,9 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Chroma query failed: {response.StatusCode} - {error}");
+            throw new InvalidOperationException(
+                $"Chroma query failed: {response.StatusCode} - {error}"
+            );
         }
 
         var result = await response.Content.ReadFromJsonAsync<ChromaQueryResponse>(
@@ -188,7 +196,12 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             cancellationToken
         );
 
-        if (result == null || result.Ids == null || result.Ids.Count == 0 || result.Ids[0].Count == 0)
+        if (
+            result == null
+            || result.Ids == null
+            || result.Ids.Count == 0
+            || result.Ids[0].Count == 0
+        )
         {
             return [];
         }
@@ -273,7 +286,11 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         if (response.IsSuccessStatusCode)
         {
             _count = Math.Max(0, _count - 1);
-            _logger.LogDebug("Deleted chunk {Id} from Chroma collection {Collection}", id, _options.CollectionName);
+            _logger.LogDebug(
+                "Deleted chunk {Id} from Chroma collection {Collection}",
+                id,
+                _options.CollectionName
+            );
             return true;
         }
 
@@ -281,7 +298,10 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public async Task<DocumentChunk?> GetAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<DocumentChunk?> GetAsync(
+        string id,
+        CancellationToken cancellationToken = default
+    )
     {
         await EnsureCollectionAsync(cancellationToken);
 
@@ -339,8 +359,12 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         return new DocumentChunk
         {
             Id = result.Ids[0],
-            Content = result.Documents != null && result.Documents.Count > 0 ? result.Documents[0] : "",
-            Embedding = result.Embeddings != null && result.Embeddings.Count > 0 ? result.Embeddings[0] : null,
+            Content =
+                result.Documents != null && result.Documents.Count > 0 ? result.Documents[0] : "",
+            Embedding =
+                result.Embeddings != null && result.Embeddings.Count > 0
+                    ? result.Embeddings[0]
+                    : null,
             Metadata = metadata,
             DocumentId = documentId,
             ChunkIndex = chunkIndex,
@@ -469,7 +493,8 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             cancellationToken
         );
 
-        _collectionId = newCollection?.Id
+        _collectionId =
+            newCollection?.Id
             ?? throw new InvalidOperationException("Failed to get collection ID after creation");
 
         _logger.LogInformation(

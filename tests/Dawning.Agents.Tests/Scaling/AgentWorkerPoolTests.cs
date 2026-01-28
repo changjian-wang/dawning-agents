@@ -254,19 +254,21 @@ public class AgentWorkerPoolTests : IDisposable
     {
         _mockQueue
             .Setup(q => q.DequeueAsync(It.IsAny<CancellationToken>()))
-            .Returns(async (CancellationToken ct) =>
-            {
-                // Block until cancellation
-                try
+            .Returns(
+                async (CancellationToken ct) =>
                 {
-                    await Task.Delay(Timeout.Infinite, ct);
+                    // Block until cancellation
+                    try
+                    {
+                        await Task.Delay(Timeout.Infinite, ct);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected
+                    }
+                    return null;
                 }
-                catch (OperationCanceledException)
-                {
-                    // Expected
-                }
-                return null;
-            });
+            );
     }
 
     #endregion

@@ -50,8 +50,10 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
-        _redisOptions = redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
-        _sessionOptions = sessionOptions?.Value ?? throw new ArgumentNullException(nameof(sessionOptions));
+        _redisOptions =
+            redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
+        _sessionOptions =
+            sessionOptions?.Value ?? throw new ArgumentNullException(nameof(sessionOptions));
         _tokenCounter = tokenCounter;
         _logger = logger ?? NullLogger<RedisMemoryStore>.Instance;
 
@@ -88,7 +90,8 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
             return;
         }
 
-        const string script = @"
+        const string script =
+            @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
                 return redis.call('del', KEYS[1])
             else

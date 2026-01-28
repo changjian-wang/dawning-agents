@@ -22,7 +22,8 @@ public sealed record AuditLogEntry
     public string? IpAddress { get; init; }
     public string? UserAgent { get; init; }
     public TimeSpan? Duration { get; init; }
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
+    public IReadOnlyDictionary<string, object> Metadata { get; init; } =
+        new Dictionary<string, object>();
 }
 
 /// <summary>
@@ -55,14 +56,18 @@ public interface IAuditLogProvider
     /// <summary>
     /// 批量写入审计日志
     /// </summary>
-    Task WriteBatchAsync(IEnumerable<AuditLogEntry> entries, CancellationToken cancellationToken = default);
+    Task WriteBatchAsync(
+        IEnumerable<AuditLogEntry> entries,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 查询审计日志
     /// </summary>
     Task<IReadOnlyList<AuditLogEntry>> QueryAsync(
         AuditLogQuery query,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>

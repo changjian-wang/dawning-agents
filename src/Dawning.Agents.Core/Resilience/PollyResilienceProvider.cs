@@ -91,7 +91,8 @@ public class PollyResilienceProvider : IResilienceProvider
                     Delay = TimeSpan.FromMilliseconds(options.Retry.BaseDelayMs),
                     MaxDelay = TimeSpan.FromMilliseconds(options.Retry.MaxDelayMs),
                     UseJitter = options.Retry.UseJitter,
-                    ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>()
+                    ShouldHandle = new PredicateBuilder()
+                        .Handle<HttpRequestException>()
                         .Handle<TaskCanceledException>()
                         .Handle<TimeoutRejectedException>(),
                     OnRetry = args =>
@@ -122,7 +123,8 @@ public class PollyResilienceProvider : IResilienceProvider
                     BreakDuration = TimeSpan.FromSeconds(
                         options.CircuitBreaker.BreakDurationSeconds
                     ),
-                    ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>()
+                    ShouldHandle = new PredicateBuilder()
+                        .Handle<HttpRequestException>()
                         .Handle<TaskCanceledException>(),
                     OnOpened = args =>
                     {

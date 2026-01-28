@@ -12,7 +12,9 @@ namespace Dawning.Agents.Tests.Security;
 
 public class ApiKeyAuthenticationProviderTests
 {
-    private static IOptions<SecurityOptions> CreateOptions(Dictionary<string, ApiKeyConfig>? apiKeys = null)
+    private static IOptions<SecurityOptions> CreateOptions(
+        Dictionary<string, ApiKeyConfig>? apiKeys = null
+    )
     {
         var options = new SecurityOptions
         {
@@ -123,11 +125,7 @@ public class ApiKeyAuthenticationProviderTests
         // Arrange
         var apiKeys = new Dictionary<string, ApiKeyConfig>
         {
-            ["disabled-key"] = new ApiKeyConfig
-            {
-                Name = "Disabled Key",
-                IsEnabled = false,
-            },
+            ["disabled-key"] = new ApiKeyConfig { Name = "Disabled Key", IsEnabled = false },
         };
         var provider = new ApiKeyAuthenticationProvider(CreateOptions(apiKeys));
 
@@ -189,7 +187,9 @@ public class ApiKeyAuthenticationProviderTests
 
 public class RoleBasedAuthorizationProviderTests
 {
-    private static IOptions<SecurityOptions> CreateOptions(Dictionary<string, RolePermissions>? roles = null)
+    private static IOptions<SecurityOptions> CreateOptions(
+        Dictionary<string, RolePermissions>? roles = null
+    )
     {
         var options = new SecurityOptions
         {
@@ -201,7 +201,8 @@ public class RoleBasedAuthorizationProviderTests
     private static AuthenticationResult CreateAuthUser(
         string userId = "user1",
         bool isAuthenticated = true,
-        params string[] roles)
+        params string[] roles
+    )
     {
         if (!isAuthenticated)
         {
@@ -273,10 +274,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["restricted"] = new RolePermissions
-            {
-                DeniedTools = ["dangerous-tool"],
-            },
+            ["restricted"] = new RolePermissions { DeniedTools = ["dangerous-tool"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "restricted");
@@ -295,10 +293,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["no-tools"] = new RolePermissions
-            {
-                DeniedTools = ["*"],
-            },
+            ["no-tools"] = new RolePermissions { DeniedTools = ["*"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "no-tools");
@@ -316,10 +311,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["user"] = new RolePermissions
-            {
-                AllowedTools = ["safe-tool"],
-            },
+            ["user"] = new RolePermissions { AllowedTools = ["safe-tool"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "user");
@@ -337,10 +329,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["power-user"] = new RolePermissions
-            {
-                AllowedTools = ["*"],
-            },
+            ["power-user"] = new RolePermissions { AllowedTools = ["*"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "power-user");
@@ -386,10 +375,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["user"] = new RolePermissions
-            {
-                AllowedAgents = ["helper-agent"],
-            },
+            ["user"] = new RolePermissions { AllowedAgents = ["helper-agent"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "user");
@@ -407,10 +393,7 @@ public class RoleBasedAuthorizationProviderTests
         // Arrange
         var roles = new Dictionary<string, RolePermissions>
         {
-            ["admin"] = new RolePermissions
-            {
-                AllowedAgents = ["*"],
-            },
+            ["admin"] = new RolePermissions { AllowedAgents = ["*"] },
         };
         var provider = new RoleBasedAuthorizationProvider(CreateOptions(roles));
         var user = CreateAuthUser(roles: "admin");

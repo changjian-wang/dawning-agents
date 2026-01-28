@@ -24,7 +24,9 @@ public sealed class RedisDistributedCacheTests
         _databaseMock = new Mock<IDatabase>();
         _options = new RedisOptions { InstanceName = "test:", DefaultDatabase = 0 };
 
-        _connectionMock.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_databaseMock.Object);
+        _connectionMock
+            .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
+            .Returns(_databaseMock.Object);
     }
 
     [Fact]
@@ -187,7 +189,11 @@ public sealed class RedisDistributedCacheTests
 
         // Assert
         _databaseMock.Verify(
-            d => d.KeyDelete(It.Is<RedisKey>(k => k.ToString().Contains(key)), It.IsAny<CommandFlags>()),
+            d =>
+                d.KeyDelete(
+                    It.Is<RedisKey>(k => k.ToString().Contains(key)),
+                    It.IsAny<CommandFlags>()
+                ),
             Times.Once
         );
     }
@@ -208,7 +214,11 @@ public sealed class RedisDistributedCacheTests
 
         // Assert
         _databaseMock.Verify(
-            d => d.KeyDeleteAsync(It.Is<RedisKey>(k => k.ToString().Contains(key)), It.IsAny<CommandFlags>()),
+            d =>
+                d.KeyDeleteAsync(
+                    It.Is<RedisKey>(k => k.ToString().Contains(key)),
+                    It.IsAny<CommandFlags>()
+                ),
             Times.Once
         );
     }

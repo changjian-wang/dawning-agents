@@ -122,10 +122,7 @@ public class ResilienceOptionsValidatorTests
     public void Validate_WithZeroTimeoutSeconds_ShouldFail()
     {
         // Arrange
-        var options = new ResilienceOptions
-        {
-            Timeout = new TimeoutOptions { TimeoutSeconds = 0 },
-        };
+        var options = new ResilienceOptions { Timeout = new TimeoutOptions { TimeoutSeconds = 0 } };
 
         // Act
         var result = _validator.Validate(options);

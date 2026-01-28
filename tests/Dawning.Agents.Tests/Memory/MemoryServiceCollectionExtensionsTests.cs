@@ -240,7 +240,8 @@ public class MemoryServiceCollectionExtensionsTests
         services.AddBufferMemory();
         var provider = services.BuildServiceProvider();
 
-        IConversationMemory memory1, memory2;
+        IConversationMemory memory1,
+            memory2;
         using (var scope1 = provider.CreateScope())
         {
             memory1 = scope1.ServiceProvider.GetRequiredService<IConversationMemory>();

@@ -10,17 +10,13 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
 {
     public LLMOptionsValidator()
     {
-        RuleFor(x => x.Model)
-            .NotEmpty()
-            .WithMessage("Model 不能为空");
+        RuleFor(x => x.Model).NotEmpty().WithMessage("Model 不能为空");
 
         When(
             x => x.ProviderType == LLMProviderType.OpenAI,
             () =>
             {
-                RuleFor(x => x.ApiKey)
-                    .NotEmpty()
-                    .WithMessage("OpenAI 需要配置 ApiKey");
+                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("OpenAI 需要配置 ApiKey");
             }
         );
 
@@ -34,9 +30,7 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
                     .Must(BeValidUrl)
                     .WithMessage("Endpoint 必须是有效的 URL");
 
-                RuleFor(x => x.ApiKey)
-                    .NotEmpty()
-                    .WithMessage("Azure OpenAI 需要配置 ApiKey");
+                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("Azure OpenAI 需要配置 ApiKey");
             }
         );
 

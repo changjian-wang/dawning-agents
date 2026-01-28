@@ -17,12 +17,14 @@ public class InMemoryServiceRegistryTests : IDisposable
 
     public InMemoryServiceRegistryTests()
     {
-        var options = Options.Create(new ServiceRegistryOptions
-        {
-            HeartbeatIntervalSeconds = 10,
-            ServiceExpireSeconds = 30,
-            HealthCheckIntervalSeconds = 5,
-        });
+        var options = Options.Create(
+            new ServiceRegistryOptions
+            {
+                HeartbeatIntervalSeconds = 10,
+                ServiceExpireSeconds = 30,
+                HealthCheckIntervalSeconds = 5,
+            }
+        );
         _registry = new InMemoryServiceRegistry(options);
     }
 
@@ -35,7 +37,8 @@ public class InMemoryServiceRegistryTests : IDisposable
         string serviceName = "test-service",
         string? id = null,
         string host = "localhost",
-        int port = 8080)
+        int port = 8080
+    )
     {
         return new ServiceInstance
         {
@@ -300,11 +303,7 @@ public class ServiceInstanceTests
             ServiceName = "svc",
             Host = "localhost",
             Port = 80,
-            Tags = new Dictionary<string, string>
-            {
-                ["env"] = "production",
-                ["version"] = "1.0.0",
-            },
+            Tags = new Dictionary<string, string> { ["env"] = "production", ["version"] = "1.0.0" },
         };
 
         // Assert

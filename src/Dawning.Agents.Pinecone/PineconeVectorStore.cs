@@ -23,7 +23,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     private readonly PineconeClient _client;
     private readonly PineconeOptions _options;
     private readonly ILogger<PineconeVectorStore> _logger;
-    private object? _index;  // 使用 object 因为 Index<T> 是泛型
+    private object? _index; // 使用 object 因为 Index<T> 是泛型
     private bool _initialized;
     private int _count;
 
@@ -87,13 +87,17 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         {
             Id = chunk.Id,
             Values = chunk.Embedding,
-            Metadata = metadata
+            Metadata = metadata,
         };
 
         await index.Upsert(new[] { vector }, _options.Namespace);
 
         Interlocked.Increment(ref _count);
-        _logger.LogDebug("Added chunk {ChunkId} to Pinecone index {Index}", chunk.Id, _options.IndexName);
+        _logger.LogDebug(
+            "Added chunk {ChunkId} to Pinecone index {Index}",
+            chunk.Id,
+            _options.IndexName
+        );
     }
 
     public async Task AddBatchAsync(
@@ -111,12 +115,14 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         var index = await GetIndexAsync();
 
-        var vectors = chunkList.Select(chunk => new Vector
-        {
-            Id = chunk.Id,
-            Values = chunk.Embedding!,
-            Metadata = BuildMetadata(chunk)
-        }).ToList();
+        var vectors = chunkList
+            .Select(chunk => new Vector
+            {
+                Id = chunk.Id,
+                Values = chunk.Embedding!,
+                Metadata = BuildMetadata(chunk),
+            })
+            .ToList();
 
         // Pinecone 建议每批最多 100 条
         const int batchSize = 100;
@@ -127,7 +133,11 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         }
 
         Interlocked.Add(ref _count, chunkList.Count);
-        _logger.LogDebug("Added {Count} chunks to Pinecone index {Index}", chunkList.Count, _options.IndexName);
+        _logger.LogDebug(
+            "Added {Count} chunks to Pinecone index {Index}",
+            chunkList.Count,
+            _options.IndexName
+        );
     }
 
     public async Task<IReadOnlyList<SearchResult>> SearchAsync(
@@ -167,11 +177,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 var chunk = MatchToChunk(match);
                 if (chunk != null)
                 {
-                    results.Add(new SearchResult
-                    {
-                        Chunk = chunk,
-                        Score = match.Score ?? 0f
-                    });
+                    results.Add(new SearchResult { Chunk = chunk, Score = match.Score ?? 0f });
                 }
             }
         }
@@ -209,10 +215,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         var index = await GetIndexAsync();
 
         // Pinecone 支持按 metadata 过滤删除
-        var filter = new MetadataMap
-        {
-            ["document_id"] = documentId
-        };
+        var filter = new MetadataMap { ["document_id"] = documentId };
 
         await index.Delete(filter, _options.Namespace);
 
@@ -230,16 +233,23 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         await index.DeleteAll(_options.Namespace);
 
         _count = 0;
-        _logger.LogDebug("Cleared Pinecone namespace {Namespace}", _options.Namespace ?? "(default)");
+        _logger.LogDebug(
+            "Cleared Pinecone namespace {Namespace}",
+            _options.Namespace ?? "(default)"
+        );
     }
 
-    public async Task<DocumentChunk?> GetAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<DocumentChunk?> GetAsync(
+        string id,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
         var index = await GetIndexAsync();
 
-        var response = await index.Fetch(new[] { id }, _options.Namespace) as IDictionary<string, Vector>;
+        var response =
+            await index.Fetch(new[] { id }, _options.Namespace) as IDictionary<string, Vector>;
 
         if (response == null || !response.TryGetValue(id, out Vector? vector) || vector == null)
         {
@@ -297,8 +307,8 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             else
             {
                 throw new InvalidOperationException(
-                    $"Pinecone index '{_options.IndexName}' does not exist. " +
-                    "Set AutoCreateIndex=true to create it automatically."
+                    $"Pinecone index '{_options.IndexName}' does not exist. "
+                        + "Set AutoCreateIndex=true to create it automatically."
                 );
             }
         }
@@ -330,7 +340,9 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             await Task.Delay(delayMs);
         }
 
-        throw new TimeoutException($"Pinecone index '{_options.IndexName}' did not become ready in time");
+        throw new TimeoutException(
+            $"Pinecone index '{_options.IndexName}' did not become ready in time"
+        );
     }
 
     private static Metric ParseMetric(string metric)
@@ -340,7 +352,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             "cosine" => Metric.Cosine,
             "dotproduct" => Metric.DotProduct,
             "euclidean" => Metric.Euclidean,
-            _ => Metric.Cosine
+            _ => Metric.Cosine,
         };
     }
 
@@ -350,7 +362,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         {
             ["id"] = chunk.Id,
             ["content"] = chunk.Content,
-            ["chunk_index"] = chunk.ChunkIndex
+            ["chunk_index"] = chunk.ChunkIndex,
         };
 
         if (!string.IsNullOrWhiteSpace(chunk.DocumentId))
@@ -394,7 +406,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             DocumentId = documentId,
             ChunkIndex = chunkIndex,
             Metadata = metadata,
-            Embedding = match.Values?.ToArray()
+            Embedding = match.Values?.ToArray(),
         };
     }
 
@@ -426,13 +438,15 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             DocumentId = documentId,
             ChunkIndex = chunkIndex,
             Metadata = metadata,
-            Embedding = vector.Values.ToArray()
+            Embedding = vector.Values.ToArray(),
         };
     }
 
     private static string GetMetadataString(MetadataMap metadata, string key)
     {
-        return metadata.TryGetValue(key, out var value) ? value.Inner?.ToString() ?? string.Empty : string.Empty;
+        return metadata.TryGetValue(key, out var value)
+            ? value.Inner?.ToString() ?? string.Empty
+            : string.Empty;
     }
 
     private static int GetMetadataInt(MetadataMap metadata, string key)

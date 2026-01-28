@@ -23,7 +23,10 @@ public class ResilientLLMProviderTests
         // 默认：直接执行操作
         _resilienceProviderMock
             .Setup(x =>
-                x.ExecuteAsync(It.IsAny<Func<CancellationToken, Task<ChatCompletionResponse>>>(), It.IsAny<CancellationToken>())
+                x.ExecuteAsync(
+                    It.IsAny<Func<CancellationToken, Task<ChatCompletionResponse>>>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .Returns<Func<CancellationToken, Task<ChatCompletionResponse>>, CancellationToken>(
                 (op, ct) => op(ct)
@@ -31,9 +34,14 @@ public class ResilientLLMProviderTests
 
         _resilienceProviderMock
             .Setup(x =>
-                x.ExecuteAsync(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<CancellationToken>())
+                x.ExecuteAsync(
+                    It.IsAny<Func<CancellationToken, Task>>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
-            .Returns<Func<CancellationToken, Task>, CancellationToken>(async (op, ct) => await op(ct));
+            .Returns<Func<CancellationToken, Task>, CancellationToken>(
+                async (op, ct) => await op(ct)
+            );
 
         _resilientProvider = new ResilientLLMProvider(
             _innerProviderMock.Object,
@@ -50,8 +58,7 @@ public class ResilientLLMProviderTests
     [Fact]
     public void Constructor_WithNullInnerProvider_ThrowsArgumentNullException()
     {
-        var act = () =>
-            new ResilientLLMProvider(null!, _resilienceProviderMock.Object);
+        var act = () => new ResilientLLMProvider(null!, _resilienceProviderMock.Object);
 
         act.Should().Throw<ArgumentNullException>().WithParameterName("innerProvider");
     }

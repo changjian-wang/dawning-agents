@@ -24,11 +24,12 @@ public class MemoryBenchmarks
     {
         _tokenCounter = new SimpleTokenCounter();
 
-        _messages = Enumerable.Range(0, MessageCount)
+        _messages = Enumerable
+            .Range(0, MessageCount)
             .Select(i => new ConversationMessage
             {
                 Role = i % 2 == 0 ? "user" : "assistant",
-                Content = $"This is message number {i} with some content for testing purposes."
+                Content = $"This is message number {i} with some content for testing purposes.",
             })
             .ToArray();
     }

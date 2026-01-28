@@ -21,7 +21,8 @@ public sealed class ApiKeyAuthenticationProvider : IAuthenticationProvider
 
     public ApiKeyAuthenticationProvider(
         IOptions<SecurityOptions> options,
-        ILogger<ApiKeyAuthenticationProvider>? logger = null)
+        ILogger<ApiKeyAuthenticationProvider>? logger = null
+    )
     {
         _options = options.Value;
         _logger = logger ?? NullLogger<ApiKeyAuthenticationProvider>.Instance;
@@ -29,7 +30,8 @@ public sealed class ApiKeyAuthenticationProvider : IAuthenticationProvider
 
     public Task<AuthenticationResult> AuthenticateAsync(
         string token,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // Bearer token 认证 (简化实现，实际应验证 JWT)
         if (string.IsNullOrEmpty(token))
@@ -44,7 +46,8 @@ public sealed class ApiKeyAuthenticationProvider : IAuthenticationProvider
 
     public Task<AuthenticationResult> AuthenticateApiKeyAsync(
         string apiKey,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrEmpty(apiKey))
         {
@@ -66,11 +69,14 @@ public sealed class ApiKeyAuthenticationProvider : IAuthenticationProvider
             }
 
             _logger.LogDebug("API Key 认证成功: {Name}", config.Name);
-            return Task.FromResult(AuthenticationResult.Success(
-                userId: apiKey,
-                userName: config.Name,
-                roles: config.Roles.ToList(),
-                expiresAt: config.ExpiresAt));
+            return Task.FromResult(
+                AuthenticationResult.Success(
+                    userId: apiKey,
+                    userName: config.Name,
+                    roles: config.Roles.ToList(),
+                    expiresAt: config.ExpiresAt
+                )
+            );
         }
 
         _logger.LogWarning("无效的 API Key");
@@ -88,7 +94,8 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
 
     public RoleBasedAuthorizationProvider(
         IOptions<SecurityOptions> options,
-        ILogger<RoleBasedAuthorizationProvider>? logger = null)
+        ILogger<RoleBasedAuthorizationProvider>? logger = null
+    )
     {
         _options = options.Value;
         _logger = logger ?? NullLogger<RoleBasedAuthorizationProvider>.Instance;
@@ -98,7 +105,8 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
         AuthenticationResult user,
         string resource,
         string action,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (!user.IsAuthenticated)
         {
@@ -111,8 +119,12 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
             return Task.FromResult(AuthorizationResult.Allowed());
         }
 
-        _logger.LogDebug("授权检查: User={UserId}, Resource={Resource}, Action={Action}",
-            user.UserId, resource, action);
+        _logger.LogDebug(
+            "授权检查: User={UserId}, Resource={Resource}, Action={Action}",
+            user.UserId,
+            resource,
+            action
+        );
 
         return Task.FromResult(AuthorizationResult.Allowed());
     }
@@ -120,7 +132,8 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
     public Task<AuthorizationResult> AuthorizeToolAsync(
         AuthenticationResult user,
         string toolName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (!user.IsAuthenticated)
         {
@@ -132,17 +145,27 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
             if (_options.Roles.TryGetValue(role, out var permissions))
             {
                 // 检查是否在拒绝列表中
-                if (permissions.DeniedTools.Contains(toolName) ||
-                    permissions.DeniedTools.Contains("*"))
+                if (
+                    permissions.DeniedTools.Contains(toolName)
+                    || permissions.DeniedTools.Contains("*")
+                )
                 {
-                    _logger.LogWarning("工具访问被拒绝: User={UserId}, Tool={Tool}, Role={Role}",
-                        user.UserId, toolName, role);
-                    return Task.FromResult(AuthorizationResult.Denied($"Tool '{toolName}' is denied for role '{role}'"));
+                    _logger.LogWarning(
+                        "工具访问被拒绝: User={UserId}, Tool={Tool}, Role={Role}",
+                        user.UserId,
+                        toolName,
+                        role
+                    );
+                    return Task.FromResult(
+                        AuthorizationResult.Denied($"Tool '{toolName}' is denied for role '{role}'")
+                    );
                 }
 
                 // 检查是否在允许列表中
-                if (permissions.AllowedTools.Contains(toolName) ||
-                    permissions.AllowedTools.Contains("*"))
+                if (
+                    permissions.AllowedTools.Contains(toolName)
+                    || permissions.AllowedTools.Contains("*")
+                )
                 {
                     return Task.FromResult(AuthorizationResult.Allowed());
                 }
@@ -156,7 +179,8 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
     public Task<AuthorizationResult> AuthorizeAgentAsync(
         AuthenticationResult user,
         string agentName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (!user.IsAuthenticated)
         {
@@ -167,8 +191,10 @@ public sealed class RoleBasedAuthorizationProvider : IAuthorizationProvider
         {
             if (_options.Roles.TryGetValue(role, out var permissions))
             {
-                if (permissions.AllowedAgents.Contains(agentName) ||
-                    permissions.AllowedAgents.Contains("*"))
+                if (
+                    permissions.AllowedAgents.Contains(agentName)
+                    || permissions.AllowedAgents.Contains("*")
+                )
                 {
                     return Task.FromResult(AuthorizationResult.Allowed());
                 }
@@ -191,7 +217,8 @@ public sealed class InMemoryAuditLogProvider : IAuditLogProvider
 
     public InMemoryAuditLogProvider(
         ILogger<InMemoryAuditLogProvider>? logger = null,
-        int maxEntries = 10000)
+        int maxEntries = 10000
+    )
     {
         _logger = logger ?? NullLogger<InMemoryAuditLogProvider>.Instance;
         _maxEntries = maxEntries;
@@ -207,13 +234,21 @@ public sealed class InMemoryAuditLogProvider : IAuditLogProvider
             _entries.TryDequeue(out _);
         }
 
-        _logger.LogDebug("审计日志: {Action} {Resource} by {UserId} - {IsSuccess}",
-            entry.Action, entry.Resource, entry.UserId, entry.IsSuccess);
+        _logger.LogDebug(
+            "审计日志: {Action} {Resource} by {UserId} - {IsSuccess}",
+            entry.Action,
+            entry.Resource,
+            entry.UserId,
+            entry.IsSuccess
+        );
 
         return Task.CompletedTask;
     }
 
-    public Task WriteBatchAsync(IEnumerable<AuditLogEntry> entries, CancellationToken cancellationToken = default)
+    public Task WriteBatchAsync(
+        IEnumerable<AuditLogEntry> entries,
+        CancellationToken cancellationToken = default
+    )
     {
         foreach (var entry in entries)
         {
@@ -230,7 +265,8 @@ public sealed class InMemoryAuditLogProvider : IAuditLogProvider
 
     public Task<IReadOnlyList<AuditLogEntry>> QueryAsync(
         AuditLogQuery query,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var results = _entries.AsEnumerable();
 
@@ -265,10 +301,7 @@ public sealed class InMemoryAuditLogProvider : IAuditLogProvider
         }
 
         return Task.FromResult<IReadOnlyList<AuditLogEntry>>(
-            results
-                .OrderByDescending(e => e.Timestamp)
-                .Skip(query.Skip)
-                .Take(query.Take)
-                .ToList());
+            results.OrderByDescending(e => e.Timestamp).Skip(query.Skip).Take(query.Take).ToList()
+        );
     }
 }

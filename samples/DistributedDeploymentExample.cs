@@ -131,32 +131,34 @@ Console.WriteLine("\n--- 速率限制演示 ---\n");
 for (int i = 0; i < 5; i++)
 {
     var rateResult = await rateLimiter.CheckAsync("test-user");
-    Console.WriteLine($"请求 {i + 1}: {(rateResult.IsAllowed ? "✅ 允许" : "❌ 限制")} (剩余: {rateResult.RemainingRequests})");
+    Console.WriteLine(
+        $"请求 {i + 1}: {(rateResult.IsAllowed ? "✅ 允许" : "❌ 限制")} (剩余: {rateResult.RemainingRequests})"
+    );
 }
 
 // 8. 写入审计日志
 Console.WriteLine("\n--- 审计日志演示 ---\n");
 
-await auditLog.WriteAsync(new AuditLogEntry
-{
-    UserId = authResult.UserId,
-    UserName = authResult.UserName,
-    Action = AuditActions.AgentRequest,
-    Resource = "agent",
-    ResourceId = "test-agent",
-    IsSuccess = true,
-    Metadata = new Dictionary<string, object>
+await auditLog.WriteAsync(
+    new AuditLogEntry
     {
-        ["input"] = "测试请求",
-        ["tool_count"] = 3,
-    },
-});
+        UserId = authResult.UserId,
+        UserName = authResult.UserName,
+        Action = AuditActions.AgentRequest,
+        Resource = "agent",
+        ResourceId = "test-agent",
+        IsSuccess = true,
+        Metadata = new Dictionary<string, object> { ["input"] = "测试请求", ["tool_count"] = 3 },
+    }
+);
 
 var logs = await auditLog.QueryAsync(new AuditLogQuery { Take = 5 });
 Console.WriteLine($"审计日志条目数: {logs.Count}");
 foreach (var log in logs)
 {
-    Console.WriteLine($"   [{log.Timestamp:HH:mm:ss}] {log.Action} by {log.UserName} - {(log.IsSuccess ? "成功" : "失败")}");
+    Console.WriteLine(
+        $"   [{log.Timestamp:HH:mm:ss}] {log.Action} by {log.UserName} - {(log.IsSuccess ? "成功" : "失败")}"
+    );
 }
 
 // 9. 清理

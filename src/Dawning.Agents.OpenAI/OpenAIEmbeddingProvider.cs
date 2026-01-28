@@ -37,7 +37,9 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 模型维度映射
     /// </summary>
-    private static readonly Dictionary<string, int> ModelDimensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, int> ModelDimensions = new(
+        StringComparer.OrdinalIgnoreCase
+    )
     {
         ["text-embedding-3-small"] = 1536,
         ["text-embedding-3-large"] = 3072,
@@ -68,11 +70,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 使用自定义 EmbeddingClient 创建 Provider（用于测试）
     /// </summary>
-    internal OpenAIEmbeddingProvider(
-        EmbeddingClient embeddingClient,
-        string model,
-        int dimensions
-    )
+    internal OpenAIEmbeddingProvider(EmbeddingClient embeddingClient, string model, int dimensions)
     {
         ArgumentNullException.ThrowIfNull(embeddingClient);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);

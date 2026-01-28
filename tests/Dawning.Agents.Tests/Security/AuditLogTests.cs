@@ -43,13 +43,15 @@ public class InMemoryAuditLogProviderTests
         // Act - Write more than max entries
         for (int i = 0; i < 10; i++)
         {
-            await provider.WriteAsync(new AuditLogEntry
-            {
-                UserId = $"user{i}",
-                Action = AuditActions.AgentRequest,
-                Resource = "test",
-                IsSuccess = true,
-            });
+            await provider.WriteAsync(
+                new AuditLogEntry
+                {
+                    UserId = $"user{i}",
+                    Action = AuditActions.AgentRequest,
+                    Resource = "test",
+                    IsSuccess = true,
+                }
+            );
         }
 
         var results = await provider.QueryAsync(new AuditLogQuery { Take = 100 });
@@ -65,9 +67,27 @@ public class InMemoryAuditLogProviderTests
         var provider = new InMemoryAuditLogProvider();
         var entries = new List<AuditLogEntry>
         {
-            new() { UserId = "user1", Action = AuditActions.AgentRequest, Resource = "agent1", IsSuccess = true },
-            new() { UserId = "user2", Action = AuditActions.ToolExecute, Resource = "tool1", IsSuccess = true },
-            new() { UserId = "user3", Action = AuditActions.LLMCall, Resource = "llm1", IsSuccess = false },
+            new()
+            {
+                UserId = "user1",
+                Action = AuditActions.AgentRequest,
+                Resource = "agent1",
+                IsSuccess = true,
+            },
+            new()
+            {
+                UserId = "user2",
+                Action = AuditActions.ToolExecute,
+                Resource = "tool1",
+                IsSuccess = true,
+            },
+            new()
+            {
+                UserId = "user3",
+                Action = AuditActions.LLMCall,
+                Resource = "llm1",
+                IsSuccess = false,
+            },
         };
 
         // Act
@@ -83,9 +103,33 @@ public class InMemoryAuditLogProviderTests
     {
         // Arrange
         var provider = new InMemoryAuditLogProvider();
-        await provider.WriteAsync(new AuditLogEntry { UserId = "user1", Action = "test", Resource = "r1", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "user2", Action = "test", Resource = "r2", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "user1", Action = "test", Resource = "r3", IsSuccess = true });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "user1",
+                Action = "test",
+                Resource = "r1",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "user2",
+                Action = "test",
+                Resource = "r2",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "user1",
+                Action = "test",
+                Resource = "r3",
+                IsSuccess = true,
+            }
+        );
 
         // Act
         var results = await provider.QueryAsync(new AuditLogQuery { UserId = "user1" });
@@ -100,12 +144,38 @@ public class InMemoryAuditLogProviderTests
     {
         // Arrange
         var provider = new InMemoryAuditLogProvider();
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u1", Action = AuditActions.AgentRequest, Resource = "r1", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u2", Action = AuditActions.ToolExecute, Resource = "r2", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u3", Action = AuditActions.AgentRequest, Resource = "r3", IsSuccess = true });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u1",
+                Action = AuditActions.AgentRequest,
+                Resource = "r1",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u2",
+                Action = AuditActions.ToolExecute,
+                Resource = "r2",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u3",
+                Action = AuditActions.AgentRequest,
+                Resource = "r3",
+                IsSuccess = true,
+            }
+        );
 
         // Act
-        var results = await provider.QueryAsync(new AuditLogQuery { Action = AuditActions.AgentRequest });
+        var results = await provider.QueryAsync(
+            new AuditLogQuery { Action = AuditActions.AgentRequest }
+        );
 
         // Assert
         results.Should().HaveCount(2);
@@ -117,8 +187,24 @@ public class InMemoryAuditLogProviderTests
     {
         // Arrange
         var provider = new InMemoryAuditLogProvider();
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u1", Action = "test", Resource = "agent-a", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u2", Action = "test", Resource = "agent-b", IsSuccess = true });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u1",
+                Action = "test",
+                Resource = "agent-a",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u2",
+                Action = "test",
+                Resource = "agent-b",
+                IsSuccess = true,
+            }
+        );
 
         // Act
         var results = await provider.QueryAsync(new AuditLogQuery { Resource = "agent-a" });
@@ -135,37 +221,41 @@ public class InMemoryAuditLogProviderTests
         var provider = new InMemoryAuditLogProvider();
         var now = DateTimeOffset.UtcNow;
 
-        await provider.WriteAsync(new AuditLogEntry
-        {
-            UserId = "u1",
-            Action = "test",
-            Resource = "r1",
-            Timestamp = now.AddHours(-2),
-            IsSuccess = true,
-        });
-        await provider.WriteAsync(new AuditLogEntry
-        {
-            UserId = "u2",
-            Action = "test",
-            Resource = "r2",
-            Timestamp = now.AddMinutes(-30),
-            IsSuccess = true,
-        });
-        await provider.WriteAsync(new AuditLogEntry
-        {
-            UserId = "u3",
-            Action = "test",
-            Resource = "r3",
-            Timestamp = now.AddMinutes(-5),
-            IsSuccess = true,
-        });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u1",
+                Action = "test",
+                Resource = "r1",
+                Timestamp = now.AddHours(-2),
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u2",
+                Action = "test",
+                Resource = "r2",
+                Timestamp = now.AddMinutes(-30),
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u3",
+                Action = "test",
+                Resource = "r3",
+                Timestamp = now.AddMinutes(-5),
+                IsSuccess = true,
+            }
+        );
 
         // Act
-        var results = await provider.QueryAsync(new AuditLogQuery
-        {
-            StartTime = now.AddHours(-1),
-            EndTime = now,
-        });
+        var results = await provider.QueryAsync(
+            new AuditLogQuery { StartTime = now.AddHours(-1), EndTime = now }
+        );
 
         // Assert
         results.Should().HaveCount(2);
@@ -176,9 +266,33 @@ public class InMemoryAuditLogProviderTests
     {
         // Arrange
         var provider = new InMemoryAuditLogProvider();
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u1", Action = "test", Resource = "r1", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u2", Action = "test", Resource = "r2", IsSuccess = false });
-        await provider.WriteAsync(new AuditLogEntry { UserId = "u3", Action = "test", Resource = "r3", IsSuccess = true });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u1",
+                Action = "test",
+                Resource = "r1",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u2",
+                Action = "test",
+                Resource = "r2",
+                IsSuccess = false,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                UserId = "u3",
+                Action = "test",
+                Resource = "r3",
+                IsSuccess = true,
+            }
+        );
 
         // Act
         var failed = await provider.QueryAsync(new AuditLogQuery { IsSuccess = false });
@@ -195,13 +309,15 @@ public class InMemoryAuditLogProviderTests
         var provider = new InMemoryAuditLogProvider();
         for (int i = 0; i < 10; i++)
         {
-            await provider.WriteAsync(new AuditLogEntry
-            {
-                UserId = $"user{i}",
-                Action = "test",
-                Resource = "r",
-                IsSuccess = true,
-            });
+            await provider.WriteAsync(
+                new AuditLogEntry
+                {
+                    UserId = $"user{i}",
+                    Action = "test",
+                    Resource = "r",
+                    IsSuccess = true,
+                }
+            );
         }
 
         // Act
@@ -220,9 +336,36 @@ public class InMemoryAuditLogProviderTests
         var provider = new InMemoryAuditLogProvider();
         var now = DateTimeOffset.UtcNow;
 
-        await provider.WriteAsync(new AuditLogEntry { Timestamp = now.AddMinutes(-3), UserId = "u1", Action = "a", Resource = "r", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { Timestamp = now.AddMinutes(-1), UserId = "u2", Action = "a", Resource = "r", IsSuccess = true });
-        await provider.WriteAsync(new AuditLogEntry { Timestamp = now.AddMinutes(-2), UserId = "u3", Action = "a", Resource = "r", IsSuccess = true });
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                Timestamp = now.AddMinutes(-3),
+                UserId = "u1",
+                Action = "a",
+                Resource = "r",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                Timestamp = now.AddMinutes(-1),
+                UserId = "u2",
+                Action = "a",
+                Resource = "r",
+                IsSuccess = true,
+            }
+        );
+        await provider.WriteAsync(
+            new AuditLogEntry
+            {
+                Timestamp = now.AddMinutes(-2),
+                UserId = "u3",
+                Action = "a",
+                Resource = "r",
+                IsSuccess = true,
+            }
+        );
 
         // Act
         var results = await provider.QueryAsync(new AuditLogQuery());

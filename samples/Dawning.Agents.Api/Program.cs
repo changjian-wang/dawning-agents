@@ -39,10 +39,13 @@ builder.Services.AddHealthChecks();
 // ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
+    options.AddPolicy(
+        "AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
+    );
 });
 
 var app = builder.Build();
@@ -53,101 +56,114 @@ app.UseCors("AllowAll");
 app.MapHealthChecks("/health");
 
 // ===== Chat Endpoint =====
-app.MapPost("/api/chat", async (ChatRequest request, IAgent agent, ILogger<Program> logger) =>
-{
-    using var _ = AgentLogContext.BeginScope(agentName: agent.Name);
-    logger.LogInformation("Chat request received: {MessageLength} chars", request.Message.Length);
-
-    try
+app.MapPost(
+    "/api/chat",
+    async (ChatRequest request, IAgent agent, ILogger<Program> logger) =>
     {
-        var response = await agent.RunAsync(request.Message);
+        using var _ = AgentLogContext.BeginScope(agentName: agent.Name);
         logger.LogInformation(
-            "Chat completed: Success={Success}, Steps={Steps}, Duration={Duration}ms",
-            response.Success,
-            response.Steps.Count,
-            (int)response.Duration.TotalMilliseconds
+            "Chat request received: {MessageLength} chars",
+            request.Message.Length
         );
 
-        return Results.Ok(new ChatResponse
+        try
         {
-            Success = response.Success,
-            Message = response.FinalAnswer ?? response.Error,
-            Steps = response.Steps.Count,
-            DurationMs = (int)response.Duration.TotalMilliseconds
-        });
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Chat request failed");
-        return Results.Ok(new ChatResponse
+            var response = await agent.RunAsync(request.Message);
+            logger.LogInformation(
+                "Chat completed: Success={Success}, Steps={Steps}, Duration={Duration}ms",
+                response.Success,
+                response.Steps.Count,
+                (int)response.Duration.TotalMilliseconds
+            );
+
+            return Results.Ok(
+                new ChatResponse
+                {
+                    Success = response.Success,
+                    Message = response.FinalAnswer ?? response.Error,
+                    Steps = response.Steps.Count,
+                    DurationMs = (int)response.Duration.TotalMilliseconds,
+                }
+            );
+        }
+        catch (Exception ex)
         {
-            Success = false,
-            Message = ex.Message,
-            Error = ex.GetType().Name
-        });
+            logger.LogError(ex, "Chat request failed");
+            return Results.Ok(
+                new ChatResponse
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Error = ex.GetType().Name,
+                }
+            );
+        }
     }
-});
+);
 
 // ===== Simple Chat Endpoint (no agent, direct LLM) =====
-app.MapPost("/api/llm/chat", async (ChatRequest request, ILLMProvider llm) =>
-{
-    try
+app.MapPost(
+    "/api/llm/chat",
+    async (ChatRequest request, ILLMProvider llm) =>
     {
-        var messages = new List<ChatMessage>
+        try
         {
-            new("user", request.Message)
-        };
+            var messages = new List<ChatMessage> { new("user", request.Message) };
 
-        var response = await llm.ChatAsync(messages);
+            var response = await llm.ChatAsync(messages);
 
-        return Results.Ok(new ChatResponse
+            return Results.Ok(new ChatResponse { Success = true, Message = response.Content });
+        }
+        catch (Exception ex)
         {
-            Success = true,
-            Message = response.Content
-        });
+            return Results.Ok(
+                new ChatResponse
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Error = ex.GetType().Name,
+                }
+            );
+        }
     }
-    catch (Exception ex)
-    {
-        return Results.Ok(new ChatResponse
-        {
-            Success = false,
-            Message = ex.Message,
-            Error = ex.GetType().Name
-        });
-    }
-});
+);
 
 // ===== Stream Chat Endpoint =====
-app.MapPost("/api/llm/stream", async (ChatRequest request, ILLMProvider llm, HttpResponse response) =>
-{
-    response.ContentType = "text/event-stream";
-
-    var messages = new List<ChatMessage>
+app.MapPost(
+    "/api/llm/stream",
+    async (ChatRequest request, ILLMProvider llm, HttpResponse response) =>
     {
-        new("user", request.Message)
-    };
+        response.ContentType = "text/event-stream";
 
-    await foreach (var chunk in llm.ChatStreamAsync(messages))
-    {
-        await response.WriteAsync($"data: {chunk}\n\n");
-        await response.Body.FlushAsync();
+        var messages = new List<ChatMessage> { new("user", request.Message) };
+
+        await foreach (var chunk in llm.ChatStreamAsync(messages))
+        {
+            await response.WriteAsync($"data: {chunk}\n\n");
+            await response.Body.FlushAsync();
+        }
+
+        await response.WriteAsync("data: [DONE]\n\n");
     }
-
-    await response.WriteAsync("data: [DONE]\n\n");
-});
+);
 
 // ===== Info Endpoint =====
-app.MapGet("/api/info", (IAgent agent, IToolRegistry toolRegistry) =>
-{
-    var tools = toolRegistry.GetAllTools();
-    return Results.Ok(new
+app.MapGet(
+    "/api/info",
+    (IAgent agent, IToolRegistry toolRegistry) =>
     {
-        Name = agent.Name,
-        Instructions = agent.Instructions,
-        ToolCount = tools.Count,
-        Tools = tools.Select(t => new { t.Name, t.Description })
-    });
-});
+        var tools = toolRegistry.GetAllTools();
+        return Results.Ok(
+            new
+            {
+                Name = agent.Name,
+                Instructions = agent.Instructions,
+                ToolCount = tools.Count,
+                Tools = tools.Select(t => new { t.Name, t.Description }),
+            }
+        );
+    }
+);
 
 app.Run();
 

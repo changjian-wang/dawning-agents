@@ -13,14 +13,19 @@ public static class DiscoveryServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddServiceDiscovery(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<ServiceRegistryOptions>(
-            configuration.GetSection(ServiceRegistryOptions.SectionName));
+            configuration.GetSection(ServiceRegistryOptions.SectionName)
+        );
         services.Configure<KubernetesOptions>(
-            configuration.GetSection(KubernetesOptions.SectionName));
+            configuration.GetSection(KubernetesOptions.SectionName)
+        );
 
-        var k8sOptions = configuration.GetSection(KubernetesOptions.SectionName).Get<KubernetesOptions>();
+        var k8sOptions = configuration
+            .GetSection(KubernetesOptions.SectionName)
+            .Get<KubernetesOptions>();
 
         if (k8sOptions?.Enabled == true || IsRunningInKubernetes())
         {
@@ -57,10 +62,12 @@ public static class DiscoveryServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddKubernetesServiceDiscovery(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<KubernetesOptions>(
-            configuration.GetSection(KubernetesOptions.SectionName));
+            configuration.GetSection(KubernetesOptions.SectionName)
+        );
 
         services.AddHttpClient<IServiceRegistry, KubernetesServiceRegistry>(client =>
         {

@@ -67,11 +67,7 @@ public class LLMOptionsValidatorTests
     public void Validate_WithEmptyModel_ShouldFail()
     {
         // Arrange
-        var options = new LLMOptions
-        {
-            ProviderType = LLMProviderType.Ollama,
-            Model = "",
-        };
+        var options = new LLMOptions { ProviderType = LLMProviderType.Ollama, Model = "" };
 
         // Act
         var result = _validator.Validate(options);

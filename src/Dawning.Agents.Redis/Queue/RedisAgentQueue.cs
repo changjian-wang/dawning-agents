@@ -53,13 +53,15 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _options = queueOptions?.Value ?? throw new ArgumentNullException(nameof(queueOptions));
-        _redisOptions = redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
+        _redisOptions =
+            redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
         _logger = logger ?? NullLogger<RedisAgentQueue>.Instance;
 
         _database = _connection.GetDatabase(_redisOptions.DefaultDatabase);
         _queueKey = $"{_redisOptions.InstanceName}{_options.QueueName}";
         _deadLetterKey = $"{_redisOptions.InstanceName}{_options.DeadLetterQueue}";
-        _consumerName = $"{_options.ConsumerNamePrefix}-{Environment.MachineName}-{Guid.NewGuid():N}";
+        _consumerName =
+            $"{_options.ConsumerNamePrefix}-{Environment.MachineName}-{Guid.NewGuid():N}";
     }
 
     /// <summary>
@@ -146,7 +148,11 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 var streamId = await _database
                     .StreamAddAsync(
                         _queueKey,
-                        new NameValueEntry[] { new("data", serialized), new("priority", item.Priority), }
+                        new NameValueEntry[]
+                        {
+                            new("data", serialized),
+                            new("priority", item.Priority),
+                        }
                     )
                     .ConfigureAwait(false);
 
@@ -167,7 +173,9 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public async ValueTask<AgentWorkItem?> DequeueAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<AgentWorkItem?> DequeueAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         await EnsureInitializedAsync().ConfigureAwait(false);
 
@@ -178,13 +186,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             // 从 Stream 读取消息
             var entries = await _database
-                .StreamReadGroupAsync(
-                    _queueKey,
-                    _options.ConsumerGroup,
-                    _consumerName,
-                    ">",
-                    1
-                )
+                .StreamReadGroupAsync(_queueKey, _options.ConsumerGroup, _consumerName, ">", 1)
                 .ConfigureAwait(false);
 
             if (entries.Length == 0)
@@ -237,11 +239,16 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         foreach (var entry in entries)
         {
             // 移动到主队列
-            var removed = await _database.SortedSetRemoveAsync(delayKey, entry).ConfigureAwait(false);
+            var removed = await _database
+                .SortedSetRemoveAsync(delayKey, entry)
+                .ConfigureAwait(false);
             if (removed)
             {
                 await _database
-                    .StreamAddAsync(_queueKey, new NameValueEntry[] { new("data", entry), new("priority", 0), })
+                    .StreamAddAsync(
+                        _queueKey,
+                        new NameValueEntry[] { new("data", entry), new("priority", 0) }
+                    )
                     .ConfigureAwait(false);
             }
         }

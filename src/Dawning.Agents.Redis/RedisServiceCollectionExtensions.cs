@@ -56,9 +56,9 @@ public static class RedisServiceCollectionExtensions
 
         services.TryAddSingleton<IConnectionMultiplexer>(sp =>
         {
-            var options = configuration
-                .GetSection(RedisOptions.SectionName)
-                .Get<RedisOptions>() ?? new RedisOptions();
+            var options =
+                configuration.GetSection(RedisOptions.SectionName).Get<RedisOptions>()
+                ?? new RedisOptions();
 
             options.Validate();
 

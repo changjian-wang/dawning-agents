@@ -43,8 +43,7 @@ public class HotReloadableLLMProviderTests
     public void Constructor_WithNullOptionsMonitor_ThrowsArgumentNullException()
     {
         // Act
-        Action act = () =>
-            new HotReloadableLLMProvider(null!, _httpClientFactoryMock.Object);
+        Action act = () => new HotReloadableLLMProvider(null!, _httpClientFactoryMock.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("optionsMonitor");
@@ -58,8 +57,7 @@ public class HotReloadableLLMProviderTests
         SetupOptionsMonitor(options);
 
         // Act
-        Action act = () =>
-            new HotReloadableLLMProvider(_optionsMonitorMock.Object, null!);
+        Action act = () => new HotReloadableLLMProvider(_optionsMonitorMock.Object, null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("httpClientFactory");
@@ -240,9 +238,7 @@ public class HotReloadableLLMProviderTests
 
         // Act
         Func<Task> act = async () =>
-            await provider.ChatAsync(
-                new[] { new ChatMessage("user", "Hello") }
-            );
+            await provider.ChatAsync(new[] { new ChatMessage("user", "Hello") });
 
         // Assert
         act.Should().ThrowAsync<ObjectDisposedException>();
@@ -316,9 +312,7 @@ public class HotReloadableLLMProviderTests
     private void SetupHttpClientFactory()
     {
         var httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:11434") };
-        _httpClientFactoryMock
-            .Setup(x => x.CreateClient(It.IsAny<string>()))
-            .Returns(httpClient);
+        _httpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
     }
 
     private HotReloadableLLMProvider CreateProvider()

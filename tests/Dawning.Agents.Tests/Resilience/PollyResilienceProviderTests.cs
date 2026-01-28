@@ -97,17 +97,16 @@ public class PollyResilienceProviderTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            async () =>
-                await provider.ExecuteAsync(
-                    async ct =>
-                    {
-                        ct.ThrowIfCancellationRequested();
-                        await Task.Delay(100, ct);
-                        return 1;
-                    },
-                    cts.Token
-                )
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await provider.ExecuteAsync(
+                async ct =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    await Task.Delay(100, ct);
+                    return 1;
+                },
+                cts.Token
+            )
         );
     }
 

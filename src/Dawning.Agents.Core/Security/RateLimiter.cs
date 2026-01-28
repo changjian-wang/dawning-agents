@@ -57,19 +57,17 @@ public sealed record RateLimitResult
     public TimeSpan? RetryAfter { get; init; }
     public string? Reason { get; init; }
 
-    public static RateLimitResult Allowed(int remaining) => new()
-    {
-        IsAllowed = true,
-        RemainingRequests = remaining,
-    };
+    public static RateLimitResult Allowed(int remaining) =>
+        new() { IsAllowed = true, RemainingRequests = remaining };
 
-    public static RateLimitResult Denied(TimeSpan retryAfter, string reason) => new()
-    {
-        IsAllowed = false,
-        RemainingRequests = 0,
-        RetryAfter = retryAfter,
-        Reason = reason,
-    };
+    public static RateLimitResult Denied(TimeSpan retryAfter, string reason) =>
+        new()
+        {
+            IsAllowed = false,
+            RemainingRequests = 0,
+            RetryAfter = retryAfter,
+            Reason = reason,
+        };
 }
 
 /// <summary>
@@ -83,7 +81,8 @@ public interface IRateLimiter
     Task<RateLimitResult> CheckAsync(
         string key,
         int? limit = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 重置限制
@@ -102,7 +101,8 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter
 
     public SlidingWindowRateLimiter(
         IOptions<RateLimitOptions>? options = null,
-        ILogger<SlidingWindowRateLimiter>? logger = null)
+        ILogger<SlidingWindowRateLimiter>? logger = null
+    )
     {
         _options = options?.Value ?? new RateLimitOptions();
         _logger = logger ?? NullLogger<SlidingWindowRateLimiter>.Instance;
@@ -111,7 +111,8 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter
     public Task<RateLimitResult> CheckAsync(
         string key,
         int? limit = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_options.Enabled)
         {
@@ -134,12 +135,19 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter
                 var oldestRequest = bucket.OldestRequestTime;
                 var retryAfter = oldestRequest.Add(windowSize) - now;
 
-                _logger.LogWarning("速率限制触发: Key={Key}, Count={Count}, Limit={Limit}",
-                    key, bucket.RequestCount, maxRequests);
+                _logger.LogWarning(
+                    "速率限制触发: Key={Key}, Count={Count}, Limit={Limit}",
+                    key,
+                    bucket.RequestCount,
+                    maxRequests
+                );
 
-                return Task.FromResult(RateLimitResult.Denied(
-                    retryAfter > TimeSpan.Zero ? retryAfter : TimeSpan.FromSeconds(1),
-                    $"Rate limit exceeded. Max {maxRequests} requests per {_options.WindowSizeSeconds} seconds."));
+                return Task.FromResult(
+                    RateLimitResult.Denied(
+                        retryAfter > TimeSpan.Zero ? retryAfter : TimeSpan.FromSeconds(1),
+                        $"Rate limit exceeded. Max {maxRequests} requests per {_options.WindowSizeSeconds} seconds."
+                    )
+                );
             }
 
             bucket.AddRequest(now);
@@ -168,7 +176,8 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter
         }
 
         public int RequestCount => _requests.Count;
-        public DateTimeOffset OldestRequestTime => _requests.TryPeek(out var time) ? time : DateTimeOffset.UtcNow;
+        public DateTimeOffset OldestRequestTime =>
+            _requests.TryPeek(out var time) ? time : DateTimeOffset.UtcNow;
 
         public void AddRequest(DateTimeOffset time) => _requests.Enqueue(time);
 

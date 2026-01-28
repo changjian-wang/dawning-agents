@@ -29,7 +29,10 @@ public static class HotReloadServiceCollectionExtensions
         services.Configure<TOptions>(configuration.GetSection(sectionName));
 
         // 注册变更通知器
-        services.TryAddSingleton<IConfigurationChangeNotifier<TOptions>, ConfigurationChangeNotifier<TOptions>>();
+        services.TryAddSingleton<
+            IConfigurationChangeNotifier<TOptions>,
+            ConfigurationChangeNotifier<TOptions>
+        >();
 
         return services;
     }
@@ -58,7 +61,10 @@ public static class HotReloadServiceCollectionExtensions
             .Validate(validate, $"Validation failed for {typeof(TOptions).Name}");
 
         // 注册变更通知器
-        services.TryAddSingleton<IConfigurationChangeNotifier<TOptions>, ConfigurationChangeNotifier<TOptions>>();
+        services.TryAddSingleton<
+            IConfigurationChangeNotifier<TOptions>,
+            ConfigurationChangeNotifier<TOptions>
+        >();
 
         return services;
     }
@@ -89,7 +95,10 @@ public static class HotReloadServiceCollectionExtensions
             .Validate(validate, failureMessage);
 
         // 注册变更通知器
-        services.TryAddSingleton<IConfigurationChangeNotifier<TOptions>, ConfigurationChangeNotifier<TOptions>>();
+        services.TryAddSingleton<
+            IConfigurationChangeNotifier<TOptions>,
+            ConfigurationChangeNotifier<TOptions>
+        >();
 
         return services;
     }

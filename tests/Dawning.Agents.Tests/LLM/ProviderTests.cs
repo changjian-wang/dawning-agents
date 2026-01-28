@@ -129,11 +129,7 @@ public class LLMProviderDITests
     public void AddAzureOpenAIProvider_ReturnsAzureOpenAIProvider()
     {
         var services = new ServiceCollection();
-        services.AddAzureOpenAIProvider(
-            "https://test.openai.azure.com",
-            "fake-key",
-            "gpt-4o"
-        );
+        services.AddAzureOpenAIProvider("https://test.openai.azure.com", "fake-key", "gpt-4o");
 
         var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 

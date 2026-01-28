@@ -1,8 +1,8 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
-using Dawning.Agents.Abstractions.LLM;
 using System.Threading;
 using System.Threading.Tasks;
+using Dawning.Agents.Abstractions.LLM;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace Dawning.Agents.Core.Health;
 
@@ -16,28 +16,35 @@ public class LLMProviderHealthCheck : IHealthCheck
 
     public LLMProviderHealthCheck(
         ILLMProvider llmProvider,
-        ILogger<LLMProviderHealthCheck>? logger = null)
+        ILogger<LLMProviderHealthCheck>? logger = null
+    )
     {
         _llmProvider = llmProvider;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<LLMProviderHealthCheck>.Instance;
+        _logger =
+            logger
+            ?? Microsoft
+                .Extensions
+                .Logging
+                .Abstractions
+                .NullLogger<LLMProviderHealthCheck>
+                .Instance;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
             // 发送一个简单的测试请求来验证 LLM 可用性
-            var testMessages = new[]
-            {
-                new ChatMessage("user", "ping"),
-            };
+            var testMessages = new[] { new ChatMessage("user", "ping") };
 
             var response = await _llmProvider.ChatAsync(
                 testMessages,
                 new ChatCompletionOptions { MaxTokens = 1 },
-                cancellationToken);
+                cancellationToken
+            );
 
             if (!string.IsNullOrEmpty(response.Content))
             {

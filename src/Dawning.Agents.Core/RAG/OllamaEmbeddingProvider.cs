@@ -45,7 +45,9 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 模型维度映射
     /// </summary>
-    private static readonly Dictionary<string, int> ModelDimensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, int> ModelDimensions = new(
+        StringComparer.OrdinalIgnoreCase
+    )
     {
         ["nomic-embed-text"] = 768,
         ["mxbai-embed-large"] = 1024,
@@ -78,7 +80,11 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         _dimensions = GetModelDimensions(model);
         _logger = logger ?? NullLogger<OllamaEmbeddingProvider>.Instance;
 
-        _logger.LogDebug("OllamaEmbeddingProvider 已创建，模型: {Model}，维度: {Dimensions}", model, _dimensions);
+        _logger.LogDebug(
+            "OllamaEmbeddingProvider 已创建，模型: {Model}，维度: {Dimensions}",
+            model,
+            _dimensions
+        );
     }
 
     public async Task<float[]> EmbedAsync(
@@ -91,11 +97,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             return new float[_dimensions];
         }
 
-        var request = new OllamaEmbedRequest
-        {
-            Model = _model,
-            Input = text,
-        };
+        var request = new OllamaEmbedRequest { Model = _model, Input = text };
 
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -154,7 +156,11 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        _logger.LogDebug("发送批量嵌入请求到 Ollama，模型: {Model}，数量: {Count}", _model, validTexts.Count);
+        _logger.LogDebug(
+            "发送批量嵌入请求到 Ollama，模型: {Model}，数量: {Count}",
+            _model,
+            validTexts.Count
+        );
 
         var response = await _httpClient.PostAsync("/api/embed", content, cancellationToken);
         response.EnsureSuccessStatusCode();

@@ -72,22 +72,26 @@ public static class ScalingServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddDistributedLoadBalancer(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<DistributedLoadBalancerOptions>(
-            configuration.GetSection(DistributedLoadBalancerOptions.SectionName));
+            configuration.GetSection(DistributedLoadBalancerOptions.SectionName)
+        );
 
         services.TryAddSingleton<IAgentLoadBalancer>(sp =>
         {
             var serviceRegistry = sp.GetService<IServiceRegistry>();
-            var options = sp.GetService<Microsoft.Extensions.Options.IOptions<DistributedLoadBalancerOptions>>();
+            var options =
+                sp.GetService<Microsoft.Extensions.Options.IOptions<DistributedLoadBalancerOptions>>();
             var logger = sp.GetService<ILogger<DistributedLoadBalancer>>();
             return new DistributedLoadBalancer(serviceRegistry, options, logger);
         });
 
         // 同时注册具体类型，便于访问扩展方法
         services.TryAddSingleton<DistributedLoadBalancer>(sp =>
-            (DistributedLoadBalancer)sp.GetRequiredService<IAgentLoadBalancer>());
+            (DistributedLoadBalancer)sp.GetRequiredService<IAgentLoadBalancer>()
+        );
 
         return services;
     }

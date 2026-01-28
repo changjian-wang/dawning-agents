@@ -11,7 +11,8 @@ namespace Dawning.Agents.Core.Safety;
 public sealed class GuardrailPipeline : IGuardrailPipeline
 {
     private ImmutableList<IInputGuardrail> _inputGuardrails = ImmutableList<IInputGuardrail>.Empty;
-    private ImmutableList<IOutputGuardrail> _outputGuardrails = ImmutableList<IOutputGuardrail>.Empty;
+    private ImmutableList<IOutputGuardrail> _outputGuardrails =
+        ImmutableList<IOutputGuardrail>.Empty;
     private readonly ILogger<GuardrailPipeline> _logger;
 
     public GuardrailPipeline(ILogger<GuardrailPipeline>? logger = null)

@@ -38,9 +38,11 @@ public static class AzureOpenAIServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
 
-        services.TryAddSingleton<ILLMProvider>(
-            _ => new AzureOpenAIProvider(endpoint, apiKey, deploymentName)
-        );
+        services.TryAddSingleton<ILLMProvider>(_ => new AzureOpenAIProvider(
+            endpoint,
+            apiKey,
+            deploymentName
+        ));
 
         return services;
     }
@@ -73,9 +75,11 @@ public static class AzureOpenAIServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(credential);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
 
-        services.TryAddSingleton<ILLMProvider>(
-            _ => new AzureOpenAIProvider(endpoint, credential, deploymentName)
-        );
+        services.TryAddSingleton<ILLMProvider>(_ => new AzureOpenAIProvider(
+            endpoint,
+            credential,
+            deploymentName
+        ));
 
         return services;
     }

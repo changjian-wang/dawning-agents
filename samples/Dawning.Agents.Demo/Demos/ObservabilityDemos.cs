@@ -43,12 +43,7 @@ public static class ObservabilityDemos
 
         Console.WriteLine("  发送 3 次真实 LLM 请求并收集指标...\n");
 
-        var prompts = new[]
-        {
-            "说一个字",
-            "1+1=?",
-            "今天星期几？只回答数字",
-        };
+        var prompts = new[] { "说一个字", "1+1=?", "今天星期几？只回答数字" };
 
         var responseTimes = new List<long>();
 

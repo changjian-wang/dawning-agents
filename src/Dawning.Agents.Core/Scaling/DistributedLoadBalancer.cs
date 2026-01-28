@@ -97,7 +97,8 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     public DistributedLoadBalancer(
         IServiceRegistry? serviceRegistry = null,
         IOptions<DistributedLoadBalancerOptions>? options = null,
-        ILogger<DistributedLoadBalancer>? logger = null)
+        ILogger<DistributedLoadBalancer>? logger = null
+    )
     {
         _serviceRegistry = serviceRegistry;
         _options = options?.Value ?? new DistributedLoadBalancerOptions();
@@ -109,7 +110,8 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     /// </summary>
     public async Task SyncFromServiceRegistryAsync(
         string serviceName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (_serviceRegistry == null)
         {
@@ -164,7 +166,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     {
         try
         {
-            await foreach (var instances in _serviceRegistry!.WatchAsync(serviceName, cancellationToken))
+            await foreach (
+                var instances in _serviceRegistry!.WatchAsync(serviceName, cancellationToken)
+            )
             {
                 _lock.EnterWriteLock();
                 try
@@ -275,7 +279,10 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
             {
                 LoadBalancingStrategy.RoundRobin => GetRoundRobin(healthyInstances),
                 LoadBalancingStrategy.LeastConnections => GetLeastConnections(healthyInstances),
-                LoadBalancingStrategy.ConsistentHash => GetConsistentHash(sessionKey, healthyInstances),
+                LoadBalancingStrategy.ConsistentHash => GetConsistentHash(
+                    sessionKey,
+                    healthyInstances
+                ),
                 LoadBalancingStrategy.WeightedRoundRobin => GetWeightedRoundRobin(healthyInstances),
                 LoadBalancingStrategy.Random => GetRandom(healthyInstances),
                 _ => GetRoundRobin(healthyInstances),
@@ -338,7 +345,8 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     public async Task<T> ExecuteWithFailoverAsync<T>(
         Func<AgentInstance, Task<T>> action,
         string? sessionKey = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var triedInstances = new HashSet<string>();
 
@@ -414,7 +422,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         _lock.EnterReadLock();
         try
         {
-            var available = _instances.Where(i => i.IsHealthy && !excludeIds.Contains(i.Id)).ToList();
+            var available = _instances
+                .Where(i => i.IsHealthy && !excludeIds.Contains(i.Id))
+                .ToList();
             if (available.Count == 0)
             {
                 return null;

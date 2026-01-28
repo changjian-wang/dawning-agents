@@ -1,8 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Dawning.Agents.Core.Health;
 
@@ -14,17 +14,18 @@ public class RedisHealthCheck : IHealthCheck
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<RedisHealthCheck> _logger;
 
-    public RedisHealthCheck(
-        IConnectionMultiplexer redis,
-        ILogger<RedisHealthCheck>? logger = null)
+    public RedisHealthCheck(IConnectionMultiplexer redis, ILogger<RedisHealthCheck>? logger = null)
     {
         _redis = redis;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisHealthCheck>.Instance;
+        _logger =
+            logger
+            ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisHealthCheck>.Instance;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {

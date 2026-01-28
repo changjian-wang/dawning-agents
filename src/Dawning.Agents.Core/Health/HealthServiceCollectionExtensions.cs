@@ -1,8 +1,8 @@
+using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Core.Health;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Dawning.Agents.Core.Health;
 using StackExchange.Redis;
-using Dawning.Agents.Abstractions.LLM;
 
 namespace Dawning.Agents.Core.Health;
 
@@ -10,7 +10,8 @@ public static class HealthServiceCollectionExtensions
 {
     public static IServiceCollection AddAgentHealthChecks(
         this IServiceCollection services,
-        string? redisConnectionString = null)
+        string? redisConnectionString = null
+    )
     {
         var healthChecks = services.AddHealthChecks();
         healthChecks.AddCheck<AgentHealthCheck>("agent");

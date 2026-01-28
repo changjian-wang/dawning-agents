@@ -85,12 +85,14 @@ public class EmbeddingProviderDITests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["LLM:ProviderType"] = "OpenAI",
-                ["LLM:ApiKey"] = "sk-test-key",
-                ["RAG:EmbeddingModel"] = "text-embedding-3-small"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["LLM:ProviderType"] = "OpenAI",
+                    ["LLM:ApiKey"] = "sk-test-key",
+                    ["RAG:EmbeddingModel"] = "text-embedding-3-small",
+                }
+            )
             .Build();
 
         // Act
@@ -108,13 +110,15 @@ public class EmbeddingProviderDITests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["LLM:ProviderType"] = "AzureOpenAI",
-                ["LLM:Endpoint"] = "https://test.openai.azure.com",
-                ["LLM:ApiKey"] = "test-key",
-                ["RAG:EmbeddingModel"] = "embedding-deployment"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["LLM:ProviderType"] = "AzureOpenAI",
+                    ["LLM:Endpoint"] = "https://test.openai.azure.com",
+                    ["LLM:ApiKey"] = "test-key",
+                    ["RAG:EmbeddingModel"] = "embedding-deployment",
+                }
+            )
             .Build();
 
         // Act
@@ -132,12 +136,14 @@ public class EmbeddingProviderDITests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["LLM:ProviderType"] = "Ollama",
-                ["LLM:Endpoint"] = "http://localhost:11434",
-                ["RAG:EmbeddingModel"] = "nomic-embed-text"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["LLM:ProviderType"] = "Ollama",
+                    ["LLM:Endpoint"] = "http://localhost:11434",
+                    ["RAG:EmbeddingModel"] = "nomic-embed-text",
+                }
+            )
             .Build();
 
         // Act

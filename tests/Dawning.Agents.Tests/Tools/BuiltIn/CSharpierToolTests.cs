@@ -123,7 +123,7 @@ public class CSharpierToolTests
         var options = new CSharpierToolOptions
         {
             CSharpierCommand = "custom-csharpier",
-            TimeoutSeconds = 120
+            TimeoutSeconds = 120,
         };
 
         // Act
@@ -158,7 +158,7 @@ public class CSharpierToolOptionsTests
         var options = new CSharpierToolOptions
         {
             CSharpierCommand = "csharpier",
-            TimeoutSeconds = 120
+            TimeoutSeconds = 120,
         };
 
         // Assert

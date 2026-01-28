@@ -26,8 +26,7 @@ public class ResilientLLMProvider : ILLMProvider
         ILogger<ResilientLLMProvider>? logger = null
     )
     {
-        _innerProvider =
-            innerProvider ?? throw new ArgumentNullException(nameof(innerProvider));
+        _innerProvider = innerProvider ?? throw new ArgumentNullException(nameof(innerProvider));
         _resilienceProvider =
             resilienceProvider ?? throw new ArgumentNullException(nameof(resilienceProvider));
         _logger = logger ?? NullLogger<ResilientLLMProvider>.Instance;

@@ -12,14 +12,17 @@ public class SlidingWindowRateLimiterTests
     private static IOptions<RateLimitOptions> CreateOptions(
         bool enabled = true,
         int requestsPerMinute = 60,
-        int windowSizeSeconds = 60)
+        int windowSizeSeconds = 60
+    )
     {
-        return Options.Create(new RateLimitOptions
-        {
-            Enabled = enabled,
-            DefaultRequestsPerMinute = requestsPerMinute,
-            WindowSizeSeconds = windowSizeSeconds,
-        });
+        return Options.Create(
+            new RateLimitOptions
+            {
+                Enabled = enabled,
+                DefaultRequestsPerMinute = requestsPerMinute,
+                WindowSizeSeconds = windowSizeSeconds,
+            }
+        );
     }
 
     [Fact]

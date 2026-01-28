@@ -26,7 +26,8 @@ public class ToolRegistryBenchmarks
         _registry = new ToolRegistry();
 
         // 创建模拟工具
-        _tools = Enumerable.Range(0, ToolCount)
+        _tools = Enumerable
+            .Range(0, ToolCount)
             .Select(i => new MockTool($"tool_{i}", $"Description for tool {i}"))
             .ToArray();
 
@@ -67,7 +68,7 @@ public class ToolRegistryBenchmarks
             Description = description;
         }
 
-        public Task<ToolResult> ExecuteAsync(string input, CancellationToken ct = default)
-            => Task.FromResult(ToolResult.Ok("Mock result"));
+        public Task<ToolResult> ExecuteAsync(string input, CancellationToken ct = default) =>
+            Task.FromResult(ToolResult.Ok("Mock result"));
     }
 }

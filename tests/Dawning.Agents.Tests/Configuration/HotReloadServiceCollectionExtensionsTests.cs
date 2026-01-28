@@ -73,11 +73,7 @@ public class HotReloadServiceCollectionExtensionsTests
         // Arrange
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Test:Value"] = "valid",
-                    ["Test:Number"] = "10",
-                }
+                new Dictionary<string, string?> { ["Test:Value"] = "valid", ["Test:Number"] = "10" }
             )
             .Build();
 
@@ -134,11 +130,7 @@ public class HotReloadServiceCollectionExtensionsTests
         // Arrange
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Test:Value"] = "",
-                    ["Test:Number"] = "10",
-                }
+                new Dictionary<string, string?> { ["Test:Value"] = "", ["Test:Number"] = "10" }
             )
             .Build();
 
@@ -157,9 +149,7 @@ public class HotReloadServiceCollectionExtensionsTests
         // Assert
         var options = provider.GetRequiredService<IOptions<TestOptions>>();
         Action act = () => _ = options.Value;
-        act.Should()
-            .Throw<OptionsValidationException>()
-            .WithMessage("*Value cannot be empty*");
+        act.Should().Throw<OptionsValidationException>().WithMessage("*Value cannot be empty*");
     }
 
     [Fact]
@@ -167,9 +157,7 @@ public class HotReloadServiceCollectionExtensionsTests
     {
         // Arrange
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Test:Value"] = "singleton" }
-            )
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Test:Value"] = "singleton" })
             .Build();
 
         var services = new ServiceCollection();

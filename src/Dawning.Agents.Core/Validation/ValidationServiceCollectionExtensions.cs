@@ -17,7 +17,9 @@ public static class ValidationServiceCollectionExtensions
     public static IServiceCollection AddValidation(this IServiceCollection services)
     {
         // 注册所有内置验证器
-        services.AddValidatorsFromAssemblyContaining<LLMOptionsValidator>(ServiceLifetime.Singleton);
+        services.AddValidatorsFromAssemblyContaining<LLMOptionsValidator>(
+            ServiceLifetime.Singleton
+        );
 
         return services;
     }
@@ -26,7 +28,9 @@ public static class ValidationServiceCollectionExtensions
     /// 添加 Options 验证支持
     /// </summary>
     /// <typeparam name="TOptions">配置类型</typeparam>
-    public static IServiceCollection AddOptionsValidation<TOptions>(this IServiceCollection services)
+    public static IServiceCollection AddOptionsValidation<TOptions>(
+        this IServiceCollection services
+    )
         where TOptions : class
     {
         services.TryAddSingleton<IValidateOptions<TOptions>>(sp =>

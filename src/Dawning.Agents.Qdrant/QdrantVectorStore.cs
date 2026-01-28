@@ -91,7 +91,11 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         );
 
         Interlocked.Increment(ref _count);
-        _logger.LogDebug("Added chunk {ChunkId} to Qdrant collection {Collection}", chunk.Id, _options.CollectionName);
+        _logger.LogDebug(
+            "Added chunk {ChunkId} to Qdrant collection {Collection}",
+            chunk.Id,
+            _options.CollectionName
+        );
     }
 
     public async Task AddBatchAsync(
@@ -117,7 +121,11 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         );
 
         Interlocked.Add(ref _count, chunkList.Count);
-        _logger.LogDebug("Added {Count} chunks to Qdrant collection {Collection}", chunkList.Count, _options.CollectionName);
+        _logger.LogDebug(
+            "Added {Count} chunks to Qdrant collection {Collection}",
+            chunkList.Count,
+            _options.CollectionName
+        );
     }
 
     public async Task<IReadOnlyList<SearchResult>> SearchAsync(
@@ -150,11 +158,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             var chunk = PointToChunk(result);
             if (chunk != null)
             {
-                results.Add(new SearchResult
-                {
-                    Chunk = chunk,
-                    Score = result.Score
-                });
+                results.Add(new SearchResult { Chunk = chunk, Score = result.Score });
             }
         }
 
@@ -184,10 +188,10 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                     Field = new FieldCondition
                     {
                         Key = "id",
-                        Match = new Match { Keyword = id }
-                    }
-                }
-            }
+                        Match = new Match { Keyword = id },
+                    },
+                },
+            },
         };
 
         var updateResult = await _client.DeleteAsync(
@@ -225,10 +229,10 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                     Field = new FieldCondition
                     {
                         Key = "document_id",
-                        Match = new Match { Keyword = documentId }
-                    }
-                }
-            }
+                        Match = new Match { Keyword = documentId },
+                    },
+                },
+            },
         };
 
         // 先搜索获取数量
@@ -276,7 +280,10 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         _logger.LogDebug("Cleared Qdrant collection {Collection}", _options.CollectionName);
     }
 
-    public async Task<DocumentChunk?> GetAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<DocumentChunk?> GetAsync(
+        string id,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
@@ -292,10 +299,10 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                     Field = new FieldCondition
                     {
                         Key = "id",
-                        Match = new Match { Keyword = id }
-                    }
-                }
-            }
+                        Match = new Match { Keyword = id },
+                    },
+                },
+            },
         };
 
         var scrollResult = await _client.ScrollAsync(
@@ -341,16 +348,15 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        var exists = await _client.CollectionExistsAsync(_options.CollectionName, cancellationToken);
+        var exists = await _client.CollectionExistsAsync(
+            _options.CollectionName,
+            cancellationToken
+        );
         if (!exists)
         {
             await _client.CreateCollectionAsync(
                 _options.CollectionName,
-                new VectorParams
-                {
-                    Size = (ulong)_options.VectorSize,
-                    Distance = Distance.Cosine
-                },
+                new VectorParams { Size = (ulong)_options.VectorSize, Distance = Distance.Cosine },
                 cancellationToken: cancellationToken
             );
 
@@ -363,7 +369,10 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         else
         {
             // 获取当前数量
-            var info = await _client.GetCollectionInfoAsync(_options.CollectionName, cancellationToken);
+            var info = await _client.GetCollectionInfoAsync(
+                _options.CollectionName,
+                cancellationToken
+            );
             _count = (int)info.PointsCount;
         }
 
@@ -376,7 +385,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         {
             ["id"] = chunk.Id,
             ["content"] = chunk.Content,
-            ["chunk_index"] = chunk.ChunkIndex
+            ["chunk_index"] = chunk.ChunkIndex,
         };
 
         if (!string.IsNullOrWhiteSpace(chunk.DocumentId))
@@ -396,7 +405,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         {
             Id = pointId,
             Vectors = chunk.Embedding!,
-            Payload = { payload }
+            Payload = { payload },
         };
     }
 
@@ -409,7 +418,9 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         }
 
         // 使用稳定的哈希算法生成 UUID
-        var hash = System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(id));
+        var hash = System.Security.Cryptography.MD5.HashData(
+            System.Text.Encoding.UTF8.GetBytes(id)
+        );
         return new Guid(hash);
     }
 
@@ -449,7 +460,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             DocumentId = documentId,
             ChunkIndex = chunkIndex,
             Metadata = metadata,
-            Embedding = point.Vectors?.Vector?.Data?.ToArray()
+            Embedding = point.Vectors?.Vector?.Data?.ToArray(),
         };
     }
 
@@ -489,7 +500,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             DocumentId = documentId,
             ChunkIndex = chunkIndex,
             Metadata = metadata,
-            Embedding = point.Vectors?.Vector?.Data?.ToArray()
+            Embedding = point.Vectors?.Vector?.Data?.ToArray(),
         };
     }
 

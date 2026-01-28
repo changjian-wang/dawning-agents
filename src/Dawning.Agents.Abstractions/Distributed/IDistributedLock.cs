@@ -35,10 +35,7 @@ public interface IDistributedLock : IAsyncDisposable
     /// <param name="timeout">等待超时</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否成功获取锁</returns>
-    Task<bool> TryAcquireAsync(
-        TimeSpan timeout,
-        CancellationToken cancellationToken = default
-    );
+    Task<bool> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 释放锁

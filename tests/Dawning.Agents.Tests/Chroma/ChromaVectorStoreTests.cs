@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Dawning.Agents.Abstractions.RAG;
 using Dawning.Agents.Chroma;
 using FluentAssertions;
@@ -6,9 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Dawning.Agents.Tests.Chroma;
 
@@ -131,10 +131,7 @@ public class ChromaVectorStoreTests
         configureOptions?.Invoke(options);
 
         var httpClient = new HttpClient(handler);
-        return new ChromaVectorStore(
-            httpClient,
-            Options.Create(options)
-        );
+        return new ChromaVectorStore(httpClient, Options.Create(options));
     }
 
     private static Mock<HttpMessageHandler> CreateMockHandler()
@@ -146,7 +143,8 @@ public class ChromaVectorStoreTests
     public void Constructor_SetsNameCorrectly()
     {
         var handler = CreateMockHandler();
-        handler.Protected()
+        handler
+            .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
@@ -163,7 +161,8 @@ public class ChromaVectorStoreTests
     public void Constructor_InitializesCountToZero()
     {
         var handler = CreateMockHandler();
-        handler.Protected()
+        handler
+            .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
@@ -207,19 +206,19 @@ public class ChromaServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Chroma:Host"] = "localhost",
-                ["Chroma:Port"] = "8000",
-                ["Chroma:CollectionName"] = "test",
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Chroma:Host"] = "localhost",
+                    ["Chroma:Port"] = "8000",
+                    ["Chroma:CollectionName"] = "test",
+                }
+            )
             .Build();
 
         services.AddChromaVectorStore(configuration);
 
-        var descriptor = services.FirstOrDefault(s =>
-            s.ServiceType == typeof(IVectorStore)
-        );
+        var descriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IVectorStore));
         descriptor.Should().NotBeNull();
     }
 
@@ -235,9 +234,7 @@ public class ChromaServiceCollectionExtensionsTests
             options.CollectionName = "test";
         });
 
-        var descriptor = services.FirstOrDefault(s =>
-            s.ServiceType == typeof(IVectorStore)
-        );
+        var descriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IVectorStore));
         descriptor.Should().NotBeNull();
     }
 }

@@ -56,7 +56,11 @@ public sealed class DistributedOptionsTests
     public void RedisOptions_Validate_WithInvalidDatabase_ThrowsException()
     {
         // Arrange
-        var options = new RedisOptions { ConnectionString = "localhost:6379", DefaultDatabase = 16 };
+        var options = new RedisOptions
+        {
+            ConnectionString = "localhost:6379",
+            DefaultDatabase = 16,
+        };
 
         // Act
         var act = () => options.Validate();

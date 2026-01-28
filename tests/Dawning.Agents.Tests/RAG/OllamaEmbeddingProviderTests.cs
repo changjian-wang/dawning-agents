@@ -30,7 +30,10 @@ public class OllamaEmbeddingProviderTests
     [InlineData("all-minilm", 384)]
     [InlineData("snowflake-arctic-embed", 1024)]
     [InlineData("bge-m3", 1024)]
-    public void Constructor_WithKnownModel_UsesCorrectDimensions(string model, int expectedDimensions)
+    public void Constructor_WithKnownModel_UsesCorrectDimensions(
+        string model,
+        int expectedDimensions
+    )
     {
         // Arrange
         var httpClient = CreateMockHttpClient();
@@ -139,28 +142,29 @@ public class OllamaEmbeddingProviderTests
     {
         // Arrange
         var expectedEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
-        var responseJson = JsonSerializer.Serialize(new
-        {
-            model = "nomic-embed-text",
-            embeddings = new[] { expectedEmbedding }
-        });
+        var responseJson = JsonSerializer.Serialize(
+            new { model = "nomic-embed-text", embeddings = new[] { expectedEmbedding } }
+        );
 
         var mockHandler = new Mock<HttpMessageHandler>();
-        mockHandler.Protected()
+        mockHandler
+            .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(responseJson)
-            });
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson),
+                }
+            );
 
         var httpClient = new HttpClient(mockHandler.Object)
         {
-            BaseAddress = new Uri("http://localhost:11434")
+            BaseAddress = new Uri("http://localhost:11434"),
         };
 
         var provider = new OllamaEmbeddingProvider(httpClient, "nomic-embed-text");
@@ -171,15 +175,16 @@ public class OllamaEmbeddingProviderTests
         // Assert
         result.Should().BeEquivalentTo(expectedEmbedding);
 
-        mockHandler.Protected().Verify(
-            "SendAsync",
-            Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req =>
-                req.Method == HttpMethod.Post &&
-                req.RequestUri!.PathAndQuery == "/api/embed"
-            ),
-            ItExpr.IsAny<CancellationToken>()
-        );
+        mockHandler
+            .Protected()
+            .Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post && req.RequestUri!.PathAndQuery == "/api/embed"
+                ),
+                ItExpr.IsAny<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -208,11 +213,13 @@ public class OllamaEmbeddingProviderTests
 
         // Assert
         result.Should().HaveCount(3);
-        result.Should().AllSatisfy(e =>
-        {
-            e.Should().HaveCount(768);
-            e.Should().OnlyContain(f => f == 0);
-        });
+        result
+            .Should()
+            .AllSatisfy(e =>
+            {
+                e.Should().HaveCount(768);
+                e.Should().OnlyContain(f => f == 0);
+            });
     }
 
     [Fact]
@@ -230,9 +237,6 @@ public class OllamaEmbeddingProviderTests
 
     private static HttpClient CreateMockHttpClient()
     {
-        return new HttpClient
-        {
-            BaseAddress = new Uri("http://localhost:11434")
-        };
+        return new HttpClient { BaseAddress = new Uri("http://localhost:11434") };
     }
 }

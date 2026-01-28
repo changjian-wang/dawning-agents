@@ -15,10 +15,13 @@ public static class SecurityServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAgentSecurity(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<SecurityOptions>(configuration.GetSection(SecurityOptions.SectionName));
-        services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
+        services.Configure<RateLimitOptions>(
+            configuration.GetSection(RateLimitOptions.SectionName)
+        );
 
         // 认证提供者
         services.TryAddSingleton<IAuthenticationProvider, ApiKeyAuthenticationProvider>();
@@ -40,7 +43,8 @@ public static class SecurityServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddApiKeyAuthentication(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<SecurityOptions>(configuration.GetSection(SecurityOptions.SectionName));
         services.TryAddSingleton<IAuthenticationProvider, ApiKeyAuthenticationProvider>();
@@ -52,7 +56,8 @@ public static class SecurityServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddRoleBasedAuthorization(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.Configure<SecurityOptions>(configuration.GetSection(SecurityOptions.SectionName));
         services.TryAddSingleton<IAuthorizationProvider, RoleBasedAuthorizationProvider>();
@@ -73,9 +78,12 @@ public static class SecurityServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddRateLimiting(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
-        services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
+        services.Configure<RateLimitOptions>(
+            configuration.GetSection(RateLimitOptions.SectionName)
+        );
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
         return services;
     }
@@ -85,7 +93,8 @@ public static class SecurityServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddRateLimiting(
         this IServiceCollection services,
-        int requestsPerMinute = 60)
+        int requestsPerMinute = 60
+    )
     {
         services.Configure<RateLimitOptions>(opts =>
         {

@@ -239,8 +239,8 @@ public class GuardrailPipelineTests
         pipeline.AddInputGuardrail(new MaxLengthGuardrail(100));
 
         // Act & Assert - Should throw OperationCanceledException when token is cancelled
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            () => pipeline.CheckInputAsync("test", cts.Token)
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            pipeline.CheckInputAsync("test", cts.Token)
         );
     }
 }

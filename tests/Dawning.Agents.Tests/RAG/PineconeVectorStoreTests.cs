@@ -16,12 +16,14 @@ public class PineconeVectorStoreTests
     public void Constructor_WithValidOptions_CreatesStore()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test-index",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test-index",
+                VectorSize = 1536,
+            }
+        );
 
         // Act
         var store = new PineconeVectorStore(options, NullLogger<PineconeVectorStore>.Instance);
@@ -46,12 +48,14 @@ public class PineconeVectorStoreTests
     public void Constructor_WithMissingApiKey_ThrowsOnValidation()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "",  // 无效
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "", // 无效
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
 
         // Act
         var act = () => new PineconeVectorStore(options, null);
@@ -64,12 +68,14 @@ public class PineconeVectorStoreTests
     public async Task AddAsync_WithNullChunk_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act
@@ -83,38 +89,41 @@ public class PineconeVectorStoreTests
     public async Task AddAsync_WithMissingEmbedding_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
         var chunk = new DocumentChunk
         {
             Id = "test-1",
             Content = "Test content",
-            Embedding = null
+            Embedding = null,
         };
 
         // Act
         var act = async () => await store.AddAsync(chunk);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*embedding*");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*embedding*");
     }
 
     [Fact]
     public async Task SearchAsync_WithNullEmbedding_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act
@@ -128,32 +137,35 @@ public class PineconeVectorStoreTests
     public async Task SearchAsync_WithEmptyEmbedding_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act
         var act = async () => await store.SearchAsync(Array.Empty<float>());
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*empty*");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*empty*");
     }
 
     [Fact]
     public async Task DeleteAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act & Assert
@@ -166,12 +178,14 @@ public class PineconeVectorStoreTests
     public async Task DeleteByDocumentIdAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act & Assert
@@ -183,12 +197,14 @@ public class PineconeVectorStoreTests
     public async Task GetAsync_WithNullOrEmptyId_ThrowsArgumentException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act & Assert
@@ -200,12 +216,14 @@ public class PineconeVectorStoreTests
     public async Task AddBatchAsync_WithNullChunks_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act
@@ -219,12 +237,14 @@ public class PineconeVectorStoreTests
     public async Task DisposeAsync_CanBeCalledMultipleTimes()
     {
         // Arrange
-        var options = Options.Create(new PineconeOptions
-        {
-            ApiKey = "test-api-key",
-            IndexName = "test",
-            VectorSize = 1536
-        });
+        var options = Options.Create(
+            new PineconeOptions
+            {
+                ApiKey = "test-api-key",
+                IndexName = "test",
+                VectorSize = 1536,
+            }
+        );
         var store = new PineconeVectorStore(options, null);
 
         // Act
@@ -249,7 +269,7 @@ public class PineconeOptionsTests
         {
             ApiKey = "test-api-key",
             IndexName = "test-index",
-            VectorSize = 1536
+            VectorSize = 1536,
         };
 
         // Act
@@ -270,7 +290,7 @@ public class PineconeOptionsTests
         {
             ApiKey = apiKey!,
             IndexName = "test",
-            VectorSize = 1536
+            VectorSize = 1536,
         };
 
         // Act
@@ -291,7 +311,7 @@ public class PineconeOptionsTests
         {
             ApiKey = "test-api-key",
             IndexName = indexName!,
-            VectorSize = 1536
+            VectorSize = 1536,
         };
 
         // Act
@@ -311,7 +331,7 @@ public class PineconeOptionsTests
         {
             ApiKey = "test-api-key",
             IndexName = "test",
-            VectorSize = vectorSize
+            VectorSize = vectorSize,
         };
 
         // Act
@@ -332,7 +352,7 @@ public class PineconeOptionsTests
             ApiKey = "test-api-key",
             IndexName = "test",
             VectorSize = 1536,
-            Metric = metric
+            Metric = metric,
         };
 
         // Act
@@ -356,7 +376,7 @@ public class PineconeOptionsTests
             ApiKey = "test-api-key",
             IndexName = "test",
             VectorSize = 1536,
-            Metric = metric
+            Metric = metric,
         };
 
         // Act
@@ -401,12 +421,14 @@ public class PineconeServiceCollectionExtensionsTests
         // Arrange
         var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Pinecone:ApiKey"] = "test-api-key",
-                ["Pinecone:IndexName"] = "test-index",
-                ["Pinecone:VectorSize"] = "384"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Pinecone:ApiKey"] = "test-api-key",
+                    ["Pinecone:IndexName"] = "test-index",
+                    ["Pinecone:VectorSize"] = "384",
+                }
+            )
             .Build();
 
         // Act
@@ -415,7 +437,9 @@ public class PineconeServiceCollectionExtensionsTests
         // Assert
         var descriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IVectorStore));
         descriptor.Should().NotBeNull();
-        descriptor!.Lifetime.Should().Be(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton);
+        descriptor!
+            .Lifetime.Should()
+            .Be(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton);
         descriptor.ImplementationType.Should().Be(typeof(PineconeVectorStore));
     }
 

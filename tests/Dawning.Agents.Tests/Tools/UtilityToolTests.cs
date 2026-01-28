@@ -17,9 +17,9 @@ public class UtilityToolTests
     {
         var result = _tool.GenerateGuid();
 
-        result.Should().MatchRegex(
-            @"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-        );
+        result
+            .Should()
+            .MatchRegex(@"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     }
 
     [Theory]
@@ -37,9 +37,9 @@ public class UtilityToolTests
     public void GenerateGuid_UnknownFormat_ReturnsDefaultFormat()
     {
         var result = _tool.GenerateGuid("X");
-        result.Should().MatchRegex(
-            @"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-        );
+        result
+            .Should()
+            .MatchRegex(@"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     }
 
     #endregion

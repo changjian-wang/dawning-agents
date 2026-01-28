@@ -122,7 +122,8 @@ public sealed class RedisDistributedLock : IDistributedLock
         StopRenewalTimer();
 
         // 使用 Lua 脚本确保只释放自己持有的锁
-        const string script = @"
+        const string script =
+            @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
                 return redis.call('del', KEYS[1])
             else
@@ -133,7 +134,11 @@ public sealed class RedisDistributedLock : IDistributedLock
         try
         {
             var result = await _database
-                .ScriptEvaluateAsync(script, new RedisKey[] { _lockKey }, new RedisValue[] { _lockId })
+                .ScriptEvaluateAsync(
+                    script,
+                    new RedisKey[] { _lockKey },
+                    new RedisValue[] { _lockId }
+                )
                 .ConfigureAwait(false);
 
             if ((int)result == 1)
@@ -173,7 +178,8 @@ public sealed class RedisDistributedLock : IDistributedLock
         }
 
         // 使用 Lua 脚本确保只延长自己持有的锁
-        const string script = @"
+        const string script =
+            @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
                 return redis.call('pexpire', KEYS[1], ARGV[2])
             else
@@ -298,7 +304,8 @@ public sealed class RedisDistributedLockFactory : IDistributedLockFactory
     )
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
-        _redisOptions = redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
+        _redisOptions =
+            redisOptions?.Value ?? throw new ArgumentNullException(nameof(redisOptions));
         _lockOptions = lockOptions?.Value ?? throw new ArgumentNullException(nameof(lockOptions));
         _lockLogger = lockLogger ?? NullLogger<RedisDistributedLock>.Instance;
         _logger = logger ?? NullLogger<RedisDistributedLockFactory>.Instance;
@@ -346,14 +353,15 @@ public sealed class RedisDistributedLockFactory : IDistributedLockFactory
     )
     {
         await ExecuteWithLockAsync(
-            resource,
-            expiry,
-            async ct =>
-            {
-                await action(ct).ConfigureAwait(false);
-                return true;
-            },
-            cancellationToken
-        ).ConfigureAwait(false);
+                resource,
+                expiry,
+                async ct =>
+                {
+                    await action(ct).ConfigureAwait(false);
+                    return true;
+                },
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 }

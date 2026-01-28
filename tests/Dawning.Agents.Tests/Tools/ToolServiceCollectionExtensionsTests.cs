@@ -375,7 +375,9 @@ public class ToolServiceCollectionExtensionsTests
 
         public Task<ToolResult> ExecuteAsync(string input, CancellationToken ct = default)
         {
-            return Task.FromResult(new ToolResult { Success = true, Output = $"Executed with: {input}" });
+            return Task.FromResult(
+                new ToolResult { Success = true, Output = $"Executed with: {input}" }
+            );
         }
     }
 }

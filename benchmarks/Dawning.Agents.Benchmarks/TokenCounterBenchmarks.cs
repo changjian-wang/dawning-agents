@@ -29,20 +29,28 @@ public class TokenCounterBenchmarks
         _shortText = "Hello, this is a short text for testing.";
 
         // 中等文本 (~500 chars)
-        _mediumText = string.Join(" ", Enumerable.Repeat(
-            "The quick brown fox jumps over the lazy dog.", 10));
+        _mediumText = string.Join(
+            " ",
+            Enumerable.Repeat("The quick brown fox jumps over the lazy dog.", 10)
+        );
 
         // 长文本 (~5000 chars)
-        _longText = string.Join(" ", Enumerable.Repeat(
-            "The quick brown fox jumps over the lazy dog. This is a longer sentence for testing purposes.", 50));
+        _longText = string.Join(
+            " ",
+            Enumerable.Repeat(
+                "The quick brown fox jumps over the lazy dog. This is a longer sentence for testing purposes.",
+                50
+            )
+        );
 
         // 中文文本
-        _chineseText = string.Join("", Enumerable.Repeat(
-            "这是一段用于测试的中文文本，包含各种常见的汉字。", 20));
+        _chineseText = string.Join(
+            "",
+            Enumerable.Repeat("这是一段用于测试的中文文本，包含各种常见的汉字。", 20)
+        );
 
         // 混合文本
-        _mixedText = string.Join(" ", Enumerable.Repeat(
-            "Hello 你好 World 世界 Test 测试", 30));
+        _mixedText = string.Join(" ", Enumerable.Repeat("Hello 你好 World 世界 Test 测试", 30));
     }
 
     [Benchmark(Baseline = true)]

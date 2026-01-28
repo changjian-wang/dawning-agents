@@ -123,9 +123,7 @@ public static class RAGServiceCollectionExtensions
         string model = "text-embedding-3-small"
     )
     {
-        services.AddSingleton<IEmbeddingProvider>(
-            new OpenAIEmbeddingProvider(apiKey, model)
-        );
+        services.AddSingleton<IEmbeddingProvider>(new OpenAIEmbeddingProvider(apiKey, model));
         return services;
     }
 
@@ -253,7 +251,9 @@ public static class RAGServiceCollectionExtensions
                 llmOptions.ApiKey!,
                 model
             ),
-            _ => throw new NotSupportedException($"不支持的 Provider 类型: {llmOptions.ProviderType}"),
+            _ => throw new NotSupportedException(
+                $"不支持的 Provider 类型: {llmOptions.ProviderType}"
+            ),
         };
     }
 

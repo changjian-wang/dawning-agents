@@ -38,7 +38,8 @@ public sealed record ServiceInstance
     /// <summary>
     /// 服务标签
     /// </summary>
-    public IReadOnlyDictionary<string, string> Tags { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> Tags { get; init; } =
+        new Dictionary<string, string>();
 
     /// <summary>
     /// 健康检查端点
@@ -97,7 +98,9 @@ public sealed class ServiceRegistryOptions
 
         if (ServiceExpireSeconds <= HeartbeatIntervalSeconds)
         {
-            throw new InvalidOperationException("ServiceExpireSeconds must be greater than HeartbeatIntervalSeconds");
+            throw new InvalidOperationException(
+                "ServiceExpireSeconds must be greater than HeartbeatIntervalSeconds"
+            );
         }
     }
 }
@@ -127,7 +130,8 @@ public interface IServiceRegistry
     /// </summary>
     Task<IReadOnlyList<ServiceInstance>> GetInstancesAsync(
         string serviceName,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 获取所有已注册的服务名称
@@ -139,5 +143,6 @@ public interface IServiceRegistry
     /// </summary>
     IAsyncEnumerable<ServiceInstance[]> WatchAsync(
         string serviceName,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }

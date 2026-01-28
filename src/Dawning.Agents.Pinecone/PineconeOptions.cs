@@ -89,7 +89,9 @@ public class PineconeOptions
         var validMetrics = new[] { "cosine", "dotproduct", "euclidean" };
         if (!validMetrics.Contains(Metric.ToLowerInvariant()))
         {
-            throw new InvalidOperationException($"Pinecone Metric must be one of: {string.Join(", ", validMetrics)}");
+            throw new InvalidOperationException(
+                $"Pinecone Metric must be one of: {string.Join(", ", validMetrics)}"
+            );
         }
     }
 }

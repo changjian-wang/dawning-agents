@@ -15,7 +15,8 @@ public sealed record AuthenticationResult
     public string? UserId { get; init; }
     public string? UserName { get; init; }
     public IReadOnlyList<string> Roles { get; init; } = [];
-    public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> Claims { get; init; } =
+        new Dictionary<string, string>();
     public string? Error { get; init; }
     public DateTimeOffset? ExpiresAt { get; init; }
 
@@ -24,21 +25,20 @@ public sealed record AuthenticationResult
         string? userName = null,
         IReadOnlyList<string>? roles = null,
         IReadOnlyDictionary<string, string>? claims = null,
-        DateTimeOffset? expiresAt = null) => new()
-    {
-        IsAuthenticated = true,
-        UserId = userId,
-        UserName = userName,
-        Roles = roles ?? [],
-        Claims = claims ?? new Dictionary<string, string>(),
-        ExpiresAt = expiresAt,
-    };
+        DateTimeOffset? expiresAt = null
+    ) =>
+        new()
+        {
+            IsAuthenticated = true,
+            UserId = userId,
+            UserName = userName,
+            Roles = roles ?? [],
+            Claims = claims ?? new Dictionary<string, string>(),
+            ExpiresAt = expiresAt,
+        };
 
-    public static AuthenticationResult Failure(string error) => new()
-    {
-        IsAuthenticated = false,
-        Error = error,
-    };
+    public static AuthenticationResult Failure(string error) =>
+        new() { IsAuthenticated = false, Error = error };
 }
 
 /// <summary>
@@ -50,7 +50,9 @@ public sealed record AuthorizationResult
     public string? Reason { get; init; }
 
     public static AuthorizationResult Allowed() => new() { IsAuthorized = true };
-    public static AuthorizationResult Denied(string reason) => new() { IsAuthorized = false, Reason = reason };
+
+    public static AuthorizationResult Denied(string reason) =>
+        new() { IsAuthorized = false, Reason = reason };
 }
 
 /// <summary>
@@ -63,14 +65,16 @@ public interface IAuthenticationProvider
     /// </summary>
     Task<AuthenticationResult> AuthenticateAsync(
         string token,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 验证 API Key
     /// </summary>
     Task<AuthenticationResult> AuthenticateApiKeyAsync(
         string apiKey,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
@@ -85,7 +89,8 @@ public interface IAuthorizationProvider
         AuthenticationResult user,
         string resource,
         string action,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 检查工具执行权限
@@ -93,7 +98,8 @@ public interface IAuthorizationProvider
     Task<AuthorizationResult> AuthorizeToolAsync(
         AuthenticationResult user,
         string toolName,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 检查 Agent 访问权限
@@ -101,7 +107,8 @@ public interface IAuthorizationProvider
     Task<AuthorizationResult> AuthorizeAgentAsync(
         AuthenticationResult user,
         string agentName,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
