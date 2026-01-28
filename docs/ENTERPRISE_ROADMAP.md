@@ -88,36 +88,32 @@
 
 **目标**: 满足企业级应用需求
 
-#### 2.1 安全增强
+> **架构决策**: 认证/授权/多租户由 Dawning Gateway 统一处理，Agent 框架专注于 AI 能力。
 
-- [ ] **身份认证**
-  - OAuth 2.0 / OIDC 支持
-  - API Key 管理
-  - JWT 验证
+#### 2.1 Dawning SDK 集成
 
-- [ ] **访问控制**
-  - 基于角色的访问控制 (RBAC)
-  - 基于策略的访问控制
-  - 审计日志
+- [ ] **日志集成**
+  - 集成 `Dawning.Logging` SDK
+  - Agent 上下文 Enricher 适配
+  - 移除重复的 Serilog 配置
 
-- [ ] **数据安全**
-  - 传输加密 (TLS)
-  - 静态加密
-  - 数据脱敏
+- [ ] **基础设施集成**
+  - 集成 `Dawning.Core` (Result 类型)
+  - 集成 `Dawning.Identity` (当前用户获取)
+  - 提供集成文档
 
-#### 2.2 多租户支持
+#### 2.2 Embedding Provider 实现
 
-- [ ] **租户隔离**
-  - 配置隔离
-  - 数据隔离
-  - 资源配额
+- [ ] **OpenAI Embeddings**
+  - `OpenAIEmbeddingProvider` 实现
+  - `AzureOpenAIEmbeddingProvider` 实现
+  - Embedding 结果缓存
 
-- [ ] **租户管理**
-  - 租户生命周期
-  - 计费集成
-  - 用量统计
+- [ ] **本地 Embeddings**
+  - `OllamaEmbeddingProvider` 实现
+  - 批量 Embedding 优化
 
-#### 2.3 高可用架构
+#### 2.3 高可用架构 (已完成)
 
 - [ ] **分布式部署**
   - Kubernetes 部署模板

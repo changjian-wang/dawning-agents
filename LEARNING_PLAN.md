@@ -48,9 +48,11 @@ Phase D (Week 19-20) : 生产级特性               ✅ 已完成
 ```text
 Phase E (Week 21-22) : 弹性与配置增强           [x] 已完成
 Phase F (Week 23-24) : 日志与诊断               [x] 已完成
-Phase G (Week 25-26) : 多租户与认证             [ ] 规划中
+Phase G (Week 25-26) : Dawning SDK 集成         [ ] 规划中
 Phase H (Week 27-28) : AI 平台特性              [ ] 规划中
 ```
+
+> **架构说明**: 认证/授权/多租户功能由 Dawning Gateway 统一处理，Agent 框架专注于 AI 能力。
 
 ---
 
@@ -259,63 +261,84 @@ tests/Dawning.Agents.Tests/Diagnostics/
 
 ---
 
-## 🔐 Phase G: 多租户与认证 (Week 25-26)
+## � Phase G: Dawning SDK 集成 (Week 25-26)
 
-### Week 25: OAuth 2.0 / OIDC 集成
+> **设计原则**: Agent 框架保持专注于 AI 能力，基础设施复用 Dawning SDK，认证授权复用 Dawning Gateway。
 
-#### Day 1-4: 身份认证
+### Week 25: Dawning SDK 集成
 
-- [ ] **代码**: JWT Bearer 认证
-- [ ] **代码**: OIDC 集成 (Azure AD / Keycloak)
-- [ ] **代码**: API Key + OAuth 混合认证
-- [ ] **测试**: 认证测试
+#### Day 1-3: 日志集成
 
-#### Day 5-7: 基于策略的授权
+- [ ] **代码**: 集成 `Dawning.Logging` SDK
+- [ ] **代码**: Agent 上下文 Enricher 适配
+- [ ] **代码**: 移除重复的 Serilog 配置
+- [ ] **测试**: 日志集成测试
 
-- [ ] **代码**: Policy-based Authorization
-- [ ] **代码**: 资源级别权限
-- [ ] **代码**: 动态权限评估
+#### Day 4-7: 基础设施集成
+
+- [ ] **代码**: 集成 `Dawning.Core` (Result 类型、异常处理)
+- [ ] **代码**: 集成 `Dawning.Resilience` (与 Agent Polly 整合)
+- [ ] **代码**: 提供 `Dawning.Identity` 集成指南
+- [ ] **文档**: SDK 集成文档
 
 **Week 25 产出物**:
 
 ```text
-src/Dawning.Agents.Core/
-├── Authentication/
-│   ├── JwtBearerAuthenticationExtensions.cs
-│   ├── OidcAuthenticationExtensions.cs
-│   └── HybridAuthenticationHandler.cs
+更新 Dawning.Agents.Core.csproj:
+├── PackageReference Include="Dawning.Logging"
+├── PackageReference Include="Dawning.Core"
+└── PackageReference Include="Dawning.Identity"
+
+docs/
+└── DAWNING_SDK_INTEGRATION.md     ← 集成指南
 ```
 
-### Week 26: 多租户支持
+### Week 26: OpenAI Embeddings Provider
 
-#### Day 1-4: 租户隔离
+#### Day 1-4: Embeddings 实现
 
-- [ ] **代码**: `ITenantProvider` 接口
-- [ ] **代码**: 租户上下文传播
-- [ ] **代码**: 配置隔离
-- [ ] **代码**: 数据隔离策略
+- [ ] **代码**: `OpenAIEmbeddingProvider` 实现
+- [ ] **代码**: `AzureOpenAIEmbeddingProvider` 实现
+- [ ] **代码**: Embedding 结果缓存
+- [ ] **测试**: Embedding 测试
 
-#### Day 5-7: 租户管理
+#### Day 5-7: 本地 Embedding 支持
 
-- [ ] **代码**: 租户注册/注销
-- [ ] **代码**: 资源配额
-- [ ] **代码**: 用量统计
+- [ ] **代码**: `OllamaEmbeddingProvider` 实现
+- [ ] **代码**: 批量 Embedding 优化
+- [ ] **文档**: Embedding Provider 选型指南
 
 **Week 26 产出物**:
 
 ```text
-src/Dawning.Agents.Abstractions/
-├── Tenancy/
-│   ├── ITenantProvider.cs
-│   ├── TenantContext.cs
-│   └── TenantOptions.cs
+src/Dawning.Agents.OpenAI/
+├── Embeddings/
+│   ├── OpenAIEmbeddingProvider.cs
+│   └── OpenAIEmbeddingOptions.cs
+
+src/Dawning.Agents.Azure/
+├── Embeddings/
+│   └── AzureOpenAIEmbeddingProvider.cs
 
 src/Dawning.Agents.Core/
-├── Tenancy/
-│   ├── TenantMiddleware.cs
-│   ├── TenantIsolationStrategy.cs
-│   └── TenancyServiceCollectionExtensions.cs
+├── RAG/
+│   └── OllamaEmbeddingProvider.cs
 ```
+
+---
+
+### ⏹️ 不在 Agent 框架实现的功能
+
+以下功能由 Dawning 生态其他组件负责：
+
+| 功能 | 负责组件 | 说明 |
+|------|----------|------|
+| OAuth 2.0 / OIDC | Dawning Gateway | OpenIddict 完整实现 |
+| JWT 验证 | Dawning.Identity SDK | 业务系统集成 |
+| 多租户隔离 | Dawning Gateway | 租户上下文管理 |
+| RBAC 权限 | Dawning Gateway | 角色权限管理 |
+| API 网关 | Dawning Gateway | YARP 反向代理 |
+| 通用日志 | Dawning.Logging SDK | 结构化日志 |
 
 ---
 
@@ -381,8 +404,9 @@ src/Dawning.Agents.Core/
 | Polly 弹性策略 | 100% LLM 调用覆盖 |
 | 配置验证 | 所有 Options 类 |
 | 日志结构化 | 100% 操作可追踪 |
-| 多租户隔离 | 完整数据隔离 |
+| Dawning SDK 集成 | 3 个 SDK 包 |
 | 向量数据库 | Qdrant 生产就绪 |
+| Embedding Provider | OpenAI/Azure/Ollama |
 
 ---
 

@@ -173,25 +173,25 @@
 
 #### 3. 多租户支持
 
-**现状**: 无  
-**标杆**: Semantic Kernel/NVIDIA NeMo 企业版必备
+**现状**: 由 Dawning Gateway 处理  
+**设计决策**: Agent 框架专注于 AI 能力，多租户由网关统一处理
 
 ```
-❌ Tenant 上下文
-❌ 租户隔离 (Memory/Tools/Limits)
-❌ 按租户计费追踪
+✅ 由 Dawning Gateway 提供 Tenant 上下文
+✅ 由 Dawning Gateway 提供租户隔离
+✅ 由 Dawning Gateway 提供计费追踪
 ```
 
 #### 4. 认证/授权
 
-**现状**: 无内置支持  
-**标杆**: 所有企业级框架都有
+**现状**: 由 Dawning 生态处理  
+**设计决策**: 复用现有基础设施，避免重复建设
 
 ```
-❌ JWT 验证
-❌ API Key 管理
-❌ OAuth 2.0 集成
-❌ RBAC 角色权限
+✅ Dawning Gateway 提供 OAuth 2.0 / OIDC (OpenIddict)
+✅ Dawning.Identity SDK 提供 JWT 验证
+✅ Dawning Gateway 提供 RBAC 角色权限
+✅ Dawning Gateway 提供 API Key 管理
 ```
 
 ### 🟡 中优先级 (影响生产体验)
@@ -327,10 +327,10 @@
 ### Phase G: Week 25-26
 
 ```
-🎯 真实 Embedding Provider (OpenAI/Azure)
-🎯 真实 Vector Store (Qdrant/PostgreSQL)
-🎯 多租户基础架构
-🎯 JWT 认证集成
+🎯 Dawning SDK 集成 (Logging/Core/Identity)
+🎯 真实 Embedding Provider (OpenAI/Azure/Ollama)
+🎯 真实 Vector Store (Qdrant/Pinecone)
+🎯 Embedding 结果缓存
 ```
 
 ### Phase H: Week 27-28
@@ -357,24 +357,23 @@
 
 虽然有差距，但也有独特优势：
 
-### 1. .NET 生态首选
+### 1. Dawning 生态整合
+
+- 与 Dawning Gateway 无缝集成 (OAuth/多租户/API网关)
+- 复用 Dawning SDK 基础设施 (Logging/Identity/Caching)
+- .NET 技术栈统一，学习曲线低
+
+### 2. .NET 生态首选
 
 - 国内 .NET 企业的最佳选择
-- 与 Dawning Gateway 深度集成
 - 纯 DI 架构，符合 .NET 最佳实践
+- 与 Azure 生态友好
 
-### 2. 轻量级设计
+### 3. 轻量级设计
 
 - 零抽象层堆叠
 - 启动快、内存占用小
 - 易于理解和定制
-
-### 3. 企业级基础设施就绪
-
-- Polly V8 弹性策略
-- OpenTelemetry 可观测性
-- FluentValidation 验证
-- 与 Azure 生态友好
 
 ### 4. 安全优先
 
