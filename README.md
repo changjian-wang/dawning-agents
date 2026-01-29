@@ -230,6 +230,10 @@ dotnet run
 
 ## 📖 文档
 
+### 项目状态
+- [项目状态报告](PROJECT_STATUS.md) - 完整的功能清单和进度报告
+- [进度可视化](PROGRESS_SUMMARY.txt) - ASCII 风格的进度总结
+
 ### 入门指南
 - [快速入门](docs/QUICKSTART.md) - 5 分钟运行第一个 Agent
 - [API 参考](docs/API_REFERENCE.md) - 核心接口和类
@@ -251,9 +255,10 @@ dotnet test
 ```
 
 **测试统计**:
-- 测试数量: 1,183 个
+- 测试数量: 1,333 个
 - 行覆盖率: 72.9%
 - 分支覆盖率: 62.6%
+- 方法覆盖率: 86.3%
 
 ## 🤝 贡献
 
