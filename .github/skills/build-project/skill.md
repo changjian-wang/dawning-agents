@@ -1,9 +1,6 @@
 ---
 name: build-project
-description: >
-  Build and compile Dawning.Agents .NET project. Handles compilation errors
-  and common build issues. Use when asked to "build", "compile", "check for 
-  errors", or before running tests.
+description: "Build and compile Dawning.Agents .NET project. Handles compilation errors and common build issues. Trigger phrases: build, compile, 编译, check for errors, 检查错误"
 ---
 
 # Build Project Skill

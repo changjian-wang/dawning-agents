@@ -1,10 +1,12 @@
+````skill
 ---
 name: code-update
 description: >
   Make code changes in Dawning.Agents following project patterns. Provides 
   templates for services, interfaces, DI extensions, and options classes.
+  Includes .NET best practices: DI, logging, async, options pattern.
   Use when asked to "modify code", "implement feature", "add method", "fix bug",
-  "create class", or "update file".
+  "create class", "update file", or "what's the best way to...".
 ---
 
 # Code Update Skill
@@ -20,13 +22,58 @@ Makes code changes in the Dawning.Agents project following established patterns 
 - "Add a new method/class"
 - "Fix this bug"
 - "Create a service for..."
-- "Update the file to..."
+- "What's the best way to..."
+- "How should I implement..."
 
-## Before Making Changes
+## Core Patterns
 
-1. **Read context** - Understand related files first
-2. **Check patterns** - Look at similar implementations
-3. **Consider impact** - Check usages and dependencies
+### 1. Pure Dependency Injection
+
+```csharp
+// ✅ Always use DI
+public class MyService
+{
+    private readonly ILLMProvider _provider;
+    
+    public MyService(ILLMProvider provider) => _provider = provider;
+}
+
+// Usage
+var service = serviceProvider.GetRequiredService<IMyService>();
+
+// ❌ Never instantiate services directly
+var provider = new OllamaProvider("model"); // WRONG!
+```
+
+### 2. Logger with NullLogger Fallback
+
+```csharp
+public MyService(ILogger<MyService>? logger = null)
+{
+    _logger = logger ?? NullLogger<MyService>.Instance;
+}
+```
+
+### 3. CancellationToken on All Async Methods
+
+```csharp
+Task<Result> ProcessAsync(Input input, CancellationToken cancellationToken = default);
+```
+
+### 4. Options Pattern
+
+```csharp
+public class MyOptions { public const string SectionName = "My"; }
+services.Configure<MyOptions>(configuration.GetSection(MyOptions.SectionName));
+public MyService(IOptions<MyOptions> options) => _options = options.Value;
+```
+
+### 5. Interface Separation
+
+```
+Abstractions/  → Interfaces, Options, Models (zero deps)
+Core/          → Implementations, DI Extensions
+```
 
 ## Code Templates
 
@@ -40,12 +87,6 @@ namespace Dawning.Agents.Abstractions;
 /// </summary>
 public interface IMyService
 {
-    /// <summary>
-    /// Method description.
-    /// </summary>
-    /// <param name="input">Input description.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Return description.</returns>
     Task<Result> DoSomethingAsync(
         Input input,
         CancellationToken cancellationToken = default);
@@ -57,9 +98,6 @@ public interface IMyService
 ```csharp
 namespace Dawning.Agents.Core;
 
-/// <summary>
-/// Implementation of <see cref="IMyService"/>.
-/// </summary>
 public class MyService : IMyService
 {
     private readonly ILogger<MyService> _logger;
@@ -69,15 +107,11 @@ public class MyService : IMyService
         _logger = logger ?? NullLogger<MyService>.Instance;
     }
 
-    /// <inheritdoc />
     public async Task<Result> DoSomethingAsync(
         Input input,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Processing {Input}...", input);
-        
-        // Implementation here
-        
         return new Result();
     }
 }
@@ -90,18 +124,13 @@ namespace Dawning.Agents.Core;
 
 public static class MyServiceExtensions
 {
-    /// <summary>
-    /// Adds <see cref="IMyService"/> to the service collection.
-    /// </summary>
     public static IServiceCollection AddMyService(
         this IServiceCollection services,
         IConfiguration configuration)
     {
         services.Configure<MyOptions>(
             configuration.GetSection(MyOptions.SectionName));
-        
         services.TryAddSingleton<IMyService, MyService>();
-        
         return services;
     }
 }
@@ -112,19 +141,9 @@ public static class MyServiceExtensions
 ```csharp
 namespace Dawning.Agents.Abstractions;
 
-/// <summary>
-/// Configuration options for MyService.
-/// </summary>
-/// <remarks>
-/// appsettings.json:
-/// <code>
-/// { "My": { "Option1": "value" } }
-/// </code>
-/// </remarks>
 public class MyOptions
 {
     public const string SectionName = "My";
-    
     public string Option1 { get; set; } = "default";
 }
 ```
@@ -134,7 +153,7 @@ public class MyOptions
 ### Do ✅
 
 - Use sufficient context in find-and-replace (3+ lines before/after)
-- Follow CSharpier formatting
+- Follow CSharpier formatting (see [csharpier skill](../csharpier/SKILL.md))
 - Add XML documentation on public APIs
 - Include `CancellationToken` in async methods
 - Use `ILogger` with `NullLogger` fallback
@@ -148,10 +167,18 @@ public class MyOptions
 
 ## After Changes
 
-Run these commands to verify:
-
-```powershell
+```bash
 dotnet build --nologo -v q    # Build
 dotnet test --nologo          # Test
 dotnet csharpier .            # Format
 ```
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Framework | .NET 10.0 |
+| Testing | xUnit, FluentAssertions, Moq |
+| Formatting | CSharpier |
+
+````

@@ -1,10 +1,6 @@
 ---
 name: code-review
-description: >
-  Review .NET code for Dawning.Agents project. Checks architecture compliance 
-  (DI, interface separation), CSharpier formatting, naming conventions, and 
-  best practices. Use when asked to "review code", "check this code", "is this 
-  code good", "code quality", or "PR review".
+description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, CSharpier formatting, naming conventions, and best practices. Trigger phrases: review code, 审查代码, check this code, code quality, PR review"
 ---
 
 # Code Review Skill

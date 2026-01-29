@@ -93,22 +93,6 @@ public class AgentContextEnricherTests
     }
 
     [Fact]
-    public void Enrich_ShouldAddTenantId_WhenInContext()
-    {
-        // Arrange
-        using var scope = AgentLogContext.BeginScope(tenantId: "tenant-abc");
-        var logEvent = CreateLogEvent("Test message");
-        var propertyFactory = new LogEventPropertyFactory();
-
-        // Act
-        _enricher.Enrich(logEvent, propertyFactory);
-
-        // Assert
-        logEvent.Properties.Should().ContainKey("TenantId");
-        GetPropertyValue(logEvent, "TenantId").Should().Be("tenant-abc");
-    }
-
-    [Fact]
     public void Enrich_ShouldAddToolName_WhenSet()
     {
         // Arrange
@@ -152,8 +136,7 @@ public class AgentContextEnricherTests
             agentName: "TestAgent",
             requestId: "req-123",
             sessionId: "sess-456",
-            userId: "user-789",
-            tenantId: "tenant-abc"
+            userId: "user-789"
         );
         AgentLogContext.SetTool("TestTool");
         AgentLogContext.SetStep(5);
@@ -165,12 +148,11 @@ public class AgentContextEnricherTests
         _enricher.Enrich(logEvent, propertyFactory);
 
         // Assert
-        logEvent.Properties.Should().HaveCount(7);
+        logEvent.Properties.Should().HaveCount(6);
         logEvent.Properties.Should().ContainKey("AgentName");
         logEvent.Properties.Should().ContainKey("RequestId");
         logEvent.Properties.Should().ContainKey("SessionId");
         logEvent.Properties.Should().ContainKey("UserId");
-        logEvent.Properties.Should().ContainKey("TenantId");
         logEvent.Properties.Should().ContainKey("ToolName");
         logEvent.Properties.Should().ContainKey("StepNumber");
     }
