@@ -1,5 +1,6 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
+using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -50,6 +51,21 @@ public static class MemoryServiceCollectionExtensions
                     tokenCounter,
                     options.MaxRecentMessages,
                     options.SummaryThreshold
+                ),
+                MemoryType.Adaptive => new AdaptiveMemory(
+                    sp.GetRequiredService<ILLMProvider>(),
+                    tokenCounter,
+                    options.DowngradeThreshold,
+                    options.MaxRecentMessages,
+                    options.SummaryThreshold
+                ),
+                MemoryType.Vector => new VectorMemory(
+                    sp.GetRequiredService<IVectorStore>(),
+                    sp.GetRequiredService<IEmbeddingProvider>(),
+                    tokenCounter,
+                    options.MaxRecentMessages,
+                    options.RetrieveTopK,
+                    options.MinRelevanceScore
                 ),
                 _ => new BufferMemory(tokenCounter),
             };
@@ -153,6 +169,76 @@ public static class MemoryServiceCollectionExtensions
         services.TryAddSingleton<ITokenCounter>(
             new SimpleTokenCounter(modelName, maxContextTokens)
         );
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 AdaptiveMemory（自动降级）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="downgradeThreshold">触发降级的 token 阈值（默认 4000）</param>
+    /// <param name="maxRecentMessages">降级后保留的最近消息数（默认 6）</param>
+    /// <param name="summaryThreshold">降级后触发摘要的消息数阈值（默认 10）</param>
+    /// <param name="modelName">模型名称</param>
+    /// <param name="maxContextTokens">最大上下文 token 数</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddAdaptiveMemory(
+        this IServiceCollection services,
+        int downgradeThreshold = 4000,
+        int maxRecentMessages = 6,
+        int summaryThreshold = 10,
+        string modelName = "gpt-4",
+        int maxContextTokens = 8192
+    )
+    {
+        services.TryAddSingleton<ITokenCounter>(
+            new SimpleTokenCounter(modelName, maxContextTokens)
+        );
+        services.TryAddScoped<IConversationMemory>(sp => new AdaptiveMemory(
+            sp.GetRequiredService<ILLMProvider>(),
+            sp.GetRequiredService<ITokenCounter>(),
+            downgradeThreshold,
+            maxRecentMessages,
+            summaryThreshold
+        ));
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 VectorMemory（向量检索增强）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="recentWindowSize">保留的最近消息数（默认 6）</param>
+    /// <param name="retrieveTopK">检索的相关消息数（默认 5）</param>
+    /// <param name="minRelevanceScore">最小相关性分数（默认 0.5）</param>
+    /// <param name="modelName">模型名称</param>
+    /// <param name="maxContextTokens">最大上下文 token 数</param>
+    /// <returns>服务集合</returns>
+    /// <remarks>
+    /// 使用前需要先注册 IVectorStore 和 IEmbeddingProvider
+    /// </remarks>
+    public static IServiceCollection AddVectorMemory(
+        this IServiceCollection services,
+        int recentWindowSize = 6,
+        int retrieveTopK = 5,
+        float minRelevanceScore = 0.5f,
+        string modelName = "gpt-4",
+        int maxContextTokens = 8192
+    )
+    {
+        services.TryAddSingleton<ITokenCounter>(
+            new SimpleTokenCounter(modelName, maxContextTokens)
+        );
+        services.TryAddScoped<IConversationMemory>(sp => new VectorMemory(
+            sp.GetRequiredService<IVectorStore>(),
+            sp.GetRequiredService<IEmbeddingProvider>(),
+            sp.GetRequiredService<ITokenCounter>(),
+            recentWindowSize,
+            retrieveTopK,
+            minRelevanceScore
+        ));
+
         return services;
     }
 }

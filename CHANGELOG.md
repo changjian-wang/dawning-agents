@@ -8,6 +8,43 @@
 
 ### 🎉 新增功能
 
+#### AdaptiveMemory 自动降级 (Week 29)
+- **AdaptiveMemory** - 智能上下文管理
+  - 初始使用 BufferMemory 存储完整消息
+  - 当 token 数量超过阈值时自动降级到 SummaryMemory
+  - 降级时自动迁移消息并触发摘要
+  - 清空后自动重置为 BufferMemory
+- **配置支持**
+  - `DowngradeThreshold` - 触发降级的 token 阈值（默认 4000）
+  - `MemoryType.Adaptive` - 新增 Memory 类型
+- **DI 扩展**
+  - `AddAdaptiveMemory()` - 注册自适应记忆
+
+#### VectorMemory 向量检索 (Week 29)
+- **VectorMemory** - 使用向量检索增强上下文相关性（Retrieve 策略）
+  - 将旧消息嵌入为向量并存储在向量数据库
+  - 获取上下文时基于最近对话检索相关历史
+  - 支持会话隔离（sessionId）
+- **配置支持**
+  - `RetrieveTopK` - 检索的相关消息数（默认 5）
+  - `MinRelevanceScore` - 最小相关性分数（默认 0.5）
+  - `MemoryType.Vector` - 新增 Memory 类型
+- **DI 扩展**
+  - `AddVectorMemory()` - 注册向量记忆
+
+#### SemanticCache 语义缓存 (Week 29)
+- **SemanticCache** - 基于向量相似度的智能缓存（Cache 策略完整实现）
+  - 缓存 LLM 响应，语义相似的查询直接返回缓存
+  - 可配置相似度阈值、最大条目数、过期时间
+  - 支持命名空间隔离
+  - 大幅减少重复 LLM 调用，降低成本
+- **配置支持**
+  - `SimilarityThreshold` - 相似度阈值（默认 0.95）
+  - `MaxEntries` - 最大缓存条目数（默认 10000）
+  - `ExpirationMinutes` - 过期时间（默认 24 小时）
+- **DI 扩展**
+  - `AddSemanticCache()` - 注册语义缓存
+
 #### 音频支持 (Week 29)
 - **OpenAI Whisper Provider** - 语音转文字
   - 支持 mp3, mp4, wav, webm, flac, ogg 格式
@@ -30,10 +67,15 @@
 - **guides/production-best-practices.md** - 生产环境最佳实践指南
 - **guides/building-customer-service-bot.md** - 客服机器人案例
 - **guides/building-code-review-agent.md** - 代码审查 Agent 案例
+- **guides/performance-tuning.md** - 性能调优指南 🆕
+- **guides/security-hardening.md** - 安全加固指南 🆕
 
 ### 🧪 测试
+- 新增 26 个 AdaptiveMemory 测试
+- 新增 28 个 VectorMemory 测试
+- 新增 24 个 SemanticCache 测试
 - 新增 49 个音频测试
-- 总测试数: **1,828** (1,779 → 1,828)
+- 总测试数: **1,906** (1,882 → 1,906)
 
 ### 🐛 修复
 - 修复 `CostOptimizedRouter.SelectProviderAsync` 首选模型匹配逻辑
@@ -113,8 +155,21 @@ dotnet run
 - ✅ Week 28: 图形化工作流 DSL（1746 测试通过）
 - ✅ Week 28: 多模态 Vision（1779 测试通过）
 - ✅ Week 29: 音频支持 Whisper + TTS（1828 测试通过）
+- ✅ Week 29: AdaptiveMemory 自动降级（1854 测试通过）
+- ✅ Week 29: VectorMemory 向量检索（1882 测试通过）
+- ✅ Week 29: SemanticCache 语义缓存（1906 测试通过）
 
-### 🎉 企业级就绪度: 88%
+### 🎉 五大上下文策略完整实现 ✅
+
+| 策略 | 实现 | 说明 |
+|--------|------|------|
+| Offload (卸载) | `AdaptiveMemory` | 自动降级到 SummaryMemory |
+| Reduce (压缩) | `SummaryMemory` | LLM 摘要压缩 |
+| Retrieve (检索) | `VectorMemory` | 向量检索相关历史 |
+| Isolate (隔离) | Scoped DI | 多 Agent 独立 Memory |
+| Cache (缓存) | `SemanticCache` | 语义级别的智能缓存 |
+
+### 🎉 企业级就绪度: 90%+
 
 框架已完成所有核心功能，达到企业级就绪状态。
 

@@ -1,6 +1,8 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
+using Dawning.Agents.Abstractions.RAG;
 using Dawning.Agents.Core.Memory;
+using Dawning.Agents.Core.RAG;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,6 +96,86 @@ public class MemoryServiceCollectionExtensionsTests
 
         memory.Should().NotBeNull();
         memory.Should().BeOfType<SummaryMemory>();
+    }
+
+    #endregion
+
+    #region AddAdaptiveMemory Tests
+
+    [Fact]
+    public void AddAdaptiveMemory_WithLLMProvider_RegistersAdaptiveMemory()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddAdaptiveMemory();
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().NotBeNull();
+        memory.Should().BeOfType<AdaptiveMemory>();
+    }
+
+    [Fact]
+    public void AddAdaptiveMemory_WithCustomParams_RegistersCorrectly()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddAdaptiveMemory(
+            downgradeThreshold: 2000,
+            maxRecentMessages: 4,
+            summaryThreshold: 8
+        );
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().BeOfType<AdaptiveMemory>();
+    }
+
+    #endregion
+
+    #region AddVectorMemory Tests
+
+    [Fact]
+    public void AddVectorMemory_WithDependencies_RegistersVectorMemory()
+    {
+        var services = new ServiceCollection();
+        var mockEmbedding = new Mock<IEmbeddingProvider>();
+
+        services.AddSingleton(new InMemoryVectorStore() as IVectorStore);
+        services.AddSingleton(mockEmbedding.Object);
+        services.AddVectorMemory();
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().NotBeNull();
+        memory.Should().BeOfType<VectorMemory>();
+    }
+
+    [Fact]
+    public void AddVectorMemory_WithCustomParams_RegistersCorrectly()
+    {
+        var services = new ServiceCollection();
+        var mockEmbedding = new Mock<IEmbeddingProvider>();
+
+        services.AddSingleton(new InMemoryVectorStore() as IVectorStore);
+        services.AddSingleton(mockEmbedding.Object);
+        services.AddVectorMemory(
+            recentWindowSize: 10,
+            retrieveTopK: 8,
+            minRelevanceScore: 0.7f
+        );
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().BeOfType<VectorMemory>();
     }
 
     #endregion
@@ -200,6 +282,59 @@ public class MemoryServiceCollectionExtensionsTests
         var memory = provider.GetRequiredService<IConversationMemory>();
 
         memory.Should().BeOfType<SummaryMemory>();
+    }
+
+    [Fact]
+    public void AddMemory_WithAdaptiveConfig_RegistersAdaptiveMemory()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Memory:Type"] = "Adaptive",
+                    ["Memory:DowngradeThreshold"] = "4000",
+                    ["Memory:MaxRecentMessages"] = "6",
+                    ["Memory:SummaryThreshold"] = "10",
+                }
+            )
+            .Build();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddMemory(config);
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().BeOfType<AdaptiveMemory>();
+    }
+
+    [Fact]
+    public void AddMemory_WithVectorConfig_RegistersVectorMemory()
+    {
+        var services = new ServiceCollection();
+        var mockEmbedding = new Mock<IEmbeddingProvider>();
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Memory:Type"] = "Vector",
+                    ["Memory:MaxRecentMessages"] = "6",
+                    ["Memory:RetrieveTopK"] = "5",
+                    ["Memory:MinRelevanceScore"] = "0.5",
+                }
+            )
+            .Build();
+
+        services.AddSingleton(new InMemoryVectorStore() as IVectorStore);
+        services.AddSingleton(mockEmbedding.Object);
+        services.AddMemory(config);
+        var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IConversationMemory>();
+
+        memory.Should().BeOfType<VectorMemory>();
     }
 
     [Fact]
