@@ -91,13 +91,8 @@ public class CostOptimizedRouterTests
             NullLogger<CostOptimizedRouter>.Instance
         );
 
-        // 标记为不健康
-        router.ReportResult(
-            unhealthyProvider.Object,
-            ModelCallResult.Failed("error", 0)
-        );
-
-        // 等待健康检查生效 - 报告多次失败
+        // 报告多次失败使提供者变为不健康状态
+        // UnhealthyThreshold 默认为 3，所以需要 3 次连续失败
         for (int i = 0; i < 5; i++)
         {
             router.ReportResult(
@@ -112,11 +107,10 @@ public class CostOptimizedRouterTests
             EstimatedOutputTokens = 100,
         };
 
-        // 即使标记了失败，仍然有可用提供者（错误率阈值是50%）
-        // 所以不会抛异常
+        // 所有提供者都不健康时应抛出异常
         var act = () => router.SelectProviderAsync(context);
-        var selected = await act();
-        selected.Should().NotBeNull();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*No healthy providers*");
     }
 
     [Fact]
@@ -515,6 +509,13 @@ public class ModelPricingTests
 
 public class ModelRouterDITests
 {
+    private static Mock<ILLMProvider> CreateMockProvider(string name = "test-provider")
+    {
+        var mock = new Mock<ILLMProvider>();
+        mock.Setup(p => p.Name).Returns(name);
+        return mock;
+    }
+
     [Fact]
     public void AddModelRouter_RegistersIModelRouter()
     {
@@ -522,7 +523,7 @@ public class ModelRouterDITests
         services.AddLogging();
 
         // 添加一个提供者
-        services.AddSingleton<ILLMProvider>(new Mock<ILLMProvider>().Object);
+        services.AddSingleton<ILLMProvider>(CreateMockProvider().Object);
 
         services.AddModelRouter(ModelRoutingStrategy.CostOptimized);
 
@@ -539,7 +540,7 @@ public class ModelRouterDITests
         var services = new ServiceCollection();
         services.AddLogging();
 
-        services.AddSingleton<ILLMProvider>(new Mock<ILLMProvider>().Object);
+        services.AddSingleton<ILLMProvider>(CreateMockProvider().Object);
         services.AddLatencyOptimizedRouter();
 
         var provider = services.BuildServiceProvider();
@@ -554,7 +555,7 @@ public class ModelRouterDITests
         var services = new ServiceCollection();
         services.AddLogging();
 
-        services.AddSingleton<ILLMProvider>(new Mock<ILLMProvider>().Object);
+        services.AddSingleton<ILLMProvider>(CreateMockProvider().Object);
         services.AddLoadBalancedRouter(ModelRoutingStrategy.RoundRobin);
 
         var provider = services.BuildServiceProvider();
@@ -568,7 +569,7 @@ public class ModelRouterDITests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddSingleton<ILLMProvider>(new Mock<ILLMProvider>().Object);
+        services.AddSingleton<ILLMProvider>(CreateMockProvider().Object);
 
         services.AddModelRouter(options =>
         {

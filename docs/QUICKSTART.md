@@ -152,6 +152,95 @@ builder.Services.AddSafetyGuardrails(options =>
 });
 ```
 
+### 使用工作流 DSL
+
+```csharp
+var workflow = new WorkflowBuilder("ReviewWorkflow")
+    .StartWith<AgentNode>("draft", agent: writerAgent)
+    .Condition(ctx => ctx.Get<int>("quality") < 7)
+        .Then<AgentNode>("review", agent: reviewerAgent)
+        .Loop(maxIterations: 3)
+    .EndCondition()
+    .Then<AgentNode>("publish", agent: publisherAgent)
+    .Build();
+
+var result = await workflow.ExecuteAsync(context);
+```
+
+### 使用多模态 (Vision)
+
+```csharp
+builder.Services.AddOpenAIVision(builder.Configuration);
+
+var provider = sp.GetRequiredService<IVisionProvider>();
+var result = await provider.AnalyzeImageAsync(
+    await ImageContent.FromFileAsync("photo.jpg"),
+    "描述这张图片"
+);
+Console.WriteLine(result.Description);
+```
+
+### 使用音频转录 (Whisper)
+
+```csharp
+builder.Services.AddOpenAIWhisper(builder.Configuration);
+
+var whisper = sp.GetRequiredService<IAudioTranscriptionProvider>();
+var result = await whisper.TranscribeFileAsync("meeting.mp3", new TranscriptionOptions
+{
+    Language = "zh",
+    IncludeTimestamps = true,
+});
+Console.WriteLine(result.Text);
+```
+
+### 使用文字转语音 (TTS)
+
+```csharp
+builder.Services.AddOpenAITTS(builder.Configuration);
+
+var tts = sp.GetRequiredService<ITextToSpeechProvider>();
+var result = await tts.SynthesizeToFileAsync(
+    "你好，世界！",
+    "output.mp3",
+    new SpeechOptions { Voice = "nova" }
+);
+```
+
+### 使用 MCP 协议
+
+```csharp
+// 作为 MCP Client 调用外部工具
+builder.Services.AddMCPClient(options =>
+{
+    options.Transport = MCPTransportType.Stdio;
+    options.Command = "uvx";
+    options.Arguments = ["mcp-server-filesystem"];
+});
+
+var client = sp.GetRequiredService<IMCPClient>();
+await client.ConnectAsync();
+var tools = await client.ListToolsAsync();
+```
+
+### 使用模型路由
+
+```csharp
+// 注册多个 Provider
+builder.Services.AddSingleton<ILLMProvider>(new OllamaProvider(...));
+builder.Services.AddSingleton<ILLMProvider>(new OpenAIProvider(...));
+
+// 添加成本优化路由
+builder.Services.AddModelRouter(ModelRoutingStrategy.CostOptimized);
+
+var router = sp.GetRequiredService<IModelRouter>();
+var provider = await router.SelectProviderAsync(new ModelRoutingContext
+{
+    EstimatedInputTokens = 1000,
+    MaxCost = 0.01m,
+});
+```
+
 ---
 
 ## 🎮 运行 Demo

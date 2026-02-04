@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>MCP (Model Context Protocol) support for Dawning.Agents - enables interoperability with Claude Desktop, Cursor, and other MCP-compatible tools</Description>
+    <PackageTags>mcp;model-context-protocol;agent;ai;llm;claude;anthropic</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Dawning.Agents.Abstractions\Dawning.Agents.Abstractions.csproj" />
+    <ProjectReference Include="..\Dawning.Agents.Core\Dawning.Agents.Core.csproj" />
+  </ItemGroup>
+
+</Project>

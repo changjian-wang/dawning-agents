@@ -4,6 +4,43 @@
 
 ---
 
+## [Unreleased] - 2026-02-04
+
+### 🎉 新增功能
+
+#### 音频支持 (Week 29)
+- **OpenAI Whisper Provider** - 语音转文字
+  - 支持 mp3, mp4, wav, webm, flac, ogg 格式
+  - 支持时间戳输出 (段落/单词级别)
+  - 支持多语言转录
+  - 最大 25MB 文件大小
+- **OpenAI TTS Provider** - 文字转语音
+  - 6 种声音: alloy, echo, fable, onyx, nova, shimmer
+  - 多种输出格式: mp3, opus, aac, flac, wav, pcm
+  - 流式语音合成
+- **DI 扩展方法**
+  - `AddOpenAIWhisper()` - 单独添加转录
+  - `AddOpenAITTS()` - 单独添加 TTS
+  - `AddOpenAIAudio()` - 添加全部音频服务
+  - `AddOpenAIMultimodal()` - 添加 Vision + Audio
+
+### 📖 文档完善
+- **API_REFERENCE.md** - 新增 MCP、工作流、评估、多模态、Vector Store、模型路由模块文档
+- **QUICKSTART.md** - 添加工作流、多模态、MCP、模型路由快速示例
+- **guides/production-best-practices.md** - 生产环境最佳实践指南
+- **guides/building-customer-service-bot.md** - 客服机器人案例
+- **guides/building-code-review-agent.md** - 代码审查 Agent 案例
+
+### 🧪 测试
+- 新增 49 个音频测试
+- 总测试数: **1,828** (1,779 → 1,828)
+
+### 🐛 修复
+- 修复 `CostOptimizedRouter.SelectProviderAsync` 首选模型匹配逻辑
+- 修复 `ModelRouterDITests` Mock Provider 未设置 Name 属性问题
+
+---
+
 ## 🖥️ 快速恢复指南（另一台电脑）
 
 ### 环境准备
@@ -71,10 +108,15 @@ dotnet run
 - ✅ CSharpier Tool: 代码格式化工具（1594 测试通过）
 - ✅ P3: Chroma 向量存储（1608 测试通过）
 - ✅ P4: Weaviate 向量存储（1630 测试通过）
+- ✅ Week 28: MCP 协议支持（1671 测试通过）
+- ✅ Week 28: Agent 评估框架（1694 测试通过）
+- ✅ Week 28: 图形化工作流 DSL（1746 测试通过）
+- ✅ Week 28: 多模态 Vision（1779 测试通过）
+- ✅ Week 29: 音频支持 Whisper + TTS（1828 测试通过）
 
-### 🎉 12 周学习计划全部完成
+### 🎉 企业级就绪度: 88%
 
-恭喜！您已完成完整的 Dawning.Agents 学习计划，拥有一个企业级 AI Agent 框架！
+框架已完成所有核心功能，达到企业级就绪状态。
 
 ---
 
@@ -82,22 +124,22 @@ dotnet run
 
 | 优先级 | 任务 | 描述 | 状态 |
 |--------|------|------|------|
-| P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ✅ |
+| P0 | **NuGet 发布** | 准备和发布 NuGet 包到 nuget.org | ⏳ |
 | P1 | **文档站点** | DocFX 生成 API 文档站点 | ✅ |
 | P2 | **性能基准测试** | BenchmarkDotNet 性能测试套件 | ✅ |
 | P3 | **Chroma 向量存储** | 轻量级本地向量数据库，适合开发测试 | ✅ |
 | P4 | **Weaviate 向量存储** | 第三个云端向量数据库 | ✅ |
-| P5 | **MCP 协议** | 支持 Anthropic Model Context Protocol | ⏳ |
-| P6 | **Semantic Kernel 集成** | 与微软 Semantic Kernel 互操作 | ⏳ |
-| P7 | **LangChain 兼容层** | 与 LangChain 工具链集成 | ⏳ |
+| P5 | **MCP 协议** | 支持 Anthropic Model Context Protocol | ✅ |
+| P6 | **Agent 评估框架** | A/B 测试、多指标评估 | ✅ |
+| P7 | **工作流 DSL** | 可视化工作流定义 | ✅ |
+| P8 | **多模态支持** | Vision + Audio | ✅ |
+| P9 | MS Agent Framework 集成 | 与微软 Agent Framework 互操作 | 低优先级 |
 
 ### 优先级说明
 
 - **P0 NuGet 发布**：让框架可被外部项目使用，是框架价值实现的关键
-- **P1 文档站点**：API 文档对用户采用至关重要
-- **P2 性能基准**：企业级框架需要性能数据支撑
-- **P3-P4 向量存储**：完善 RAG 生态系统
-- **P5-P7 集成**：与主流 AI 框架互操作
+- **P1-P8 已完成**：企业级功能全部实现
+- **P9 可选**：按需实现，MCP 协议已提供更通用的互操作能力
 
 ### 📊 向量存储生态系统总结
 

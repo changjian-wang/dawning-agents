@@ -49,7 +49,10 @@ public class CostOptimizedRouter : ModelRouterBase
         // 如果有首选模型且可用，优先使用
         if (!string.IsNullOrEmpty(context.PreferredModel))
         {
+            // 优先精确匹配，其次部分匹配
             var preferred = healthyProviders.FirstOrDefault(
+                p => p.Name.Equals(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
+            ) ?? healthyProviders.FirstOrDefault(
                 p => p.Name.Contains(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
             );
             if (preferred != null)
