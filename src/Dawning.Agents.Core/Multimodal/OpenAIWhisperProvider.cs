@@ -22,10 +22,10 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     private readonly string _defaultModel;
     private readonly ILogger<OpenAIWhisperProvider> _logger;
 
-    private static readonly string[] s_supportedFormats =
+    private static readonly string[] _supportedFormats =
         ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "flac", "ogg"];
 
-    private static readonly JsonSerializerOptions s_jsonOptions =
+    private static readonly JsonSerializerOptions _jsonOptions =
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -36,7 +36,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     public string Name => "OpenAI-Whisper";
 
     /// <inheritdoc />
-    public IReadOnlyList<string> SupportedFormats => s_supportedFormats;
+    public IReadOnlyList<string> SupportedFormats => _supportedFormats;
 
     /// <inheritdoc />
     public long MaxFileSize => 25 * 1024 * 1024; // 25 MB
@@ -121,7 +121,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
 
         var extension = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
-        if (!s_supportedFormats.Contains(extension))
+        if (!_supportedFormats.Contains(extension))
         {
             return TranscriptionResult.Failed($"不支持的格式: {extension}");
         }
