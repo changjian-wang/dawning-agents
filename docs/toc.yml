@@ -1,6 +1,12 @@
 - name: Home
   href: index.md
+- name: Quick Start
+  href: QUICKSTART.md
+- name: Architecture
+  href: architecture/ARCHITECTURE.md
 - name: Articles
   href: articles/
+- name: Guides
+  href: guides/
 - name: API Reference
   href: api/
