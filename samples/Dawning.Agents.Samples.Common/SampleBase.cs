@@ -1,6 +1,7 @@
 using System.Text;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Core.LLM;
+using Dawning.Agents.Core.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -41,6 +42,9 @@ public abstract class SampleBase
             ConfigureServices(builder.Services, builder.Configuration);
 
             Host = builder.Build();
+
+            // 确保工具已注册
+            Services.EnsureToolsRegistered();
 
             // 验证 LLM Provider
             var provider = Services.GetService<ILLMProvider>();
