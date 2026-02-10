@@ -138,7 +138,7 @@ public class LLMProviderDITests
     }
 
     [Fact]
-    public void AddLLMProvider_WithOpenAIType_CreatesOpenAIProvider()
+    public void AddLLMProvider_WithOpenAIType_ThrowsNotSupported()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -149,10 +149,10 @@ public class LLMProviderDITests
             options.ApiKey = "fake-key";
         });
 
-        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
+        var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
-        provider.Should().BeOfType<Dawning.Agents.OpenAI.OpenAIProvider>();
-        provider.Name.Should().Be("OpenAI");
+        act.Should().Throw<NotSupportedException>()
+            .WithMessage("*Dawning.Agents.OpenAI*AddOpenAIProvider*");
     }
 }
 

@@ -1,5 +1,7 @@
 using System.ClientModel;
 using Dawning.Agents.Abstractions.RAG;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenAI;
 using OpenAI.Embeddings;
 
@@ -33,6 +35,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     private readonly EmbeddingClient _embeddingClient;
     private readonly string _model;
     private readonly int _dimensions;
+    private readonly ILogger<OpenAIEmbeddingProvider> _logger;
 
     /// <summary>
     /// 模型维度映射
@@ -55,22 +58,37 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// </summary>
     /// <param name="apiKey">OpenAI API Key</param>
     /// <param name="model">嵌入模型名称（默认 text-embedding-3-small）</param>
-    public OpenAIEmbeddingProvider(string apiKey, string model = "text-embedding-3-small")
+    /// <param name="logger">日志记录器</param>
+    public OpenAIEmbeddingProvider(
+        string apiKey,
+        string model = "text-embedding-3-small",
+        ILogger<OpenAIEmbeddingProvider>? logger = null
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
 
         _model = model;
         _dimensions = GetModelDimensions(model);
+        _logger = logger ?? NullLogger<OpenAIEmbeddingProvider>.Instance;
 
         var client = new OpenAIClient(apiKey);
         _embeddingClient = client.GetEmbeddingClient(model);
+        _logger.LogDebug(
+            "OpenAIEmbeddingProvider 已创建，模型: {Model}，维度: {Dimensions}",
+            model,
+            _dimensions
+        );
     }
 
     /// <summary>
     /// 使用自定义 EmbeddingClient 创建 Provider（用于测试）
     /// </summary>
-    internal OpenAIEmbeddingProvider(EmbeddingClient embeddingClient, string model, int dimensions)
+    internal OpenAIEmbeddingProvider(
+        EmbeddingClient embeddingClient,
+        string model,
+        int dimensions
+    )
     {
         ArgumentNullException.ThrowIfNull(embeddingClient);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
@@ -78,6 +96,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
         _embeddingClient = embeddingClient;
         _model = model;
         _dimensions = dimensions;
+        _logger = NullLogger<OpenAIEmbeddingProvider>.Instance;
     }
 
     public async Task<float[]> EmbedAsync(

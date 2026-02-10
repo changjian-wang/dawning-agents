@@ -148,7 +148,7 @@ public class HumanInLoopAgent : IAgent
         catch (Exception ex)
         {
             _logger.LogError(ex, "Agent 执行过程中发生错误");
-            return AgentResponse.Failed($"执行过程中发生错误：{ex.Message}", [], stopwatch.Elapsed);
+            return AgentResponse.Failed($"执行过程中发生错误：{ex.Message}", [], stopwatch.Elapsed, ex);
         }
     }
 

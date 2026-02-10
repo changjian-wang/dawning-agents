@@ -1,22 +1,91 @@
 # Dawning.Agents 企业级就绪度评估报告
 
-> **评估日期**: 2026-01-29  
-> **当前版本**: Week 28+ 完成 (企业级差距修复阶段)  
-> **测试覆盖**: 1,779+ 个测试通过
+> **评估日期**: 2026-02-10 (修订)  
+> **当前版本**: v0.1.0-preview.1  
+> **测试覆盖**: 1,906 个测试通过
 
 ---
 
-## 📊 总体评分
+## ⚠️ 重要说明
 
-| 维度 | 得分 | 行业标杆 | 差距 |
-|------|------|----------|------|
-| **核心功能完整性** | ⭐⭐⭐⭐⭐ 98% | 90% | +8% |
-| **生产就绪度** | ⭐⭐⭐⭐⭐ 90% | 85% | +5% |
-| **企业级特性** | ⭐⭐⭐⭐ 85% | 80% | +5% |
-| **文档与 DX** | ⭐⭐⭐⭐ 70% | 85% | -15% |
-| **生态系统成熟度** | ⭐⭐⭐ 60% | 75% | -15% |
+本报告已根据 2026-02-10 深度代码审查结果进行修订。原评估 (2026-01-29) 未发现以下 P0 级架构问题，导致评分偏高。修订后评分更真实地反映框架当前状态。
 
-**综合评分: 88% - 企业级就绪，功能完整**
+---
+
+## 📊 总体评分 (修订)
+
+| 维度 | 得分 (修订) | 原得分 | 行业标杆 | 差距 |
+|------|------------|--------|----------|------|
+| **核心功能完整性** | ⭐⭐⭐⭐ 78% | 98% | 90% | -12% |
+| **架构健康度** | ⭐⭐⭐ 60% | N/A | 85% | -25% |
+| **生产就绪度** | ⭐⭐⭐ 65% | 90% | 85% | -20% |
+| **企业级特性** | ⭐⭐⭐⭐ 80% | 85% | 80% | ±0% |
+| **文档与 DX** | ⭐⭐⭐⭐ 70% | 70% | 85% | -15% |
+| **生态系统成熟度** | ⭐⭐⭐ 60% | 60% | 75% | -15% |
+
+**综合评分: 69% → 需完成 P0 修复后方可视为企业级就绪**
+
+### 评分下调原因
+
+| 问题 | 影响维度 | 分数影响 |
+|------|---------|---------|
+| Core 包反向依赖 OpenAI/Azure（35+ 传递依赖） | 架构健康度 | -25% |
+| 无 Native Function Calling（ChatMessage 无 ToolCalls） | 核心功能完整性 | -20% |
+| 异常信息丢失（只保留 Message，丢失 Exception 类型和堆栈） | 生产就绪度 | -15% |
+| Provider 无 ILogger/IOptions/重试 | 生产就绪度 | -10% |
+| Singleton Agent + Scoped Memory 生命周期冲突 | 架构健康度 | -10% |
+
+---
+
+## 🔴 P0 阻塞问题 (2026-02-10 审查发现)
+
+### P0-1: Core 包依赖膨胀
+
+```
+问题: Dawning.Agents.Core.csproj 包含:
+  - 32+ PackageReference (含 Redis/Serilog/OTel/Elastic)
+  - 2 ProjectReference (OpenAI, Azure) ← 架构违规
+  
+影响: 安装 Core 包拉入 ~35+ 传递依赖
+      Core 应被 Provider 依赖，而非反向引用 Provider
+      
+修复: 拆分为 Core + Observability + Logging.Serilog 独立包
+      移除 OpenAI/Azure ProjectReference
+
+状态: ⏳ 计划在 Phase 1.1 修复
+```
+
+### P0-2: 无 Native Function Calling
+
+```
+问题: ChatMessage 只有 Role + Content
+      ChatCompletionOptions 只有 Temperature/MaxTokens/SystemPrompt
+      无法使用现代 LLM 的原生 Function Calling / Tool Use
+      
+影响: Agent 只能通过 prompt hack 调用工具，准确率低
+      缺失 ToolCalls / ToolCallId / ToolChoice / ResponseFormat
+      
+修复: 扩展 ChatMessage、ChatCompletionOptions、ChatCompletionResponse
+      所有 Provider 适配原生 Function Calling API
+
+状态: ⏳ 计划在 Phase 1.2 修复
+```
+
+### P0-3: 异常信息丢失
+
+```
+问题: AgentBase.RunAsync catch(Exception ex) 只保留 ex.Message
+      AgentResponse 无 Exception 属性
+      调用方无法区分异常类型、无法实现重试策略
+      
+影响: 生产环境无法诊断根因
+      无法区分暂时性故障 vs 永久性故障
+      
+修复: AgentResponse 增加 Exception? 属性
+      catch 块保留完整异常对象
+
+状态: ⏳ 计划在 Phase 1.3 修复
+```
 
 ---
 
@@ -31,7 +100,7 @@
 ✅ 可配置的 AgentOptions (MaxSteps, Temperature)
 ```
 
-### 2. LLM Provider 抽象 (90% 完成)
+### 2. LLM Provider 抽象 (70% 完成 - 下调)
 
 ```
 ✅ ILLMProvider 统一接口
@@ -40,6 +109,11 @@
 ✅ AzureOpenAIProvider (企业 Azure)
 ✅ 流式响应 (ChatStreamAsync)
 ✅ Token 计数
+❌ Native Function Calling (ChatMessage 无 ToolCalls)
+❌ Structured Output (ResponseFormat)
+❌ Provider 无 ILogger / IOptions 接入
+❌ Content[0].Text 不安全取值 (可能 IndexOutOfRange)
+❌ Provider 间代码重复 (无共享基类)
 ```
 
 ### 3. Tools/Skills 系统 (95% 完成)
@@ -306,6 +380,8 @@
 |------|----------------|-----------------|-----------|--------|-------------------|
 | **语言** | C# (.NET 10) | C#/Python | Python/JS | Python | Python |
 | **LLM 抽象** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Function Calling** | ❌ **缺失** | ✅ | ✅ | ✅ | ✅ |
+| **Structured Output** | ❌ 缺失 | ✅ | ✅ | ⚠️ | ✅ |
 | **Tools/Skills** | ✅ (64方法) | ✅ | ✅ | ✅ | ✅ |
 | **Memory** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **RAG** | ✅ (完整) | ✅ | ✅ (完整) | ⚠️ | ⚠️ |
@@ -405,30 +481,44 @@
 
 ---
 
-## 📋 结论
+## 📋 结论 (修订)
 
-**Dawning.Agents 已达到 "企业级就绪" 阶段**
+**Dawning.Agents 功能覆盖广泛，但存在 P0 级架构问题，尚未达到"企业级就绪"**
 
-| 适合场景 | 不适合场景 |
-|----------|------------|
-| ✅ .NET 企业内部 Agent | ⚠️ 需要商业支持的客户 |
-| ✅ 与 Dawning Gateway 配合 | ⚠️ 需要活跃社区的团队 |
-| ✅ 对 Agent 有深度定制需求 | |
-| ✅ 自主可控要求高的场景 | |
-| ✅ 需要 MCP 互操作性 | |
-| ✅ 需要多模态能力 (Vision) | |
-| ✅ 需要工作流编排 | |
-| ✅ 需要 A/B 测试和评估 | |
+### 当前状态: 需 P0 修复
 
-### 新增企业级能力
+| 优势 | 待解决的阻塞问题 |
+|------|----------------|
+| ✅ 功能覆盖广 (MCP/Vision/Workflow/RAG) | 🔴 Core 包依赖膨胀 (35+ 传递依赖) |
+| ✅ 1,906 个测试 | 🔴 无 Native Function Calling |
+| ✅ 纯 DI 架构 | 🔴 异常信息丢失 |
+| ✅ Dawning 生态集成 | 🟡 Provider 缺少企业基础设施 |
+| ✅ 安全护栏完善 | 🟡 DI 生命周期冲突 |
 
-- **MCP 协议支持**: 与 Claude Desktop、Cursor 等工具互操作
-- **Agent 评估框架**: A/B 测试、多种评估指标、报告生成
-- **工作流 DSL**: 可视化工作流定义、条件分支、并行执行
-- **多模态支持**: GPT-4V/GPT-4o 视觉能力
+### P0 修复后预期评分
 
-**新增测试覆盖: 154 个新测试 (MCP 41 + 评估 23 + 工作流 52 + 多模态 38)**
+| 维度 | 当前 | P0 修复后 |
+|------|------|----------|
+| 核心功能完整性 | 78% | 92% |
+| 架构健康度 | 60% | 85% |
+| 生产就绪度 | 65% | 85% |
+| **综合评分** | **69%** | **85%** |
+
+### 适合场景
+
+| P0 修复前 | P0 修复后 |
+|----------|----------|
+| ✅ 技术评估和原型验证 | ✅ .NET 企业内部 Agent |
+| ✅ 学习和研究用途 | ✅ 与 Dawning Gateway 配合 |
+| ⚠️ 不建议生产部署 | ✅ 生产环境部署 |
+
+### 改进路线
+
+详见 [ENTERPRISE_ROADMAP.md](ENTERPRISE_ROADMAP.md)：
+- **Phase 1** (2-3周): P0 修复 — Core 拆分、Function Calling、异常保留
+- **Phase 2** (3-4周): 功能补齐 — Structured Output、流式事件、Prompt 注入防护
+- **Phase 3** (2-3周): 企业加固 — 架构测试、状态持久化、DTO 不可变化
 
 ---
 
-*报告更新于 2026-01-29，基于代码库分析和行业调研*
+*报告初始版本: 2026-01-29 | 修订: 2026-02-10 (基于深度代码审查)*

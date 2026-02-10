@@ -1,6 +1,4 @@
 using Dawning.Agents.Abstractions.LLM;
-using Dawning.Agents.Azure;
-using Dawning.Agents.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -225,8 +223,12 @@ public static class LLMServiceCollectionExtensions
         return options.ProviderType switch
         {
             LLMProviderType.Ollama => CreateOllamaProvider(sp, options),
-            LLMProviderType.OpenAI => CreateOpenAIProvider(options, loggerFactory),
-            LLMProviderType.AzureOpenAI => CreateAzureOpenAIProvider(options, loggerFactory),
+            LLMProviderType.OpenAI => throw new NotSupportedException(
+                "OpenAI Provider 已移至独立包。请安装 Dawning.Agents.OpenAI 并调用 services.AddOpenAIProvider(apiKey, model)"
+            ),
+            LLMProviderType.AzureOpenAI => throw new NotSupportedException(
+                "Azure OpenAI Provider 已移至独立包。请安装 Dawning.Agents.Azure 并调用 services.AddAzureOpenAIProvider(endpoint, apiKey, deployment)"
+            ),
             _ => throw new NotSupportedException($"不支持的 Provider 类型: {options.ProviderType}"),
         };
     }
@@ -239,26 +241,6 @@ public static class LLMServiceCollectionExtensions
         var logger = loggerFactory?.CreateLogger<OllamaProvider>();
 
         return new OllamaProvider(httpClient, options.Model, logger);
-    }
-
-    private static Dawning.Agents.OpenAI.OpenAIProvider CreateOpenAIProvider(
-        LLMOptions options,
-        ILoggerFactory? loggerFactory
-    )
-    {
-        return new Dawning.Agents.OpenAI.OpenAIProvider(options.ApiKey!, options.Model);
-    }
-
-    private static Dawning.Agents.Azure.AzureOpenAIProvider CreateAzureOpenAIProvider(
-        LLMOptions options,
-        ILoggerFactory? loggerFactory
-    )
-    {
-        return new Dawning.Agents.Azure.AzureOpenAIProvider(
-            options.Endpoint!,
-            options.ApiKey!,
-            options.Model
-        );
     }
 
     /// <summary>

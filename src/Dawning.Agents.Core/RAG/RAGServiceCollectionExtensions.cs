@@ -1,7 +1,5 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
-using Dawning.Agents.Azure;
-using Dawning.Agents.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -112,44 +110,6 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI Embedding Provider
-    /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="apiKey">OpenAI API Key</param>
-    /// <param name="model">嵌入模型名称</param>
-    public static IServiceCollection AddOpenAIEmbedding(
-        this IServiceCollection services,
-        string apiKey,
-        string model = "text-embedding-3-small"
-    )
-    {
-        services.AddSingleton<IEmbeddingProvider>(new OpenAIEmbeddingProvider(apiKey, model));
-        return services;
-    }
-
-    /// <summary>
-    /// 添加 Azure OpenAI Embedding Provider
-    /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="endpoint">Azure OpenAI 端点</param>
-    /// <param name="apiKey">Azure OpenAI API Key</param>
-    /// <param name="deploymentName">嵌入模型部署名称</param>
-    /// <param name="dimensions">向量维度</param>
-    public static IServiceCollection AddAzureOpenAIEmbedding(
-        this IServiceCollection services,
-        string endpoint,
-        string apiKey,
-        string deploymentName,
-        int dimensions = 1536
-    )
-    {
-        services.AddSingleton<IEmbeddingProvider>(
-            new AzureOpenAIEmbeddingProvider(endpoint, apiKey, deploymentName, dimensions)
-        );
-        return services;
-    }
-
-    /// <summary>
     /// 添加 Ollama Embedding Provider
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -245,11 +205,11 @@ public static class RAGServiceCollectionExtensions
         return llmOptions.ProviderType switch
         {
             LLMProviderType.Ollama => CreateOllamaEmbeddingProvider(sp, model, loggerFactory),
-            LLMProviderType.OpenAI => new OpenAIEmbeddingProvider(llmOptions.ApiKey!, model),
-            LLMProviderType.AzureOpenAI => new AzureOpenAIEmbeddingProvider(
-                llmOptions.Endpoint!,
-                llmOptions.ApiKey!,
-                model
+            LLMProviderType.OpenAI => throw new NotSupportedException(
+                "OpenAI Embedding 已移至独立包。请安装 Dawning.Agents.OpenAI 并调用 services.AddOpenAIEmbedding(apiKey, model)"
+            ),
+            LLMProviderType.AzureOpenAI => throw new NotSupportedException(
+                "Azure OpenAI Embedding 已移至独立包。请安装 Dawning.Agents.Azure 并调用 services.AddAzureOpenAIEmbedding(endpoint, apiKey, deployment)"
             ),
             _ => throw new NotSupportedException(
                 $"不支持的 Provider 类型: {llmOptions.ProviderType}"

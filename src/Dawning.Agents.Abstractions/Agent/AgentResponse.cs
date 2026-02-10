@@ -21,6 +21,11 @@ public record AgentResponse
     public string? Error { get; init; }
 
     /// <summary>
+    /// 导致失败的异常（如果有）
+    /// </summary>
+    public Exception? Exception { get; init; }
+
+    /// <summary>
     /// 执行的所有步骤
     /// </summary>
     public IReadOnlyList<AgentStep> Steps { get; init; } = [];
@@ -52,7 +57,8 @@ public record AgentResponse
     public static AgentResponse Failed(
         string error,
         IReadOnlyList<AgentStep> steps,
-        TimeSpan duration
+        TimeSpan duration,
+        Exception? exception = null
     ) =>
         new()
         {
@@ -60,5 +66,6 @@ public record AgentResponse
             Error = error,
             Steps = steps,
             Duration = duration,
+            Exception = exception,
         };
 }

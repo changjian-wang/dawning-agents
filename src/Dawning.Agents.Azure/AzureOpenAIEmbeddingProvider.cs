@@ -1,6 +1,8 @@
 using Azure;
 using Azure.AI.OpenAI;
 using Dawning.Agents.Abstractions.RAG;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenAI.Embeddings;
 
 namespace Dawning.Agents.Azure;
@@ -29,6 +31,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
     private readonly EmbeddingClient _embeddingClient;
     private readonly string _deploymentName;
     private readonly int _dimensions;
+    private readonly ILogger<AzureOpenAIEmbeddingProvider> _logger;
 
     public string Name => "AzureOpenAI";
 
@@ -41,11 +44,13 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
     /// <param name="apiKey">Azure OpenAI API Key</param>
     /// <param name="deploymentName">嵌入模型部署名称</param>
     /// <param name="dimensions">向量维度（默认 1536）</param>
+    /// <param name="logger">日志记录器</param>
     public AzureOpenAIEmbeddingProvider(
         string endpoint,
         string apiKey,
         string deploymentName,
-        int dimensions = 1536
+        int dimensions = 1536,
+        ILogger<AzureOpenAIEmbeddingProvider>? logger = null
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
@@ -54,9 +59,16 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
 
         _deploymentName = deploymentName;
         _dimensions = dimensions;
+        _logger = logger ?? NullLogger<AzureOpenAIEmbeddingProvider>.Instance;
 
         var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
         _embeddingClient = client.GetEmbeddingClient(deploymentName);
+        _logger.LogDebug(
+            "AzureOpenAIEmbeddingProvider 已创建，端点: {Endpoint}，部署: {Deployment}，维度: {Dimensions}",
+            endpoint,
+            deploymentName,
+            dimensions
+        );
     }
 
     /// <summary>
@@ -74,6 +86,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
         _embeddingClient = embeddingClient;
         _deploymentName = deploymentName;
         _dimensions = dimensions;
+        _logger = NullLogger<AzureOpenAIEmbeddingProvider>.Instance;
     }
 
     public async Task<float[]> EmbedAsync(

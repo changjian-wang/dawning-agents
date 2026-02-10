@@ -70,8 +70,8 @@ public static class ObservabilityServiceCollectionExtensions
     public static IServiceCollection AddObservableAgent<TAgent>(this IServiceCollection services)
         where TAgent : class, IAgent
     {
-        services.AddSingleton<TAgent>();
-        services.AddSingleton<IAgent>(sp =>
+        services.AddScoped<TAgent>();
+        services.AddScoped<IAgent>(sp =>
         {
             var innerAgent = sp.GetRequiredService<TAgent>();
             var telemetry = sp.GetRequiredService<AgentTelemetry>();
@@ -134,7 +134,7 @@ public static class ObservabilityServiceCollectionExtensions
             );
 
             // 注册可观测 Agent
-            services.AddSingleton<IAgent>(sp =>
+            services.AddScoped<IAgent>(sp =>
             {
                 var marker = sp.GetRequiredService<InnerAgentMarker>();
                 var telemetry = sp.GetRequiredService<AgentTelemetry>();

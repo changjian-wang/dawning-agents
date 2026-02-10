@@ -1,7 +1,9 @@
 using Azure.Core;
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Dawning.Agents.Azure;
 
@@ -38,10 +40,11 @@ public static class AzureOpenAIServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
 
-        services.TryAddSingleton<ILLMProvider>(_ => new AzureOpenAIProvider(
+        services.TryAddSingleton<ILLMProvider>(sp => new AzureOpenAIProvider(
             endpoint,
             apiKey,
-            deploymentName
+            deploymentName,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<AzureOpenAIProvider>()
         ));
 
         return services;
@@ -75,10 +78,11 @@ public static class AzureOpenAIServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(credential);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
 
-        services.TryAddSingleton<ILLMProvider>(_ => new AzureOpenAIProvider(
+        services.TryAddSingleton<ILLMProvider>(sp => new AzureOpenAIProvider(
             endpoint,
             credential,
-            deploymentName
+            deploymentName,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<AzureOpenAIProvider>()
         ));
 
         return services;
@@ -114,6 +118,35 @@ public static class AzureOpenAIServiceCollectionExtensions
             options.ApiKey!,
             options.DeploymentName!
         );
+    }
+
+    /// <summary>
+    /// 添加 Azure OpenAI Embedding Provider
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="endpoint">Azure OpenAI 端点</param>
+    /// <param name="apiKey">Azure OpenAI API Key</param>
+    /// <param name="deploymentName">嵌入模型部署名称</param>
+    /// <param name="dimensions">向量维度</param>
+    public static IServiceCollection AddAzureOpenAIEmbedding(
+        this IServiceCollection services,
+        string endpoint,
+        string apiKey,
+        string deploymentName,
+        int dimensions = 1536
+    )
+    {
+        services.AddSingleton<IEmbeddingProvider>(
+            sp => new AzureOpenAIEmbeddingProvider(
+                endpoint,
+                apiKey,
+                deploymentName,
+                dimensions,
+                sp.GetService<ILoggerFactory>()
+                    ?.CreateLogger<AzureOpenAIEmbeddingProvider>()
+            )
+        );
+        return services;
     }
 }
 

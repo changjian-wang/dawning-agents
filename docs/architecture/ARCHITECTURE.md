@@ -1794,6 +1794,434 @@ var workflow = new WorkflowBuilder("order-processing")
     .Build();
 ```
 
+### Distributed 分布式基础设施
+
+分布式模块定义了跨节点协作所需的核心抽象——分布式锁、分布式记忆、分布式队列，由 Redis 包提供生产级实现。
+
+#### 核心接口
+
+```
+Abstractions/Distributed/
+├── IDistributedLock.cs           → 分布式锁 + 锁工厂
+├── IDistributedMemory.cs         → 跨节点会话记忆
+├── IDistributedAgentQueue.cs     → 分布式任务队列
+└── DistributedOptions.cs         → 配置选项集合
+
+Redis/
+├── Lock/RedisDistributedLock.cs  → Redis SET NX EX 实现
+├── Memory/RedisMemoryStore.cs    → Redis List 会话存储
+├── Queue/RedisAgentQueue.cs      → Redis Streams 队列
+└── Cache/RedisDistributedCache.cs → Redis 分布式缓存
+```
+
+#### 分布式锁 (`IDistributedLock` + `IDistributedLockFactory`)
+
+```csharp
+public interface IDistributedLock : IAsyncDisposable
+{
+    string Resource { get; }
+    string LockId { get; }
+    bool IsAcquired { get; }
+    DateTime? ExpiresAt { get; }
+
+    Task<bool> TryAcquireAsync(TimeSpan timeout, CancellationToken ct = default);
+    Task ReleaseAsync(CancellationToken ct = default);
+    Task<bool> ExtendAsync(TimeSpan extension, CancellationToken ct = default);
+}
+
+public interface IDistributedLockFactory
+{
+    IDistributedLock CreateLock(string resource, TimeSpan expiry);
+
+    Task<T> ExecuteWithLockAsync<T>(
+        string resource,
+        TimeSpan expiry,
+        Func<CancellationToken, Task<T>> action,
+        CancellationToken ct = default);
+}
+```
+
+**Redis 实现要点：**
+
+- 使用 `SET key value NX EX` 原子获取锁
+- Lua 脚本释放 —— 仅释放自己持有的锁（比较 LockId）
+- Lua 脚本续期 —— `PEXPIRE` 原子延长过期时间
+- 支持自动续期定时器（`RenewalInterval` 默认 0.5 即过期时间一半时续期）
+- 获取失败时按 `RetryInterval` 轮询重试直到超时
+
+#### 分布式记忆 (`IDistributedMemory`)
+
+```csharp
+public interface IDistributedMemory : IConversationMemory
+{
+    string SessionId { get; }
+
+    Task<bool> TryLockSessionAsync(TimeSpan timeout, CancellationToken ct = default);
+    Task UnlockSessionAsync(CancellationToken ct = default);
+    Task SetExpiryAsync(TimeSpan expiry, CancellationToken ct = default);
+    Task RefreshExpiryAsync(CancellationToken ct = default);
+    Task<bool> ExistsAsync(CancellationToken ct = default);
+}
+```
+
+**Redis 实现要点：**
+
+- 消息存储：Redis List (`RPUSH` 追加、`LRANGE` 读取、`LTRIM` 窗口裁剪)
+- 会话锁：独立 key `{session}:lock`，防止多节点同时写入
+- 滑动过期：每次添加消息自动刷新 TTL
+- Token 上限：从最新消息向前回溯，累计不超过 `maxTokens`
+- 工厂模式：`RedisMemoryStoreFactory.Create(sessionId)` 按会话创建实例
+
+#### 分布式队列 (`IDistributedAgentQueue`)
+
+```csharp
+public interface IDistributedAgentQueue : IAgentRequestQueue
+{
+    Task<string> EnqueueWithIdAsync(
+        AgentWorkItem item, TimeSpan? delay = null, CancellationToken ct = default);
+    Task AcknowledgeAsync(string messageId, CancellationToken ct = default);
+    Task RequeueAsync(string messageId, TimeSpan? delay = null, CancellationToken ct = default);
+    Task MoveToDeadLetterAsync(string messageId, string reason, CancellationToken ct = default);
+    Task<long> GetPendingCountAsync(CancellationToken ct = default);
+    Task<long> GetDeadLetterCountAsync(CancellationToken ct = default);
+
+    string ConsumerGroup { get; }
+    string ConsumerName { get; }
+}
+```
+
+**Redis 实现要点：**
+
+- 基于 **Redis Streams** —— `XADD` 入队、`XREADGROUP` 消费者组消费
+- 延迟队列：Sorted Set（score = 执行时间戳），到期后移入主 Stream
+- 死信队列：独立 Redis List，`MoveToDeadLetterAsync` 记录失败原因
+- 消费者组：自动创建，支持多消费者并行消费
+- 每个消费者自动生成唯一名称：`{prefix}-{MachineName}-{GUID}`
+
+#### 配置选项
+
+```json
+{
+  "Redis": {
+    "ConnectionString": "localhost:6379",
+    "DefaultDatabase": 0,
+    "InstanceName": "dawning:",
+    "UseSsl": false,
+    "PoolSize": 10
+  },
+  "DistributedQueue": {
+    "QueueName": "agent:queue",
+    "ConsumerGroup": "agent-workers",
+    "DeadLetterQueue": "agent:deadletter",
+    "MaxRetries": 3,
+    "BatchSize": 10,
+    "PollIntervalMs": 1000
+  },
+  "DistributedLock": {
+    "DefaultExpiry": 30,
+    "DefaultWaitTimeout": 10,
+    "RetryInterval": 200,
+    "EnableAutoRenewal": true,
+    "KeyPrefix": "lock:"
+  },
+  "DistributedSession": {
+    "DefaultExpiry": 60,
+    "MaxMessages": 100,
+    "EnableSlidingExpiry": true,
+    "KeyPrefix": "session:"
+  }
+}
+```
+
+#### DI 注册
+
+```csharp
+// 一键注册所有 Redis 分布式组件
+services.AddRedisDistributed(configuration);
+
+// 或按需注册
+services.AddRedisConnection(configuration);  // Redis 连接
+services.AddRedisCache(configuration);       // 分布式缓存
+services.AddRedisQueue(configuration);       // 分布式队列
+services.AddRedisLock(configuration);        // 分布式锁
+services.AddRedisMemory(configuration);      // 分布式记忆
+```
+
+### Scaling 扩展与负载均衡
+
+Scaling 模块提供 Agent 实例的水平扩展能力，包括请求队列、工作池、负载均衡、自动扩缩容和熔断器。
+
+#### 核心接口
+
+```
+Abstractions/Scaling/
+├── IScalingComponents.cs      → IAgentRequestQueue, IAgentLoadBalancer,
+│                                 IAgentWorkerPool, ICircuitBreaker, IAgentAutoScaler
+└── ScalingModels.cs           → ScalingOptions, ScalingDecision, ScalingMetrics
+
+Core/Scaling/
+├── AgentRequestQueue.cs       → Channel<T> 内存队列
+├── AgentWorkerPool.cs         → 多线程消费池
+├── AgentLoadBalancer.cs       → 简单轮询负载均衡
+├── DistributedLoadBalancer.cs → 多策略分布式负载均衡
+├── AgentAutoScaler.cs         → CPU/内存/队列指标自动扩缩
+├── CircuitBreaker.cs          → 三态熔断器
+└── ScalingServiceCollectionExtensions.cs
+```
+
+#### 分布式负载均衡器
+
+支持 5 种负载均衡策略：
+
+| 策略 | 说明 | 适用场景 |
+|------|------|----------|
+| `RoundRobin` | 轮询（默认） | 实例配置相同 |
+| `LeastConnections` | 最小连接数 | 请求耗时差异大 |
+| `ConsistentHash` | 一致性哈希 | 需要会话粘性 |
+| `WeightedRoundRobin` | 加权轮询 | 实例配置不同 |
+| `Random` | 随机 | 简单均匀分布 |
+
+```csharp
+// 一致性哈希实现
+// - SHA256 哈希 + 虚拟节点（默认 150 个）
+// - SortedDictionary<int, string> 哈希环
+// - 按 sessionKey 路由到固定实例
+
+// 故障转移
+var result = await loadBalancer.ExecuteWithFailoverAsync(
+    instance => CallAgentAsync(instance),
+    sessionKey: userId,
+    cancellationToken);
+// → 自动重试 FailoverRetries 次，每次选不同实例
+
+// 服务发现集成
+await loadBalancer.SyncFromServiceRegistryAsync("agent-service");
+loadBalancer.StartWatching("agent-service");  // Watch 模式自动同步
+```
+
+#### 自动扩缩容 (`IAgentAutoScaler`)
+
+```csharp
+public interface IAgentAutoScaler
+{
+    Task<ScalingDecision> EvaluateAsync(CancellationToken ct = default);
+    int CurrentInstances { get; }
+    DateTime? LastScaleUpTime { get; }
+    DateTime? LastScaleDownTime { get; }
+}
+```
+
+扩缩容决策逻辑：
+
+```
+扩容条件（满足任一）：
+  CPU > TargetCpuPercent
+  内存 > TargetMemoryPercent
+  队列长度 > 当前实例数 × 10
+
+缩容条件（全部满足）：
+  CPU < TargetCpuPercent × 50%
+  内存 < TargetMemoryPercent × 50%
+  队列长度 < 当前实例数 × 2
+
+冷却机制：
+  ScaleUpCooldownSeconds   → 扩容后冷却期
+  ScaleDownCooldownSeconds → 缩容后冷却期
+```
+
+#### 熔断器 (`ICircuitBreaker`)
+
+三态状态机：Closed → Open → HalfOpen → Closed
+
+```csharp
+public interface ICircuitBreaker
+{
+    CircuitState State { get; }
+    int FailureCount { get; }
+    Task<T> ExecuteAsync<T>(Func<Task<T>> action, CancellationToken ct = default);
+    void Reset();
+}
+
+// 使用
+var result = await circuitBreaker.ExecuteAsync(async () =>
+{
+    return await llmProvider.ChatAsync(messages);
+});
+// 连续失败 5 次 → Open（拒绝请求）
+// 等待 resetTimeout → HalfOpen（放行一个请求试探）
+// 试探成功 → Closed | 试探失败 → Open
+```
+
+#### 工作池 (`IAgentWorkerPool`)
+
+```csharp
+// 多线程消费队列中的 AgentWorkItem
+var pool = new AgentWorkerPool(agent, queue, workerCount: 8);
+pool.Start();
+
+// 工作线程循环：Dequeue → Agent.RunAsync → CompletionSource.SetResult
+// 支持优雅停止：Cancel → WhenAll → 30s 超时
+```
+
+#### DI 注册
+
+```csharp
+// 生产环境一键注册
+services.AddProductionDeployment(configuration);
+
+// 或按需注册
+services.AddAgentRequestQueue(capacity: 1000);
+services.AddAgentLoadBalancer();
+services.AddDistributedLoadBalancer(configuration);  // 替代简单负载均衡
+services.AddCircuitBreaker(failureThreshold: 5, resetTimeout: TimeSpan.FromSeconds(30));
+services.AddScaling(configuration);
+```
+
+### Discovery 服务发现
+
+Discovery 模块提供 Agent 服务实例的注册、发现和健康管理，支持内存模式（开发）和 Kubernetes 模式（生产）。
+
+#### 核心接口
+
+```csharp
+public interface IServiceRegistry
+{
+    Task RegisterAsync(ServiceInstance instance, CancellationToken ct = default);
+    Task DeregisterAsync(string instanceId, CancellationToken ct = default);
+    Task HeartbeatAsync(string instanceId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ServiceInstance>> GetInstancesAsync(
+        string serviceName, CancellationToken ct = default);
+    Task<IReadOnlyList<string>> GetServicesAsync(CancellationToken ct = default);
+
+    IAsyncEnumerable<ServiceInstance[]> WatchAsync(
+        string serviceName, CancellationToken ct = default);
+}
+```
+
+#### ServiceInstance 模型
+
+```csharp
+public sealed record ServiceInstance
+{
+    public required string Id { get; init; }
+    public required string ServiceName { get; init; }
+    public required string Host { get; init; }
+    public required int Port { get; init; }
+    public int Weight { get; init; } = 100;
+    public IReadOnlyDictionary<string, string> Tags { get; init; }
+    public string? HealthCheckUrl { get; init; }
+    public bool IsHealthy { get; set; } = true;
+
+    public Uri GetUri(string scheme = "http") => new($"{scheme}://{Host}:{Port}");
+}
+```
+
+#### 实现
+
+| 实现 | 适用环境 | 特点 |
+|------|----------|------|
+| `InMemoryServiceRegistry` | 开发/测试 | ConcurrentDictionary 存储，心跳超时自动过期 |
+| `KubernetesServiceRegistry` | K8s 生产 | 通过 Endpoints API 自动发现 Pod 实例 |
+
+**Kubernetes 实现要点：**
+
+- 通过 Endpoints API 获取 Pod IP 和端口
+- 服务注册/注销由 K8s 自动管理（空操作）
+- Watch 模式采用轮询（`WatchIntervalSeconds` 默认 5s）
+- 自动检测 Pod 环境（`KUBERNETES_SERVICE_HOST` 环境变量）
+- 支持 ServiceAccount Token 认证
+
+#### DI 注册
+
+```csharp
+// 自动选择（K8s 环境自动用 Kubernetes 实现）
+services.AddServiceDiscovery(configuration);
+
+// 或显式指定
+services.AddInMemoryServiceRegistry();
+services.AddKubernetesServiceDiscovery(configuration);
+```
+
+#### 配置选项
+
+```json
+{
+  "ServiceRegistry": {
+    "HeartbeatIntervalSeconds": 10,
+    "ServiceExpireSeconds": 30,
+    "HealthCheckIntervalSeconds": 15
+  },
+  "Kubernetes": {
+    "ApiServerUrl": "https://kubernetes.default.svc",
+    "Namespace": "default",
+    "WatchIntervalSeconds": 5,
+    "Enabled": false
+  }
+}
+```
+
+---
+
+## 分布式架构总览
+
+```mermaid
+graph LR
+    subgraph Client["客户端"]
+        Request([请求])
+    end
+
+    subgraph LB["负载均衡层"]
+        DLB[DistributedLoadBalancer]
+        CB[CircuitBreaker]
+    end
+
+    subgraph Workers["工作节点"]
+        direction TB
+        W1["Agent Worker 1"]
+        W2["Agent Worker 2"]
+        W3["Agent Worker N"]
+    end
+
+    subgraph Redis["Redis 基础设施"]
+        direction TB
+        Stream["Redis Streams<br/>任务队列"]
+        Lock["Redis Lock<br/>分布式锁"]
+        Session["Redis Memory<br/>会话存储"]
+        Cache["Redis Cache<br/>分布式缓存"]
+    end
+
+    subgraph Discovery["服务发现"]
+        SR[ServiceRegistry]
+        K8s[K8s Endpoints]
+    end
+
+    subgraph Scaling["自动扩缩"]
+        AS[AutoScaler]
+        Metrics["CPU / Mem / Queue"]
+    end
+
+    Request --> DLB
+    DLB --> CB
+    CB --> W1 & W2 & W3
+
+    W1 & W2 & W3 --> Stream
+    W1 & W2 & W3 --> Lock
+    W1 & W2 & W3 --> Session
+    W1 & W2 & W3 --> Cache
+
+    SR --> DLB
+    K8s --> SR
+    Metrics --> AS
+    AS -->|调整实例数| Workers
+
+    style LB fill:#e1f5fe
+    style Workers fill:#f3e5f5
+    style Redis fill:#fff3e0
+    style Discovery fill:#e8f5e9
+    style Scaling fill:#fce4ec
+```
+
 ---
 
 ## 关键流程分析
@@ -2068,6 +2496,68 @@ public class MyCustomMemory : IConversationMemory
 
 ---
 
+## 已知架构问题与改进计划
+
+> **评估日期**: 2026-02-10
+
+### P0 — 阻碍企业采用
+
+#### 1. Core 包依赖臃肿
+
+`Dawning.Agents.Core.csproj` 包含 32+ NuGet 包 + 2 个 ProjectReference（OpenAI、Azure），违背"极简"设计目标。安装 Core 会被迫拉入 ~35+ 无关传递依赖。
+
+| 不应在 Core 的依赖 | 应归属的独立包 |
+|---|---|
+| `Dawning.Agents.OpenAI` / `.Azure` (ProjectReference) | 应由消费者按需引用，Core 不应反向依赖 Provider |
+| `StackExchange.Redis` / `AspNetCore.HealthChecks.Redis` | `Dawning.Agents.Redis` |
+| 7 个 OpenTelemetry 包 (含 beta) | `Dawning.Agents.Observability` (新建) |
+| 10 个 Serilog 包 + `Elastic.Serilog.Sinks` | `Dawning.Agents.Logging.Serilog` (新建) |
+
+**修复方向**: 将 Core 拆为纯核心（仅保留 Polly、FluentValidation、M.E.* 等基础依赖）+ 可选扩展包。
+
+#### 2. `ILLMProvider` 缺少 Native Function Calling 支持
+
+```csharp
+// 当前 — 只有 Temperature / MaxTokens / SystemPrompt
+public record ChatCompletionOptions { ... }
+
+// 当前 — 只有 Role + Content
+public record ChatMessage(string Role, string Content);
+```
+
+无 `Tools[]`、`ToolChoice`、`ResponseFormat`、`ToolCalls`、`ToolCallId` 字段。整个框架只能通过文本解析 ReAct 调用工具，无法使用现代 LLM 的原生 Function Calling。
+
+**修复方向**: 扩展 `ChatCompletionOptions` 和 `ChatMessage`，增加 Function Calling 与 Structured Output 支持。
+
+#### 3. 异常被吞，生产排障困难
+
+`AgentBase.RunAsync` 的 `catch (Exception ex)` 只保留 `ex.Message`，丢失异常类型、堆栈。`AgentResponse` 没有 `Exception` 属性。同样问题出现在 `OrchestratorBase`。
+
+**修复方向**: `AgentResponse` 增加 `Exception?` 属性；`catch` 中保留完整异常。
+
+### P1 — 重要优化
+
+| # | 问题 | 说明 |
+|---|---|---|
+| 4 | **Provider 缺少 ILogger/IOptions/IHttpClientFactory** | OpenAI/Azure Provider 直接收 `string apiKey`，无重试逻辑，`Content[0].Text` 不安全取值 |
+| 5 | **Singleton Agent + Scoped Memory = Captive Dependency** | Agent 注册为 Singleton，Memory 注册为 Scoped，导致生命周期陷阱 |
+| 6 | **流式 API 缺少结构化事件** | `IAsyncEnumerable<string>` 丢失 Tool Call 事件、Finish Reason、Token Usage |
+| 7 | **无 Roslyn 分析器** | CS1591 被 `<NoWarn>` 全局压制，无静态代码分析 |
+| 8 | **配置校验覆盖率仅 ~29%** | 27 个 Options 类仅 6 个有 `Validate()`，零个使用 `IValidateOptions<T>` |
+
+### P2 — 建议改进
+
+| # | 问题 | 说明 |
+|---|---|---|
+| 9 | `IToolRegistry` 13 个方法过胖 | 应拆为 `IToolRegistry` + `IToolSetRegistry` + `IVirtualToolManager`；缺少 `Unregister` |
+| 10 | DTO/Record 暴露可变集合 | `AgentContext.Steps` (mutable List)、`DocumentChunk.Metadata` (mutable Dict on record) |
+| 11 | ReActAgent 虚假工具回退 | 无工具时硬编码 "Search/Calculate/Lookup"，LLM 尝试调用会浪费步数 |
+| 12 | 无 Agent 状态持久化/Checkpoint | 长流程 Agent 无法跨进程重启 |
+| 13 | 无 Prompt Injection 防护 | `ContentFilterGuardrail` 仅关键词匹配；Tool 输出未消毒即回注 LLM 上下文 |
+| 14 | `ParallelOrchestrator` 部分失败丢结果 | `ContinueOnError=true` 时 `WhenAll` 抛异常后 results 被置为 `[]` |
+
+---
+
 ## 总结
 
 Dawning.Agents 的架构特点：
@@ -2078,6 +2568,8 @@ Dawning.Agents 的架构特点：
 4. **模板方法**：Agent 基类定义执行骨架，子类专注实现细节
 5. **策略模式**：Memory、Provider 等都支持多种策略切换
 6. **企业级基础设施**：完整的日志、健康检查、指标收集支持
+
+> ⚠️ **当前 Core 包依赖臃肿（P0）和缺少 Native Function Calling（P0）是阻碍企业采用的核心问题，详见上方"已知架构问题"章节。**
 
 ---
 

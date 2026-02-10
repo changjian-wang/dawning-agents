@@ -80,7 +80,7 @@ public class EmbeddingProviderDITests
     }
 
     [Fact]
-    public void AddEmbeddingProvider_WithOpenAIConfig_RegistersOpenAIProvider()
+    public void AddEmbeddingProvider_WithOpenAIConfig_ThrowsNotSupported()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -97,15 +97,15 @@ public class EmbeddingProviderDITests
 
         // Act
         services.AddEmbeddingProvider(configuration);
-        var provider = services.BuildServiceProvider().GetRequiredService<IEmbeddingProvider>();
+        var act = () => services.BuildServiceProvider().GetRequiredService<IEmbeddingProvider>();
 
-        // Assert
-        provider.Should().BeOfType<OpenAIEmbeddingProvider>();
-        provider.Name.Should().Be("OpenAI");
+        // Assert - OpenAI embedding now requires explicit AddOpenAIEmbedding()
+        act.Should().Throw<NotSupportedException>()
+            .WithMessage("*Dawning.Agents.OpenAI*AddOpenAIEmbedding*");
     }
 
     [Fact]
-    public void AddEmbeddingProvider_WithAzureConfig_RegistersAzureProvider()
+    public void AddEmbeddingProvider_WithAzureConfig_ThrowsNotSupported()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -123,11 +123,11 @@ public class EmbeddingProviderDITests
 
         // Act
         services.AddEmbeddingProvider(configuration);
-        var provider = services.BuildServiceProvider().GetRequiredService<IEmbeddingProvider>();
+        var act = () => services.BuildServiceProvider().GetRequiredService<IEmbeddingProvider>();
 
-        // Assert
-        provider.Should().BeOfType<AzureOpenAIEmbeddingProvider>();
-        provider.Name.Should().Be("AzureOpenAI");
+        // Assert - Azure OpenAI embedding now requires explicit AddAzureOpenAIEmbedding()
+        act.Should().Throw<NotSupportedException>()
+            .WithMessage("*Dawning.Agents.Azure*AddAzureOpenAIEmbedding*");
     }
 
     [Fact]

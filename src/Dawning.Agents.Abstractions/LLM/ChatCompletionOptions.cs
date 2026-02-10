@@ -13,4 +13,13 @@ public record ChatCompletionOptions
 
     /// <summary>系统提示词</summary>
     public string? SystemPrompt { get; init; }
+
+    /// <summary>可用工具列表（用于 Native Function Calling）</summary>
+    public IReadOnlyList<ToolDefinition>? Tools { get; init; }
+
+    /// <summary>工具选择模式（Auto/None/Required）</summary>
+    public ToolChoiceMode? ToolChoice { get; init; }
+
+    /// <summary>响应格式（Text/JsonObject/JsonSchema）</summary>
+    public ResponseFormat? ResponseFormat { get; init; }
 }

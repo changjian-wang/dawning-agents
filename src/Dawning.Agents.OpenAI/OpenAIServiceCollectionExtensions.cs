@@ -1,6 +1,8 @@
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Dawning.Agents.OpenAI;
 
@@ -30,7 +32,11 @@ public static class OpenAIServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
 
-        services.TryAddSingleton<ILLMProvider>(_ => new OpenAIProvider(apiKey, model));
+        services.TryAddSingleton<ILLMProvider>(sp => new OpenAIProvider(
+            apiKey,
+            model,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<OpenAIProvider>()
+        ));
 
         return services;
     }
@@ -60,6 +66,26 @@ public static class OpenAIServiceCollectionExtensions
         options.Validate();
 
         return services.AddOpenAIProvider(options.ApiKey!, options.Model);
+    }
+
+    /// <summary>
+    /// 添加 OpenAI Embedding Provider
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="apiKey">OpenAI API Key</param>
+    /// <param name="model">嵌入模型名称</param>
+    public static IServiceCollection AddOpenAIEmbedding(
+        this IServiceCollection services,
+        string apiKey,
+        string model = "text-embedding-3-small"
+    )
+    {
+        services.AddSingleton<IEmbeddingProvider>(sp => new OpenAIEmbeddingProvider(
+            apiKey,
+            model,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<OpenAIEmbeddingProvider>()
+        ));
+        return services;
     }
 }
 

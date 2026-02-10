@@ -97,7 +97,7 @@ public class AgentServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
         var agent = provider.GetRequiredService<IAgent>();
 
-        // TryAddSingleton 只添加第一个
+        // TryAddScoped 只添加第一个
         agent.Should().NotBeNull();
     }
 

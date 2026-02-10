@@ -28,7 +28,7 @@ public static class AgentServiceCollectionExtensions
         // 确保 ToolRegistry 已注册（Agent 可选依赖）
         services.AddToolRegistry();
 
-        services.TryAddSingleton<IAgent, ReActAgent>();
+        services.TryAddScoped<IAgent, ReActAgent>();
 
         return services;
     }
@@ -49,7 +49,7 @@ public static class AgentServiceCollectionExtensions
         // 确保 ToolRegistry 已注册（Agent 可选依赖）
         services.AddToolRegistry();
 
-        services.TryAddSingleton<IAgent, ReActAgent>();
+        services.TryAddScoped<IAgent, ReActAgent>();
 
         return services;
     }

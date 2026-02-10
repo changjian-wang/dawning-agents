@@ -1,328 +1,252 @@
 # 🚀 Dawning.Agents 企业级转型路线图
 
 > **目标**: 将 dawning-agents 从学习项目转型为企业级 AI Agent 框架  
-> **当前版本**: v1.0 (学习版)  
-> **目标版本**: v2.0 (企业版)
+> **当前版本**: v0.1.0-preview.1  
+> **目标版本**: v0.2.0 (企业就绪)  
+> **最后更新**: 2026-02-10
 
 ---
 
-## 📊 项目现状总览
+## 📊 架构审查结论 (2026-02-10)
 
-### 已完成功能 (v1.0)
+经过全面代码审查，对标 Semantic Kernel / AutoGen / OpenAI Agents SDK，发现以下需重点解决的问题：
 
-| 模块 | 功能 | 测试覆盖 |
-|------|------|----------|
-| **LLM Provider** | Ollama/OpenAI/Azure 多提供者 | ✅ |
-| **Agent 核心** | ReAct 模式、循环执行 | ✅ |
-| **Memory 系统** | Buffer/Window/Summary 三种策略 | ✅ |
-| **Tools 系统** | 64 个内置工具、FunctionTool 特性 | ✅ |
-| **Tool Sets** | 虚拟工具、智能选择、审批流程 | ✅ |
-| **RAG** | 向量存储、文档分块、检索器 | ✅ |
-| **多 Agent** | 顺序/并行/层级/投票编排 | ✅ |
-| **Handoff** | Agent 切换、过滤器 | ✅ |
-| **通信机制** | 消息总线、共享状态 | ✅ |
-| **安全护栏** | 内容过滤、PII 检测、注入防护 | ✅ |
-| **人机协作** | 审批工作流、升级处理 | ✅ |
-| **可观测性** | 指标收集、健康检查、分布式追踪 | ✅ |
-| **扩展部署** | 熔断器、负载均衡、自动扩展 | ✅ |
+### 严重度分级
 
-### 关键指标
-
-```
-测试数量: 1,183 个
-行覆盖率: 72.9%
-分支覆盖率: 62.6%
-方法覆盖率: 86.3%
-```
+| 优先级 | 数量 | 说明 |
+|--------|------|------|
+| **P0 (必须修复)** | 3 | 阻碍企业采用 |
+| **P1 (重要优化)** | 5 | 影响生产体验 |
+| **P2 (建议改进)** | 6 | 提升代码质量 |
 
 ---
 
-## 🎯 企业级转型目标
+## 🔴 Phase 1: 基础修正 (2-3 周)
 
-### Phase 1: 生产就绪 (v1.5)
+> **目标**: 解决所有 P0 阻塞问题，使框架可被企业评估
 
-**目标**: 使框架可在生产环境部署
+### 1.1 Core 包拆分 (P0)
 
-#### 1.1 配置管理增强
+**问题**: `Dawning.Agents.Core.csproj` 包含 32+ NuGet 包 + 反向引用 OpenAI/Azure Provider，安装 Core 拉入 ~35+ 无关传递依赖，违背"极简"设计。
 
-- [ ] **IConfiguration 深度集成**
-  - 分层配置 (appsettings.json → env → secrets)
-  - 配置变更热重载
-  - 配置验证 (FluentValidation)
+**改动计划**:
 
-- [ ] **密钥管理**
-  - Azure Key Vault 集成
-  - AWS Secrets Manager 集成
-  - HashiCorp Vault 支持
+```
+Dawning.Agents.Core.csproj（瘦身后）
+├── 保留: FluentValidation, Polly, M.E.Http, M.E.Logging.Abstractions
+├── 保留: M.E.Configuration.*, M.E.Options.*, System.Numerics.Tensors
+└── 移除以下依赖:
 
-#### 1.2 可观测性增强
+移除 → Dawning.Agents.Observability（新建）
+├── OpenTelemetry (7 个包)
+└── ObservabilityServiceCollectionExtensions.cs
 
-- [ ] **OpenTelemetry 集成**
-  - OTLP Exporter
-  - 自动 Instrumentation
-  - 采样策略配置
+移除 → Dawning.Agents.Logging.Serilog（新建）
+├── Serilog (10 个包 + Elastic sink)
+└── SerilogServiceCollectionExtensions.cs
 
-- [ ] **日志增强**
-  - Serilog 集成
-  - 结构化日志 (JSON)
-  - 日志聚合 (Elasticsearch/Loki)
+移除 → Dawning.Agents.Redis (已有，移入)
+├── StackExchange.Redis
+└── AspNetCore.HealthChecks.Redis
 
-- [ ] **指标增强**
-  - Prometheus 格式导出
-  - 自定义业务指标
-  - Grafana Dashboard 模板
+移除 ProjectReference:
+├── Dawning.Agents.OpenAI  ← Core 不应依赖 Provider
+└── Dawning.Agents.Azure   ← Core 不应依赖 Provider
+```
 
-#### 1.3 弹性增强
+**影响**: 纯 Core 消费者的传递依赖从 ~35 个降至 ~12 个。
 
-- [ ] **Polly 集成**
-  - 高级重试策略
-  - 舱壁隔离
-  - 组合策略
+### 1.2 Native Function Calling 支持 (P0)
 
-- [ ] **健康检查增强**
-  - ASP.NET Core HealthChecks 集成
-  - 依赖服务检查
-  - 就绪/存活探针
+**问题**: `ChatMessage` 只有 `Role + Content`，`ChatCompletionOptions` 只有 3 个字段，无法使用现代 LLM 的原生 Function Calling。
 
-### Phase 2: 企业特性 (v2.0)
+**改动计划**:
 
-**目标**: 满足企业级应用需求
+```csharp
+// ChatMessage 扩展
+public record ChatMessage
+{
+    public string Role { get; init; }
+    public string? Content { get; init; }
+    public string? Name { get; init; }                    // 新增
+    public IReadOnlyList<ToolCall>? ToolCalls { get; init; }  // 新增
+    public string? ToolCallId { get; init; }              // 新增
+}
 
-> **架构决策**: 认证/授权/多租户由 Dawning Gateway 统一处理，Agent 框架专注于 AI 能力。
+public record ToolCall(string Id, string Name, string Arguments);
 
-#### 2.1 Dawning SDK 集成
+// ChatCompletionOptions 扩展
+public record ChatCompletionOptions
+{
+    public float Temperature { get; init; } = 0.7f;
+    public int MaxTokens { get; init; } = 1000;
+    public string? SystemPrompt { get; init; }
+    public IReadOnlyList<ToolDefinition>? Tools { get; init; }     // 新增
+    public ToolChoiceMode? ToolChoice { get; init; }               // 新增
+    public ResponseFormat? ResponseFormat { get; init; }           // 新增
+}
 
-- [ ] **日志集成**
-  - 集成 `Dawning.Logging` SDK
-  - Agent 上下文 Enricher 适配
-  - 移除重复的 Serilog 配置
+// ChatCompletionResponse 扩展
+public record ChatCompletionResponse
+{
+    // ...existing
+    public IReadOnlyList<ToolCall>? ToolCalls { get; init; }  // 新增
+    public string? FinishReason { get; init; }                // 新增
+}
 
-- [ ] **基础设施集成**
-  - 集成 `Dawning.Core` (Result 类型)
-  - 集成 `Dawning.Identity` (当前用户获取)
-  - 提供集成文档
+// 流式事件结构化
+public record StreamingChatEvent
+{
+    public string? ContentDelta { get; init; }
+    public ToolCall? ToolCallDelta { get; init; }
+    public string? FinishReason { get; init; }
+    public TokenUsage? Usage { get; init; }
+}
+```
 
-#### 2.2 Embedding Provider 实现
+**影响范围**: `Abstractions/LLM/`、所有 Provider、`ReActAgent`（可选用 Function Calling 模式）。
 
-- [ ] **OpenAI Embeddings**
-  - `OpenAIEmbeddingProvider` 实现
-  - `AzureOpenAIEmbeddingProvider` 实现
-  - Embedding 结果缓存
+### 1.3 异常保留 (P0)
 
-- [ ] **本地 Embeddings**
-  - `OllamaEmbeddingProvider` 实现
-  - 批量 Embedding 优化
+**问题**: `AgentBase.RunAsync` 的 `catch (Exception ex)` 丢失异常类型和堆栈，调用方无法重试或诊断。
 
-#### 2.3 高可用架构 (已完成)
+**改动计划**:
 
-- [ ] **分布式部署**
-  - Kubernetes 部署模板
-  - Helm Charts
-  - Operator 模式
+```csharp
+// AgentResponse 增加
+public Exception? Exception { get; init; }
 
-- [ ] **状态管理**
-  - Redis 集成 (Memory/State)
-  - 分布式锁
-  - 会话亲和
+// AgentBase.RunAsync catch 改为
+catch (Exception ex)
+{
+    return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
+}
+```
 
-- [ ] **消息队列**
-  - RabbitMQ 集成
-  - Azure Service Bus 集成
-  - 消息持久化
+**影响范围**: `AgentResponse`、`AgentBase`、`OrchestratorBase`、`ParallelOrchestrator`。
 
-### Phase 3: AI 平台 (v3.0)
+### 1.4 Provider 基类抽取 + 基础设施接入 (P1)
 
-**目标**: 构建完整的 AI Agent 平台
+**问题**: OpenAI/Azure Provider 无 ILogger、无 IOptions、无重试、`Content[0].Text` 不安全取值、代码重复。
 
-#### 3.1 Agent 管理
+**改动计划**:
 
-- [ ] **Agent 注册中心**
-  - Agent 发现
-  - 版本管理
-  - A/B 测试
+```
+新建 OpenAIProviderBase（共享 BuildMessages / BuildRequestOptions）
+├── OpenAIProvider : OpenAIProviderBase
+└── AzureOpenAIProvider : OpenAIProviderBase
 
-- [ ] **Agent 编排 UI**
-  - 可视化流程设计
-  - 拖拽式配置
-  - 实时调试
+每个 Provider:
+├── 注入 ILogger<T>
+├── 使用 IOptions<OpenAIProviderOptions>
+├── Content 安全取值 (Content?.FirstOrDefault()?.Text)
+└── 可选接入 Polly 重试策略
+```
 
-#### 3.2 知识库增强
+### 1.5 DI 生命周期修复 (P1)
 
-- [ ] **向量数据库集成**
-  - Qdrant 支持
-  - Milvus 支持
-  - Azure AI Search 集成
+**问题**: Agent 注册为 Singleton，Memory 注册为 Scoped，产生 Captive Dependency。
 
-- [ ] **文档处理**
-  - PDF/Word/Excel 解析
-  - OCR 集成
-  - 多语言支持
-
-#### 3.3 模型管理
-
-- [ ] **多模型支持**
-  - 模型路由
-  - 成本优化
-  - 模型切换策略
-
-- [ ] **Fine-tuning 支持**
-  - 数据集管理
-  - 训练任务调度
-  - 模型评估
+**修复**: Agent 改为 Scoped 注册，或 Memory 改为 Singleton。
 
 ---
 
-## 📁 文档整合
+## 🟡 Phase 2: 功能补齐 (3-4 周)
 
-### 现有文档结构
+> **目标**: 补齐与 Semantic Kernel 的关键功能差距
 
-```
-docs/
-├── readings/                     # 学习材料 (16 个主题)
-│   ├── 00-agent-core-concepts/
-│   ├── 01-building-effective-agents/
-│   ├── 02-openai-function-calling/
-│   ├── ...
-│   └── 16-week12-deployment/
-└── (需新增)
+### 2.1 Structured Output (ResponseFormat)
 
-CHANGELOG.md                      # 变更日志
-LEARNING_PLAN.md                  # 12 周学习计划
-README.md                         # 项目介绍
-```
+- `ChatCompletionOptions.ResponseFormat` 支持 `json_object` / `json_schema`
+- Provider 适配 OpenAI `response_format` 参数
+- Agent 层可自动解析 JSON 响应为强类型
 
-### 目标文档结构
+### 2.2 流式事件结构化
 
-```
-docs/
-├── getting-started/              # 快速入门
-│   ├── installation.md
-│   ├── quickstart.md
-│   └── configuration.md
-│
-├── guides/                       # 开发指南
-│   ├── agent-development.md
-│   ├── tool-development.md
-│   ├── memory-management.md
-│   ├── multi-agent.md
-│   └── security.md
-│
-├── reference/                    # API 参考
-│   ├── abstractions/
-│   ├── core/
-│   └── providers/
-│
-├── architecture/                 # 架构设计
-│   ├── overview.md
-│   ├── agent-lifecycle.md
-│   ├── tool-system.md
-│   └── observability.md
-│
-├── deployment/                   # 部署指南
-│   ├── docker.md
-│   ├── kubernetes.md
-│   └── azure.md
-│
-├── readings/                     # 学习材料 (保留)
-│   └── ...
-│
-└── ENTERPRISE_ROADMAP.md         # 企业转型路线图 (本文档)
-```
+- `ILLMProvider.ChatStreamAsync` 返回 `IAsyncEnumerable<StreamingChatEvent>`
+- 事件类型: ContentDelta / ToolCallDelta / FinishReason / Usage
+- 向下兼容: 保留 `IAsyncEnumerable<string>` 扩展方法
+
+### 2.3 Prompt Injection Guardrail
+
+- 新增 `PromptInjectionGuardrail`
+- 检测常见注入模式 ("ignore previous instructions", "system prompt override" 等)
+- Tool 输出消毒后再回注 LLM 上下文
+
+### 2.4 `IValidateOptions<T>` 启动校验
+
+- 所有 Options 类实现 `Validate()` (当前仅 29%)
+- 使用 `services.AddOptionsWithValidateOnStart<T>()` 实现启动时 fail-fast
+- 防止负值、空字符串等无效配置进入运行时
+
+### 2.5 Roslyn 分析器接入
+
+- 添加 `Meziantou.Analyzer` 或 `Microsoft.CodeAnalysis.NetAnalyzers`
+- Abstractions 包移除 CS1591 NoWarn，强制 XML 文档
+- 配置 `.editorconfig` 规则级别
 
 ---
 
-## 🔧 技术栈升级
+## 🟢 Phase 3: 企业加固 (2-3 周)
 
-### 当前技术栈
+> **目标**: 提升代码质量到企业级标准
 
-| 层级 | 技术 | 版本 |
-|------|------|------|
-| 运行时 | .NET | 10.0 |
-| LLM | Ollama/OpenAI | - |
-| 测试 | xUnit/FluentAssertions/Moq | - |
-| 格式化 | CSharpier | - |
+### 3.1 架构测试 (NetArchTest)
 
-### 目标技术栈
+- 验证 Abstractions 零外部依赖
+- 验证 Core 不引用 Provider 包
+- 验证命名规范 (I 前缀、Options 后缀、Async 后缀)
 
-| 层级 | 技术 | 用途 |
-|------|------|------|
-| **可观测性** | OpenTelemetry | 统一遥测 |
-| | Serilog | 结构化日志 |
-| | Prometheus | 指标收集 |
-| **弹性** | Polly | 弹性策略 |
-| **配置** | FluentValidation | 配置验证 |
-| | Azure Key Vault | 密钥管理 |
-| **数据** | Redis | 缓存/状态 |
-| | Qdrant/Milvus | 向量存储 |
-| **消息** | RabbitMQ | 消息队列 |
-| **部署** | Docker/K8s | 容器化 |
-| | Helm | 包管理 |
+### 3.2 Agent 状态持久化
 
----
+- `IAgentCheckpoint` 接口
+- 序列化/恢复 `AgentContext` 中间状态
+- 支持 SQLite / Redis 存储
 
-## 📅 实施计划
+### 3.3 IToolRegistry 拆分
 
-### Q1 2026: 生产就绪 (v1.5)
+- 拆为 `IToolRegistry` + `IToolSetRegistry` + `IVirtualToolManager`
+- 增加 `UnregisterTool` / `UnregisterToolSet` 支持热卸载
 
-| 周 | 任务 | 产出 |
-|---|------|------|
-| 1-2 | OpenTelemetry 集成 | 统一遥测 |
-| 3-4 | Serilog + 结构化日志 | 日志系统 |
-| 5-6 | Polly 集成 | 弹性策略 |
-| 7-8 | 配置管理增强 | 热重载/验证 |
-| 9-10 | 健康检查增强 | K8s 探针 |
-| 11-12 | 文档整理 | 完整文档 |
+### 3.4 DTO 不可变化
 
-### Q2 2026: 企业特性 (v2.0)
+- `AgentContext.Steps` → `IReadOnlyList<AgentStep>`
+- `DocumentChunk.Metadata` → `IReadOnlyDictionary<string, string>`
+- `WorkflowContext` 内部集合全部改为 immutable
 
-| 周 | 任务 | 产出 |
-|---|------|------|
-| 1-4 | 身份认证/访问控制 | 安全模块 |
-| 5-8 | 多租户支持 | 租户隔离 |
-| 9-12 | 分布式部署 | K8s 模板 |
+### 3.5 ParallelOrchestrator 部分失败修复
 
-### Q3 2026: AI 平台 (v3.0)
+- `ContinueOnError=true` 时逐 Task try/catch
+- 收集已完成结果，不因单个失败丢弃全部
 
-| 周 | 任务 | 产出 |
-|---|------|------|
-| 1-4 | 向量数据库集成 | RAG 增强 |
-| 5-8 | Agent 管理平台 | 管理 API |
-| 9-12 | 模型管理 | 多模型路由 |
+### 3.6 ReActAgent 清理
+
+- 移除无工具时的虚假 "Search/Calculate/Lookup" 回退
+- 无工具时返回空列表 + "no tools available" 提示
 
 ---
 
-## 📋 下一步行动
+## � 验收标准
 
-### 立即可做
+每个 Phase 完成后需通过以下检查：
 
-1. **创建文档目录结构** - 按目标结构创建目录
-2. **编写快速入门指南** - 降低新用户门槛
-3. **添加 Dockerfile** - 支持容器化部署
-4. **添加 GitHub Actions** - CI/CD 流水线
-
-### 需要决策
-
-1. **向量数据库选型** - Qdrant vs Milvus vs pgvector
-2. **消息队列选型** - RabbitMQ vs Azure Service Bus vs Kafka
-3. **云平台优先级** - Azure vs AWS vs GCP
-
-### 需要资源
-
-1. **测试环境** - 需要 K8s 集群进行集成测试
-2. **LLM API** - 需要生产级 API Key 进行压力测试
-3. **文档工具** - 考虑 DocFX 或 MkDocs 生成 API 文档
+| Phase | 验收条件 |
+|-------|---------|
+| **Phase 1** | `dotnet pack Dawning.Agents.Core` 传递依赖 ≤ 15 个；`ChatMessage.ToolCalls` 可编译；`AgentResponse.Exception` 有值 |
+| **Phase 2** | `ResponseFormat = json_object` 端到端通过；Options 启动校验覆盖 100% |
+| **Phase 3** | NetArchTest 全绿；`ParallelOrchestrator` 部分失败测试通过 |
 
 ---
 
 ## 📚 相关文档
 
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) - 源码架构文档（含已知问题章节）
+- [ENTERPRISE_READINESS_ASSESSMENT.md](ENTERPRISE_READINESS_ASSESSMENT.md) - 企业就绪评估
+- [ENTERPRISE_GAP_PLAN.md](ENTERPRISE_GAP_PLAN.md) - 功能差距计划
 - [README.md](../README.md) - 项目介绍
-- [CHANGELOG.md](../CHANGELOG.md) - 变更日志
-- [LEARNING_PLAN.md](../LEARNING_PLAN.md) - 学习计划
-- [copilot-instructions.md](../.github/copilot-instructions.md) - 开发指南
 
 ---
 
 > 📌 **创建日期**: 2026-01-27  
-> 📌 **最后更新**: 2026-01-27  
-> 📌 **状态**: 规划中
+> 📌 **最后更新**: 2026-02-10  
+> 📌 **状态**: Phase 1 准备中

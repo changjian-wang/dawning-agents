@@ -200,7 +200,7 @@ public abstract class OrchestratorBase : IOrchestrator
         }
         catch (Exception ex)
         {
-            response = AgentResponse.Failed(ex.Message, [], TimeSpan.Zero);
+            response = AgentResponse.Failed(ex.Message, [], TimeSpan.Zero, ex);
         }
 
         var endTime = DateTimeOffset.UtcNow;

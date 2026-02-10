@@ -146,7 +146,7 @@ public abstract class AgentBase : IAgent
         {
             stopwatch.Stop();
             Logger.LogError(ex, "Agent {AgentName} 执行出错", Name);
-            return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed);
+            return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
     }
 
