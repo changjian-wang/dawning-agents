@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
@@ -18,7 +20,7 @@ namespace Dawning.Agents.Abstractions.Safety;
 /// }
 /// </code>
 /// </remarks>
-public class SafetyOptions
+public class SafetyOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -44,6 +46,11 @@ public class SafetyOptions
     /// 启用内容过滤
     /// </summary>
     public bool EnableContentFilter { get; set; } = true;
+
+    /// <summary>
+    /// 启用 Prompt 注入检测
+    /// </summary>
+    public bool EnablePromptInjectionDetection { get; set; } = true;
 
     /// <summary>
     /// 敏感数据检测模式（自动脱敏）

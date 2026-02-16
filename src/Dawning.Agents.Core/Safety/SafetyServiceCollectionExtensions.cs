@@ -92,6 +92,15 @@ public static class SafetyServiceCollectionExtensions
                 );
             }
 
+            if (options.Value.EnablePromptInjectionDetection)
+            {
+                pipeline.AddInputGuardrail(
+                    new PromptInjectionGuardrail(
+                        logger: sp.GetService<Microsoft.Extensions.Logging.ILogger<PromptInjectionGuardrail>>()
+                    )
+                );
+            }
+
             // 输出护栏
             pipeline.AddOutputGuardrail(
                 MaxLengthGuardrail.ForOutput(
@@ -124,6 +133,7 @@ public static class SafetyServiceCollectionExtensions
         services.TryAddTransient<SensitiveDataGuardrail>();
         services.TryAddTransient<ContentFilterGuardrail>();
         services.TryAddTransient<UrlDomainGuardrail>();
+        services.TryAddTransient<PromptInjectionGuardrail>();
 
         return services;
     }
@@ -164,6 +174,26 @@ public static class SafetyServiceCollectionExtensions
             configure(pipeline, sp);
             return pipeline;
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Prompt 注入检测护栏（独立注册）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configure">可选配置委托</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPromptInjectionGuardrail(
+        this IServiceCollection services,
+        Action<PromptInjectionOptions>? configure = null
+    )
+    {
+        var options = new PromptInjectionOptions();
+        configure?.Invoke(options);
+
+        services.AddSingleton(options);
+        services.AddSingleton<IInputGuardrail, PromptInjectionGuardrail>();
 
         return services;
     }
