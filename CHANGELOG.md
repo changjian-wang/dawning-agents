@@ -4,6 +4,52 @@
 
 ---
 
+## [Unreleased] - 2026-02-11
+
+### 🏗️ 架构重构 (Phase 1 企业级转型)
+
+#### Core 包拆分 (P0)
+- **Dawning.Agents.OpenTelemetry** (新包) — 从 Core 提取 OpenTelemetry 可观测性
+  - `OpenTelemetryExtensions.cs` + `OpenTelemetryOptions` 迁移
+  - 7 个 OTel 包独立管理
+  - DI 扩展: `AddOpenTelemetryObservability()`, `AddAgentTracing()`, `AddAgentMetrics()`
+- **Dawning.Agents.Serilog** (新包) — 从 Core 提取 Serilog 结构化日志
+  - 迁移: `LoggingServiceCollectionExtensions`, `AgentContextEnricher`, `SpanIdEnricher`, `LogLevelController`
+  - 10 个 Serilog 包独立管理
+- **Dawning.Agents.Redis** — 接收 `RedisHealthCheck` + 健康检查包
+  - 新增 `AddRedisHealthChecks()` 扩展方法
+- **Dawning.Agents.Core** 瘦身: 从 ~32 个包降至 ~13 个包
+
+#### Native Function Calling (P0)
+- `ChatMessage` 新增 `Name`, `ToolCalls`, `ToolCallId` 属性
+- `ChatCompletionOptions` 新增 `Tools`, `ToolChoice`, `ResponseFormat`
+- `ChatCompletionResponse` 新增 `ToolCalls`, `FinishReason`
+- 新增模型: `ToolCall`, `ToolDefinition`, `ToolChoiceMode`, `ResponseFormat`
+- OllamaProvider 适配 Function Calling
+- 新增 `FunctionCallingAgent` 实现
+- 新增 23 个测试覆盖
+
+#### 异常保留 (P0)
+- `AgentResponse.Exception` 保留原始异常对象
+- `AgentBase`, `OrchestratorBase`, `ParallelOrchestrator` 全部保留异常信息
+
+#### Provider 基类抽取 (P1)
+- 新建 `OpenAIProviderBase` 抽象基类 (~135 行共享代码)
+- 共享: `ChatAsync`, `ChatStreamAsync`, `BuildMessages`, `CreateAssistantWithToolCalls`, `BuildRequestOptions`
+- `OpenAIProvider`: ~193 行 → ~40 行
+- `AzureOpenAIProvider`: ~226 行 → ~90 行
+
+#### DI 生命周期验证 (P1)
+- 确认 Agent 已注册为 Scoped，Memory 已注册为 Scoped，无 Captive Dependency
+
+### 📖 文档完善
+- **ENTERPRISE_ROADMAP.md** - Phase 1 全部标记为已完成
+
+### 🧪 测试
+- 总测试数: **1,929** (1,906 → 1,929)，全部通过
+
+---
+
 ## [Unreleased] - 2026-02-04
 
 ### 🎉 新增功能
