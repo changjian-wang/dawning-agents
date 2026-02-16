@@ -13,7 +13,7 @@ namespace Dawning.Agents.Core;
 public static class AgentServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 ReAct Agent 服务
+    /// 添加 ReAct Agent 服务（基于文本解析的 Agent）
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <param name="configuration">配置</param>
@@ -50,6 +50,50 @@ public static class AgentServiceCollectionExtensions
         services.AddToolRegistry();
 
         services.TryAddScoped<IAgent, ReActAgent>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Function Calling Agent 服务（基于 LLM 原生工具调用的 Agent）
+    /// </summary>
+    /// <remarks>
+    /// <para>使用 LLM 原生 Function Calling，比 ReActAgent 的文本解析更可靠</para>
+    /// <para>需要 LLM Provider 支持 Function Calling（OpenAI、Azure OpenAI、Ollama 等）</para>
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddFunctionCallingAgent(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
+
+        services.AddToolRegistry();
+
+        services.TryAddScoped<IAgent, FunctionCallingAgent>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Function Calling Agent 服务（使用配置委托）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configure">配置委托</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddFunctionCallingAgent(
+        this IServiceCollection services,
+        Action<AgentOptions> configure
+    )
+    {
+        services.Configure(configure);
+
+        services.AddToolRegistry();
+
+        services.TryAddScoped<IAgent, FunctionCallingAgent>();
 
         return services;
     }

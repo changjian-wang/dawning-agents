@@ -38,6 +38,11 @@ public class AgentOptions
     public int MaxSteps { get; set; } = 10;
 
     /// <summary>
+    /// 每次 LLM 调用的最大 Token 数
+    /// </summary>
+    public int MaxTokens { get; set; } = 1024;
+
+    /// <summary>
     /// 验证配置
     /// </summary>
     public void Validate()

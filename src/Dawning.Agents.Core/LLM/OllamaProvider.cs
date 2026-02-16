@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Dawning.Agents.Abstractions.LLM;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
-/// Ollama 本地模型提供者实现
+/// Ollama 本地模型提供者实现（支持 Native Function Calling）
 /// </summary>
 public class OllamaProvider : ILLMProvider
 {
@@ -64,12 +65,35 @@ public class OllamaProvider : ILLMProvider
             result?.EvalCount
         );
 
+        // 提取 tool calls（如有）
+        IReadOnlyList<ToolCall>? toolCalls = null;
+        var finishReason = result?.DoneReason ?? "stop";
+
+        if (result?.Message?.ToolCalls is { Count: > 0 } ollamaToolCalls)
+        {
+            var callIdCounter = 0;
+            toolCalls = ollamaToolCalls
+                .Where(tc => tc.Function != null)
+                .Select(tc => new ToolCall(
+                    $"call_{callIdCounter++}",
+                    tc.Function!.Name,
+                    tc.Function.Arguments is not null
+                        ? JsonSerializer.Serialize(tc.Function.Arguments, JsonOptions.Default)
+                        : "{}"
+                ))
+                .ToList();
+
+            finishReason = "tool_calls";
+            _logger.LogDebug("收到 {Count} 个 tool calls", toolCalls.Count);
+        }
+
         return new ChatCompletionResponse
         {
             Content = result?.Message?.Content ?? string.Empty,
             PromptTokens = result?.PromptEvalCount ?? 0,
             CompletionTokens = result?.EvalCount ?? 0,
-            FinishReason = result?.DoneReason ?? "stop",
+            FinishReason = finishReason,
+            ToolCalls = toolCalls,
         };
     }
 
@@ -132,16 +156,57 @@ public class OllamaProvider : ILLMProvider
 
         if (!string.IsNullOrWhiteSpace(options.SystemPrompt))
         {
-            ollamaMessages.Add(
-                new OllamaMessage { Role = "system", Content = options.SystemPrompt }
-            );
+            ollamaMessages.Add(new OllamaMessage { Role = "system", Content = options.SystemPrompt });
         }
 
         foreach (var msg in messages)
         {
-            ollamaMessages.Add(
-                new OllamaMessage { Role = msg.Role.ToLowerInvariant(), Content = msg.Content }
-            );
+            var ollamaMsg = new OllamaMessage
+            {
+                Role = msg.Role.ToLowerInvariant(),
+                Content = msg.Content,
+            };
+
+            // assistant 消息携带 tool_calls
+            if (msg.HasToolCalls)
+            {
+                ollamaMsg.ToolCalls = msg
+                    .ToolCalls!.Select(tc => new OllamaToolCall
+                    {
+                        Function = new OllamaFunctionCall
+                        {
+                            Name = tc.FunctionName,
+                            Arguments = string.IsNullOrWhiteSpace(tc.Arguments)
+                                ? null
+                                : JsonSerializer.Deserialize<JsonObject>(tc.Arguments),
+                        },
+                    })
+                    .ToList();
+            }
+
+            ollamaMessages.Add(ollamaMsg);
+        }
+
+        // 构建 tools 列表
+        List<OllamaToolDefinition>? tools = null;
+        if (options.Tools is { Count: > 0 })
+        {
+            tools = options
+                .Tools.Select(t => new OllamaToolDefinition
+                {
+                    Type = "function",
+                    Function = new OllamaFunctionDefinition
+                    {
+                        Name = t.Name,
+                        Description = t.Description,
+                        Parameters = string.IsNullOrWhiteSpace(t.ParametersSchema)
+                            ? null
+                            : JsonSerializer.Deserialize<JsonObject>(t.ParametersSchema),
+                    },
+                })
+                .ToList();
+
+            _logger.LogDebug("传递 {Count} 个工具定义到 Ollama", tools.Count);
         }
 
         return new OllamaChatRequest
@@ -149,6 +214,7 @@ public class OllamaProvider : ILLMProvider
             Model = _model,
             Messages = ollamaMessages,
             Stream = stream,
+            Tools = tools,
             Options = new OllamaOptions
             {
                 Temperature = options.Temperature,
@@ -170,6 +236,9 @@ public class OllamaProvider : ILLMProvider
         [JsonPropertyName("stream")]
         public bool Stream { get; init; }
 
+        [JsonPropertyName("tools")]
+        public List<OllamaToolDefinition>? Tools { get; init; }
+
         [JsonPropertyName("options")]
         public OllamaOptions? Options { get; init; }
     }
@@ -180,7 +249,46 @@ public class OllamaProvider : ILLMProvider
         public required string Role { get; init; }
 
         [JsonPropertyName("content")]
-        public required string Content { get; init; }
+        public string? Content { get; init; }
+
+        [JsonPropertyName("tool_calls")]
+        public List<OllamaToolCall>? ToolCalls { get; set; }
+    }
+
+    private sealed class OllamaToolCall
+    {
+        [JsonPropertyName("function")]
+        public OllamaFunctionCall? Function { get; init; }
+    }
+
+    private sealed class OllamaFunctionCall
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; init; } = string.Empty;
+
+        [JsonPropertyName("arguments")]
+        public JsonObject? Arguments { get; init; }
+    }
+
+    private sealed class OllamaToolDefinition
+    {
+        [JsonPropertyName("type")]
+        public string Type { get; init; } = "function";
+
+        [JsonPropertyName("function")]
+        public required OllamaFunctionDefinition Function { get; init; }
+    }
+
+    private sealed class OllamaFunctionDefinition
+    {
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
+
+        [JsonPropertyName("description")]
+        public required string Description { get; init; }
+
+        [JsonPropertyName("parameters")]
+        public JsonObject? Parameters { get; init; }
     }
 
     private sealed class OllamaOptions

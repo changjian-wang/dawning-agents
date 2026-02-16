@@ -143,4 +143,69 @@ public class AgentServiceCollectionExtensionsTests
     }
 
     #endregion
+
+    #region AddFunctionCallingAgent Tests
+
+    [Fact]
+    public void AddFunctionCallingAgent_WithConfiguration_RegistersAgent()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Agent:Name"] = "FCAgent",
+                    ["Agent:Instructions"] = "Function calling agent.",
+                    ["Agent:MaxSteps"] = "5",
+                }
+            )
+            .Build();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddFunctionCallingAgent(config);
+        var provider = services.BuildServiceProvider();
+
+        var agent = provider.GetRequiredService<IAgent>();
+
+        agent.Should().NotBeNull();
+        agent.Should().BeOfType<FunctionCallingAgent>();
+    }
+
+    [Fact]
+    public void AddFunctionCallingAgent_WithAction_RegistersAgent()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddFunctionCallingAgent(options =>
+        {
+            options.Name = "FCAgent";
+            options.Instructions = "FC instructions";
+        });
+        var provider = services.BuildServiceProvider();
+
+        var agent = provider.GetRequiredService<IAgent>();
+
+        agent.Should().NotBeNull();
+        agent.Should().BeOfType<FunctionCallingAgent>();
+    }
+
+    [Fact]
+    public void AddFunctionCallingAgent_AlsoRegistersToolRegistry()
+    {
+        var services = new ServiceCollection();
+        var mockLLM = new Mock<ILLMProvider>();
+        var config = new ConfigurationBuilder().Build();
+
+        services.AddSingleton(mockLLM.Object);
+        services.AddFunctionCallingAgent(config);
+        var provider = services.BuildServiceProvider();
+
+        var toolRegistry = provider.GetService<Abstractions.Tools.IToolRegistry>();
+        toolRegistry.Should().NotBeNull();
+    }
+
+    #endregion
 }

@@ -197,13 +197,7 @@ public partial class ReActAgent : AgentBase
     {
         if (_toolRegistry == null || _toolRegistry.Count == 0)
         {
-            // 没有注册工具时使用默认列表
-            return """
-                Available actions:
-                - Search: Search for information
-                - Calculate: Perform calculations
-                - Lookup: Look up specific data
-                """;
+            return "No tools available. Answer the question directly using your knowledge.";
         }
 
         var sb = new StringBuilder();
