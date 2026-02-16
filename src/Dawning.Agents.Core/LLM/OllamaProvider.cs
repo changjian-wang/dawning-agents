@@ -146,6 +146,108 @@ public class OllamaProvider : ILLMProvider
         }
     }
 
+    public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        options ??= new ChatCompletionOptions();
+
+        var request = BuildRequest(messages, options, stream: true);
+        var json = JsonSerializer.Serialize(request, JsonOptions.Default);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
+        {
+            Content = content,
+        };
+
+        var response = await _httpClient.SendAsync(
+            requestMessage,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var reader = new StreamReader(stream);
+
+        string? finishReason = null;
+        int promptTokens = 0;
+        int completionTokens = 0;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var line = await reader.ReadLineAsync(cancellationToken);
+            if (line is null)
+            {
+                break;
+            }
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            var chunk = JsonSerializer.Deserialize<OllamaChatResponse>(line, JsonOptions.Default);
+            if (chunk is null)
+            {
+                continue;
+            }
+
+            // Content delta
+            if (!string.IsNullOrEmpty(chunk.Message?.Content))
+            {
+                yield return StreamingChatEvent.Content(chunk.Message.Content);
+            }
+
+            // Tool call delta (Ollama sends complete tool calls per chunk)
+            if (chunk.Message?.ToolCalls is { Count: > 0 } toolCalls)
+            {
+                for (var i = 0; i < toolCalls.Count; i++)
+                {
+                    var tc = toolCalls[i];
+                    if (tc.Function != null)
+                    {
+                        yield return StreamingChatEvent.ToolCall(
+                            new ToolCallDelta
+                            {
+                                Index = i,
+                                Id = $"call_{i}",
+                                FunctionName = tc.Function.Name,
+                                ArgumentsDelta = tc.Function.Arguments is not null
+                                    ? JsonSerializer.Serialize(
+                                        tc.Function.Arguments,
+                                        JsonOptions.Default
+                                    )
+                                    : "{}",
+                            }
+                        );
+                    }
+                }
+            }
+
+            // Final chunk
+            if (chunk.Done)
+            {
+                finishReason = chunk.DoneReason ?? "stop";
+                promptTokens = chunk.PromptEvalCount;
+                completionTokens = chunk.EvalCount;
+            }
+        }
+
+        yield return StreamingChatEvent.Done(
+            finishReason ?? "stop",
+            new StreamingTokenUsage
+            {
+                PromptTokens = promptTokens,
+                CompletionTokens = completionTokens,
+            }
+        );
+    }
+
     private OllamaChatRequest BuildRequest(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions options,
@@ -209,12 +311,30 @@ public class OllamaProvider : ILLMProvider
             _logger.LogDebug("传递 {Count} 个工具定义到 Ollama", tools.Count);
         }
 
+        // 构建 format（Ollama 原生支持 json 格式）
+        string? format = null;
+        if (options.ResponseFormat is { } responseFormat)
+        {
+            format = responseFormat.Type switch
+            {
+                ResponseFormatType.JsonObject => "json",
+                ResponseFormatType.JsonSchema => "json",
+                _ => null,
+            };
+
+            if (format != null)
+            {
+                _logger.LogDebug("Ollama 响应格式设置为: {Format}", format);
+            }
+        }
+
         return new OllamaChatRequest
         {
             Model = _model,
             Messages = ollamaMessages,
             Stream = stream,
             Tools = tools,
+            Format = format,
             Options = new OllamaOptions
             {
                 Temperature = options.Temperature,
@@ -238,6 +358,9 @@ public class OllamaProvider : ILLMProvider
 
         [JsonPropertyName("tools")]
         public List<OllamaToolDefinition>? Tools { get; init; }
+
+        [JsonPropertyName("format")]
+        public string? Format { get; init; }
 
         [JsonPropertyName("options")]
         public OllamaOptions? Options { get; init; }

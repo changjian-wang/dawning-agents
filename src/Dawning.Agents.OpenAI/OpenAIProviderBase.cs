@@ -125,17 +125,39 @@ public abstract class OpenAIProviderBase : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        await foreach (
+            var evt in ChatStreamEventsAsync(messages, options, cancellationToken)
+        )
+        {
+            if (!string.IsNullOrEmpty(evt.ContentDelta))
+            {
+                yield return evt.ContentDelta;
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<Abstractions.LLM.ChatMessage> messages,
+        Abstractions.LLM.ChatCompletionOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
         options ??= new Abstractions.LLM.ChatCompletionOptions();
 
         var chatMessages = BuildMessages(messages, options.SystemPrompt);
         var requestOptions = BuildRequestOptions(options);
 
         _logger.LogDebug(
-            "{Provider} ChatStreamAsync 开始，标识: {Identifier}，消息数: {Count}",
+            "{Provider} ChatStreamEventsAsync 开始，标识: {Identifier}，消息数: {Count}",
             Name,
             ModelIdentifier,
             chatMessages.Count
         );
+
+        string? finishReason = null;
+        int? promptTokens = null;
+        int? completionTokens = null;
 
         await foreach (
             var update in _chatClient.CompleteChatStreamingAsync(
@@ -145,14 +167,54 @@ public abstract class OpenAIProviderBase : ILLMProvider
             )
         )
         {
+            // Content delta
             foreach (var part in update.ContentUpdate)
             {
                 if (!string.IsNullOrEmpty(part.Text))
                 {
-                    yield return part.Text;
+                    yield return StreamingChatEvent.Content(part.Text);
                 }
             }
+
+            // Tool call delta
+            foreach (var toolCallUpdate in update.ToolCallUpdates)
+            {
+                yield return StreamingChatEvent.ToolCall(
+                    new ToolCallDelta
+                    {
+                        Index = toolCallUpdate.Index,
+                        Id = toolCallUpdate.ToolCallId,
+                        FunctionName = toolCallUpdate.FunctionName,
+                        ArgumentsDelta = toolCallUpdate.FunctionArgumentsUpdate?.ToString(),
+                    }
+                );
+            }
+
+            // Finish reason
+            if (update.FinishReason is { } reason)
+            {
+                finishReason = reason.ToString();
+            }
+
+            // Usage (may appear in last chunk)
+            if (update.Usage is { } usage)
+            {
+                promptTokens = usage.InputTokenCount;
+                completionTokens = usage.OutputTokenCount;
+            }
         }
+
+        // Emit final Done event
+        yield return StreamingChatEvent.Done(
+            finishReason ?? "stop",
+            promptTokens.HasValue || completionTokens.HasValue
+                ? new StreamingTokenUsage
+                {
+                    PromptTokens = promptTokens ?? 0,
+                    CompletionTokens = completionTokens ?? 0,
+                }
+                : null
+        );
     }
 
     /// <summary>
@@ -224,6 +286,26 @@ public abstract class OpenAIProviderBase : ILLMProvider
             Temperature = options.Temperature,
             MaxOutputTokenCount = options.MaxTokens,
         };
+
+        // 设置响应格式
+        if (options.ResponseFormat is { } format)
+        {
+            requestOptions.ResponseFormat = format.Type switch
+            {
+                Abstractions.LLM.ResponseFormatType.JsonObject
+                    => ChatResponseFormat.CreateJsonObjectFormat(),
+                Abstractions.LLM.ResponseFormatType.JsonSchema
+                    when !string.IsNullOrWhiteSpace(format.SchemaName)
+                        && !string.IsNullOrWhiteSpace(format.Schema)
+                    => ChatResponseFormat.CreateJsonSchemaFormat(
+                        format.SchemaName!,
+                        BinaryData.FromString(format.Schema!),
+                        null,
+                        format.Strict
+                    ),
+                _ => ChatResponseFormat.CreateTextFormat(),
+            };
+        }
 
         // 设置工具定义
         if (options.Tools is { Count: > 0 })
