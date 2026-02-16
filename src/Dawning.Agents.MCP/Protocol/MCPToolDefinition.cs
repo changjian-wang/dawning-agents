@@ -112,12 +112,21 @@ public sealed class MCPContent
     [JsonPropertyName("data")]
     public string? Data { get; set; }
 
-    public static MCPContent TextContent(string text) =>
-        new() { Type = "text", Text = text };
+    public static MCPContent TextContent(string text) => new() { Type = "text", Text = text };
 
     public static MCPContent ImageContent(string base64Data, string mimeType = "image/png") =>
-        new() { Type = "image", Data = base64Data, MimeType = mimeType };
+        new()
+        {
+            Type = "image",
+            Data = base64Data,
+            MimeType = mimeType,
+        };
 
     public static MCPContent ResourceContent(string uri, string text, string? mimeType = null) =>
-        new() { Type = "resource", Text = text, MimeType = mimeType };
+        new()
+        {
+            Type = "resource",
+            Text = text,
+            MimeType = mimeType,
+        };
 }

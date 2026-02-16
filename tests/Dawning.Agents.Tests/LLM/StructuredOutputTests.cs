@@ -64,10 +64,7 @@ public class StructuredOutputTests
     [Fact]
     public void ChatCompletionOptions_CanSetResponseFormat()
     {
-        var options = new ChatCompletionOptions
-        {
-            ResponseFormat = ResponseFormat.JsonObject,
-        };
+        var options = new ChatCompletionOptions { ResponseFormat = ResponseFormat.JsonObject };
 
         options.ResponseFormat.Should().NotBeNull();
         options.ResponseFormat!.Type.Should().Be(ResponseFormatType.JsonObject);
@@ -82,17 +79,17 @@ public class StructuredOutputTests
     {
         // Arrange
         var ollamaResponse = """
-        {
-            "message": {
-                "role": "assistant",
-                "content": "{\"name\": \"Alice\", \"age\": 30}"
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 10,
-            "eval_count": 20
-        }
-        """;
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "{\"name\": \"Alice\", \"age\": 30}"
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 10,
+                "eval_count": 20
+            }
+            """;
 
         HttpRequestMessage? capturedRequest = null;
         var handler = new Mock<HttpMessageHandler>();
@@ -103,18 +100,12 @@ public class StructuredOutputTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Callback<HttpRequestMessage, CancellationToken>(
-                (req, _) => capturedRequest = req
-            )
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedRequest = req)
             .ReturnsAsync(
                 new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(
-                        ollamaResponse,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(ollamaResponse, Encoding.UTF8, "application/json"),
                 }
             );
 
@@ -130,10 +121,7 @@ public class StructuredOutputTests
         );
 
         var messages = new[] { ChatMessage.User("Return a JSON with name and age") };
-        var options = new ChatCompletionOptions
-        {
-            ResponseFormat = ResponseFormat.JsonObject,
-        };
+        var options = new ChatCompletionOptions { ResponseFormat = ResponseFormat.JsonObject };
 
         // Act
         var result = await provider.ChatAsync(messages, options);
@@ -153,17 +141,17 @@ public class StructuredOutputTests
     {
         // Arrange - Ollama treats JsonSchema same as JsonObject (format: "json")
         var ollamaResponse = """
-        {
-            "message": {
-                "role": "assistant",
-                "content": "{\"name\": \"Bob\"}"
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 10,
-            "eval_count": 15
-        }
-        """;
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "{\"name\": \"Bob\"}"
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 10,
+                "eval_count": 15
+            }
+            """;
 
         HttpRequestMessage? capturedRequest = null;
         var handler = new Mock<HttpMessageHandler>();
@@ -174,18 +162,12 @@ public class StructuredOutputTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Callback<HttpRequestMessage, CancellationToken>(
-                (req, _) => capturedRequest = req
-            )
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedRequest = req)
             .ReturnsAsync(
                 new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(
-                        ollamaResponse,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(ollamaResponse, Encoding.UTF8, "application/json"),
                 }
             );
 
@@ -200,7 +182,8 @@ public class StructuredOutputTests
             NullLogger<OllamaProvider>.Instance
         );
 
-        var schema = """{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""";
+        var schema =
+            """{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""";
         var messages = new[] { ChatMessage.User("Return a person") };
         var options = new ChatCompletionOptions
         {
@@ -223,17 +206,17 @@ public class StructuredOutputTests
     {
         // Arrange
         var ollamaResponse = """
-        {
-            "message": {
-                "role": "assistant",
-                "content": "Hello, this is plain text."
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 5,
-            "eval_count": 8
-        }
-        """;
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "Hello, this is plain text."
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 5,
+                "eval_count": 8
+            }
+            """;
 
         HttpRequestMessage? capturedRequest = null;
         var handler = new Mock<HttpMessageHandler>();
@@ -244,18 +227,12 @@ public class StructuredOutputTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Callback<HttpRequestMessage, CancellationToken>(
-                (req, _) => capturedRequest = req
-            )
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedRequest = req)
             .ReturnsAsync(
                 new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(
-                        ollamaResponse,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(ollamaResponse, Encoding.UTF8, "application/json"),
                 }
             );
 
@@ -271,10 +248,7 @@ public class StructuredOutputTests
         );
 
         var messages = new[] { ChatMessage.User("Hello") };
-        var options = new ChatCompletionOptions
-        {
-            ResponseFormat = ResponseFormat.Text,
-        };
+        var options = new ChatCompletionOptions { ResponseFormat = ResponseFormat.Text };
 
         // Act
         var result = await provider.ChatAsync(messages, options);
@@ -292,17 +266,17 @@ public class StructuredOutputTests
     {
         // Arrange
         var ollamaResponse = """
-        {
-            "message": {
-                "role": "assistant",
-                "content": "No format specified."
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 5,
-            "eval_count": 5
-        }
-        """;
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "No format specified."
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 5,
+                "eval_count": 5
+            }
+            """;
 
         HttpRequestMessage? capturedRequest = null;
         var handler = new Mock<HttpMessageHandler>();
@@ -313,18 +287,12 @@ public class StructuredOutputTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Callback<HttpRequestMessage, CancellationToken>(
-                (req, _) => capturedRequest = req
-            )
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedRequest = req)
             .ReturnsAsync(
                 new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(
-                        ollamaResponse,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(ollamaResponse, Encoding.UTF8, "application/json"),
                 }
             );
 

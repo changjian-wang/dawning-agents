@@ -125,9 +125,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        await foreach (
-            var evt in ChatStreamEventsAsync(messages, options, cancellationToken)
-        )
+        await foreach (var evt in ChatStreamEventsAsync(messages, options, cancellationToken))
         {
             if (!string.IsNullOrEmpty(evt.ContentDelta))
             {
@@ -238,14 +236,12 @@ public abstract class OpenAIProviderBase : ILLMProvider
                 msg.Role.ToLowerInvariant() switch
                 {
                     "user" => new UserChatMessage(msg.Content),
-                    "assistant" when msg.HasToolCalls
-                        => CreateAssistantWithToolCalls(msg),
+                    "assistant" when msg.HasToolCalls => CreateAssistantWithToolCalls(msg),
                     "assistant" => new AssistantChatMessage(msg.Content),
                     "system" => new SystemChatMessage(msg.Content),
                     "tool" => new ToolChatMessage(
-                        msg.ToolCallId ?? throw new ArgumentException(
-                            "Tool 消息必须包含 ToolCallId"
-                        ),
+                        msg.ToolCallId
+                            ?? throw new ArgumentException("Tool 消息必须包含 ToolCallId"),
                         msg.Content
                     ),
                     _ => throw new ArgumentException($"未知角色: {msg.Role}"),
@@ -263,12 +259,13 @@ public abstract class OpenAIProviderBase : ILLMProvider
         Abstractions.LLM.ChatMessage msg
     )
     {
-        var toolCalls = msg
-            .ToolCalls!.Select(tc => ChatToolCall.CreateFunctionToolCall(
-                tc.Id,
-                tc.FunctionName,
-                BinaryData.FromString(tc.Arguments ?? "{}")
-            ))
+        var toolCalls = msg.ToolCalls!.Select(tc =>
+                ChatToolCall.CreateFunctionToolCall(
+                    tc.Id,
+                    tc.FunctionName,
+                    BinaryData.FromString(tc.Arguments ?? "{}")
+                )
+            )
             .ToList();
 
         return new AssistantChatMessage(toolCalls);
@@ -292,12 +289,12 @@ public abstract class OpenAIProviderBase : ILLMProvider
         {
             requestOptions.ResponseFormat = format.Type switch
             {
-                Abstractions.LLM.ResponseFormatType.JsonObject
-                    => ChatResponseFormat.CreateJsonObjectFormat(),
+                Abstractions.LLM.ResponseFormatType.JsonObject =>
+                    ChatResponseFormat.CreateJsonObjectFormat(),
                 Abstractions.LLM.ResponseFormatType.JsonSchema
                     when !string.IsNullOrWhiteSpace(format.SchemaName)
-                        && !string.IsNullOrWhiteSpace(format.Schema)
-                    => ChatResponseFormat.CreateJsonSchemaFormat(
+                        && !string.IsNullOrWhiteSpace(format.Schema) =>
+                    ChatResponseFormat.CreateJsonSchemaFormat(
                         format.SchemaName!,
                         BinaryData.FromString(format.Schema!),
                         null,

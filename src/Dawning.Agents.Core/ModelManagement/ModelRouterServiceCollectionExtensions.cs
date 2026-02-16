@@ -108,37 +108,33 @@ public static class ModelRouterServiceCollectionExtensions
 
             return options.Value.Strategy switch
             {
-                ModelRoutingStrategy.CostOptimized =>
-                    new CostOptimizedRouter(
-                        providers,
-                        options,
-                        loggerFactory.CreateLogger<CostOptimizedRouter>()
-                    ),
-                ModelRoutingStrategy.LatencyOptimized =>
-                    new LatencyOptimizedRouter(
-                        providers,
-                        options,
-                        loggerFactory.CreateLogger<LatencyOptimizedRouter>()
-                    ),
-                ModelRoutingStrategy.RoundRobin or
-                ModelRoutingStrategy.WeightedRoundRobin or
-                ModelRoutingStrategy.Random =>
-                    new LoadBalancedRouter(
-                        providers,
-                        options,
-                        loggerFactory.CreateLogger<LoadBalancedRouter>()
-                    ),
-                ModelRoutingStrategy.Priority =>
-                    new CostOptimizedRouter(
-                        providers,
-                        options,
-                        loggerFactory.CreateLogger<CostOptimizedRouter>()
-                    ),
+                ModelRoutingStrategy.CostOptimized => new CostOptimizedRouter(
+                    providers,
+                    options,
+                    loggerFactory.CreateLogger<CostOptimizedRouter>()
+                ),
+                ModelRoutingStrategy.LatencyOptimized => new LatencyOptimizedRouter(
+                    providers,
+                    options,
+                    loggerFactory.CreateLogger<LatencyOptimizedRouter>()
+                ),
+                ModelRoutingStrategy.RoundRobin
+                or ModelRoutingStrategy.WeightedRoundRobin
+                or ModelRoutingStrategy.Random => new LoadBalancedRouter(
+                    providers,
+                    options,
+                    loggerFactory.CreateLogger<LoadBalancedRouter>()
+                ),
+                ModelRoutingStrategy.Priority => new CostOptimizedRouter(
+                    providers,
+                    options,
+                    loggerFactory.CreateLogger<CostOptimizedRouter>()
+                ),
                 _ => new CostOptimizedRouter(
                     providers,
                     options,
                     loggerFactory.CreateLogger<CostOptimizedRouter>()
-                )
+                ),
             };
         });
 
@@ -178,11 +174,15 @@ public static class ModelRouterServiceCollectionExtensions
         {
             services.Remove(descriptor);
             // 重新注册为具名服务，供路由器使用
-            services.Add(new ServiceDescriptor(
-                typeof(ILLMProvider),
-                descriptor.ImplementationType ?? descriptor.ImplementationFactory ?? descriptor.ImplementationInstance!,
-                descriptor.Lifetime
-            ));
+            services.Add(
+                new ServiceDescriptor(
+                    typeof(ILLMProvider),
+                    descriptor.ImplementationType
+                        ?? descriptor.ImplementationFactory
+                        ?? descriptor.ImplementationInstance!,
+                    descriptor.Lifetime
+                )
+            );
         }
 
         // 注册 RoutingLLMProvider 为主 ILLMProvider

@@ -22,8 +22,7 @@ public class SafetyOptionsValidator : AbstractValidator<SafetyOptions>
             .LessThanOrEqualTo(10000000)
             .WithMessage("MaxOutputLength 不能超过 10000000");
 
-        RuleForEach(x => x.SensitivePatterns)
-            .SetValidator(new SensitivePatternValidator());
+        RuleForEach(x => x.SensitivePatterns).SetValidator(new SensitivePatternValidator());
     }
 }
 
@@ -34,9 +33,7 @@ public class SensitivePatternValidator : AbstractValidator<SensitivePattern>
 {
     public SensitivePatternValidator()
     {
-        RuleFor(x => x.Name)
-            .NotEmpty()
-            .WithMessage("模式名称不能为空");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("模式名称不能为空");
 
         RuleFor(x => x.Pattern)
             .NotEmpty()
@@ -44,13 +41,9 @@ public class SensitivePatternValidator : AbstractValidator<SensitivePattern>
             .Must(BeValidRegex)
             .WithMessage("正则表达式模式格式无效");
 
-        RuleFor(x => x.KeepFirst)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("KeepFirst 不能为负数");
+        RuleFor(x => x.KeepFirst).GreaterThanOrEqualTo(0).WithMessage("KeepFirst 不能为负数");
 
-        RuleFor(x => x.KeepLast)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("KeepLast 不能为负数");
+        RuleFor(x => x.KeepLast).GreaterThanOrEqualTo(0).WithMessage("KeepLast 不能为负数");
     }
 
     private static bool BeValidRegex(string pattern)

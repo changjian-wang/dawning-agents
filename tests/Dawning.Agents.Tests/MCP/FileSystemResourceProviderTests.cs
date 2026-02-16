@@ -194,10 +194,7 @@ public class FileSystemResourceProviderTests : IDisposable
         File.WriteAllText(Path.Combine(_testDir, "test.custom"), "custom");
         File.WriteAllText(Path.Combine(_testDir, "test.txt"), "text");
 
-        var provider = new FileSystemResourceProvider(
-            _testDir,
-            allowedExtensions: [".custom"]
-        );
+        var provider = new FileSystemResourceProvider(_testDir, allowedExtensions: [".custom"]);
 
         // Act
         var resources = provider.GetResources().ToList();

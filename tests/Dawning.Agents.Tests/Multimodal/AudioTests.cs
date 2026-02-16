@@ -99,8 +99,20 @@ public class AudioTests
             Text = "Hello world",
             Words =
             [
-                new TranscriptionWord { Word = "Hello", Start = 0.0, End = 0.5, Confidence = 0.98 },
-                new TranscriptionWord { Word = "world", Start = 0.6, End = 1.0, Confidence = 0.95 },
+                new TranscriptionWord
+                {
+                    Word = "Hello",
+                    Start = 0.0,
+                    End = 0.5,
+                    Confidence = 0.98,
+                },
+                new TranscriptionWord
+                {
+                    Word = "world",
+                    Start = 0.6,
+                    End = 1.0,
+                    Confidence = 0.95,
+                },
             ],
         };
 
@@ -428,11 +440,7 @@ public class AudioTests
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
-        services.AddOpenAIWhisper(
-            "test-api-key",
-            "https://custom.api.com/v1",
-            "whisper-1"
-        );
+        services.AddOpenAIWhisper("test-api-key", "https://custom.api.com/v1", "whisper-1");
         var sp = services.BuildServiceProvider();
 
         var provider = sp.GetService<IAudioTranscriptionProvider>();
@@ -459,11 +467,7 @@ public class AudioTests
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
-        services.AddOpenAITTS(
-            "test-api-key",
-            "https://custom.api.com/v1",
-            "tts-1-hd"
-        );
+        services.AddOpenAITTS("test-api-key", "https://custom.api.com/v1", "tts-1-hd");
         var sp = services.BuildServiceProvider();
 
         var provider = sp.GetService<ITextToSpeechProvider>();

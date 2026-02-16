@@ -86,10 +86,12 @@ public abstract class SampleBase
     /// <summary>
     /// 获取服务
     /// </summary>
-    protected T GetService<T>() where T : notnull => Services.GetRequiredService<T>();
+    protected T GetService<T>()
+        where T : notnull => Services.GetRequiredService<T>();
 
     /// <summary>
     /// 尝试获取服务
     /// </summary>
-    protected T? TryGetService<T>() where T : class => Services.GetService<T>();
+    protected T? TryGetService<T>()
+        where T : class => Services.GetService<T>();
 }

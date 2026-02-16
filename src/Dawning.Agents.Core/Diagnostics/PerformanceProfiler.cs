@@ -42,7 +42,14 @@ public class PerformanceProfiler : IPerformanceProfiler
         IDictionary<string, object>? metadata = null
     )
     {
-        RecordOperationInternal(operationName, duration, category, isSuccess: true, errorMessage: null, metadata);
+        RecordOperationInternal(
+            operationName,
+            duration,
+            category,
+            isSuccess: true,
+            errorMessage: null,
+            metadata
+        );
     }
 
     internal void RecordOperationInternal(
@@ -69,9 +76,7 @@ public class PerformanceProfiler : IPerformanceProfiler
         _traces.Enqueue(trace);
 
         // 限制队列大小
-        while (_traces.Count > _maxTraceCount && _traces.TryDequeue(out _))
-        {
-        }
+        while (_traces.Count > _maxTraceCount && _traces.TryDequeue(out _)) { }
 
         // 更新统计信息
         UpdateStatistics(operationName, duration, isSuccess);
@@ -114,9 +119,7 @@ public class PerformanceProfiler : IPerformanceProfiler
     /// <inheritdoc />
     public void Clear()
     {
-        while (_traces.TryDequeue(out _))
-        {
-        }
+        while (_traces.TryDequeue(out _)) { }
 
         _statistics.Clear();
     }
@@ -125,18 +128,17 @@ public class PerformanceProfiler : IPerformanceProfiler
     {
         _statistics.AddOrUpdate(
             operationName,
-            _ =>
-                new OperationStatistics
-                {
-                    OperationName = operationName,
-                    TotalCount = 1,
-                    SuccessCount = isSuccess ? 1 : 0,
-                    FailureCount = isSuccess ? 0 : 1,
-                    TotalDuration = duration,
-                    MinDuration = duration,
-                    MaxDuration = duration,
-                    LastCallTime = DateTime.UtcNow,
-                },
+            _ => new OperationStatistics
+            {
+                OperationName = operationName,
+                TotalCount = 1,
+                SuccessCount = isSuccess ? 1 : 0,
+                FailureCount = isSuccess ? 0 : 1,
+                TotalDuration = duration,
+                MinDuration = duration,
+                MaxDuration = duration,
+                LastCallTime = DateTime.UtcNow,
+            },
             (_, existing) =>
             {
                 existing.TotalCount++;

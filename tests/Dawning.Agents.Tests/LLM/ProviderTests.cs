@@ -151,7 +151,8 @@ public class LLMProviderDITests
 
         var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
 
-        act.Should().Throw<NotSupportedException>()
+        act.Should()
+            .Throw<NotSupportedException>()
             .WithMessage("*Dawning.Agents.OpenAI*AddOpenAIProvider*");
     }
 }

@@ -21,9 +21,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
         IOptions<ModelRouterOptions> options,
         ILogger<LatencyOptimizedRouter>? logger = null
     )
-        : base(providers, options, logger ?? NullLogger<LatencyOptimizedRouter>.Instance)
-    {
-    }
+        : base(providers, options, logger ?? NullLogger<LatencyOptimizedRouter>.Instance) { }
 
     public override Task<ILLMProvider> SelectProviderAsync(
         ModelRoutingContext context,
@@ -41,8 +39,8 @@ public class LatencyOptimizedRouter : ModelRouterBase
         // 如果有首选模型且可用，优先使用
         if (!string.IsNullOrEmpty(context.PreferredModel))
         {
-            var preferred = healthyProviders.FirstOrDefault(
-                p => p.Name.Contains(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
+            var preferred = healthyProviders.FirstOrDefault(p =>
+                p.Name.Contains(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
             );
             if (preferred != null)
             {
@@ -53,20 +51,14 @@ public class LatencyOptimizedRouter : ModelRouterBase
 
         // 按平均延迟排序
         var providerLatencies = healthyProviders
-            .Select(p => new
-            {
-                Provider = p,
-                Latency = GetAverageLatency(p.Name)
-            })
+            .Select(p => new { Provider = p, Latency = GetAverageLatency(p.Name) })
             .OrderBy(x => x.Latency)
             .ToList();
 
         // 如果有延迟限制，过滤超出限制的提供者
         if (context.MaxLatencyMs > 0)
         {
-            var filtered = providerLatencies
-                .Where(x => x.Latency <= context.MaxLatencyMs)
-                .ToList();
+            var filtered = providerLatencies.Where(x => x.Latency <= context.MaxLatencyMs).ToList();
 
             if (filtered.Count > 0)
             {
@@ -107,7 +99,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
         // 基于经验的默认延迟估算（毫秒）
         return providerName.ToLowerInvariant() switch
         {
-            var n when n.Contains("ollama") => 200,    // 本地模型最快
+            var n when n.Contains("ollama") => 200, // 本地模型最快
             var n when n.Contains("gpt-4o-mini") => 500,
             var n when n.Contains("gpt-4o") => 800,
             var n when n.Contains("gpt-4") => 1500,
@@ -115,7 +107,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
             var n when n.Contains("claude-3-haiku") => 400,
             var n when n.Contains("claude-3-sonnet") => 800,
             var n when n.Contains("claude-3-opus") => 2000,
-            _ => 1000  // 默认估算
+            _ => 1000, // 默认估算
         };
     }
 }

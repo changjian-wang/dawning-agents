@@ -3,7 +3,6 @@ using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core;
 using Dawning.Agents.Core.Tools;
-using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Samples.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +21,8 @@ public class GettingStartedSample : SampleBase
         IConfiguration configuration
     )
     {
-        // 注册内置工具
-        services.AddBuiltInTools();
+        // 注册核心工具
+        services.AddCoreTools();
 
         // 注册 ReAct Agent
         services.AddReActAgent(options =>

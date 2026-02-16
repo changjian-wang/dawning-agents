@@ -51,15 +51,26 @@ public class WorkflowEngine : IWorkflowEngine
         var nodeMap = definition.Nodes.ToDictionary(n => n.Id);
         var currentNodeId = definition.StartNodeId;
 
-        _logger.LogInformation("开始执行工作流 {WorkflowId}: {WorkflowName}", definition.Id, definition.Name);
+        _logger.LogInformation(
+            "开始执行工作流 {WorkflowId}: {WorkflowName}",
+            definition.Id,
+            definition.Name
+        );
 
         try
         {
-            while (!string.IsNullOrEmpty(currentNodeId) && !cancellationToken.IsCancellationRequested)
+            while (
+                !string.IsNullOrEmpty(currentNodeId) && !cancellationToken.IsCancellationRequested
+            )
             {
                 if (!nodeMap.TryGetValue(currentNodeId, out var nodeDefinition))
                 {
-                    return CreateFailedResult(definition.Id, $"找不到节点: {currentNodeId}", stopwatch, context);
+                    return CreateFailedResult(
+                        definition.Id,
+                        $"找不到节点: {currentNodeId}",
+                        stopwatch,
+                        context
+                    );
                 }
 
                 // 记录执行步骤开始
@@ -71,23 +82,39 @@ public class WorkflowEngine : IWorkflowEngine
                     StartedAt = DateTime.UtcNow,
                 };
 
-                _logger.LogDebug("执行节点 {NodeId}: {NodeName} ({NodeType})", nodeDefinition.Id, nodeDefinition.Name, nodeDefinition.Type);
+                _logger.LogDebug(
+                    "执行节点 {NodeId}: {NodeName} ({NodeType})",
+                    nodeDefinition.Id,
+                    nodeDefinition.Name,
+                    nodeDefinition.Type
+                );
 
                 // 执行节点
                 var result = await ExecuteNodeAsync(nodeDefinition, context, cancellationToken);
                 context.NodeResults[nodeDefinition.Id] = result;
 
                 // 更新执行步骤
-                context.ExecutionHistory.Add(step with
-                {
-                    CompletedAt = DateTime.UtcNow,
-                    Success = result.Success,
-                });
+                context.ExecutionHistory.Add(
+                    step with
+                    {
+                        CompletedAt = DateTime.UtcNow,
+                        Success = result.Success,
+                    }
+                );
 
                 if (!result.Success)
                 {
-                    _logger.LogWarning("节点 {NodeId} 执行失败: {Error}", nodeDefinition.Id, result.Error);
-                    return CreateFailedResult(definition.Id, result.Error ?? "节点执行失败", stopwatch, context);
+                    _logger.LogWarning(
+                        "节点 {NodeId} 执行失败: {Error}",
+                        nodeDefinition.Id,
+                        result.Error
+                    );
+                    return CreateFailedResult(
+                        definition.Id,
+                        result.Error ?? "节点执行失败",
+                        stopwatch,
+                        context
+                    );
                 }
 
                 // 决定下一个节点
@@ -233,14 +260,39 @@ public class WorkflowEngine : IWorkflowEngine
             var result = nodeDefinition.Type switch
             {
                 WorkflowNodeType.Start => NodeExecutionResult.Ok(nodeDefinition.Id),
-                WorkflowNodeType.End => NodeExecutionResult.Ok(nodeDefinition.Id, context.GetLastResult()?.Output),
-                WorkflowNodeType.Agent => await ExecuteAgentNodeAsync(nodeDefinition, context, cancellationToken),
-                WorkflowNodeType.Tool => await ExecuteToolNodeAsync(nodeDefinition, context, cancellationToken),
+                WorkflowNodeType.End => NodeExecutionResult.Ok(
+                    nodeDefinition.Id,
+                    context.GetLastResult()?.Output
+                ),
+                WorkflowNodeType.Agent => await ExecuteAgentNodeAsync(
+                    nodeDefinition,
+                    context,
+                    cancellationToken
+                ),
+                WorkflowNodeType.Tool => await ExecuteToolNodeAsync(
+                    nodeDefinition,
+                    context,
+                    cancellationToken
+                ),
                 WorkflowNodeType.Condition => ExecuteConditionNode(nodeDefinition, context),
-                WorkflowNodeType.Delay => await ExecuteDelayNodeAsync(nodeDefinition, cancellationToken),
-                WorkflowNodeType.Parallel => await ExecuteParallelNodeAsync(nodeDefinition, context, cancellationToken),
-                WorkflowNodeType.Loop => await ExecuteLoopNodeAsync(nodeDefinition, context, cancellationToken),
-                _ => NodeExecutionResult.Fail(nodeDefinition.Id, $"不支持的节点类型: {nodeDefinition.Type}"),
+                WorkflowNodeType.Delay => await ExecuteDelayNodeAsync(
+                    nodeDefinition,
+                    cancellationToken
+                ),
+                WorkflowNodeType.Parallel => await ExecuteParallelNodeAsync(
+                    nodeDefinition,
+                    context,
+                    cancellationToken
+                ),
+                WorkflowNodeType.Loop => await ExecuteLoopNodeAsync(
+                    nodeDefinition,
+                    context,
+                    cancellationToken
+                ),
+                _ => NodeExecutionResult.Fail(
+                    nodeDefinition.Id,
+                    $"不支持的节点类型: {nodeDefinition.Type}"
+                ),
             };
 
             stopwatch.Stop();
@@ -283,7 +335,10 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 构建输入
         var input = context.GetLastResult()?.Output ?? context.Input;
-        if (config.TryGetValue("inputTemplate", out var templateObj) && templateObj is string template)
+        if (
+            config.TryGetValue("inputTemplate", out var templateObj)
+            && templateObj is string template
+        )
         {
             input = ReplaceVariables(template, context);
         }
@@ -324,7 +379,10 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 构建输入
         var input = context.GetLastResult()?.Output ?? context.Input;
-        if (config.TryGetValue("inputTemplate", out var templateObj) && templateObj is string template)
+        if (
+            config.TryGetValue("inputTemplate", out var templateObj)
+            && templateObj is string template
+        )
         {
             input = ReplaceVariables(template, context);
         }
@@ -354,21 +412,33 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 获取输入值
         var inputValue = context.GetLastResult()?.Output ?? context.Input;
-        if (config.TryGetValue("inputSource", out var inputSourceObj) && inputSourceObj is string inputSource)
+        if (
+            config.TryGetValue("inputSource", out var inputSourceObj)
+            && inputSourceObj is string inputSource
+        )
         {
             inputValue = context.GetState<string>(inputSource) ?? inputValue;
         }
 
         // 检查分支条件
-        if (config.TryGetValue("branches", out var branchesObj) && branchesObj is List<Dictionary<string, object?>> branches)
+        if (
+            config.TryGetValue("branches", out var branchesObj)
+            && branchesObj is List<Dictionary<string, object?>> branches
+        )
         {
             foreach (var branch in branches)
             {
-                if (branch.TryGetValue("condition", out var conditionObj) && conditionObj is string condition)
+                if (
+                    branch.TryGetValue("condition", out var conditionObj)
+                    && conditionObj is string condition
+                )
                 {
                     if (EvaluateCondition(condition, inputValue, context))
                     {
-                        if (branch.TryGetValue("targetNodeId", out var targetObj) && targetObj is string targetNodeId)
+                        if (
+                            branch.TryGetValue("targetNodeId", out var targetObj)
+                            && targetObj is string targetNodeId
+                        )
                         {
                             return NodeExecutionResult.Branch(nodeDefinition.Id, targetNodeId);
                         }
@@ -378,7 +448,10 @@ public class WorkflowEngine : IWorkflowEngine
         }
 
         // 默认分支
-        if (config.TryGetValue("defaultBranchNodeId", out var defaultObj) && defaultObj is string defaultNodeId)
+        if (
+            config.TryGetValue("defaultBranchNodeId", out var defaultObj)
+            && defaultObj is string defaultNodeId
+        )
         {
             return NodeExecutionResult.Branch(nodeDefinition.Id, defaultNodeId);
         }
@@ -431,7 +504,10 @@ public class WorkflowEngine : IWorkflowEngine
         // 简化实现 - 只是标记循环次数
         context.SetState($"{nodeDefinition.Id}_iterations", maxIterations);
         await Task.CompletedTask;
-        return NodeExecutionResult.Ok(nodeDefinition.Id, $"循环节点完成，最大迭代 {maxIterations} 次");
+        return NodeExecutionResult.Ok(
+            nodeDefinition.Id,
+            $"循环节点完成，最大迭代 {maxIterations} 次"
+        );
     }
 
     private string? DetermineNextNode(

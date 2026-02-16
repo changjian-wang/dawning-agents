@@ -147,30 +147,22 @@ public class RateLimitOptions : IValidatableOptions
     {
         if (MaxRequestsPerWindow <= 0)
         {
-            throw new InvalidOperationException(
-                "MaxRequestsPerWindow must be greater than 0."
-            );
+            throw new InvalidOperationException("MaxRequestsPerWindow must be greater than 0.");
         }
 
         if (WindowSize <= TimeSpan.Zero)
         {
-            throw new InvalidOperationException(
-                "WindowSize must be greater than zero."
-            );
+            throw new InvalidOperationException("WindowSize must be greater than zero.");
         }
 
         if (MaxTokensPerSession <= 0)
         {
-            throw new InvalidOperationException(
-                "MaxTokensPerSession must be greater than 0."
-            );
+            throw new InvalidOperationException("MaxTokensPerSession must be greater than 0.");
         }
 
         if (MaxTokensPerRequest <= 0)
         {
-            throw new InvalidOperationException(
-                "MaxTokensPerRequest must be greater than 0."
-            );
+            throw new InvalidOperationException("MaxTokensPerRequest must be greater than 0.");
         }
     }
 }

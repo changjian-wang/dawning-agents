@@ -181,9 +181,21 @@ public class PerformanceProfilerTests
     {
         // Arrange
         var profiler = new PerformanceProfiler();
-        profiler.RecordOperation("LLM:gpt-4", TimeSpan.FromMilliseconds(100), OperationCategories.LLM);
-        profiler.RecordOperation("Tool:search", TimeSpan.FromMilliseconds(50), OperationCategories.Tool);
-        profiler.RecordOperation("LLM:claude", TimeSpan.FromMilliseconds(150), OperationCategories.LLM);
+        profiler.RecordOperation(
+            "LLM:gpt-4",
+            TimeSpan.FromMilliseconds(100),
+            OperationCategories.LLM
+        );
+        profiler.RecordOperation(
+            "Tool:search",
+            TimeSpan.FromMilliseconds(50),
+            OperationCategories.Tool
+        );
+        profiler.RecordOperation(
+            "LLM:claude",
+            TimeSpan.FromMilliseconds(150),
+            OperationCategories.LLM
+        );
 
         // Act
         var llmStats = profiler.GetStatistics(OperationCategories.LLM);

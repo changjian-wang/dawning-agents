@@ -60,7 +60,7 @@ public class LoadBalancedRouter : ModelRouterBase
             ModelRoutingStrategy.RoundRobin => SelectRoundRobin(healthyProviders),
             ModelRoutingStrategy.WeightedRoundRobin => SelectWeightedRoundRobin(healthyProviders),
             ModelRoutingStrategy.Random => SelectRandom(healthyProviders),
-            _ => SelectRoundRobin(healthyProviders)
+            _ => SelectRoundRobin(healthyProviders),
         };
 
         _logger.LogDebug("负载均衡选择: {Provider}", selected.Name);
@@ -116,7 +116,7 @@ public class LoadBalancedRouter : ModelRouterBase
             var name = provider.Name.ToLowerInvariant();
             weights[provider.Name] = name switch
             {
-                var n when n.Contains("ollama") => 10,    // 本地优先
+                var n when n.Contains("ollama") => 10, // 本地优先
                 var n when n.Contains("gpt-4o-mini") => 5,
                 var n when n.Contains("gpt-3.5") => 4,
                 var n when n.Contains("claude-3-haiku") => 4,
@@ -124,7 +124,7 @@ public class LoadBalancedRouter : ModelRouterBase
                 var n when n.Contains("claude-3-sonnet") => 2,
                 var n when n.Contains("gpt-4") => 1,
                 var n when n.Contains("claude-3-opus") => 1,
-                _ => 1
+                _ => 1,
             };
         }
 

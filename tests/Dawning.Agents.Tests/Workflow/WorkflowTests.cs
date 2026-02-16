@@ -175,7 +175,13 @@ public class WorkflowTests
         var definition = WorkflowBuilder
             .Create("test", "测试")
             .AddStartNode("start")
-            .AddHumanApprovalNode("approval1", "人工审批", "approved_node", "rejected_node", "请确认操作")
+            .AddHumanApprovalNode(
+                "approval1",
+                "人工审批",
+                "approved_node",
+                "rejected_node",
+                "请确认操作"
+            )
             .AddEndNode("end")
             .StartWith("start")
             .Build();
@@ -504,8 +510,7 @@ public class WorkflowTests
     public void WorkflowSerializer_DeserializeFromJson_ReturnsDefinition()
     {
         var serializer = new WorkflowSerializer();
-        var json =
-            """
+        var json = """
             {
                 "id": "test",
                 "name": "测试工作流",
@@ -576,8 +581,7 @@ public class WorkflowTests
     public void WorkflowSerializer_DeserializeFromYaml_ReturnsDefinition()
     {
         var serializer = new WorkflowSerializer();
-        var yaml =
-            """
+        var yaml = """
             id: test
             name: 测试工作流
             startNodeId: start

@@ -43,7 +43,7 @@ public enum EvaluationMetric
     /// <summary>
     /// 自定义
     /// </summary>
-    Custom
+    Custom,
 }
 
 /// <summary>
@@ -131,12 +131,7 @@ public sealed class LLMJudgeOptions
     /// 评分维度
     /// </summary>
     public List<string> ScoringDimensions { get; set; } =
-    [
-        "Accuracy",
-        "Relevance",
-        "Completeness",
-        "Clarity",
-    ];
+    ["Accuracy", "Relevance", "Completeness", "Clarity"];
 }
 
 /// <summary>

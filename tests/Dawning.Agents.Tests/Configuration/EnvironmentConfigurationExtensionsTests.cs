@@ -144,7 +144,8 @@ public class EnvironmentConfigurationExtensionsTests : IDisposable
         var nonExistentPath = Path.Combine(_testDir, "nonexistent.env");
 
         // Act
-        var action = () => new ConfigurationBuilder().AddEnvFile(nonExistentPath, optional: true).Build();
+        var action = () =>
+            new ConfigurationBuilder().AddEnvFile(nonExistentPath, optional: true).Build();
 
         // Assert
         action.Should().NotThrow();

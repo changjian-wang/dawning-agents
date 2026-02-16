@@ -15,7 +15,10 @@ public interface ISemanticCache
     /// <param name="query">查询文本</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>缓存命中时返回响应，否则返回 null</returns>
-    Task<SemanticCacheResult?> GetAsync(string query, CancellationToken cancellationToken = default);
+    Task<SemanticCacheResult?> GetAsync(
+        string query,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 存储查询和响应到缓存

@@ -216,7 +216,9 @@ public class MemorySample : SampleBase
         {
             foreach (var (role, content) in messages)
             {
-                await memory.AddMessageAsync(new ConversationMessage { Role = role, Content = content });
+                await memory.AddMessageAsync(
+                    new ConversationMessage { Role = role, Content = content }
+                );
             }
         }
 
@@ -240,7 +242,7 @@ public class MemorySample : SampleBase
                 "Vector" => "检索+最近消息",
                 _ => "",
             };
-            Console.WriteLine($"| {name,-9} | {count,6} | {tokens,8} | {feature,-23} |");
+            Console.WriteLine($"| {name, -9} | {count, 6} | {tokens, 8} | {feature, -23} |");
         }
 
         Console.WriteLine();
@@ -273,9 +275,7 @@ public class MemorySample : SampleBase
             var tokens = await memory.GetTokenCountAsync();
 
             ConsoleHelper.PrintDim($"[{i}/{rounds}] 用户: {userMessage}");
-            ConsoleHelper.PrintDim(
-                $"        消息数: {memory.MessageCount}, Token: {tokens}"
-            );
+            ConsoleHelper.PrintDim($"        消息数: {memory.MessageCount}, Token: {tokens}");
 
             // 检查 AdaptiveMemory 是否已降级
             if (showDowngrade && memory is AdaptiveMemory adaptive && adaptive.HasDowngraded)
@@ -308,8 +308,7 @@ public class MemorySample : SampleBase
         ConsoleHelper.PrintInfo("实际传递给 LLM 的上下文:");
         foreach (var msg in context.TakeLast(4))
         {
-            var preview =
-                msg.Content.Length > 50 ? msg.Content[..50] + "..." : msg.Content;
+            var preview = msg.Content.Length > 50 ? msg.Content[..50] + "..." : msg.Content;
             ConsoleHelper.PrintDim($"  [{msg.Role}] {preview}");
         }
         if (context.Count > 4)

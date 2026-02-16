@@ -22,9 +22,7 @@ public class HumanLoopOptionsValidator : AbstractValidator<HumanLoopOptions>
             .LessThanOrEqualTo(10)
             .WithMessage("MaxRetries 不能超过 10");
 
-        RuleFor(x => x.HighRiskKeywords)
-            .NotNull()
-            .WithMessage("HighRiskKeywords 不能为 null");
+        RuleFor(x => x.HighRiskKeywords).NotNull().WithMessage("HighRiskKeywords 不能为 null");
 
         RuleFor(x => x.CriticalRiskKeywords)
             .NotNull()

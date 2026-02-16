@@ -16,7 +16,8 @@ public sealed class ABTestRunner
 
     public ABTestRunner(ILogger<ABTestRunner>? logger = null)
     {
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<ABTestRunner>.Instance;
+        _logger =
+            logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<ABTestRunner>.Instance;
     }
 
     /// <summary>
@@ -44,16 +45,8 @@ public sealed class ABTestRunner
 
         var result = new ABTestResult
         {
-            VariantA = new ABVariant
-            {
-                Name = evaluatorA.Name,
-                Report = reportA,
-            },
-            VariantB = new ABVariant
-            {
-                Name = evaluatorB.Name,
-                Report = reportB,
-            },
+            VariantA = new ABVariant { Name = evaluatorA.Name, Report = reportA },
+            VariantB = new ABVariant { Name = evaluatorB.Name, Report = reportB },
             TestCaseCount = testCaseList.Count,
         };
 
@@ -102,7 +95,9 @@ public record ABTestResult
                 return null; // 平局（差距小于 1 分）
             }
 
-            return VariantA.Report.AverageScore > VariantB.Report.AverageScore ? VariantA : VariantB;
+            return VariantA.Report.AverageScore > VariantB.Report.AverageScore
+                ? VariantA
+                : VariantB;
         }
     }
 
@@ -119,7 +114,8 @@ public record ABTestResult
     /// <summary>
     /// 延迟差异（毫秒）
     /// </summary>
-    public double LatencyDifference => VariantA.Report.AverageLatencyMs - VariantB.Report.AverageLatencyMs;
+    public double LatencyDifference =>
+        VariantA.Report.AverageLatencyMs - VariantB.Report.AverageLatencyMs;
 
     /// <summary>
     /// 比较时间
@@ -152,7 +148,14 @@ public sealed class EvaluationReportGenerator
 
     public EvaluationReportGenerator(ILogger<EvaluationReportGenerator>? logger = null)
     {
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<EvaluationReportGenerator>.Instance;
+        _logger =
+            logger
+            ?? Microsoft
+                .Extensions
+                .Logging
+                .Abstractions
+                .NullLogger<EvaluationReportGenerator>
+                .Instance;
     }
 
     /// <summary>
@@ -160,11 +163,14 @@ public sealed class EvaluationReportGenerator
     /// </summary>
     public string GenerateJson(EvaluationReport report)
     {
-        return JsonSerializer.Serialize(report, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        });
+        return JsonSerializer.Serialize(
+            report,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            }
+        );
     }
 
     /// <summary>
@@ -209,7 +215,9 @@ public sealed class EvaluationReportGenerator
         {
             var status = result.Passed ? "✅ Pass" : "❌ Fail";
             var tools = result.ToolsCalled != null ? string.Join(", ", result.ToolsCalled) : "-";
-            sb.AppendLine($"| {result.TestCaseId} | {status} | {result.Score:F1} | {result.LatencyMs}ms | {tools} |");
+            sb.AppendLine(
+                $"| {result.TestCaseId} | {status} | {result.Score:F1} | {result.LatencyMs}ms | {tools} |"
+            );
         }
 
         sb.AppendLine();
@@ -225,7 +233,9 @@ public sealed class EvaluationReportGenerator
             {
                 sb.AppendLine($"### {result.TestCaseId}");
                 sb.AppendLine();
-                sb.AppendLine($"**Failure Reason:** {result.FailureReason ?? "Score below threshold"}");
+                sb.AppendLine(
+                    $"**Failure Reason:** {result.FailureReason ?? "Score below threshold"}"
+                );
                 sb.AppendLine();
                 if (!string.IsNullOrEmpty(result.ActualOutput))
                 {

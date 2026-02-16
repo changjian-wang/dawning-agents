@@ -50,11 +50,13 @@ public class CostOptimizedRouter : ModelRouterBase
         if (!string.IsNullOrEmpty(context.PreferredModel))
         {
             // 优先精确匹配，其次部分匹配
-            var preferred = healthyProviders.FirstOrDefault(
-                p => p.Name.Equals(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
-            ) ?? healthyProviders.FirstOrDefault(
-                p => p.Name.Contains(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
-            );
+            var preferred =
+                healthyProviders.FirstOrDefault(p =>
+                    p.Name.Equals(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
+                )
+                ?? healthyProviders.FirstOrDefault(p =>
+                    p.Name.Contains(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
+                );
             if (preferred != null)
             {
                 _logger.LogDebug("使用首选模型: {Provider}", preferred.Name);
@@ -64,20 +66,14 @@ public class CostOptimizedRouter : ModelRouterBase
 
         // 计算每个提供者的预估成本
         var providerCosts = healthyProviders
-            .Select(p => new
-            {
-                Provider = p,
-                Cost = CalculateEstimatedCost(p.Name, context)
-            })
+            .Select(p => new { Provider = p, Cost = CalculateEstimatedCost(p.Name, context) })
             .OrderBy(x => x.Cost)
             .ToList();
 
         // 如果有成本限制，过滤超出限制的提供者
         if (context.MaxCost > 0)
         {
-            providerCosts = providerCosts
-                .Where(x => x.Cost <= context.MaxCost)
-                .ToList();
+            providerCosts = providerCosts.Where(x => x.Cost <= context.MaxCost).ToList();
 
             if (providerCosts.Count == 0)
             {
@@ -89,7 +85,7 @@ public class CostOptimizedRouter : ModelRouterBase
                     .Select(p => new
                     {
                         Provider = p,
-                        Cost = CalculateEstimatedCost(p.Name, context)
+                        Cost = CalculateEstimatedCost(p.Name, context),
                     })
                     .OrderBy(x => x.Cost)
                     .ToList();

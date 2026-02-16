@@ -263,7 +263,12 @@ public sealed class SafeAgent : IAgent
                 );
             }
 
-            return AgentResponse.Failed($"执行过程中发生错误: {ex.Message}", [], stopwatch.Elapsed, ex);
+            return AgentResponse.Failed(
+                $"执行过程中发生错误: {ex.Message}",
+                [],
+                stopwatch.Elapsed,
+                ex
+            );
         }
     }
 

@@ -36,13 +36,11 @@ public static class DiagnosticsServiceCollectionExtensions
     )
     {
         services.TryAddSingleton<IDiagnosticsProvider, DiagnosticsProvider>();
-        services.TryAddSingleton<IPerformanceProfiler>(sp =>
-            new PerformanceProfiler(
-                logger: sp.GetService<Microsoft.Extensions.Logging.ILogger<PerformanceProfiler>>(),
-                maxTraceCount: maxTraceCount,
-                slowOperationThreshold: slowOperationThreshold
-            )
-        );
+        services.TryAddSingleton<IPerformanceProfiler>(sp => new PerformanceProfiler(
+            logger: sp.GetService<Microsoft.Extensions.Logging.ILogger<PerformanceProfiler>>(),
+            maxTraceCount: maxTraceCount,
+            slowOperationThreshold: slowOperationThreshold
+        ));
 
         return services;
     }

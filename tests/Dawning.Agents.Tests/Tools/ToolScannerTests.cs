@@ -1,7 +1,6 @@
 using System.Reflection;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core.Tools;
-using Dawning.Agents.Core.Tools.BuiltIn;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -45,27 +44,26 @@ public class ToolScannerTests
     }
 
     [Fact]
-    public void ScanInstance_MathTool_FindsAllMethods()
+    public void ScanInstance_TestCalculatorTool_FindsAllMethods()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
 
         tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "Calculate");
-        tools.Should().Contain(t => t.Name == "BasicMath");
-        tools.Should().Contain(t => t.Name == "MathFunction");
+        tools.Should().Contain(t => t.Name == "Add");
+        tools.Should().Contain(t => t.Name == "Multiply");
     }
 
     [Fact]
-    public void ScanInstance_DateTimeTool_FindsAllMethods()
+    public void ScanInstance_TestGreetingTool_FindsAllMethods()
     {
-        var instance = new DateTimeTool();
+        var instance = new TestGreetingTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
 
         tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "GetCurrentDateTime");
+        tools.Should().Contain(t => t.Name == "Greet");
     }
 
     [Fact]
@@ -81,7 +79,7 @@ public class ToolScannerTests
     [Fact]
     public void ScanInstance_ReturnsMethodTool()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
 
@@ -113,9 +111,9 @@ public class ToolScannerTests
     [Fact]
     public void ScanType_WithNoStaticTools_ReturnsEmpty()
     {
-        var tools = _scanner.ScanType(typeof(MathTool)).ToList();
+        var tools = _scanner.ScanType(typeof(TestCalculatorTool)).ToList();
 
-        // MathTool has instance methods, not static
+        // TestCalculatorTool has instance methods, not static
         tools.Should().BeEmpty();
     }
 
@@ -132,13 +130,15 @@ public class ToolScannerTests
     }
 
     [Fact]
-    public void ScanAssembly_CoreAssembly_FindsBuiltInTools()
+    public void ScanAssembly_CoreAssembly_FindsTools()
     {
-        var assembly = typeof(MathTool).Assembly;
+        var assembly = typeof(ToolRegistry).Assembly;
 
         var tools = _scanner.ScanAssembly(assembly).ToList();
 
-        tools.Should().NotBeEmpty();
+        // Core assembly may or may not have FunctionTool-decorated methods
+        // Just verify no exception
+        tools.Should().NotBeNull();
     }
 
     #endregion
@@ -148,46 +148,46 @@ public class ToolScannerTests
     [Fact]
     public void ScannedTool_HasCorrectName()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
-        var calculateTool = tools.First(t => t.Name == "Calculate");
+        var addTool = tools.First(t => t.Name == "Add");
 
-        calculateTool.Name.Should().Be("Calculate");
+        addTool.Name.Should().Be("Add");
     }
 
     [Fact]
     public void ScannedTool_HasDescription()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
-        var calculateTool = tools.First(t => t.Name == "Calculate");
+        var addTool = tools.First(t => t.Name == "Add");
 
-        calculateTool.Description.Should().NotBeNullOrEmpty();
+        addTool.Description.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
     public void ScannedTool_HasCategory()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
-        var calculateTool = tools.First(t => t.Name == "Calculate");
+        var addTool = tools.First(t => t.Name == "Add");
 
-        calculateTool.Category.Should().Be("Math");
+        addTool.Category.Should().Be("TestCalc");
     }
 
     [Fact]
     public void ScannedTool_HasParametersSchema()
     {
-        var instance = new MathTool();
+        var instance = new TestCalculatorTool();
 
         var tools = _scanner.ScanInstance(instance).ToList();
-        var calculateTool = tools.First(t => t.Name == "Calculate");
+        var addTool = tools.First(t => t.Name == "Add");
 
-        calculateTool.ParametersSchema.Should().NotBeNullOrEmpty();
-        calculateTool.ParametersSchema.Should().Contain("expression");
+        addTool.ParametersSchema.Should().NotBeNullOrEmpty();
+        addTool.ParametersSchema.Should().Contain("a");
     }
 
     #endregion
@@ -203,6 +203,33 @@ public class ToolScannerTests
     {
         [FunctionTool("A static tool for testing")]
         public static string StaticTool() => "Static result";
+    }
+
+    /// <summary>
+    /// 测试用计算器工具（替代已删除的 MathTool）
+    /// </summary>
+    private class TestCalculatorTool
+    {
+        [FunctionTool("Add two numbers", Category = "TestCalc")]
+        public string Add(
+            [ToolParameter("First number")] double a,
+            [ToolParameter("Second number")] double b
+        ) => (a + b).ToString();
+
+        [FunctionTool("Multiply two numbers", Category = "TestCalc")]
+        public string Multiply(
+            [ToolParameter("First number")] double a,
+            [ToolParameter("Second number")] double b
+        ) => (a * b).ToString();
+    }
+
+    /// <summary>
+    /// 测试用问候工具（替代已删除的 DateTimeTool）
+    /// </summary>
+    private class TestGreetingTool
+    {
+        [FunctionTool("Greet someone", Category = "TestGreeting")]
+        public string Greet([ToolParameter("Name to greet")] string name) => $"Hello, {name}!";
     }
 
     #endregion

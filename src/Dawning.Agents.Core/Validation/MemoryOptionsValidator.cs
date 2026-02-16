@@ -28,9 +28,7 @@ public class MemoryOptionsValidator : AbstractValidator<MemoryOptions>
             .GreaterThanOrEqualTo(x => x.MaxRecentMessages)
             .WithMessage("SummaryThreshold 必须大于等于 MaxRecentMessages");
 
-        RuleFor(x => x.ModelName)
-            .NotEmpty()
-            .WithMessage("ModelName 不能为空");
+        RuleFor(x => x.ModelName).NotEmpty().WithMessage("ModelName 不能为空");
 
         RuleFor(x => x.MaxContextTokens)
             .GreaterThan(0)

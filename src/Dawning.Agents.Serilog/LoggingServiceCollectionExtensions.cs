@@ -147,9 +147,9 @@ public static class LoggingServiceCollectionExtensions
         // 注册日志级别开关（用于动态调整）
         var levelSwitch = new LoggingLevelSwitch(minLevel);
         services.AddSingleton(levelSwitch);
-        services.AddSingleton<ILogLevelController>(sp =>
-            new LogLevelController(sp.GetRequiredService<LoggingLevelSwitch>())
-        );
+        services.AddSingleton<ILogLevelController>(sp => new LogLevelController(
+            sp.GetRequiredService<LoggingLevelSwitch>()
+        ));
 
         // 替换 Microsoft.Extensions.Logging
         services.AddLogging(builder =>
@@ -176,15 +176,17 @@ public static class LoggingServiceCollectionExtensions
 
         if (!string.IsNullOrEmpty(esOptions.ApiKey))
         {
-            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]))
-                .Authentication(new ApiKey(esOptions.ApiKey));
+            transportConfig = new TransportConfiguration(
+                new Uri(esOptions.NodeUris[0])
+            ).Authentication(new ApiKey(esOptions.ApiKey));
         }
         else if (
             !string.IsNullOrEmpty(esOptions.Username) && !string.IsNullOrEmpty(esOptions.Password)
         )
         {
-            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]))
-                .Authentication(new BasicAuthentication(esOptions.Username, esOptions.Password));
+            transportConfig = new TransportConfiguration(
+                new Uri(esOptions.NodeUris[0])
+            ).Authentication(new BasicAuthentication(esOptions.Username, esOptions.Password));
         }
         else
         {

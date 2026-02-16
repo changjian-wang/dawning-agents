@@ -75,14 +75,21 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         },
     ];
 
-    private static readonly string[] _supportedFormats = ["mp3", "opus", "aac", "flac", "wav", "pcm"];
+    private static readonly string[] _supportedFormats =
+    [
+        "mp3",
+        "opus",
+        "aac",
+        "flac",
+        "wav",
+        "pcm",
+    ];
 
-    private static readonly JsonSerializerOptions _jsonOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
     /// <inheritdoc />
     public string Name => "OpenAI-TTS";
@@ -280,8 +287,10 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         var buffer = new byte[8192];
         int bytesRead;
 
-        while ((bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0
-            && !cancellationToken.IsCancellationRequested)
+        while (
+            (bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0
+            && !cancellationToken.IsCancellationRequested
+        )
         {
             var chunk = new byte[bytesRead];
             Array.Copy(buffer, chunk, bytesRead);

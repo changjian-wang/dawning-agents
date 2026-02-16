@@ -139,10 +139,7 @@ public class OptionsValidatorTests
         var validator = new SafetyOptionsValidator();
         var options = new SafetyOptions
         {
-            SensitivePatterns =
-            [
-                new SensitivePattern { Name = "Invalid", Pattern = "[invalid(" },
-            ],
+            SensitivePatterns = [new SensitivePattern { Name = "Invalid", Pattern = "[invalid(" }],
         };
 
         var result = validator.Validate(options);

@@ -260,7 +260,9 @@ public record EvaluationReport
     /// 总估算成本
     /// </summary>
     public decimal TotalEstimatedCost =>
-        Results.Where(r => r.TokenUsage?.EstimatedCost != null).Sum(r => r.TokenUsage!.EstimatedCost!.Value);
+        Results
+            .Where(r => r.TokenUsage?.EstimatedCost != null)
+            .Sum(r => r.TokenUsage!.EstimatedCost!.Value);
 
     /// <summary>
     /// 生成时间

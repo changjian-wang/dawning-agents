@@ -32,12 +32,8 @@ public class RAGOptionsValidator : AbstractValidator<RAGOptions>
             .InclusiveBetween(0f, 1f)
             .WithMessage("MinScore 必须在 0.0 到 1.0 之间");
 
-        RuleFor(x => x.EmbeddingModel)
-            .NotEmpty()
-            .WithMessage("EmbeddingModel 不能为空");
+        RuleFor(x => x.EmbeddingModel).NotEmpty().WithMessage("EmbeddingModel 不能为空");
 
-        RuleFor(x => x.ContextTemplate)
-            .NotEmpty()
-            .WithMessage("ContextTemplate 不能为空");
+        RuleFor(x => x.ContextTemplate).NotEmpty().WithMessage("ContextTemplate 不能为空");
     }
 }

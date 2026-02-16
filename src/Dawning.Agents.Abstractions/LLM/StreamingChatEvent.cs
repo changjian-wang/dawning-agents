@@ -22,18 +22,15 @@ public record StreamingChatEvent
     public StreamingTokenUsage? Usage { get; init; }
 
     /// <summary>创建内容增量事件</summary>
-    public static StreamingChatEvent Content(string text) =>
-        new() { ContentDelta = text };
+    public static StreamingChatEvent Content(string text) => new() { ContentDelta = text };
 
     /// <summary>创建工具调用增量事件</summary>
     public static StreamingChatEvent ToolCall(ToolCallDelta delta) =>
         new() { ToolCallDelta = delta };
 
     /// <summary>创建完成事件（含 finish reason 和可选 usage）</summary>
-    public static StreamingChatEvent Done(
-        string finishReason,
-        StreamingTokenUsage? usage = null
-    ) => new() { FinishReason = finishReason, Usage = usage };
+    public static StreamingChatEvent Done(string finishReason, StreamingTokenUsage? usage = null) =>
+        new() { FinishReason = finishReason, Usage = usage };
 }
 
 /// <summary>

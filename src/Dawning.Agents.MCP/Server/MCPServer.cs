@@ -37,7 +37,8 @@ public sealed class MCPServer : IAsyncDisposable
         _options = options.Value;
         _toolRegistry = toolRegistry;
         _transport = transport;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MCPServer>.Instance;
+        _logger =
+            logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MCPServer>.Instance;
         _requestSemaphore = new SemaphoreSlim(_options.MaxConcurrentRequests);
     }
 
@@ -74,7 +75,10 @@ public sealed class MCPServer : IAsyncDisposable
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            _cts.Token
+        );
 
         _logger.LogInformation(
             "Starting MCP Server: {Name} v{Version}",
@@ -123,7 +127,12 @@ public sealed class MCPServer : IAsyncDisposable
             var request = JsonSerializer.Deserialize<MCPRequest>(message);
             if (request == null)
             {
-                await SendErrorAsync(null, MCPErrorCodes.ParseError, "Invalid JSON", cancellationToken);
+                await SendErrorAsync(
+                    null,
+                    MCPErrorCodes.ParseError,
+                    "Invalid JSON",
+                    cancellationToken
+                );
                 return;
             }
 
@@ -169,7 +178,11 @@ public sealed class MCPServer : IAsyncDisposable
             // 通知方法不需要响应
             MCPMethods.Initialized => null,
 
-            _ => MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, $"Unknown method: {request.Method}")
+            _ => MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.MethodNotFound,
+                $"Unknown method: {request.Method}"
+            ),
         };
     }
 
@@ -186,11 +199,13 @@ public sealed class MCPServer : IAsyncDisposable
 
         if (initParams == null)
         {
-            return Task.FromResult(MCPResponse.Failure(
-                request.Id,
-                MCPErrorCodes.InvalidParams,
-                "Invalid initialize params"
-            ));
+            return Task.FromResult(
+                MCPResponse.Failure(
+                    request.Id,
+                    MCPErrorCodes.InvalidParams,
+                    "Invalid initialize params"
+                )
+            );
         }
 
         _clientInfo = initParams.ClientInfo;
@@ -206,11 +221,7 @@ public sealed class MCPServer : IAsyncDisposable
         {
             ProtocolVersion = MCPProtocolVersion.Latest,
             Capabilities = BuildServerCapabilities(),
-            ServerInfo = new MCPServerInfo
-            {
-                Name = _options.Name,
-                Version = _options.Version,
-            },
+            ServerInfo = new MCPServerInfo { Name = _options.Name, Version = _options.Version },
         };
 
         return Task.FromResult(MCPResponse.Success(request.Id, result));
@@ -259,7 +270,11 @@ public sealed class MCPServer : IAsyncDisposable
     {
         if (!_options.EnableTools)
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, "Tools not enabled");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.MethodNotFound,
+                "Tools not enabled"
+            );
         }
 
         var paramsJson = JsonSerializer.Serialize(request.Params);
@@ -267,7 +282,11 @@ public sealed class MCPServer : IAsyncDisposable
 
         if (callParams == null)
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.InvalidParams, "Invalid call params");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.InvalidParams,
+                "Invalid call params"
+            );
         }
 
         var tool = _toolRegistry.GetTool(callParams.Name);
@@ -290,9 +309,10 @@ public sealed class MCPServer : IAsyncDisposable
                 timeoutCts.Token
             );
 
-            var inputJson = callParams.Arguments != null
-                ? JsonSerializer.Serialize(callParams.Arguments)
-                : "{}";
+            var inputJson =
+                callParams.Arguments != null
+                    ? JsonSerializer.Serialize(callParams.Arguments)
+                    : "{}";
 
             var result = await tool.ExecuteAsync(inputJson, linkedCts.Token);
 
@@ -315,11 +335,7 @@ public sealed class MCPServer : IAsyncDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Tool execution failed: {Tool}", callParams.Name);
-            return MCPResponse.Failure(
-                request.Id,
-                MCPErrorCodes.ToolExecutionFailed,
-                ex.Message
-            );
+            return MCPResponse.Failure(request.Id, MCPErrorCodes.ToolExecutionFailed, ex.Message);
         }
     }
 
@@ -333,9 +349,7 @@ public sealed class MCPServer : IAsyncDisposable
             return MCPResponse.Success(request.Id, new ListResourcesResult { Resources = [] });
         }
 
-        var resources = _resourceProviders
-            .SelectMany(p => p.GetResources())
-            .ToList();
+        var resources = _resourceProviders.SelectMany(p => p.GetResources()).ToList();
 
         return MCPResponse.Success(request.Id, new ListResourcesResult { Resources = resources });
     }
@@ -350,7 +364,11 @@ public sealed class MCPServer : IAsyncDisposable
     {
         if (!_options.EnableResources)
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, "Resources not enabled");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.MethodNotFound,
+                "Resources not enabled"
+            );
         }
 
         var paramsJson = JsonSerializer.Serialize(request.Params);
@@ -358,7 +376,11 @@ public sealed class MCPServer : IAsyncDisposable
 
         if (readParams == null || string.IsNullOrEmpty(readParams.Uri))
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.InvalidParams, "Invalid resource URI");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.InvalidParams,
+                "Invalid resource URI"
+            );
         }
 
         foreach (var provider in _resourceProviders)
@@ -390,9 +412,7 @@ public sealed class MCPServer : IAsyncDisposable
             return MCPResponse.Success(request.Id, new ListPromptsResult { Prompts = [] });
         }
 
-        var prompts = _promptProviders
-            .SelectMany(p => p.GetPrompts())
-            .ToList();
+        var prompts = _promptProviders.SelectMany(p => p.GetPrompts()).ToList();
 
         return MCPResponse.Success(request.Id, new ListPromptsResult { Prompts = prompts });
     }
@@ -407,7 +427,11 @@ public sealed class MCPServer : IAsyncDisposable
     {
         if (!_options.EnablePrompts)
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, "Prompts not enabled");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.MethodNotFound,
+                "Prompts not enabled"
+            );
         }
 
         var paramsJson = JsonSerializer.Serialize(request.Params);
@@ -415,7 +439,11 @@ public sealed class MCPServer : IAsyncDisposable
 
         if (getParams == null || string.IsNullOrEmpty(getParams.Name))
         {
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.InvalidParams, "Invalid prompt name");
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.InvalidParams,
+                "Invalid prompt name"
+            );
         }
 
         foreach (var provider in _promptProviders)
@@ -462,8 +490,7 @@ public sealed class MCPServer : IAsyncDisposable
     {
         try
         {
-            return JsonSerializer.Deserialize<MCPInputSchema>(schemaJson)
-                ?? new MCPInputSchema();
+            return JsonSerializer.Deserialize<MCPInputSchema>(schemaJson) ?? new MCPInputSchema();
         }
         catch
         {
@@ -503,11 +530,7 @@ public sealed class MCPServer : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        var notification = new MCPNotification
-        {
-            Method = method,
-            Params = @params,
-        };
+        var notification = new MCPNotification { Method = method, Params = @params };
         var json = JsonSerializer.Serialize(notification);
         await _transport.SendAsync(json, cancellationToken);
     }

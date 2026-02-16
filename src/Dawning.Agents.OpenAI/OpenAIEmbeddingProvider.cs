@@ -84,11 +84,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 使用自定义 EmbeddingClient 创建 Provider（用于测试）
     /// </summary>
-    internal OpenAIEmbeddingProvider(
-        EmbeddingClient embeddingClient,
-        string model,
-        int dimensions
-    )
+    internal OpenAIEmbeddingProvider(EmbeddingClient embeddingClient, string model, int dimensions)
     {
         ArgumentNullException.ThrowIfNull(embeddingClient);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);

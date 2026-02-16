@@ -23,14 +23,23 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     private readonly ILogger<OpenAIWhisperProvider> _logger;
 
     private static readonly string[] _supportedFormats =
-        ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "flac", "ogg"];
+    [
+        "mp3",
+        "mp4",
+        "mpeg",
+        "mpga",
+        "m4a",
+        "wav",
+        "webm",
+        "flac",
+        "ogg",
+    ];
 
-    private static readonly JsonSerializerOptions _jsonOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
     /// <inheritdoc />
     public string Name => "OpenAI-Whisper";
@@ -117,7 +126,9 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         var fileInfo = new FileInfo(filePath);
         if (fileInfo.Length > MaxFileSize)
         {
-            return TranscriptionResult.Failed($"文件过大: {fileInfo.Length} 字节 (最大 {MaxFileSize} 字节)");
+            return TranscriptionResult.Failed(
+                $"文件过大: {fileInfo.Length} 字节 (最大 {MaxFileSize} 字节)"
+            );
         }
 
         var extension = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
@@ -129,7 +140,12 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         _logger.LogDebug("开始转录文件: {FilePath}", filePath);
 
         await using var stream = File.OpenRead(filePath);
-        return await TranscribeStreamAsync(stream, Path.GetFileName(filePath), options, cancellationToken);
+        return await TranscribeStreamAsync(
+            stream,
+            Path.GetFileName(filePath),
+            options,
+            cancellationToken
+        );
     }
 
     /// <inheritdoc />
@@ -154,7 +170,9 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
 
         // 添加音频文件
         var fileContent = new StreamContent(audioStream);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeTypeFromExtension(Path.GetExtension(fileName)));
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(
+            GetMimeTypeFromExtension(Path.GetExtension(fileName))
+        );
         content.Add(fileContent, "file", fileName);
 
         // 添加模型
@@ -190,13 +208,15 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         // 时间戳粒度
         if (options.IncludeTimestamps && options.ResponseFormat == TranscriptionFormat.VerboseJson)
         {
-            var granularity = options.TimestampGranularity == TimestampGranularity.Word
-                ? "word"
-                : "segment";
+            var granularity =
+                options.TimestampGranularity == TimestampGranularity.Word ? "word" : "segment";
             content.Add(new StringContent(granularity), "timestamp_granularities[]");
         }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/audio/transcriptions");
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"{_baseUrl}/audio/transcriptions"
+        );
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
         request.Content = content;
 
@@ -212,7 +232,9 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
                     response.StatusCode,
                     responseText
                 );
-                return TranscriptionResult.Failed($"API 错误: {response.StatusCode} - {responseText}");
+                return TranscriptionResult.Failed(
+                    $"API 错误: {response.StatusCode} - {responseText}"
+                );
             }
 
             return ParseTranscriptionResponse(responseText, options.ResponseFormat);
@@ -224,11 +246,16 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
     }
 
-    private TranscriptionResult ParseTranscriptionResponse(string responseText, TranscriptionFormat format)
+    private TranscriptionResult ParseTranscriptionResponse(
+        string responseText,
+        TranscriptionFormat format
+    )
     {
-        if (format == TranscriptionFormat.Text ||
-            format == TranscriptionFormat.Srt ||
-            format == TranscriptionFormat.Vtt)
+        if (
+            format == TranscriptionFormat.Text
+            || format == TranscriptionFormat.Srt
+            || format == TranscriptionFormat.Vtt
+        )
         {
             return TranscriptionResult.Ok(responseText);
         }
@@ -258,16 +285,18 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
                 segments = [];
                 foreach (var seg in segmentsElement.EnumerateArray())
                 {
-                    segments.Add(new TranscriptionSegment
-                    {
-                        Id = seg.GetProperty("id").GetInt32(),
-                        Start = seg.GetProperty("start").GetDouble(),
-                        End = seg.GetProperty("end").GetDouble(),
-                        Text = seg.GetProperty("text").GetString() ?? "",
-                        Confidence = seg.TryGetProperty("avg_logprob", out var prob)
-                            ? Math.Exp(prob.GetDouble()) // Convert log probability to probability
-                            : null,
-                    });
+                    segments.Add(
+                        new TranscriptionSegment
+                        {
+                            Id = seg.GetProperty("id").GetInt32(),
+                            Start = seg.GetProperty("start").GetDouble(),
+                            End = seg.GetProperty("end").GetDouble(),
+                            Text = seg.GetProperty("text").GetString() ?? "",
+                            Confidence = seg.TryGetProperty("avg_logprob", out var prob)
+                                ? Math.Exp(prob.GetDouble()) // Convert log probability to probability
+                                : null,
+                        }
+                    );
                 }
             }
 
@@ -277,12 +306,14 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
                 words = [];
                 foreach (var word in wordsElement.EnumerateArray())
                 {
-                    words.Add(new TranscriptionWord
-                    {
-                        Word = word.GetProperty("word").GetString() ?? "",
-                        Start = word.GetProperty("start").GetDouble(),
-                        End = word.GetProperty("end").GetDouble(),
-                    });
+                    words.Add(
+                        new TranscriptionWord
+                        {
+                            Word = word.GetProperty("word").GetString() ?? "",
+                            Start = word.GetProperty("start").GetDouble(),
+                            End = word.GetProperty("end").GetDouble(),
+                        }
+                    );
                 }
             }
 

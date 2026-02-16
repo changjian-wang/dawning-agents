@@ -44,9 +44,7 @@ public class OptionsValidationTests
     public void AddValidatedOptions_WithConfiguration_ShouldResolve()
     {
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Test:Value"] = "hello" }
-            )
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Test:Value"] = "hello" })
             .Build();
 
         var services = new ServiceCollection();
@@ -61,9 +59,7 @@ public class OptionsValidationTests
     public void AddValidatedOptions_InvalidConfig_ShouldThrowOnStart()
     {
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Test:Value"] = "" }
-            )
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Test:Value"] = "" })
             .Build();
 
         var services = new ServiceCollection();

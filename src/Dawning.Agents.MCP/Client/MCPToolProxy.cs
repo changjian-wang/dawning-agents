@@ -34,7 +34,10 @@ public sealed class MCPToolProxy : ITool
 
     public string? Category => "MCP";
 
-    public async Task<ToolResult> ExecuteAsync(string input, CancellationToken cancellationToken = default)
+    public async Task<ToolResult> ExecuteAsync(
+        string input,
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
@@ -45,16 +48,19 @@ public sealed class MCPToolProxy : ITool
                 arguments = JsonSerializer.Deserialize<Dictionary<string, object?>>(input);
             }
 
-            var result = await _client.CallToolAsync(_definition.Name, arguments, cancellationToken);
+            var result = await _client.CallToolAsync(
+                _definition.Name,
+                arguments,
+                cancellationToken
+            );
 
             // 提取文本内容
-            var output = string.Join("\n", result.Content
-                .Where(c => c.Type == "text" && c.Text != null)
-                .Select(c => c.Text));
+            var output = string.Join(
+                "\n",
+                result.Content.Where(c => c.Type == "text" && c.Text != null).Select(c => c.Text)
+            );
 
-            return result.IsError
-                ? ToolResult.Fail(output)
-                : ToolResult.Ok(output);
+            return result.IsError ? ToolResult.Fail(output) : ToolResult.Ok(output);
         }
         catch (MCPException ex)
         {

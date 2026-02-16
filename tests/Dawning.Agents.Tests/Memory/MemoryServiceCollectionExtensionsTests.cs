@@ -166,11 +166,7 @@ public class MemoryServiceCollectionExtensionsTests
 
         services.AddSingleton(new InMemoryVectorStore() as IVectorStore);
         services.AddSingleton(mockEmbedding.Object);
-        services.AddVectorMemory(
-            recentWindowSize: 10,
-            retrieveTopK: 8,
-            minRelevanceScore: 0.7f
-        );
+        services.AddVectorMemory(recentWindowSize: 10, retrieveTopK: 8, minRelevanceScore: 0.7f);
         var provider = services.BuildServiceProvider();
 
         var memory = provider.GetRequiredService<IConversationMemory>();

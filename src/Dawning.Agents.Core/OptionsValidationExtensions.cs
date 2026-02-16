@@ -25,10 +25,7 @@ public static class OptionsValidationExtensions
     )
         where T : class, IValidatableOptions
     {
-        services
-            .AddOptions<T>()
-            .Bind(configuration.GetSection(sectionName))
-            .ValidateOnStart();
+        services.AddOptions<T>().Bind(configuration.GetSection(sectionName)).ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
 
@@ -48,10 +45,7 @@ public static class OptionsValidationExtensions
     )
         where T : class, IValidatableOptions
     {
-        services
-            .AddOptions<T>()
-            .Configure(configure)
-            .ValidateOnStart();
+        services.AddOptions<T>().Configure(configure).ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
 
@@ -81,9 +75,7 @@ public class ValidatableOptionsValidator<T> : IValidateOptions<T>
         }
         catch (Exception ex)
         {
-            return ValidateOptionsResult.Fail(
-                $"{typeof(T).Name} 验证失败: {ex.Message}"
-            );
+            return ValidateOptionsResult.Fail($"{typeof(T).Name} 验证失败: {ex.Message}");
         }
     }
 }

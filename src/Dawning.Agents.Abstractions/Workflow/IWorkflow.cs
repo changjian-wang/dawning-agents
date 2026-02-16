@@ -232,15 +232,30 @@ public record NodeExecutionResult
 
     /// <summary>创建成功结果</summary>
     public static NodeExecutionResult Ok(string nodeId, string? output = null) =>
-        new() { NodeId = nodeId, Success = true, Output = output };
+        new()
+        {
+            NodeId = nodeId,
+            Success = true,
+            Output = output,
+        };
 
     /// <summary>创建失败结果</summary>
     public static NodeExecutionResult Fail(string nodeId, string error) =>
-        new() { NodeId = nodeId, Success = false, Error = error };
+        new()
+        {
+            NodeId = nodeId,
+            Success = false,
+            Error = error,
+        };
 
     /// <summary>创建分支结果</summary>
     public static NodeExecutionResult Branch(string nodeId, string nextNodeId) =>
-        new() { NodeId = nodeId, Success = true, NextNodeId = nextNodeId };
+        new()
+        {
+            NodeId = nodeId,
+            Success = true,
+            NextNodeId = nextNodeId,
+        };
 }
 
 /// <summary>

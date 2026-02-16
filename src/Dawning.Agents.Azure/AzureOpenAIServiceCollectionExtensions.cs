@@ -1,10 +1,10 @@
 using Azure.Core;
+using Dawning.Agents.Abstractions;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.Azure;
 
@@ -137,16 +137,13 @@ public static class AzureOpenAIServiceCollectionExtensions
         int dimensions = 1536
     )
     {
-        services.AddSingleton<IEmbeddingProvider>(
-            sp => new AzureOpenAIEmbeddingProvider(
-                endpoint,
-                apiKey,
-                deploymentName,
-                dimensions,
-                sp.GetService<ILoggerFactory>()
-                    ?.CreateLogger<AzureOpenAIEmbeddingProvider>()
-            )
-        );
+        services.AddSingleton<IEmbeddingProvider>(sp => new AzureOpenAIEmbeddingProvider(
+            endpoint,
+            apiKey,
+            deploymentName,
+            dimensions,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<AzureOpenAIEmbeddingProvider>()
+        ));
         return services;
     }
 }

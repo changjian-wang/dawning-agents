@@ -108,7 +108,9 @@ public class RAGSample : SampleBase
                 ChunkIndex = i,
             };
             await vectorStore.AddAsync(chunk);
-            ConsoleHelper.PrintDim($"  已添加: {documents[i][..Math.Min(50, documents[i].Length)]}...");
+            ConsoleHelper.PrintDim(
+                $"  已添加: {documents[i][..Math.Min(50, documents[i].Length)]}..."
+            );
         }
 
         Console.WriteLine();
@@ -116,12 +118,7 @@ public class RAGSample : SampleBase
 
         // 检索测试
         ConsoleHelper.PrintStep(2, "相似性检索");
-        var queries = new[]
-        {
-            "什么是 Memory 策略？",
-            "如何减少 API 调用成本？",
-            "什么是 MCP？",
-        };
+        var queries = new[] { "什么是 Memory 策略？", "如何减少 API 调用成本？", "什么是 MCP？" };
 
         foreach (var query in queries)
         {
@@ -157,10 +154,10 @@ public class RAGSample : SampleBase
         var queries = new[]
         {
             "什么是人工智能？",
-            "AI 是什么意思？",            // 语义相似
+            "AI 是什么意思？", // 语义相似
             "解释一下机器学习",
-            "什么是 machine learning？",  // 语义相似
-            "今天天气怎么样？",           // 不相关
+            "什么是 machine learning？", // 语义相似
+            "今天天气怎么样？", // 不相关
         };
 
         ConsoleHelper.PrintStep(1, "首次查询（缓存未命中）");
@@ -169,15 +166,14 @@ public class RAGSample : SampleBase
         // 预热缓存
         var firstQuery = queries[0];
         var sw = Stopwatch.StartNew();
-        var response = await provider.ChatAsync(new List<ChatMessage>
-        {
-            new("user", firstQuery),
-        });
+        var response = await provider.ChatAsync(new List<ChatMessage> { new("user", firstQuery) });
         sw.Stop();
 
         await cache.SetAsync(firstQuery, response.Content!);
         ConsoleHelper.PrintInfo($"查询: {firstQuery}");
-        ConsoleHelper.PrintDim($"响应: {response.Content?[..Math.Min(100, response.Content?.Length ?? 0)]}...");
+        ConsoleHelper.PrintDim(
+            $"响应: {response.Content?[..Math.Min(100, response.Content?.Length ?? 0)]}..."
+        );
         ConsoleHelper.PrintWarning($"耗时: {sw.ElapsedMilliseconds}ms (LLM 调用)");
 
         Console.WriteLine();
@@ -197,21 +193,26 @@ public class RAGSample : SampleBase
             {
                 ConsoleHelper.PrintSuccess($"缓存命中! 相似度: {cached.SimilarityScore:F3}");
                 ConsoleHelper.PrintDim($"原始查询: {cached.OriginalQuery}");
-                ConsoleHelper.PrintColored($"耗时: {sw.ElapsedMilliseconds}ms (缓存)", ConsoleColor.Green);
+                ConsoleHelper.PrintColored(
+                    $"耗时: {sw.ElapsedMilliseconds}ms (缓存)",
+                    ConsoleColor.Green
+                );
             }
             else
             {
                 ConsoleHelper.PrintWarning("缓存未命中，需要调用 LLM");
 
                 sw.Restart();
-                var llmResponse = await provider.ChatAsync(new List<ChatMessage>
-                {
-                    new("user", query),
-                });
+                var llmResponse = await provider.ChatAsync(
+                    new List<ChatMessage> { new("user", query) }
+                );
                 sw.Stop();
 
                 await cache.SetAsync(query, llmResponse.Content!);
-                ConsoleHelper.PrintColored($"耗时: {sw.ElapsedMilliseconds}ms (LLM 调用)", ConsoleColor.Yellow);
+                ConsoleHelper.PrintColored(
+                    $"耗时: {sw.ElapsedMilliseconds}ms (LLM 调用)",
+                    ConsoleColor.Yellow
+                );
             }
             Console.WriteLine();
         }
@@ -253,13 +254,15 @@ public class RAGSample : SampleBase
         for (int i = 0; i < knowledgeBase.Length; i++)
         {
             var embedding = await embeddingProvider.EmbedAsync(knowledgeBase[i]);
-            await vectorStore.AddAsync(new DocumentChunk
-            {
-                Id = $"kb_{i}",
-                Content = knowledgeBase[i],
-                Embedding = embedding,
-                DocumentId = "company_kb",
-            });
+            await vectorStore.AddAsync(
+                new DocumentChunk
+                {
+                    Id = $"kb_{i}",
+                    Content = knowledgeBase[i],
+                    Embedding = embedding,
+                    DocumentId = "company_kb",
+                }
+            );
         }
         ConsoleHelper.PrintSuccess($"已加载 {knowledgeBase.Length} 条知识");
 
@@ -267,12 +270,7 @@ public class RAGSample : SampleBase
         Console.WriteLine();
         ConsoleHelper.PrintStep(2, "RAG 问答");
 
-        var questions = new[]
-        {
-            "公司什么时候成立的？",
-            "如何联系技术支持？",
-            "退款政策是什么？",
-        };
+        var questions = new[] { "公司什么时候成立的？", "如何联系技术支持？", "退款政策是什么？" };
 
         foreach (var question in questions)
         {
@@ -281,7 +279,11 @@ public class RAGSample : SampleBase
 
             // 1. 检索相关文档
             var queryEmbedding = await embeddingProvider.EmbedAsync(question);
-            var relevantDocs = await vectorStore.SearchAsync(queryEmbedding, topK: 2, minScore: 0.0f);
+            var relevantDocs = await vectorStore.SearchAsync(
+                queryEmbedding,
+                topK: 2,
+                minScore: 0.0f
+            );
 
             var context = string.Join("\n", relevantDocs.Select(d => d.Chunk.Content));
             ConsoleHelper.PrintDim($"检索到 {relevantDocs.Count} 条相关文档");

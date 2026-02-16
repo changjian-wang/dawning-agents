@@ -18,8 +18,16 @@ public class AdaptiveMemoryTests
     {
         _mockLLM = new Mock<ILLMProvider>();
         _mockLLM
-            .Setup(x => x.ChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ChatCompletionResponse { Content = "摘要：这是一段压缩后的对话内容。" });
+            .Setup(x =>
+                x.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "摘要：这是一段压缩后的对话内容。" }
+            );
     }
 
     #region Constructor Tests
@@ -53,7 +61,8 @@ public class AdaptiveMemoryTests
     [Fact]
     public void Constructor_WithZeroDowngradeThreshold_ThrowsArgumentException()
     {
-        var action = () => new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 0);
+        var action = () =>
+            new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 0);
 
         action.Should().Throw<ArgumentException>().WithParameterName("downgradeThreshold");
     }
@@ -61,7 +70,8 @@ public class AdaptiveMemoryTests
     [Fact]
     public void Constructor_WithNegativeDowngradeThreshold_ThrowsArgumentException()
     {
-        var action = () => new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: -100);
+        var action = () =>
+            new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: -100);
 
         action.Should().Throw<ArgumentException>().WithParameterName("downgradeThreshold");
     }
@@ -77,12 +87,13 @@ public class AdaptiveMemoryTests
     [Fact]
     public void Constructor_WithSummaryThresholdLessThanMaxRecentMessages_ThrowsArgumentException()
     {
-        var action = () => new AdaptiveMemory(
-            _mockLLM.Object,
-            _tokenCounter,
-            maxRecentMessages: 10,
-            summaryThreshold: 5
-        );
+        var action = () =>
+            new AdaptiveMemory(
+                _mockLLM.Object,
+                _tokenCounter,
+                maxRecentMessages: 10,
+                summaryThreshold: 5
+            );
 
         action.Should().Throw<ArgumentException>().WithParameterName("summaryThreshold");
     }
@@ -109,8 +120,12 @@ public class AdaptiveMemoryTests
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi there!" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "How are you?" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi there!" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "How are you?" }
+        );
 
         memory.MessageCount.Should().Be(3);
         memory.HasDowngraded.Should().BeFalse();
@@ -120,20 +135,14 @@ public class AdaptiveMemoryTests
     public async Task AddMessageAsync_BelowThreshold_StaysAsBufferMemory()
     {
         // 设置较高的降级阈值
-        var memory = new AdaptiveMemory(
-            _mockLLM.Object,
-            _tokenCounter,
-            downgradeThreshold: 10000
-        );
+        var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
         // 添加一些消息
         for (int i = 0; i < 5; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Message {i}"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage { Role = "user", Content = $"Message {i}" }
+            );
         }
 
         memory.HasDowngraded.Should().BeFalse();
@@ -155,11 +164,14 @@ public class AdaptiveMemoryTests
         // 简单估算：每条消息约 20-30 tokens
         for (int i = 0; i < 10; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = i % 2 == 0 ? "user" : "assistant",
-                Content = $"This is a longer message number {i} with some content to increase token count significantly."
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage
+                {
+                    Role = i % 2 == 0 ? "user" : "assistant",
+                    Content =
+                        $"This is a longer message number {i} with some content to increase token count significantly.",
+                }
+            );
         }
 
         memory.HasDowngraded.Should().BeTrue();
@@ -179,21 +191,25 @@ public class AdaptiveMemoryTests
         // 添加足够消息触发降级
         for (int i = 0; i < 10; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Long message content number {i} to trigger downgrade quickly."
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage
+                {
+                    Role = "user",
+                    Content = $"Long message content number {i} to trigger downgrade quickly.",
+                }
+            );
         }
 
         var downgradeOccurred = memory.HasDowngraded;
 
         // 继续添加更多消息
-        await memory.AddMessageAsync(new ConversationMessage
-        {
-            Role = "user",
-            Content = "Additional message after downgrade"
-        });
+        await memory.AddMessageAsync(
+            new ConversationMessage
+            {
+                Role = "user",
+                Content = "Additional message after downgrade",
+            }
+        );
 
         downgradeOccurred.Should().BeTrue();
         memory.MessageCount.Should().BeGreaterThan(0);
@@ -209,7 +225,9 @@ public class AdaptiveMemoryTests
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
 
         var messages = await memory.GetMessagesAsync();
 
@@ -228,7 +246,9 @@ public class AdaptiveMemoryTests
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
 
         var context = await memory.GetContextAsync();
 
@@ -243,7 +263,9 @@ public class AdaptiveMemoryTests
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi there!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi there!" }
+        );
 
         var context = await memory.GetContextAsync(maxTokens: 5);
 
@@ -260,7 +282,9 @@ public class AdaptiveMemoryTests
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
 
         await memory.ClearAsync();
 
@@ -281,11 +305,13 @@ public class AdaptiveMemoryTests
         // 触发降级
         for (int i = 0; i < 10; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Long message to trigger downgrade {i}"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage
+                {
+                    Role = "user",
+                    Content = $"Long message to trigger downgrade {i}",
+                }
+            );
         }
 
         memory.HasDowngraded.Should().BeTrue();
@@ -312,17 +338,17 @@ public class AdaptiveMemoryTests
         // 触发降级
         for (int i = 0; i < 10; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Long message {i}"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage { Role = "user", Content = $"Long message {i}" }
+            );
         }
 
         await memory.ClearAsync();
 
         // 添加新消息
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "New message" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "New message" }
+        );
 
         memory.MessageCount.Should().Be(1);
         memory.HasDowngraded.Should().BeFalse();
@@ -337,7 +363,9 @@ public class AdaptiveMemoryTests
     {
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello World" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Hello World" }
+        );
 
         var tokenCount = await memory.GetTokenCountAsync();
 
@@ -372,11 +400,13 @@ public class AdaptiveMemoryTests
         // 添加大量消息，多次超过阈值
         for (int i = 0; i < 20; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Message {i} with enough content"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage
+                {
+                    Role = "user",
+                    Content = $"Message {i} with enough content",
+                }
+            );
         }
 
         // 验证 LLM 被调用（用于摘要），但降级只发生一次
@@ -395,19 +425,34 @@ public class AdaptiveMemoryTests
         );
 
         // 添加消息
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "First message" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "First response" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Second message about important topic" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Second response with details" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "First message" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "First response" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage
+            {
+                Role = "user",
+                Content = "Second message about important topic",
+            }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Second response with details" }
+        );
 
         // 触发降级
         for (int i = 0; i < 10; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Additional message {i} to trigger the downgrade mechanism in adaptive memory"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage
+                {
+                    Role = "user",
+                    Content =
+                        $"Additional message {i} to trigger the downgrade mechanism in adaptive memory",
+                }
+            );
         }
 
         // 降级后仍然可以获取上下文
@@ -428,14 +473,18 @@ public class AdaptiveMemoryTests
         for (int i = 0; i < 100; i++)
         {
             var index = i;
-            tasks.Add(Task.Run(async () =>
-            {
-                await memory.AddMessageAsync(new ConversationMessage
+            tasks.Add(
+                Task.Run(async () =>
                 {
-                    Role = "user",
-                    Content = $"Concurrent message {index}"
-                });
-            }));
+                    await memory.AddMessageAsync(
+                        new ConversationMessage
+                        {
+                            Role = "user",
+                            Content = $"Concurrent message {index}",
+                        }
+                    );
+                })
+            );
         }
 
         await Task.WhenAll(tasks);

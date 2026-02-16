@@ -95,11 +95,7 @@ public class FunctionCallingAgent : AgentBase
                 cancellationToken.ThrowIfCancellationRequested();
                 step++;
 
-                Logger.LogDebug(
-                    "Function Calling 步骤 {Step}/{MaxSteps}",
-                    step,
-                    context.MaxSteps
-                );
+                Logger.LogDebug("Function Calling 步骤 {Step}/{MaxSteps}", step, context.MaxSteps);
 
                 var completionOptions = new ChatCompletionOptions
                 {
@@ -117,36 +113,23 @@ public class FunctionCallingAgent : AgentBase
                 if (response.HasToolCalls)
                 {
                     // LLM 请求调用工具
-                    Logger.LogDebug(
-                        "收到 {Count} 个工具调用请求",
-                        response.ToolCalls!.Count
-                    );
+                    Logger.LogDebug("收到 {Count} 个工具调用请求", response.ToolCalls!.Count);
 
                     // 添加 assistant 消息（含 tool calls）
                     messages.Add(
-                        ChatMessage.AssistantWithToolCalls(
-                            response.ToolCalls!,
-                            response.Content
-                        )
+                        ChatMessage.AssistantWithToolCalls(response.ToolCalls!, response.Content)
                     );
 
                     // 执行每个工具调用并添加结果消息
                     var toolResultSummary = new StringBuilder();
                     foreach (var toolCall in response.ToolCalls!)
                     {
-                        var toolResult = await ExecuteToolCallAsync(
-                            toolCall,
-                            cancellationToken
-                        );
+                        var toolResult = await ExecuteToolCallAsync(toolCall, cancellationToken);
 
                         // 添加 tool result 消息
-                        messages.Add(
-                            ChatMessage.ToolResult(toolCall.Id, toolResult)
-                        );
+                        messages.Add(ChatMessage.ToolResult(toolCall.Id, toolResult));
 
-                        toolResultSummary.AppendLine(
-                            $"[{toolCall.FunctionName}]: {toolResult}"
-                        );
+                        toolResultSummary.AppendLine($"[{toolCall.FunctionName}]: {toolResult}");
                     }
 
                     // 记录步骤
@@ -154,32 +137,36 @@ public class FunctionCallingAgent : AgentBase
                         ", ",
                         response.ToolCalls!.Select(tc => tc.FunctionName)
                     );
-                    context.Steps.Add(new AgentStep
-                    {
-                        StepNumber = step,
-                        RawOutput = response.Content,
-                        Thought = $"调用工具: {toolNames}",
-                        Action = toolNames,
-                        ActionInput = string.Join(
-                            "; ",
-                            response.ToolCalls!.Select(tc =>
-                                $"{tc.FunctionName}({tc.Arguments})"
-                            )
-                        ),
-                        Observation = toolResultSummary.ToString().TrimEnd(),
-                    });
+                    context.Steps.Add(
+                        new AgentStep
+                        {
+                            StepNumber = step,
+                            RawOutput = response.Content,
+                            Thought = $"调用工具: {toolNames}",
+                            Action = toolNames,
+                            ActionInput = string.Join(
+                                "; ",
+                                response.ToolCalls!.Select(tc =>
+                                    $"{tc.FunctionName}({tc.Arguments})"
+                                )
+                            ),
+                            Observation = toolResultSummary.ToString().TrimEnd(),
+                        }
+                    );
                 }
                 else
                 {
                     // LLM 返回最终答案（无工具调用）
                     var finalAnswer = response.Content;
 
-                    context.Steps.Add(new AgentStep
-                    {
-                        StepNumber = step,
-                        RawOutput = finalAnswer,
-                        Thought = "生成最终答案",
-                    });
+                    context.Steps.Add(
+                        new AgentStep
+                        {
+                            StepNumber = step,
+                            RawOutput = finalAnswer,
+                            Thought = "生成最终答案",
+                        }
+                    );
 
                     stopwatch.Stop();
                     Logger.LogInformation(
@@ -198,11 +185,7 @@ public class FunctionCallingAgent : AgentBase
                         );
                     }
 
-                    return AgentResponse.Successful(
-                        finalAnswer,
-                        context.Steps,
-                        stopwatch.Elapsed
-                    );
+                    return AgentResponse.Successful(finalAnswer, context.Steps, stopwatch.Elapsed);
                 }
             }
 
@@ -223,22 +206,13 @@ public class FunctionCallingAgent : AgentBase
         {
             stopwatch.Stop();
             Logger.LogWarning("FunctionCallingAgent {AgentName} 任务被取消", Name);
-            return AgentResponse.Failed(
-                "Operation cancelled",
-                context.Steps,
-                stopwatch.Elapsed
-            );
+            return AgentResponse.Failed("Operation cancelled", context.Steps, stopwatch.Elapsed);
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
             Logger.LogError(ex, "FunctionCallingAgent {AgentName} 执行出错", Name);
-            return AgentResponse.Failed(
-                ex.Message,
-                context.Steps,
-                stopwatch.Elapsed,
-                ex
-            );
+            return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
     }
 
@@ -278,22 +252,13 @@ public class FunctionCallingAgent : AgentBase
 
         try
         {
-            var result = await tool.ExecuteAsync(
-                toolCall.Arguments ?? "{}",
-                cancellationToken
-            );
+            var result = await tool.ExecuteAsync(toolCall.Arguments ?? "{}", cancellationToken);
 
-            return result.Success
-                ? result.Output
-                : $"Tool error: {result.Error}";
+            return result.Success ? result.Output : $"Tool error: {result.Error}";
         }
         catch (Exception ex)
         {
-            Logger.LogError(
-                ex,
-                "工具 {ToolName} 执行失败",
-                toolCall.FunctionName
-            );
+            Logger.LogError(ex, "工具 {ToolName} 执行失败", toolCall.FunctionName);
             return $"Tool execution failed: {ex.Message}";
         }
     }

@@ -30,10 +30,7 @@
             Include="Microsoft.Extensions.Options.ConfigurationExtensions"
             Version="10.0.2"
         />
-        <PackageReference
-            Include="Microsoft.Extensions.Options.DataAnnotations"
-            Version="10.0.2"
-        />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.2" />
         <PackageReference Include="Polly" Version="8.6.5" />
         <PackageReference Include="Polly.RateLimiting" Version="8.6.5" />
         <PackageReference Include="System.Numerics.Tensors" Version="10.0.2" />

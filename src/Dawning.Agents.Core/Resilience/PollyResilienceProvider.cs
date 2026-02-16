@@ -102,7 +102,8 @@ public class PollyResilienceProvider : IResilienceProvider
             builder.AddRateLimiter(
                 new RateLimiterStrategyOptions
                 {
-                    RateLimiter = args => limiter.AcquireAsync(cancellationToken: args.Context.CancellationToken),
+                    RateLimiter = args =>
+                        limiter.AcquireAsync(cancellationToken: args.Context.CancellationToken),
                     OnRejected = args =>
                     {
                         _logger.LogWarning(

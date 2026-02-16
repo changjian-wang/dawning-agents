@@ -46,8 +46,7 @@ public class FunctionCallingAgentTests
         tool.Setup(t => t.RequiresConfirmation).Returns(false);
         tool.Setup(t => t.RiskLevel).Returns(ToolRiskLevel.Low);
         tool.Setup(t => t.Category).Returns("test");
-        tool
-            .Setup(t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        tool.Setup(t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ToolResult.Ok(output));
         return tool;
     }
@@ -70,13 +69,14 @@ public class FunctionCallingAgentTests
     [Fact]
     public void Constructor_NullToolRegistry_ShouldThrow()
     {
-        var act = () => new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            null!,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var act = () =>
+            new FunctionCallingAgent(
+                _mockProvider.Object,
+                _options,
+                null!,
+                null,
+                NullLogger<FunctionCallingAgent>.Instance
+            );
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -94,11 +94,7 @@ public class FunctionCallingAgentTests
                 )
             )
             .ReturnsAsync(
-                new ChatCompletionResponse
-                {
-                    Content = "The answer is 42",
-                    FinishReason = "stop",
-                }
+                new ChatCompletionResponse { Content = "The answer is 42", FinishReason = "stop" }
             );
 
         var agent = new FunctionCallingAgent(
@@ -214,11 +210,7 @@ public class FunctionCallingAgentTests
                     };
                 }
 
-                return new ChatCompletionResponse
-                {
-                    Content = "Done",
-                    FinishReason = "stop",
-                };
+                return new ChatCompletionResponse { Content = "Done", FinishReason = "stop" };
             });
 
         var agent = new FunctionCallingAgent(
@@ -266,10 +258,7 @@ public class FunctionCallingAgentTests
                     {
                         Content = "",
                         FinishReason = "tool_calls",
-                        ToolCalls =
-                        [
-                            new ToolCall("call_1", "NonExistentTool", """{}"""),
-                        ],
+                        ToolCalls = [new ToolCall("call_1", "NonExistentTool", """{}""")],
                     };
                 }
 
@@ -300,9 +289,7 @@ public class FunctionCallingAgentTests
         var failingTool = new Mock<ITool>();
         failingTool.Setup(t => t.Name).Returns("FailTool");
         failingTool.Setup(t => t.Description).Returns("Always fails");
-        failingTool
-            .Setup(t => t.ParametersSchema)
-            .Returns("""{"type":"object","properties":{}}""");
+        failingTool.Setup(t => t.ParametersSchema).Returns("""{"type":"object","properties":{}}""");
         failingTool.Setup(t => t.RequiresConfirmation).Returns(false);
         failingTool.Setup(t => t.RiskLevel).Returns(ToolRiskLevel.Low);
         failingTool.Setup(t => t.Category).Returns("test");
@@ -465,13 +452,7 @@ public class FunctionCallingAgentTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new ChatCompletionResponse
-                {
-                    Content = "Answer",
-                    FinishReason = "stop",
-                }
-            );
+            .ReturnsAsync(new ChatCompletionResponse { Content = "Answer", FinishReason = "stop" });
 
         var agent = new FunctionCallingAgent(
             _mockProvider.Object,
@@ -489,9 +470,7 @@ public class FunctionCallingAgentTests
                 p.ChatAsync(
                     It.IsAny<IEnumerable<ChatMessage>>(),
                     It.Is<ChatCompletionOptions>(o =>
-                        o.Tools != null
-                        && o.Tools.Count == 1
-                        && o.Tools[0].Name == "Calculator"
+                        o.Tools != null && o.Tools.Count == 1 && o.Tools[0].Name == "Calculator"
                     ),
                     It.IsAny<CancellationToken>()
                 ),
@@ -535,11 +514,7 @@ public class FunctionCallingAgentTests
                     };
                 }
 
-                return new ChatCompletionResponse
-                {
-                    Content = "42",
-                    FinishReason = "stop",
-                };
+                return new ChatCompletionResponse { Content = "42", FinishReason = "stop" };
             });
 
         var agent = new FunctionCallingAgent(
@@ -572,13 +547,7 @@ public class FunctionCallingAgentTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new ChatCompletionResponse
-                {
-                    Content = "Hello!",
-                    FinishReason = "stop",
-                }
-            );
+            .ReturnsAsync(new ChatCompletionResponse { Content = "Hello!", FinishReason = "stop" });
 
         var memory = new BufferMemory(new SimpleTokenCounter());
         var agent = new FunctionCallingAgent(

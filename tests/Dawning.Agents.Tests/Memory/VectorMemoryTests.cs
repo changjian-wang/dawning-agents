@@ -22,12 +22,19 @@ public class VectorMemoryTests
         _mockEmbedding = new Mock<IEmbeddingProvider>();
         _mockEmbedding
             .Setup(x => x.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string text, CancellationToken _) =>
-            {
-                // 简单的模拟嵌入：基于文本哈希生成伪向量
-                var hash = text.GetHashCode();
-                return new float[] { hash % 100 / 100f, (hash >> 8) % 100 / 100f, (hash >> 16) % 100 / 100f };
-            });
+            .ReturnsAsync(
+                (string text, CancellationToken _) =>
+                {
+                    // 简单的模拟嵌入：基于文本哈希生成伪向量
+                    var hash = text.GetHashCode();
+                    return new float[]
+                    {
+                        hash % 100 / 100f,
+                        (hash >> 8) % 100 / 100f,
+                        (hash >> 16) % 100 / 100f,
+                    };
+                }
+            );
 
         _vectorStore = new InMemoryVectorStore();
     }
@@ -37,11 +44,7 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithValidParams_CreatesInstance()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
         memory.Should().NotBeNull();
         memory.MessageCount.Should().Be(0);
@@ -51,11 +54,7 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithNullVectorStore_ThrowsArgumentNullException()
     {
-        var action = () => new VectorMemory(
-            null!,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var action = () => new VectorMemory(null!, _mockEmbedding.Object, _tokenCounter);
 
         action.Should().Throw<ArgumentNullException>().WithParameterName("vectorStore");
     }
@@ -63,11 +62,7 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithNullEmbeddingProvider_ThrowsArgumentNullException()
     {
-        var action = () => new VectorMemory(
-            _vectorStore,
-            null!,
-            _tokenCounter
-        );
+        var action = () => new VectorMemory(_vectorStore, null!, _tokenCounter);
 
         action.Should().Throw<ArgumentNullException>().WithParameterName("embeddingProvider");
     }
@@ -75,11 +70,7 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithNullTokenCounter_ThrowsArgumentNullException()
     {
-        var action = () => new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            null!
-        );
+        var action = () => new VectorMemory(_vectorStore, _mockEmbedding.Object, null!);
 
         action.Should().Throw<ArgumentNullException>().WithParameterName("tokenCounter");
     }
@@ -87,12 +78,13 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithZeroWindowSize_ThrowsArgumentException()
     {
-        var action = () => new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter,
-            recentWindowSize: 0
-        );
+        var action = () =>
+            new VectorMemory(
+                _vectorStore,
+                _mockEmbedding.Object,
+                _tokenCounter,
+                recentWindowSize: 0
+            );
 
         action.Should().Throw<ArgumentException>().WithParameterName("recentWindowSize");
     }
@@ -100,12 +92,8 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithZeroTopK_ThrowsArgumentException()
     {
-        var action = () => new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter,
-            retrieveTopK: 0
-        );
+        var action = () =>
+            new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter, retrieveTopK: 0);
 
         action.Should().Throw<ArgumentException>().WithParameterName("retrieveTopK");
     }
@@ -113,12 +101,13 @@ public class VectorMemoryTests
     [Fact]
     public void Constructor_WithInvalidRelevanceScore_ThrowsArgumentException()
     {
-        var action = () => new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter,
-            minRelevanceScore: 1.5f
-        );
+        var action = () =>
+            new VectorMemory(
+                _vectorStore,
+                _mockEmbedding.Object,
+                _tokenCounter,
+                minRelevanceScore: 1.5f
+            );
 
         action.Should().Throw<ArgumentException>().WithParameterName("minRelevanceScore");
     }
@@ -144,11 +133,7 @@ public class VectorMemoryTests
     [Fact]
     public async Task AddMessageAsync_SingleMessage_AddsToRecentMessages()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
         var message = new ConversationMessage { Role = "user", Content = "Hello" };
 
         await memory.AddMessageAsync(message);
@@ -167,8 +152,12 @@ public class VectorMemoryTests
         );
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "How are you?" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "How are you?" }
+        );
 
         memory.RecentMessageCount.Should().Be(3);
     }
@@ -186,11 +175,9 @@ public class VectorMemoryTests
         // 添加 5 条消息，窗口大小为 3
         for (int i = 0; i < 5; i++)
         {
-            await memory.AddMessageAsync(new ConversationMessage
-            {
-                Role = "user",
-                Content = $"Message {i}"
-            });
+            await memory.AddMessageAsync(
+                new ConversationMessage { Role = "user", Content = $"Message {i}" }
+            );
         }
 
         // 最近消息应该只有 3 条
@@ -202,11 +189,7 @@ public class VectorMemoryTests
     [Fact]
     public async Task AddMessageAsync_CalculatesTokenCount_WhenNotProvided()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
         var message = new ConversationMessage { Role = "user", Content = "Hello World" };
 
         await memory.AddMessageAsync(message);
@@ -223,14 +206,12 @@ public class VectorMemoryTests
     [Fact]
     public async Task GetMessagesAsync_ReturnsRecentMessages()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
 
         var messages = await memory.GetMessagesAsync();
 
@@ -249,9 +230,15 @@ public class VectorMemoryTests
             recentWindowSize: 2
         );
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 1" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 2" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 3" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 1" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 2" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 3" }
+        );
 
         var messages = await memory.GetMessagesAsync();
 
@@ -267,14 +254,12 @@ public class VectorMemoryTests
     [Fact]
     public async Task GetContextAsync_WithNoHistory_ReturnsRecentMessages()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
         await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi!" }
+        );
 
         var context = await memory.GetContextAsync();
 
@@ -295,10 +280,26 @@ public class VectorMemoryTests
         );
 
         // 添加消息并触发归档
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "What is AI?" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "AI is artificial intelligence." });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Tell me more about AI." });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "AI includes machine learning." });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "What is AI?" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage
+            {
+                Role = "assistant",
+                Content = "AI is artificial intelligence.",
+            }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Tell me more about AI." }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage
+            {
+                Role = "assistant",
+                Content = "AI includes machine learning.",
+            }
+        );
 
         // 应该有 2 条消息被归档
         memory.VectorStoreCount.Should().Be(2);
@@ -312,14 +313,14 @@ public class VectorMemoryTests
     [Fact]
     public async Task GetContextAsync_WithMaxTokens_RespectsLimit()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello World" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Hi there!" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Hello World" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Hi there!" }
+        );
 
         var context = await memory.GetContextAsync(maxTokens: 3);
 
@@ -341,9 +342,15 @@ public class VectorMemoryTests
             recentWindowSize: 2
         );
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 1" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 2" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Message 3" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 1" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 2" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Message 3" }
+        );
 
         await memory.ClearAsync();
 
@@ -353,15 +360,15 @@ public class VectorMemoryTests
     [Fact]
     public async Task ClearAsync_AfterClear_CanAcceptNewMessages()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Old message" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Old message" }
+        );
         await memory.ClearAsync();
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "New message" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "New message" }
+        );
 
         var messages = await memory.GetMessagesAsync();
         messages.Should().HaveCount(1);
@@ -375,13 +382,11 @@ public class VectorMemoryTests
     [Fact]
     public async Task GetTokenCountAsync_ReturnsCorrectCount()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Hello World" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Hello World" }
+        );
 
         var tokenCount = await memory.GetTokenCountAsync();
 
@@ -391,11 +396,7 @@ public class VectorMemoryTests
     [Fact]
     public async Task GetTokenCountAsync_WithEmptyMemory_ReturnsZero()
     {
-        var memory = new VectorMemory(
-            _vectorStore,
-            _mockEmbedding.Object,
-            _tokenCounter
-        );
+        var memory = new VectorMemory(_vectorStore, _mockEmbedding.Object, _tokenCounter);
 
         var tokenCount = await memory.GetTokenCountAsync();
 
@@ -412,12 +413,14 @@ public class VectorMemoryTests
         var embeddingCalls = new List<string>();
         _mockEmbedding
             .Setup(x => x.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string text, CancellationToken _) =>
-            {
-                embeddingCalls.Add(text);
-                var hash = text.GetHashCode();
-                return [hash % 100 / 100f, (hash >> 8) % 100 / 100f, (hash >> 16) % 100 / 100f];
-            });
+            .ReturnsAsync(
+                (string text, CancellationToken _) =>
+                {
+                    embeddingCalls.Add(text);
+                    var hash = text.GetHashCode();
+                    return [hash % 100 / 100f, (hash >> 8) % 100 / 100f, (hash >> 16) % 100 / 100f];
+                }
+            );
 
         var memory = new VectorMemory(
             _vectorStore,
@@ -428,9 +431,15 @@ public class VectorMemoryTests
         );
 
         // 添加消息触发归档
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Old question" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Old answer" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "New question" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Old question" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Old answer" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "New question" }
+        );
 
         // 获取上下文会触发检索
         await memory.GetContextAsync();
@@ -451,10 +460,18 @@ public class VectorMemoryTests
         );
 
         // 添加消息触发归档
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Question 1" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Answer 1" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Question 2" });
-        await memory.AddMessageAsync(new ConversationMessage { Role = "assistant", Content = "Answer 2" });
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Question 1" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Answer 1" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Question 2" }
+        );
+        await memory.AddMessageAsync(
+            new ConversationMessage { Role = "assistant", Content = "Answer 2" }
+        );
 
         var context = await memory.GetContextAsync();
 
@@ -481,14 +498,18 @@ public class VectorMemoryTests
         for (int i = 0; i < 50; i++)
         {
             var index = i;
-            tasks.Add(Task.Run(async () =>
-            {
-                await memory.AddMessageAsync(new ConversationMessage
+            tasks.Add(
+                Task.Run(async () =>
                 {
-                    Role = "user",
-                    Content = $"Concurrent message {index}"
-                });
-            }));
+                    await memory.AddMessageAsync(
+                        new ConversationMessage
+                        {
+                            Role = "user",
+                            Content = $"Concurrent message {index}",
+                        }
+                    );
+                })
+            );
         }
 
         await Task.WhenAll(tasks);
@@ -517,8 +538,12 @@ public class VectorMemoryTests
             sessionId: "session-2"
         );
 
-        await session1.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Session 1 message" });
-        await session2.AddMessageAsync(new ConversationMessage { Role = "user", Content = "Session 2 message" });
+        await session1.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Session 1 message" }
+        );
+        await session2.AddMessageAsync(
+            new ConversationMessage { Role = "user", Content = "Session 2 message" }
+        );
 
         var messages1 = await session1.GetMessagesAsync();
         var messages2 = await session2.GetMessagesAsync();

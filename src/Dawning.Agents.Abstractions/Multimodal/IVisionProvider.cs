@@ -80,7 +80,12 @@ public record VisionChatResponse
     /// 创建成功响应
     /// </summary>
     public static VisionChatResponse Ok(string content, TokenUsage? usage = null) =>
-        new() { Success = true, Content = content, Usage = usage };
+        new()
+        {
+            Success = true,
+            Content = content,
+            Usage = usage,
+        };
 
     /// <summary>
     /// 创建失败响应

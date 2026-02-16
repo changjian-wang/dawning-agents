@@ -118,11 +118,7 @@ public class MCPCapabilitiesTests
             {
                 Tools = new ToolsCapability { ListChanged = true },
             },
-            ServerInfo = new MCPServerInfo
-            {
-                Name = "TestServer",
-                Version = "1.0.0",
-            },
+            ServerInfo = new MCPServerInfo { Name = "TestServer", Version = "1.0.0" },
         };
 
         // Act
@@ -201,14 +197,7 @@ public class MCPToolDefinitionTests
         // Arrange
         var result = new ListToolsResult
         {
-            Tools =
-            [
-                new MCPToolDefinition
-                {
-                    Name = "tool1",
-                    InputSchema = new MCPInputSchema(),
-                },
-            ],
+            Tools = [new MCPToolDefinition { Name = "tool1", InputSchema = new MCPInputSchema() }],
             NextCursor = "page2",
         };
 

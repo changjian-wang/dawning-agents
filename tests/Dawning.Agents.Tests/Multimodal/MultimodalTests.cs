@@ -77,7 +77,10 @@ public class MultimodalTests
     [InlineData(".bmp", "image/bmp")]
     [InlineData(".svg", "image/svg+xml")]
     [InlineData(".unknown", "application/octet-stream")]
-    public async Task ImageContent_FromFileAsync_DetectsMimeType(string extension, string expectedMimeType)
+    public async Task ImageContent_FromFileAsync_DetectsMimeType(
+        string extension,
+        string expectedMimeType
+    )
     {
         var tempFile = Path.GetTempFileName();
         var targetFile = Path.ChangeExtension(tempFile, extension);
@@ -160,9 +163,7 @@ public class MultimodalTests
     [Fact]
     public void MultimodalMessage_AddText_ChainsCorrectly()
     {
-        var message = MultimodalMessage.User()
-            .AddText("第一段文本")
-            .AddText("第二段文本");
+        var message = MultimodalMessage.User().AddText("第一段文本").AddText("第二段文本");
 
         message.Content.Should().HaveCount(2);
         message.Content.All(c => c is TextContent).Should().BeTrue();
@@ -171,7 +172,8 @@ public class MultimodalTests
     [Fact]
     public void MultimodalMessage_AddImageUrl_ChainsCorrectly()
     {
-        var message = MultimodalMessage.User(TextContent.Create("分析这些图片"))
+        var message = MultimodalMessage
+            .User(TextContent.Create("分析这些图片"))
             .AddImageUrl("https://example.com/image1.png")
             .AddImageUrl("https://example.com/image2.png", ImageDetail.High);
 
@@ -185,7 +187,8 @@ public class MultimodalTests
     public void MultimodalMessage_AddImageBase64_ChainsCorrectly()
     {
         var base64 = Convert.ToBase64String(new byte[] { 1, 2, 3 });
-        var message = MultimodalMessage.User(TextContent.Create("分析"))
+        var message = MultimodalMessage
+            .User(TextContent.Create("分析"))
             .AddImageBase64(base64, "image/png");
 
         message.Content.Should().HaveCount(2);
@@ -239,11 +242,7 @@ public class MultimodalTests
     [Fact]
     public void TokenUsage_TotalTokens_CalculatesCorrectly()
     {
-        var usage = new TokenUsage
-        {
-            PromptTokens = 100,
-            CompletionTokens = 50,
-        };
+        var usage = new TokenUsage { PromptTokens = 100, CompletionTokens = 50 };
 
         usage.TotalTokens.Should().Be(150);
     }

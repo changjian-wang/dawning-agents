@@ -74,5 +74,5 @@ public enum MCPTransportType
     /// <summary>
     /// HTTP + Server-Sent Events
     /// </summary>
-    Http
+    Http,
 }

@@ -2,7 +2,6 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core.Tools;
-using Dawning.Agents.Core.Tools.BuiltIn;
 
 namespace Dawning.Agents.Benchmarks;
 

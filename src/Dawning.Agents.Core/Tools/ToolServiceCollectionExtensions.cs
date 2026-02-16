@@ -1,5 +1,6 @@
 using System.Reflection;
 using Dawning.Agents.Abstractions.Tools;
+using Dawning.Agents.Core.Tools.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -21,6 +22,83 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 注册 6 个核心工具 + 工具基础设施（IToolSandbox, IToolSession, IToolStore）
+    /// </summary>
+    /// <remarks>
+    /// <para>核心工具: read_file, write_file, edit_file, search, bash, create_tool</para>
+    /// <para>基础设施: ToolSandbox, ToolSession, FileToolStore</para>
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <param name="configureOptions">沙箱选项配置（可选）</param>
+    public static IServiceCollection AddCoreTools(
+        this IServiceCollection services,
+        Action<ToolSandboxOptions>? configureOptions = null
+    )
+    {
+        services.AddToolRegistry();
+
+        // 配置沙箱选项
+        var sandboxOptions = new ToolSandboxOptions();
+        configureOptions?.Invoke(sandboxOptions);
+        services.AddSingleton(sandboxOptions);
+
+        // 基础设施
+        services.TryAddSingleton<IToolSandbox, ToolSandbox>();
+        services.TryAddSingleton<IToolStore, FileToolStore>();
+        services.TryAddScoped<IToolSession, ToolSession>();
+
+        // 核心工具注册
+        services.AddSingleton<IToolRegistration>(sp =>
+        {
+            var registry = sp.GetRequiredService<IToolRegistry>();
+            var sandbox = sp.GetRequiredService<IToolSandbox>();
+            var options = sp.GetRequiredService<ToolSandboxOptions>();
+
+            // 1. read_file
+            registry.Register(
+                new ReadFileTool(
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<ReadFileTool>>()
+                )
+            );
+
+            // 2. write_file
+            registry.Register(
+                new WriteFileTool(
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<WriteFileTool>>()
+                )
+            );
+
+            // 3. edit_file
+            registry.Register(
+                new EditFileTool(
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<EditFileTool>>()
+                )
+            );
+
+            // 4. search
+            registry.Register(
+                new SearchTool(sp.GetService<Microsoft.Extensions.Logging.ILogger<SearchTool>>())
+            );
+
+            // 5. bash
+            registry.Register(
+                new BashTool(
+                    sandbox,
+                    options,
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<BashTool>>()
+                )
+            );
+
+            // 6. create_tool (needs IToolSession — registered per request scope)
+            // create_tool is registered separately as scoped since it depends on IToolSession
+
+            return new ToolRegistration("CoreTools");
+        });
+
+        return services;
+    }
+
+    /// <summary>
     /// 注册单个工具实例
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -29,12 +107,11 @@ public static class ToolServiceCollectionExtensions
     {
         services.AddToolRegistry();
 
-        // 使用后期配置注册工具
-        services.AddSingleton(sp =>
+        services.AddSingleton<IToolRegistration>(sp =>
         {
             var registry = sp.GetRequiredService<IToolRegistry>();
             registry.Register(tool);
-            return tool;
+            return new ToolRegistration(tool.Name);
         });
 
         return services;
@@ -99,15 +176,6 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加工具选择器（默认实现）
-    /// </summary>
-    public static IServiceCollection AddToolSelector(this IServiceCollection services)
-    {
-        services.TryAddSingleton<IToolSelector, DefaultToolSelector>();
-        return services;
-    }
-
-    /// <summary>
     /// 添加工具审批处理器（默认实现）
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -122,87 +190,6 @@ public static class ToolServiceCollectionExtensions
             sp.GetService<Microsoft.Extensions.Logging.ILogger<DefaultToolApprovalHandler>>()
         ));
         return services;
-    }
-
-    /// <summary>
-    /// 注册工具集
-    /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="toolSet">工具集实例</param>
-    public static IServiceCollection AddToolSet(this IServiceCollection services, IToolSet toolSet)
-    {
-        services.AddToolRegistry();
-
-        services.AddSingleton<IToolRegistration>(sp =>
-        {
-            var registry = sp.GetRequiredService<IToolRegistry>();
-            registry.RegisterToolSet(toolSet);
-            return new ToolRegistration($"ToolSet:{toolSet.Name}");
-        });
-
-        return services;
-    }
-
-    /// <summary>
-    /// 从工具类型创建并注册工具集
-    /// </summary>
-    /// <typeparam name="T">工具类类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="name">工具集名称</param>
-    /// <param name="description">工具集描述</param>
-    /// <param name="icon">图标（可选）</param>
-    public static IServiceCollection AddToolSetFrom<T>(
-        this IServiceCollection services,
-        string name,
-        string description,
-        string? icon = null
-    )
-        where T : class, new()
-    {
-        var toolSet = ToolSet.FromType<T>(name, description, icon);
-        return services.AddToolSet(toolSet);
-    }
-
-    /// <summary>
-    /// 注册虚拟工具
-    /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="virtualTool">虚拟工具实例</param>
-    public static IServiceCollection AddVirtualTool(
-        this IServiceCollection services,
-        IVirtualTool virtualTool
-    )
-    {
-        services.AddToolRegistry();
-
-        services.AddSingleton<IToolRegistration>(sp =>
-        {
-            var registry = sp.GetRequiredService<IToolRegistry>();
-            registry.RegisterVirtualTool(virtualTool);
-            return new ToolRegistration($"VirtualTool:{virtualTool.Name}");
-        });
-
-        return services;
-    }
-
-    /// <summary>
-    /// 从工具类型创建并注册虚拟工具
-    /// </summary>
-    /// <typeparam name="T">工具类类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="name">虚拟工具名称</param>
-    /// <param name="description">虚拟工具描述</param>
-    /// <param name="icon">图标（可选）</param>
-    public static IServiceCollection AddVirtualToolFrom<T>(
-        this IServiceCollection services,
-        string name,
-        string description,
-        string? icon = null
-    )
-        where T : class, new()
-    {
-        var virtualTool = VirtualTool.FromType<T>(name, description, icon);
-        return services.AddVirtualTool(virtualTool);
     }
 
     /// <summary>

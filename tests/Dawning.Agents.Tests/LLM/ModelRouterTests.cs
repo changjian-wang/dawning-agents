@@ -95,10 +95,7 @@ public class CostOptimizedRouterTests
         // UnhealthyThreshold 默认为 3，所以需要 3 次连续失败
         for (int i = 0; i < 5; i++)
         {
-            router.ReportResult(
-                unhealthyProvider.Object,
-                ModelCallResult.Failed("error", 0)
-            );
+            router.ReportResult(unhealthyProvider.Object, ModelCallResult.Failed("error", 0));
         }
 
         var context = new ModelRoutingContext
@@ -109,7 +106,8 @@ public class CostOptimizedRouterTests
 
         // 所有提供者都不健康时应抛出异常
         var act = () => router.SelectProviderAsync(context);
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*No healthy providers*");
     }
 
@@ -243,10 +241,7 @@ public class LatencyOptimizedRouterTests
         );
 
         // 报告延迟
-        router.ReportResult(
-            _fastProvider.Object,
-            ModelCallResult.Succeeded(100, 100, 100, 0.001m)
-        );
+        router.ReportResult(_fastProvider.Object, ModelCallResult.Succeeded(100, 100, 100, 0.001m));
         router.ReportResult(
             _slowProvider.Object,
             ModelCallResult.Succeeded(2000, 100, 100, 0.001m)

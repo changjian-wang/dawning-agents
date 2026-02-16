@@ -21,17 +21,15 @@ public record ResponseFormat
     public static readonly ResponseFormat Text = new() { Type = ResponseFormatType.Text };
 
     /// <summary>JSON 对象格式</summary>
-    public static readonly ResponseFormat JsonObject =
-        new() { Type = ResponseFormatType.JsonObject };
+    public static readonly ResponseFormat JsonObject = new()
+    {
+        Type = ResponseFormatType.JsonObject,
+    };
 
     /// <summary>
     /// 创建 JSON Schema 格式
     /// </summary>
-    public static ResponseFormat JsonSchema(
-        string schemaName,
-        string schema,
-        bool strict = true
-    ) =>
+    public static ResponseFormat JsonSchema(string schemaName, string schema, bool strict = true) =>
         new()
         {
             Type = ResponseFormatType.JsonSchema,

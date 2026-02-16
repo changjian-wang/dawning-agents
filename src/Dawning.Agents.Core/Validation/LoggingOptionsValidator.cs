@@ -30,9 +30,7 @@ public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
             x => x.EnableFile,
             () =>
             {
-                RuleFor(x => x.FilePath)
-                    .NotEmpty()
-                    .WithMessage("启用文件日志时 FilePath 不能为空");
+                RuleFor(x => x.FilePath).NotEmpty().WithMessage("启用文件日志时 FilePath 不能为空");
             }
         );
 
@@ -42,9 +40,7 @@ public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
             .LessThanOrEqualTo(365)
             .WithMessage("RetainedFileCount 不能超过 365");
 
-        RuleFor(x => x.OutputTemplate)
-            .NotEmpty()
-            .WithMessage("OutputTemplate 不能为空");
+        RuleFor(x => x.OutputTemplate).NotEmpty().WithMessage("OutputTemplate 不能为空");
 
         RuleForEach(x => x.Override)
             .Must(kvp => BeValidLogLevel(kvp.Value))

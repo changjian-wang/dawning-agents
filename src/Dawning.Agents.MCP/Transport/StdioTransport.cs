@@ -33,7 +33,8 @@ public sealed class StdioTransport : IMCPTransport
     {
         _inputStream = inputStream;
         _outputStream = outputStream;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<StdioTransport>.Instance;
+        _logger =
+            logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<StdioTransport>.Instance;
     }
 
     public bool IsConnected => _isConnected;

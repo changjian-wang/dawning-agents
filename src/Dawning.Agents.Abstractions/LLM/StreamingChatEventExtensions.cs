@@ -19,7 +19,9 @@ public static class StreamingChatEventExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        await foreach (var text in textStream.WithCancellation(cancellationToken).ConfigureAwait(false))
+        await foreach (
+            var text in textStream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             if (!string.IsNullOrEmpty(text))
             {
@@ -42,7 +44,9 @@ public static class StreamingChatEventExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        await foreach (var evt in eventStream.WithCancellation(cancellationToken).ConfigureAwait(false))
+        await foreach (
+            var evt in eventStream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             if (!string.IsNullOrEmpty(evt.ContentDelta))
             {
@@ -65,7 +69,9 @@ public static class StreamingChatEventExtensions
     {
         var accumulator = new StreamingAccumulator();
 
-        await foreach (var evt in eventStream.WithCancellation(cancellationToken).ConfigureAwait(false))
+        await foreach (
+            var evt in eventStream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             accumulator.Add(evt);
         }
@@ -93,10 +99,7 @@ public class StreamingAccumulator
 
     /// <summary>累积的完整工具调用列表</summary>
     public IReadOnlyList<ToolCall> ToolCalls =>
-        _toolCallBuilders
-            .OrderBy(kvp => kvp.Key)
-            .Select(kvp => kvp.Value.Build())
-            .ToList();
+        _toolCallBuilders.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value.Build()).ToList();
 
     /// <summary>是否包含工具调用</summary>
     public bool HasToolCalls => _toolCallBuilders.Count > 0;

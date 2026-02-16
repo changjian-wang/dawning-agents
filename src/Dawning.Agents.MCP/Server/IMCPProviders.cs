@@ -20,7 +20,10 @@ public interface IMCPResourceProvider
     /// <summary>
     /// 读取资源内容
     /// </summary>
-    Task<ResourceContent?> ReadResourceAsync(string uri, CancellationToken cancellationToken = default);
+    Task<ResourceContent?> ReadResourceAsync(
+        string uri,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// 是否支持指定 URI

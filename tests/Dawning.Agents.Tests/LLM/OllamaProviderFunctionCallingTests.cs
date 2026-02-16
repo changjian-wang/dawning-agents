@@ -29,18 +29,11 @@ public class OllamaProviderFunctionCallingTests
                 new HttpResponseMessage
                 {
                     StatusCode = statusCode,
-                    Content = new StringContent(
-                        responseContent,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
                 }
             );
 
-        return new HttpClient(handler.Object)
-        {
-            BaseAddress = new Uri("http://localhost:11434"),
-        };
+        return new HttpClient(handler.Object) { BaseAddress = new Uri("http://localhost:11434") };
     }
 
     private static HttpClient CreateMockHttpClientCapture(
@@ -61,11 +54,7 @@ public class OllamaProviderFunctionCallingTests
                 new HttpResponseMessage
                 {
                     StatusCode = statusCode,
-                    Content = new StringContent(
-                        responseContent,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
                 }
             );
 
@@ -80,28 +69,28 @@ public class OllamaProviderFunctionCallingTests
     {
         // Ollama 返回 tool_calls 的 JSON 格式
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "",
-                "tool_calls": [
-                    {
-                        "function": {
-                            "name": "get_weather",
-                            "arguments": {
-                                "location": "Beijing"
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "name": "get_weather",
+                                "arguments": {
+                                    "location": "Beijing"
+                                }
                             }
                         }
-                    }
-                ]
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 50,
-            "eval_count": 30
-        }
-        """;
+                    ]
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 50,
+                "eval_count": 30
+            }
+            """;
 
         var httpClient = CreateMockHttpClient(responseJson);
         var provider = new OllamaProvider(
@@ -137,18 +126,18 @@ public class OllamaProviderFunctionCallingTests
     public async Task ChatAsync_WithoutToolCalls_ShouldReturnNormalResponse()
     {
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "Hello! How can I help?"
-            },
-            "done": true,
-            "done_reason": "stop",
-            "prompt_eval_count": 10,
-            "eval_count": 8
-        }
-        """;
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "Hello! How can I help?"
+                },
+                "done": true,
+                "done_reason": "stop",
+                "prompt_eval_count": 10,
+                "eval_count": 8
+            }
+            """;
 
         var httpClient = CreateMockHttpClient(responseJson);
         var provider = new OllamaProvider(
@@ -171,31 +160,31 @@ public class OllamaProviderFunctionCallingTests
     public async Task ChatAsync_MultipleToolCalls_ShouldReturnAll()
     {
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "",
-                "tool_calls": [
-                    {
-                        "function": {
-                            "name": "search",
-                            "arguments": { "query": "test" }
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "name": "search",
+                                "arguments": { "query": "test" }
+                            }
+                        },
+                        {
+                            "function": {
+                                "name": "calculate",
+                                "arguments": { "expr": "1+1" }
+                            }
                         }
-                    },
-                    {
-                        "function": {
-                            "name": "calculate",
-                            "arguments": { "expr": "1+1" }
-                        }
-                    }
-                ]
-            },
-            "done": true,
-            "prompt_eval_count": 50,
-            "eval_count": 30
-        }
-        """;
+                    ]
+                },
+                "done": true,
+                "prompt_eval_count": 50,
+                "eval_count": 30
+            }
+            """;
 
         var httpClient = CreateMockHttpClient(responseJson);
         var provider = new OllamaProvider(
@@ -204,9 +193,7 @@ public class OllamaProviderFunctionCallingTests
             NullLogger<OllamaProvider>.Instance
         );
 
-        var response = await provider.ChatAsync(
-            [ChatMessage.User("Search and calculate")]
-        );
+        var response = await provider.ChatAsync([ChatMessage.User("Search and calculate")]);
 
         response.HasToolCalls.Should().BeTrue();
         response.ToolCalls.Should().HaveCount(2);
@@ -218,22 +205,19 @@ public class OllamaProviderFunctionCallingTests
     public async Task ChatAsync_ShouldSendToolDefinitions()
     {
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "Ok"
-            },
-            "done": true,
-            "prompt_eval_count": 10,
-            "eval_count": 5
-        }
-        """;
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "Ok"
+                },
+                "done": true,
+                "prompt_eval_count": 10,
+                "eval_count": 5
+            }
+            """;
 
-        var httpClient = CreateMockHttpClientCapture(
-            responseJson,
-            out var handlerMock
-        );
+        var httpClient = CreateMockHttpClientCapture(responseJson, out var handlerMock);
         var provider = new OllamaProvider(
             httpClient,
             "llama3",
@@ -263,8 +247,7 @@ public class OllamaProviderFunctionCallingTests
                 "SendAsync",
                 Times.Once(),
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Post
-                    && req.RequestUri!.PathAndQuery == "/api/chat"
+                    req.Method == HttpMethod.Post && req.RequestUri!.PathAndQuery == "/api/chat"
                 ),
                 ItExpr.IsAny<CancellationToken>()
             );
@@ -274,17 +257,17 @@ public class OllamaProviderFunctionCallingTests
     public async Task ChatAsync_ToolMessages_ShouldBeSentCorrectly()
     {
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "The weather is sunny"
-            },
-            "done": true,
-            "prompt_eval_count": 10,
-            "eval_count": 5
-        }
-        """;
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "The weather is sunny"
+                },
+                "done": true,
+                "prompt_eval_count": 10,
+                "eval_count": 5
+            }
+            """;
 
         string? capturedBody = null;
         var handler = new Mock<HttpMessageHandler>();
@@ -305,11 +288,7 @@ public class OllamaProviderFunctionCallingTests
                 new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(
-                        responseJson,
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
+                    Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
                 }
             );
 
@@ -328,9 +307,9 @@ public class OllamaProviderFunctionCallingTests
         var messages = new List<ChatMessage>
         {
             ChatMessage.User("What's the weather?"),
-            ChatMessage.AssistantWithToolCalls(
-                [new ToolCall("call_1", "get_weather", """{"location":"Beijing"}""")]
-            ),
+            ChatMessage.AssistantWithToolCalls([
+                new ToolCall("call_1", "get_weather", """{"location":"Beijing"}"""),
+            ]),
             ChatMessage.ToolResult("call_1", "Sunny, 25°C"),
         };
 
@@ -353,22 +332,22 @@ public class OllamaProviderFunctionCallingTests
     public async Task ChatAsync_ToolCallIds_ShouldBeSequential()
     {
         var responseJson = """
-        {
-            "model": "llama3",
-            "message": {
-                "role": "assistant",
-                "content": "",
-                "tool_calls": [
-                    { "function": { "name": "tool_a", "arguments": {} } },
-                    { "function": { "name": "tool_b", "arguments": {} } },
-                    { "function": { "name": "tool_c", "arguments": {} } }
-                ]
-            },
-            "done": true,
-            "prompt_eval_count": 10,
-            "eval_count": 5
-        }
-        """;
+            {
+                "model": "llama3",
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        { "function": { "name": "tool_a", "arguments": {} } },
+                        { "function": { "name": "tool_b", "arguments": {} } },
+                        { "function": { "name": "tool_c", "arguments": {} } }
+                    ]
+                },
+                "done": true,
+                "prompt_eval_count": 10,
+                "eval_count": 5
+            }
+            """;
 
         var httpClient = CreateMockHttpClient(responseJson);
         var provider = new OllamaProvider(

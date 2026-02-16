@@ -19,12 +19,14 @@ public class SemanticCacheServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["SemanticCache:Enabled"] = "true",
-                ["SemanticCache:SimilarityThreshold"] = "0.95",
-                ["SemanticCache:MaxEntries"] = "5000",
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["SemanticCache:Enabled"] = "true",
+                    ["SemanticCache:SimilarityThreshold"] = "0.95",
+                    ["SemanticCache:MaxEntries"] = "5000",
+                }
+            )
             .Build();
 
         // 先注册依赖

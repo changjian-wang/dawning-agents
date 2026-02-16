@@ -29,8 +29,8 @@ public class ModelPricing
     /// </summary>
     public decimal CalculateCost(int inputTokens, int outputTokens)
     {
-        return (inputTokens * InputPricePerKToken / 1000m) +
-               (outputTokens * OutputPricePerKToken / 1000m);
+        return (inputTokens * InputPricePerKToken / 1000m)
+            + (outputTokens * OutputPricePerKToken / 1000m);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class ModelPricing
         {
             Model = "gpt-4o",
             InputPricePerKToken = 0.0025m,
-            OutputPricePerKToken = 0.01m
+            OutputPricePerKToken = 0.01m,
         };
 
         /// <summary>GPT-4o Mini 定价</summary>
@@ -53,7 +53,7 @@ public class ModelPricing
         {
             Model = "gpt-4o-mini",
             InputPricePerKToken = 0.00015m,
-            OutputPricePerKToken = 0.0006m
+            OutputPricePerKToken = 0.0006m,
         };
 
         /// <summary>GPT-4 Turbo 定价</summary>
@@ -61,7 +61,7 @@ public class ModelPricing
         {
             Model = "gpt-4-turbo",
             InputPricePerKToken = 0.01m,
-            OutputPricePerKToken = 0.03m
+            OutputPricePerKToken = 0.03m,
         };
 
         /// <summary>GPT-3.5 Turbo 定价</summary>
@@ -69,7 +69,7 @@ public class ModelPricing
         {
             Model = "gpt-3.5-turbo",
             InputPricePerKToken = 0.0005m,
-            OutputPricePerKToken = 0.0015m
+            OutputPricePerKToken = 0.0015m,
         };
 
         // Claude 模型
@@ -79,7 +79,7 @@ public class ModelPricing
         {
             Model = "claude-3-opus",
             InputPricePerKToken = 0.015m,
-            OutputPricePerKToken = 0.075m
+            OutputPricePerKToken = 0.075m,
         };
 
         /// <summary>Claude 3 Sonnet 定价</summary>
@@ -87,7 +87,7 @@ public class ModelPricing
         {
             Model = "claude-3-sonnet",
             InputPricePerKToken = 0.003m,
-            OutputPricePerKToken = 0.015m
+            OutputPricePerKToken = 0.015m,
         };
 
         /// <summary>Claude 3 Haiku 定价</summary>
@@ -95,7 +95,7 @@ public class ModelPricing
         {
             Model = "claude-3-haiku",
             InputPricePerKToken = 0.00025m,
-            OutputPricePerKToken = 0.00125m
+            OutputPricePerKToken = 0.00125m,
         };
 
         // 本地模型（免费）
@@ -105,7 +105,7 @@ public class ModelPricing
         {
             Model = "ollama",
             InputPricePerKToken = 0m,
-            OutputPricePerKToken = 0m
+            OutputPricePerKToken = 0m,
         };
 
         /// <summary>
@@ -126,9 +126,9 @@ public class ModelPricing
                 _ => new ModelPricing
                 {
                     Model = model,
-                    InputPricePerKToken = 0.001m,  // 默认估算
-                    OutputPricePerKToken = 0.002m
-                }
+                    InputPricePerKToken = 0.001m, // 默认估算
+                    OutputPricePerKToken = 0.002m,
+                },
             };
         }
     }
@@ -268,5 +268,5 @@ public enum ModelRoutingStrategy
     Random,
 
     /// <summary>优先级（按配置顺序，故障转移）</summary>
-    Priority
+    Priority,
 }

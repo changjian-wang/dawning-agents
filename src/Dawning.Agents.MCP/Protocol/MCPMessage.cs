@@ -41,7 +41,11 @@ public sealed class MCPResponse
         new() { Id = id, Result = result };
 
     public static MCPResponse Failure(object? id, int code, string message) =>
-        new() { Id = id, Error = new MCPError { Code = code, Message = message } };
+        new()
+        {
+            Id = id,
+            Error = new MCPError { Code = code, Message = message },
+        };
 }
 
 /// <summary>

@@ -1,6 +1,5 @@
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core.Tools;
-using Dawning.Agents.Core.Tools.BuiltIn;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,129 +66,99 @@ public class ToolServiceCollectionExtensionsTests
     #region AddToolsFrom<T> Tests
 
     [Fact]
-    public void AddToolsFrom_ScansMathTool()
+    public void AddToolsFrom_ScansToolClass()
     {
         var services = new ServiceCollection();
 
-        services.AddToolsFrom<MathTool>();
+        services.AddToolsFrom<TestCalculatorTool>();
         var provider = services.BuildServiceProvider();
         provider.EnsureToolsRegistered();
 
         var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().Where(t => t.Category == "Math").ToList();
+        var tools = registry.GetAllTools().Where(t => t.Category == "TestCalc").ToList();
 
         tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "Calculate");
-        tools.Should().Contain(t => t.Name == "BasicMath");
+        tools.Should().Contain(t => t.Name == "Add");
+        tools.Should().Contain(t => t.Name == "Multiply");
     }
 
+    #endregion
+
+    #region AddCoreTools Tests
+
     [Fact]
-    public void AddToolsFrom_ScansDateTimeTool()
+    public void AddCoreTools_RegistersCoreTools()
     {
         var services = new ServiceCollection();
 
-        services.AddToolsFrom<DateTimeTool>();
+        services.AddCoreTools();
         var provider = services.BuildServiceProvider();
         provider.EnsureToolsRegistered();
 
         var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().Where(t => t.Category == "DateTime").ToList();
+        var tools = registry.GetAllTools().ToList();
 
         tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "GetCurrentDateTime");
-    }
-
-    #endregion
-
-    #region AddToolSet Tests
-
-    [Fact]
-    public void AddToolSet_RegistersToolSet()
-    {
-        var services = new ServiceCollection();
-        var toolSet = ToolSet.FromType<MathTool>("math", "Math tools");
-
-        services.AddToolSet(toolSet);
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var retrievedSet = registry.GetToolSet("math");
-
-        retrievedSet.Should().NotBeNull();
-        retrievedSet!.Name.Should().Be("math");
+        tools.Should().Contain(t => t.Name == "read_file");
+        tools.Should().Contain(t => t.Name == "write_file");
+        tools.Should().Contain(t => t.Name == "edit_file");
+        tools.Should().Contain(t => t.Name == "search");
+        tools.Should().Contain(t => t.Name == "bash");
     }
 
     [Fact]
-    public void AddToolSetFrom_CreatesAndRegistersToolSet()
+    public void AddCoreTools_RegistersSandbox()
     {
         var services = new ServiceCollection();
 
-        services.AddToolSetFrom<JsonTool>("json", "JSON tools");
+        services.AddCoreTools();
         var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
 
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var toolSet = registry.GetToolSet("json");
-
-        toolSet.Should().NotBeNull();
-        toolSet!.Tools.Should().NotBeEmpty();
-    }
-
-    #endregion
-
-    #region AddVirtualTool Tests
-
-    [Fact]
-    public void AddVirtualTool_RegistersVirtualTool()
-    {
-        var services = new ServiceCollection();
-        var toolSet = ToolSet.FromType<UtilityTool>("utility", "Utility tools");
-        var virtualTool = new VirtualTool(toolSet);
-
-        services.AddVirtualTool(virtualTool);
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tool = registry.GetTool("utility");
-
-        tool.Should().NotBeNull();
-        tool.Should().BeAssignableTo<IVirtualTool>();
+        var sandbox = provider.GetRequiredService<IToolSandbox>();
+        sandbox.Should().NotBeNull();
     }
 
     [Fact]
-    public void AddVirtualToolFrom_CreatesAndRegistersVirtualTool()
+    public void AddCoreTools_RegistersToolStore()
     {
         var services = new ServiceCollection();
 
-        services.AddVirtualToolFrom<MathTool>("math-virtual", "Virtual math tools");
+        services.AddCoreTools();
         var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
 
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tool = registry.GetTool("math-virtual");
-
-        tool.Should().NotBeNull();
-        tool.Should().BeAssignableTo<IVirtualTool>();
+        var store = provider.GetRequiredService<IToolStore>();
+        store.Should().NotBeNull();
     }
 
-    #endregion
-
-    #region AddToolSelector Tests
-
     [Fact]
-    public void AddToolSelector_RegistersSelector()
+    public void AddCoreTools_RegistersToolSession()
     {
         var services = new ServiceCollection();
 
-        services.AddToolSelector();
+        services.AddCoreTools();
         var provider = services.BuildServiceProvider();
 
-        var selector = provider.GetRequiredService<IToolSelector>();
+        using var scope = provider.CreateScope();
+        var session = scope.ServiceProvider.GetRequiredService<IToolSession>();
+        session.Should().NotBeNull();
+    }
 
-        selector.Should().NotBeNull();
-        selector.Should().BeOfType<DefaultToolSelector>();
+    [Fact]
+    public void AddCoreTools_WithOptions_ConfiguresSandbox()
+    {
+        var services = new ServiceCollection();
+
+        services.AddCoreTools(options =>
+        {
+            options.Timeout = TimeSpan.FromSeconds(60);
+            options.WorkingDirectory = "/tmp";
+        });
+
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<ToolSandboxOptions>();
+
+        options.Timeout.Should().Be(TimeSpan.FromSeconds(60));
+        options.WorkingDirectory.Should().Be("/tmp");
     }
 
     #endregion
@@ -228,102 +197,13 @@ public class ToolServiceCollectionExtensionsTests
 
     #endregion
 
-    #region BuiltIn Tool Extensions Tests
-
-    [Fact]
-    public void AddBuiltInTools_RegistersSafeTools()
-    {
-        var services = new ServiceCollection();
-
-        services.AddBuiltInTools();
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().ToList();
-
-        tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Category == "DateTime");
-        tools.Should().Contain(t => t.Category == "Math");
-        tools.Should().Contain(t => t.Category == "Json");
-        tools.Should().Contain(t => t.Category == "Utility");
-    }
-
-    [Fact]
-    public void AddAllBuiltInTools_RegistersAllTools()
-    {
-        var services = new ServiceCollection();
-
-        services.AddAllBuiltInTools();
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().ToList();
-
-        // 应该包含所有类别，包括高风险的
-        tools.Should().Contain(t => t.Category == "FileSystem");
-        tools.Should().Contain(t => t.Category == "Process");
-        tools.Should().Contain(t => t.Category == "Git");
-    }
-
-    [Fact]
-    public void AddFileSystemTools_RegistersFileTools()
-    {
-        var services = new ServiceCollection();
-
-        services.AddFileSystemTools();
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().Where(t => t.Category == "FileSystem").ToList();
-
-        tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "ReadFile");
-        tools.Should().Contain(t => t.Name == "WriteFile");
-    }
-
-    [Fact]
-    public void AddProcessTools_RegistersProcessTools()
-    {
-        var services = new ServiceCollection();
-
-        services.AddProcessTools();
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().Where(t => t.Category == "Process").ToList();
-
-        tools.Should().NotBeEmpty();
-        tools.Should().Contain(t => t.Name == "RunCommand");
-    }
-
-    [Fact]
-    public void AddGitTools_RegistersGitTools()
-    {
-        var services = new ServiceCollection();
-
-        services.AddGitTools();
-        var provider = services.BuildServiceProvider();
-        provider.EnsureToolsRegistered();
-
-        var registry = provider.GetRequiredService<IToolRegistry>();
-        var tools = registry.GetAllTools().Where(t => t.Category == "Git").ToList();
-
-        tools.Should().NotBeEmpty();
-    }
-
-    #endregion
-
     #region EnsureToolsRegistered Tests
 
     [Fact]
     public void EnsureToolsRegistered_TriggersRegistration()
     {
         var services = new ServiceCollection();
-        services.AddToolsFrom<MathTool>();
+        services.AddToolsFrom<TestCalculatorTool>();
 
         var provider = services.BuildServiceProvider();
 
@@ -343,7 +223,7 @@ public class ToolServiceCollectionExtensionsTests
     public void EnsureToolsRegistered_CalledMultipleTimes_DoesNotDuplicate()
     {
         var services = new ServiceCollection();
-        services.AddToolsFrom<MathTool>();
+        services.AddToolsFrom<TestCalculatorTool>();
 
         var provider = services.BuildServiceProvider();
 
@@ -357,6 +237,8 @@ public class ToolServiceCollectionExtensionsTests
     }
 
     #endregion
+
+    #region Test Helpers
 
     private class TestTool : ITool
     {
@@ -380,4 +262,24 @@ public class ToolServiceCollectionExtensionsTests
             );
         }
     }
+
+    /// <summary>
+    /// 测试用计算器工具
+    /// </summary>
+    public class TestCalculatorTool
+    {
+        [FunctionTool("Add two numbers", Category = "TestCalc")]
+        public string Add(
+            [ToolParameter("First number")] double a,
+            [ToolParameter("Second number")] double b
+        ) => (a + b).ToString();
+
+        [FunctionTool("Multiply two numbers", Category = "TestCalc")]
+        public string Multiply(
+            [ToolParameter("First number")] double a,
+            [ToolParameter("Second number")] double b
+        ) => (a * b).ToString();
+    }
+
+    #endregion
 }

@@ -20,14 +20,18 @@ public class OpenAIVisionProvider : IVisionProvider
     private readonly ILogger<OpenAIVisionProvider> _logger;
 
     private static readonly string[] s_supportedFormats =
-        ["image/png", "image/jpeg", "image/gif", "image/webp"];
+    [
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "image/webp",
+    ];
 
-    private static readonly JsonSerializerOptions s_jsonOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
     public OpenAIVisionProvider(
         HttpClient httpClient,
@@ -95,7 +99,11 @@ public class OpenAIVisionProvider : IVisionProvider
         options ??= new VisionOptions();
         var model = options.Model ?? _defaultModel;
 
-        _logger.LogDebug("开始视觉聊天，模型: {Model}，消息数: {MessageCount}", model, messages.Count);
+        _logger.LogDebug(
+            "开始视觉聊天，模型: {Model}，消息数: {MessageCount}",
+            model,
+            messages.Count
+        );
 
         var requestMessages = new List<object>();
 
@@ -120,10 +128,7 @@ public class OpenAIVisionProvider : IVisionProvider
             temperature = options.Temperature,
         };
 
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            $"{_baseUrl}/chat/completions"
-        );
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/chat/completions");
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
         request.Content = JsonContent.Create(requestBody, options: s_jsonOptions);
 
@@ -134,15 +139,18 @@ public class OpenAIVisionProvider : IVisionProvider
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("OpenAI API 返回错误: {StatusCode} - {Response}", response.StatusCode, responseJson);
+                _logger.LogWarning(
+                    "OpenAI API 返回错误: {StatusCode} - {Response}",
+                    response.StatusCode,
+                    responseJson
+                );
                 return VisionChatResponse.Failed($"API 错误: {response.StatusCode}");
             }
 
             using var doc = JsonDocument.Parse(responseJson);
             var root = doc.RootElement;
 
-            var content = root
-                .GetProperty("choices")[0]
+            var content = root.GetProperty("choices")[0]
                 .GetProperty("message")
                 .GetProperty("content")
                 .GetString();
@@ -201,10 +209,7 @@ public class OpenAIVisionProvider : IVisionProvider
             stream = true,
         };
 
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            $"{_baseUrl}/chat/completions"
-        );
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/chat/completions");
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
         request.Content = JsonContent.Create(requestBody, options: s_jsonOptions);
 
@@ -224,8 +229,10 @@ public class OpenAIVisionProvider : IVisionProvider
         using var reader = new StreamReader(stream);
 
         string? line;
-        while ((line = await reader.ReadLineAsync(cancellationToken)) != null
-            && !cancellationToken.IsCancellationRequested)
+        while (
+            (line = await reader.ReadLineAsync(cancellationToken)) != null
+            && !cancellationToken.IsCancellationRequested
+        )
         {
             if (string.IsNullOrEmpty(line) || !line.StartsWith("data: "))
             {
@@ -239,9 +246,7 @@ public class OpenAIVisionProvider : IVisionProvider
             }
 
             using var doc = JsonDocument.Parse(data);
-            var delta = doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("delta");
+            var delta = doc.RootElement.GetProperty("choices")[0].GetProperty("delta");
 
             if (delta.TryGetProperty("content", out var contentElement))
             {
@@ -280,9 +285,13 @@ public class OpenAIVisionProvider : IVisionProvider
                                 image_url = new
                                 {
                                     url = image.Url,
-                                    detail = (image.Detail == ImageDetail.Auto
-                                        ? defaultDetail
-                                        : image.Detail).ToString().ToLowerInvariant(),
+                                    detail = (
+                                        image.Detail == ImageDetail.Auto
+                                            ? defaultDetail
+                                            : image.Detail
+                                    )
+                                        .ToString()
+                                        .ToLowerInvariant(),
                                 },
                             }
                         );
@@ -297,9 +306,13 @@ public class OpenAIVisionProvider : IVisionProvider
                                 image_url = new
                                 {
                                     url = dataUrl,
-                                    detail = (image.Detail == ImageDetail.Auto
-                                        ? defaultDetail
-                                        : image.Detail).ToString().ToLowerInvariant(),
+                                    detail = (
+                                        image.Detail == ImageDetail.Auto
+                                            ? defaultDetail
+                                            : image.Detail
+                                    )
+                                        .ToString()
+                                        .ToLowerInvariant(),
                                 },
                             }
                         );

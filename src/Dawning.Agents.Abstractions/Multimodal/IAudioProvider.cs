@@ -255,7 +255,11 @@ public record TranscriptionResult
     /// <summary>
     /// 创建成功结果
     /// </summary>
-    public static TranscriptionResult Ok(string text, string? language = null, double? duration = null) =>
+    public static TranscriptionResult Ok(
+        string text,
+        string? language = null,
+        double? duration = null
+    ) =>
         new()
         {
             Success = true,
@@ -536,6 +540,5 @@ public record SpeechResult
     /// <summary>
     /// 创建失败结果
     /// </summary>
-    public static SpeechResult Failed(string error) =>
-        new() { Success = false, Error = error };
+    public static SpeechResult Failed(string error) => new() { Success = false, Error = error };
 }

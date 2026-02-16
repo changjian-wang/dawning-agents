@@ -385,7 +385,8 @@ public class VectorMemory : IConversationMemory
         // 从最近的消息开始，保留尽可能多的消息
         for (int i = messages.Count - 1; i >= 0; i--)
         {
-            var msgTokens = messages[i].TokenCount ?? _tokenCounter.CountTokens(messages[i].Content);
+            var msgTokens =
+                messages[i].TokenCount ?? _tokenCounter.CountTokens(messages[i].Content);
             if (tokenCount + msgTokens > maxTokens.Value)
             {
                 break;

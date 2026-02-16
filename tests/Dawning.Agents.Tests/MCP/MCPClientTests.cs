@@ -127,13 +127,29 @@ public class MCPExceptionTests
     public void MCPException_Should_Support_All_Error_Codes()
     {
         // Arrange & Act & Assert
-        new MCPException(MCPErrorCodes.ParseError, "Parse error").ErrorCode.Should().Be(-32700);
-        new MCPException(MCPErrorCodes.InvalidRequest, "Invalid request").ErrorCode.Should().Be(-32600);
-        new MCPException(MCPErrorCodes.MethodNotFound, "Method not found").ErrorCode.Should().Be(-32601);
-        new MCPException(MCPErrorCodes.InvalidParams, "Invalid params").ErrorCode.Should().Be(-32602);
-        new MCPException(MCPErrorCodes.InternalError, "Internal error").ErrorCode.Should().Be(-32603);
-        new MCPException(MCPErrorCodes.ResourceNotFound, "Resource not found").ErrorCode.Should().Be(-32001);
-        new MCPException(MCPErrorCodes.ToolNotFound, "Tool not found").ErrorCode.Should().Be(-32002);
-        new MCPException(MCPErrorCodes.ToolExecutionFailed, "Execution failed").ErrorCode.Should().Be(-32003);
+        new MCPException(MCPErrorCodes.ParseError, "Parse error")
+            .ErrorCode.Should()
+            .Be(-32700);
+        new MCPException(MCPErrorCodes.InvalidRequest, "Invalid request")
+            .ErrorCode.Should()
+            .Be(-32600);
+        new MCPException(MCPErrorCodes.MethodNotFound, "Method not found")
+            .ErrorCode.Should()
+            .Be(-32601);
+        new MCPException(MCPErrorCodes.InvalidParams, "Invalid params")
+            .ErrorCode.Should()
+            .Be(-32602);
+        new MCPException(MCPErrorCodes.InternalError, "Internal error")
+            .ErrorCode.Should()
+            .Be(-32603);
+        new MCPException(MCPErrorCodes.ResourceNotFound, "Resource not found")
+            .ErrorCode.Should()
+            .Be(-32001);
+        new MCPException(MCPErrorCodes.ToolNotFound, "Tool not found")
+            .ErrorCode.Should()
+            .Be(-32002);
+        new MCPException(MCPErrorCodes.ToolExecutionFailed, "Execution failed")
+            .ErrorCode.Should()
+            .Be(-32003);
     }
 }

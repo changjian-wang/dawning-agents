@@ -66,7 +66,9 @@ public static class EvaluationServiceCollectionExtensions
     /// <summary>
     /// 添加自定义指标评估器
     /// </summary>
-    public static IServiceCollection AddMetricEvaluator<TEvaluator>(this IServiceCollection services)
+    public static IServiceCollection AddMetricEvaluator<TEvaluator>(
+        this IServiceCollection services
+    )
         where TEvaluator : class, IMetricEvaluator
     {
         services.AddSingleton<IMetricEvaluator, TEvaluator>();

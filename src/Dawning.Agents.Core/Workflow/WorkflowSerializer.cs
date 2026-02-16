@@ -10,14 +10,13 @@ namespace Dawning.Agents.Core.Workflow;
 /// </summary>
 public class WorkflowSerializer : IWorkflowSerializer
 {
-    private static readonly JsonSerializerOptions s_jsonOptions =
-        new()
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
     /// <inheritdoc />
     public string SerializeToJson(WorkflowDefinition definition)
@@ -170,13 +169,27 @@ public class WorkflowSerializer : IWorkflowSerializer
                 };
                 currentConfig = null;
             }
-            else if (currentSection == "nodes" && trimmed.StartsWith("name:") && currentNode != null)
+            else if (
+                currentSection == "nodes"
+                && trimmed.StartsWith("name:")
+                && currentNode != null
+            )
             {
                 currentNode = currentNode with { Name = trimmed["name:".Length..].Trim() };
             }
-            else if (currentSection == "nodes" && trimmed.StartsWith("type:") && currentNode != null)
+            else if (
+                currentSection == "nodes"
+                && trimmed.StartsWith("type:")
+                && currentNode != null
+            )
             {
-                if (Enum.TryParse<WorkflowNodeType>(trimmed["type:".Length..].Trim(), true, out var nodeType))
+                if (
+                    Enum.TryParse<WorkflowNodeType>(
+                        trimmed["type:".Length..].Trim(),
+                        true,
+                        out var nodeType
+                    )
+                )
                 {
                     currentNode = currentNode with { Type = nodeType };
                 }
@@ -213,7 +226,11 @@ public class WorkflowSerializer : IWorkflowSerializer
             {
                 currentEdge = currentEdge with { ToNodeId = trimmed["to:".Length..].Trim() };
             }
-            else if (currentSection == "edges" && trimmed.StartsWith("label:") && currentEdge != null)
+            else if (
+                currentSection == "edges"
+                && trimmed.StartsWith("label:")
+                && currentEdge != null
+            )
             {
                 currentEdge = currentEdge with { Label = trimmed["label:".Length..].Trim() };
             }
@@ -276,7 +293,9 @@ public class WorkflowVisualizer : IWorkflowVisualizer
             }
             else
             {
-                sb.AppendLine($"    {edge.FromNodeId} -->|\"{EscapeMermaidLabel(edge.Label)}\"| {edge.ToNodeId}");
+                sb.AppendLine(
+                    $"    {edge.FromNodeId} -->|\"{EscapeMermaidLabel(edge.Label)}\"| {edge.ToNodeId}"
+                );
             }
         }
 
@@ -325,7 +344,9 @@ public class WorkflowVisualizer : IWorkflowVisualizer
             }
             else
             {
-                sb.AppendLine($"    {edge.FromNodeId} -> {edge.ToNodeId} [label=\"{EscapeDotLabel(edge.Label)}\"];");
+                sb.AppendLine(
+                    $"    {edge.FromNodeId} -> {edge.ToNodeId} [label=\"{EscapeDotLabel(edge.Label)}\"];"
+                );
             }
         }
 
@@ -337,13 +358,13 @@ public class WorkflowVisualizer : IWorkflowVisualizer
     {
         return type switch
         {
-            WorkflowNodeType.Start => ("((", "))"),         // 圆形
-            WorkflowNodeType.End => ("((", "))"),           // 圆形
-            WorkflowNodeType.Condition => ("{", "}"),       // 菱形
-            WorkflowNodeType.Parallel => ("[[", "]]"),      // 方形双边框
-            WorkflowNodeType.Loop => ("([", "])"),          // 药丸形
+            WorkflowNodeType.Start => ("((", "))"), // 圆形
+            WorkflowNodeType.End => ("((", "))"), // 圆形
+            WorkflowNodeType.Condition => ("{", "}"), // 菱形
+            WorkflowNodeType.Parallel => ("[[", "]]"), // 方形双边框
+            WorkflowNodeType.Loop => ("([", "])"), // 药丸形
             WorkflowNodeType.HumanApproval => ("[/", "/]"), // 平行四边形
-            _ => ("[", "]"),                                // 默认方形
+            _ => ("[", "]"), // 默认方形
         };
     }
 

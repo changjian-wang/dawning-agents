@@ -1,9 +1,9 @@
+using Dawning.Agents.Abstractions;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.OpenAI;
 

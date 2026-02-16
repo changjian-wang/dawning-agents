@@ -41,6 +41,5 @@ public interface ILLMProvider
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions? options = null,
         CancellationToken cancellationToken = default
-    ) => ChatStreamAsync(messages, options, cancellationToken)
-        .ToStreamingEvents();
+    ) => ChatStreamAsync(messages, options, cancellationToken).ToStreamingEvents();
 }

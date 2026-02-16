@@ -81,27 +81,33 @@ public class RoutingLLMProvider : ILLMProvider
                 sw.Stop();
 
                 // 报告成功
-                var cost = CalculateCost(provider.Name, response.PromptTokens, response.CompletionTokens);
-                _router.ReportResult(provider, ModelCallResult.Succeeded(
-                    sw.ElapsedMilliseconds,
+                var cost = CalculateCost(
+                    provider.Name,
                     response.PromptTokens,
-                    response.CompletionTokens,
-                    cost
-                ));
+                    response.CompletionTokens
+                );
+                _router.ReportResult(
+                    provider,
+                    ModelCallResult.Succeeded(
+                        sw.ElapsedMilliseconds,
+                        response.PromptTokens,
+                        response.CompletionTokens,
+                        cost
+                    )
+                );
 
                 return response;
             }
             catch (Exception ex) when (attempt < maxRetries && _options.EnableFailover)
             {
                 sw.Stop();
-                _logger.LogWarning(
-                    ex,
-                    "提供者 {Provider} 调用失败，尝试故障转移",
-                    provider.Name
-                );
+                _logger.LogWarning(ex, "提供者 {Provider} 调用失败，尝试故障转移", provider.Name);
 
                 // 报告失败
-                _router.ReportResult(provider, ModelCallResult.Failed(ex.Message, sw.ElapsedMilliseconds));
+                _router.ReportResult(
+                    provider,
+                    ModelCallResult.Failed(ex.Message, sw.ElapsedMilliseconds)
+                );
                 excludedProviders.Add(provider.Name);
             }
         }
@@ -147,7 +153,12 @@ public class RoutingLLMProvider : ILLMProvider
             );
 
             // 尝试获取流
-            var (stream, error) = await TryGetStreamAsync(provider, messageList, options, cancellationToken);
+            var (stream, error) = await TryGetStreamAsync(
+                provider,
+                messageList,
+                options,
+                cancellationToken
+            );
 
             if (stream != null)
             {
@@ -222,12 +233,10 @@ public class RoutingLLMProvider : ILLMProvider
         // 报告成功
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
-        _router.ReportResult(provider, ModelCallResult.Succeeded(
-            sw.ElapsedMilliseconds,
-            inputTokens,
-            outputTokens,
-            cost
-        ));
+        _router.ReportResult(
+            provider,
+            ModelCallResult.Succeeded(sw.ElapsedMilliseconds, inputTokens, outputTokens, cost)
+        );
     }
 
     private ModelRoutingContext CreateRoutingContext(
@@ -242,7 +251,7 @@ public class RoutingLLMProvider : ILLMProvider
         {
             EstimatedInputTokens = inputTokens,
             EstimatedOutputTokens = outputTokens,
-            RequiresStreaming = false
+            RequiresStreaming = false,
         };
     }
 

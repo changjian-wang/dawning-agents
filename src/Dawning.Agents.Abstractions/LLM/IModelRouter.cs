@@ -104,7 +104,7 @@ public enum RequestPriority
     High = 2,
 
     /// <summary>紧急（立即处理、使用最快模型）</summary>
-    Critical = 3
+    Critical = 3,
 }
 
 /// <summary>
@@ -145,24 +145,29 @@ public class ModelCallResult
     /// <summary>
     /// 创建成功结果
     /// </summary>
-    public static ModelCallResult Succeeded(long latencyMs, int inputTokens, int outputTokens, decimal cost)
-        => new()
+    public static ModelCallResult Succeeded(
+        long latencyMs,
+        int inputTokens,
+        int outputTokens,
+        decimal cost
+    ) =>
+        new()
         {
             Success = true,
             LatencyMs = latencyMs,
             InputTokens = inputTokens,
             OutputTokens = outputTokens,
-            Cost = cost
+            Cost = cost,
         };
 
     /// <summary>
     /// 创建失败结果
     /// </summary>
-    public static ModelCallResult Failed(string error, long latencyMs = 0)
-        => new()
+    public static ModelCallResult Failed(string error, long latencyMs = 0) =>
+        new()
         {
             Success = false,
             Error = error,
-            LatencyMs = latencyMs
+            LatencyMs = latencyMs,
         };
 }

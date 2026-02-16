@@ -75,10 +75,7 @@ public class AzureOpenAIProvider : OpenAIProviderBase
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
 
-        var client = new AzureOpenAIClient(
-            new Uri(endpoint),
-            new AzureKeyCredential(apiKey)
-        );
+        var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
         return client.GetChatClient(deploymentName);
     }
 

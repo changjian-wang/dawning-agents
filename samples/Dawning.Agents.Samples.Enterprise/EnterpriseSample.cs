@@ -8,7 +8,6 @@ using Dawning.Agents.Core.HumanLoop;
 using Dawning.Agents.Core.Safety;
 using Dawning.Agents.Core.Scaling;
 using Dawning.Agents.Core.Tools;
-using Dawning.Agents.Core.Tools.BuiltIn;
 using Dawning.Agents.Samples.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,8 +26,8 @@ public class EnterpriseSample : SampleBase
         IConfiguration configuration
     )
     {
-        // 注册工具
-        services.AddAllBuiltInTools();
+        // 注册核心工具
+        services.AddCoreTools();
 
         // 注册 Agent
         services.AddReActAgent(options =>
@@ -177,7 +176,9 @@ public class EnterpriseSample : SampleBase
             var confirmed = result.SelectedOption == "yes" || result.SelectedOption == "confirm";
             if (confirmed)
             {
-                ConsoleHelper.PrintSuccess($"  ✓ 已确认 (确认人: {result.RespondedBy ?? "Console User"})");
+                ConsoleHelper.PrintSuccess(
+                    $"  ✓ 已确认 (确认人: {result.RespondedBy ?? "Console User"})"
+                );
             }
             else
             {
@@ -245,13 +246,28 @@ public class EnterpriseSample : SampleBase
 
         // 注册实例
         loadBalancer.RegisterInstance(
-            new AgentInstance { Id = "agent-1", Endpoint = "http://localhost:8001", ActiveRequests = 5 }
+            new AgentInstance
+            {
+                Id = "agent-1",
+                Endpoint = "http://localhost:8001",
+                ActiveRequests = 5,
+            }
         );
         loadBalancer.RegisterInstance(
-            new AgentInstance { Id = "agent-2", Endpoint = "http://localhost:8002", ActiveRequests = 3 }
+            new AgentInstance
+            {
+                Id = "agent-2",
+                Endpoint = "http://localhost:8002",
+                ActiveRequests = 3,
+            }
         );
         loadBalancer.RegisterInstance(
-            new AgentInstance { Id = "agent-3", Endpoint = "http://localhost:8003", ActiveRequests = 8 }
+            new AgentInstance
+            {
+                Id = "agent-3",
+                Endpoint = "http://localhost:8003",
+                ActiveRequests = 8,
+            }
         );
 
         ConsoleHelper.PrintInfo("已注册实例:");
@@ -268,7 +284,9 @@ public class EnterpriseSample : SampleBase
             if (selected != null)
             {
                 selected.ActiveRequests++;
-                ConsoleHelper.PrintDim($"  请求 {i} → {selected.Id} (活跃请求: {selected.ActiveRequests})");
+                ConsoleHelper.PrintDim(
+                    $"  请求 {i} → {selected.Id} (活跃请求: {selected.ActiveRequests})"
+                );
             }
         }
     }
@@ -311,9 +329,8 @@ public class EnterpriseSample : SampleBase
             };
 
             var response = await provider.ChatAsync(messages);
-            var preview = response.Content?.Length > 100
-                ? response.Content[..100] + "..."
-                : response.Content;
+            var preview =
+                response.Content?.Length > 100 ? response.Content[..100] + "..." : response.Content;
 
             ConsoleHelper.PrintColored($"  {preview}", ConsoleColor.Cyan);
             Console.WriteLine();

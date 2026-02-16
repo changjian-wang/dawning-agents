@@ -20,7 +20,8 @@ public static class MultimodalServiceCollectionExtensions
     )
     {
         var section = configuration.GetSection("OpenAI");
-        var apiKey = section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+        var apiKey =
+            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["VisionModel"] ?? "gpt-4o";
 
@@ -41,7 +42,8 @@ public static class MultimodalServiceCollectionExtensions
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("OpenAIVision");
-            var logger = sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIVisionProvider>>();
+            var logger =
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIVisionProvider>>();
 
             return new OpenAIVisionProvider(
                 httpClient,
@@ -64,8 +66,11 @@ public static class MultimodalServiceCollectionExtensions
     )
     {
         var section = configuration.GetSection("AzureOpenAI");
-        var apiKey = section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
-        var endpoint = section["Endpoint"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
+        var apiKey =
+            section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
+        var endpoint =
+            section["Endpoint"]
+            ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
         var deployment = section["VisionDeployment"] ?? "gpt-4o";
         var apiVersion = section["ApiVersion"] ?? "2024-02-15-preview";
 
@@ -91,7 +96,8 @@ public static class MultimodalServiceCollectionExtensions
             var httpClient = httpClientFactory.CreateClient("AzureOpenAIVision");
             // Azure 使用不同的认证头
             httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
-            var logger = sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIVisionProvider>>();
+            var logger =
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIVisionProvider>>();
 
             // Azure OpenAI 的 URL 格式不同
             return new OpenAIVisionProvider(
@@ -127,7 +133,8 @@ public static class MultimodalServiceCollectionExtensions
     )
     {
         var section = configuration.GetSection("OpenAI");
-        var apiKey = section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+        var apiKey =
+            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["WhisperModel"] ?? "whisper-1";
 
@@ -148,7 +155,8 @@ public static class MultimodalServiceCollectionExtensions
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("OpenAIWhisper");
-            var logger = sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIWhisperProvider>>();
+            var logger =
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIWhisperProvider>>();
 
             return new OpenAIWhisperProvider(
                 httpClient,
@@ -171,8 +179,11 @@ public static class MultimodalServiceCollectionExtensions
     )
     {
         var section = configuration.GetSection("AzureOpenAI");
-        var apiKey = section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
-        var endpoint = section["Endpoint"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
+        var apiKey =
+            section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
+        var endpoint =
+            section["Endpoint"]
+            ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
         var deployment = section["WhisperDeployment"] ?? "whisper";
         var apiVersion = section["ApiVersion"] ?? "2024-02-15-preview";
 
@@ -196,7 +207,8 @@ public static class MultimodalServiceCollectionExtensions
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("AzureOpenAIWhisper");
             httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
-            var logger = sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIWhisperProvider>>();
+            var logger =
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIWhisperProvider>>();
 
             return new OpenAIWhisperProvider(
                 httpClient,
@@ -213,7 +225,9 @@ public static class MultimodalServiceCollectionExtensions
     /// <summary>
     /// 添加自定义音频转录提供者
     /// </summary>
-    public static IServiceCollection AddAudioTranscriptionProvider<T>(this IServiceCollection services)
+    public static IServiceCollection AddAudioTranscriptionProvider<T>(
+        this IServiceCollection services
+    )
         where T : class, IAudioTranscriptionProvider
     {
         services.TryAddSingleton<IAudioTranscriptionProvider, T>();
@@ -233,7 +247,8 @@ public static class MultimodalServiceCollectionExtensions
     )
     {
         var section = configuration.GetSection("OpenAI");
-        var apiKey = section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+        var apiKey =
+            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["TTSModel"] ?? "tts-1";
 

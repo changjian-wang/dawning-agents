@@ -83,51 +83,37 @@ public class MemoryOptions : IValidatableOptions
     {
         if (MaxContextTokens <= 0)
         {
-            throw new InvalidOperationException(
-                "MaxContextTokens must be greater than 0."
-            );
+            throw new InvalidOperationException("MaxContextTokens must be greater than 0.");
         }
 
         if (WindowSize <= 0)
         {
-            throw new InvalidOperationException(
-                "WindowSize must be greater than 0."
-            );
+            throw new InvalidOperationException("WindowSize must be greater than 0.");
         }
 
         if (MaxRecentMessages <= 0)
         {
-            throw new InvalidOperationException(
-                "MaxRecentMessages must be greater than 0."
-            );
+            throw new InvalidOperationException("MaxRecentMessages must be greater than 0.");
         }
 
         if (SummaryThreshold <= 0)
         {
-            throw new InvalidOperationException(
-                "SummaryThreshold must be greater than 0."
-            );
+            throw new InvalidOperationException("SummaryThreshold must be greater than 0.");
         }
 
         if (DowngradeThreshold <= 0)
         {
-            throw new InvalidOperationException(
-                "DowngradeThreshold must be greater than 0."
-            );
+            throw new InvalidOperationException("DowngradeThreshold must be greater than 0.");
         }
 
         if (RetrieveTopK <= 0)
         {
-            throw new InvalidOperationException(
-                "RetrieveTopK must be greater than 0."
-            );
+            throw new InvalidOperationException("RetrieveTopK must be greater than 0.");
         }
 
         if (MinRelevanceScore < 0 || MinRelevanceScore > 1)
         {
-            throw new InvalidOperationException(
-                "MinRelevanceScore must be between 0 and 1."
-            );
+            throw new InvalidOperationException("MinRelevanceScore must be between 0 and 1.");
         }
     }
 }

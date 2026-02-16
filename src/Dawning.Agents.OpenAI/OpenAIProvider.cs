@@ -30,10 +30,7 @@ public class OpenAIProvider : OpenAIProviderBase
         string model = "gpt-4o",
         ILogger<OpenAIProvider>? logger = null
     )
-        : base(
-            CreateChatClient(apiKey, model),
-            logger ?? NullLogger<OpenAIProvider>.Instance
-        )
+        : base(CreateChatClient(apiKey, model), logger ?? NullLogger<OpenAIProvider>.Instance)
     {
         ModelIdentifier = model;
     }

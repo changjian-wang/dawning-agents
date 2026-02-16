@@ -42,11 +42,7 @@ public class StreamingChatEventTests
     [Fact]
     public void Done_ShouldCreateFinishEvent()
     {
-        var usage = new StreamingTokenUsage
-        {
-            PromptTokens = 100,
-            CompletionTokens = 50,
-        };
+        var usage = new StreamingTokenUsage { PromptTokens = 100, CompletionTokens = 50 };
         var evt = StreamingChatEvent.Done("stop", usage);
 
         evt.ContentDelta.Should().BeNull();
@@ -92,11 +88,7 @@ public class StreamingChatEventTests
     [Fact]
     public void StreamingTokenUsage_TotalTokens_ShouldBeSumOfPromptAndCompletion()
     {
-        var usage = new StreamingTokenUsage
-        {
-            PromptTokens = 200,
-            CompletionTokens = 100,
-        };
+        var usage = new StreamingTokenUsage { PromptTokens = 200, CompletionTokens = 100 };
 
         usage.TotalTokens.Should().Be(300);
     }
@@ -158,16 +150,12 @@ public class StreamingChatEventTests
     [Fact]
     public async Task AsTextStream_ShouldExtractOnlyContentDelta()
     {
-        var events = AsyncEnumerable(
-            [
-                StreamingChatEvent.Content("Hello"),
-                StreamingChatEvent.Content(" World"),
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta { Index = 0, FunctionName = "test" }
-                ),
-                StreamingChatEvent.Done("stop"),
-            ]
-        );
+        var events = AsyncEnumerable([
+            StreamingChatEvent.Content("Hello"),
+            StreamingChatEvent.Content(" World"),
+            StreamingChatEvent.ToolCall(new ToolCallDelta { Index = 0, FunctionName = "test" }),
+            StreamingChatEvent.Done("stop"),
+        ]);
 
         var texts = new List<string>();
         await foreach (var text in events.AsTextStream())
@@ -181,9 +169,7 @@ public class StreamingChatEventTests
     [Fact]
     public async Task AsTextStream_NoContent_ShouldReturnEmpty()
     {
-        var events = AsyncEnumerable(
-            [StreamingChatEvent.Done("stop")]
-        );
+        var events = AsyncEnumerable([StreamingChatEvent.Done("stop")]);
 
         var texts = new List<string>();
         await foreach (var text in events.AsTextStream())
@@ -201,13 +187,11 @@ public class StreamingChatEventTests
     [Fact]
     public async Task Accumulator_ShouldAccumulateContentDeltas()
     {
-        var events = AsyncEnumerable(
-            [
-                StreamingChatEvent.Content("Hello"),
-                StreamingChatEvent.Content(" World"),
-                StreamingChatEvent.Done("stop"),
-            ]
-        );
+        var events = AsyncEnumerable([
+            StreamingChatEvent.Content("Hello"),
+            StreamingChatEvent.Content(" World"),
+            StreamingChatEvent.Done("stop"),
+        ]);
 
         var accumulator = await events.AccumulateAsync();
 
@@ -219,41 +203,27 @@ public class StreamingChatEventTests
     [Fact]
     public async Task Accumulator_ShouldAccumulateToolCalls()
     {
-        var events = AsyncEnumerable(
-            [
-                // First tool call chunks
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 0,
-                        Id = "call_1",
-                        FunctionName = "get_weather",
-                    }
-                ),
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 0,
-                        ArgumentsDelta = "{\"city\":",
-                    }
-                ),
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 0,
-                        ArgumentsDelta = "\"Beijing\"}",
-                    }
-                ),
-                StreamingChatEvent.Done(
-                    "tool_calls",
-                    new StreamingTokenUsage
-                    {
-                        PromptTokens = 50,
-                        CompletionTokens = 20,
-                    }
-                ),
-            ]
-        );
+        var events = AsyncEnumerable([
+            // First tool call chunks
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta
+                {
+                    Index = 0,
+                    Id = "call_1",
+                    FunctionName = "get_weather",
+                }
+            ),
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta { Index = 0, ArgumentsDelta = "{\"city\":" }
+            ),
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta { Index = 0, ArgumentsDelta = "\"Beijing\"}" }
+            ),
+            StreamingChatEvent.Done(
+                "tool_calls",
+                new StreamingTokenUsage { PromptTokens = 50, CompletionTokens = 20 }
+            ),
+        ]);
 
         var accumulator = await events.AccumulateAsync();
 
@@ -270,29 +240,27 @@ public class StreamingChatEventTests
     [Fact]
     public async Task Accumulator_ShouldHandleMultipleToolCalls()
     {
-        var events = AsyncEnumerable(
-            [
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 0,
-                        Id = "call_a",
-                        FunctionName = "search",
-                        ArgumentsDelta = "{\"q\":\"test\"}",
-                    }
-                ),
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 1,
-                        Id = "call_b",
-                        FunctionName = "calculate",
-                        ArgumentsDelta = "{\"expr\":\"2+2\"}",
-                    }
-                ),
-                StreamingChatEvent.Done("tool_calls"),
-            ]
-        );
+        var events = AsyncEnumerable([
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta
+                {
+                    Index = 0,
+                    Id = "call_a",
+                    FunctionName = "search",
+                    ArgumentsDelta = "{\"q\":\"test\"}",
+                }
+            ),
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta
+                {
+                    Index = 1,
+                    Id = "call_b",
+                    FunctionName = "calculate",
+                    ArgumentsDelta = "{\"expr\":\"2+2\"}",
+                }
+            ),
+            StreamingChatEvent.Done("tool_calls"),
+        ]);
 
         var accumulator = await events.AccumulateAsync();
 
@@ -304,19 +272,13 @@ public class StreamingChatEventTests
     [Fact]
     public async Task Accumulator_ToChatCompletionResponse_ShouldConvert()
     {
-        var events = AsyncEnumerable(
-            [
-                StreamingChatEvent.Content("Answer: 42"),
-                StreamingChatEvent.Done(
-                    "stop",
-                    new StreamingTokenUsage
-                    {
-                        PromptTokens = 10,
-                        CompletionTokens = 5,
-                    }
-                ),
-            ]
-        );
+        var events = AsyncEnumerable([
+            StreamingChatEvent.Content("Answer: 42"),
+            StreamingChatEvent.Done(
+                "stop",
+                new StreamingTokenUsage { PromptTokens = 10, CompletionTokens = 5 }
+            ),
+        ]);
 
         var accumulator = await events.AccumulateAsync();
         var response = accumulator.ToChatCompletionResponse();
@@ -332,20 +294,18 @@ public class StreamingChatEventTests
     [Fact]
     public async Task Accumulator_ToChatCompletionResponse_WithToolCalls()
     {
-        var events = AsyncEnumerable(
-            [
-                StreamingChatEvent.ToolCall(
-                    new ToolCallDelta
-                    {
-                        Index = 0,
-                        Id = "call_1",
-                        FunctionName = "test",
-                        ArgumentsDelta = "{}",
-                    }
-                ),
-                StreamingChatEvent.Done("tool_calls"),
-            ]
-        );
+        var events = AsyncEnumerable([
+            StreamingChatEvent.ToolCall(
+                new ToolCallDelta
+                {
+                    Index = 0,
+                    Id = "call_1",
+                    FunctionName = "test",
+                    ArgumentsDelta = "{}",
+                }
+            ),
+            StreamingChatEvent.Done("tool_calls"),
+        ]);
 
         var accumulator = await events.AccumulateAsync();
         var response = accumulator.ToChatCompletionResponse();
@@ -389,16 +349,14 @@ public class StreamingChatEventTests
             CancellationToken cancellationToken = default
         )
         {
-            return Task.FromResult(
-                new ChatCompletionResponse { Content = "Hello World" }
-            );
+            return Task.FromResult(new ChatCompletionResponse { Content = "Hello World" });
         }
 
         public async IAsyncEnumerable<string> ChatStreamAsync(
             IEnumerable<ChatMessage> messages,
             ChatCompletionOptions? options = null,
             [System.Runtime.CompilerServices.EnumeratorCancellation]
-            CancellationToken cancellationToken = default
+                CancellationToken cancellationToken = default
         )
         {
             yield return "Hello";
@@ -414,7 +372,7 @@ public class StreamingChatEventTests
     private static async IAsyncEnumerable<T> AsyncEnumerable<T>(
         T[] items,
         [System.Runtime.CompilerServices.EnumeratorCancellation]
-        CancellationToken cancellationToken = default
+            CancellationToken cancellationToken = default
     )
     {
         foreach (var item in items)

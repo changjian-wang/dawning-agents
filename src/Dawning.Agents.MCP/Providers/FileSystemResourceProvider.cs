@@ -24,8 +24,17 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
     )
     {
         _rootPath = Path.GetFullPath(rootPath);
-        _allowedExtensions = allowedExtensions ?? [".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".cs", ".py", ".js", ".ts"];
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<FileSystemResourceProvider>.Instance;
+        _allowedExtensions =
+            allowedExtensions
+            ?? [".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".cs", ".py", ".js", ".ts"];
+        _logger =
+            logger
+            ?? Microsoft
+                .Extensions
+                .Logging
+                .Abstractions
+                .NullLogger<FileSystemResourceProvider>
+                .Instance;
     }
 
     public IEnumerable<MCPResource> GetResources()

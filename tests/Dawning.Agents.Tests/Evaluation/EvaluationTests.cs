@@ -145,7 +145,8 @@ public class EvaluationReportTests
     public void Report_Should_Calculate_Percentiles_Correctly()
     {
         // Arrange
-        var results = Enumerable.Range(1, 100)
+        var results = Enumerable
+            .Range(1, 100)
             .Select(i => new EvaluationResult
             {
                 TestCaseId = $"test-{i:D3}",
@@ -543,7 +544,12 @@ public class ABTestResultTests
                 {
                     Results =
                     [
-                        new EvaluationResult { TestCaseId = "1", Score = 90, Passed = true },
+                        new EvaluationResult
+                        {
+                            TestCaseId = "1",
+                            Score = 90,
+                            Passed = true,
+                        },
                     ],
                 },
             },
@@ -554,7 +560,12 @@ public class ABTestResultTests
                 {
                     Results =
                     [
-                        new EvaluationResult { TestCaseId = "1", Score = 80, Passed = true },
+                        new EvaluationResult
+                        {
+                            TestCaseId = "1",
+                            Score = 80,
+                            Passed = true,
+                        },
                     ],
                 },
             },
@@ -580,7 +591,12 @@ public class ABTestResultTests
                 {
                     Results =
                     [
-                        new EvaluationResult { TestCaseId = "1", Score = 90, Passed = true },
+                        new EvaluationResult
+                        {
+                            TestCaseId = "1",
+                            Score = 90,
+                            Passed = true,
+                        },
                     ],
                 },
             },
@@ -591,7 +607,12 @@ public class ABTestResultTests
                 {
                     Results =
                     [
-                        new EvaluationResult { TestCaseId = "1", Score = 90.5, Passed = true },
+                        new EvaluationResult
+                        {
+                            TestCaseId = "1",
+                            Score = 90.5,
+                            Passed = true,
+                        },
                     ],
                 },
             },

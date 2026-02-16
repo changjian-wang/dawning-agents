@@ -258,7 +258,9 @@ public class OllamaProvider : ILLMProvider
 
         if (!string.IsNullOrWhiteSpace(options.SystemPrompt))
         {
-            ollamaMessages.Add(new OllamaMessage { Role = "system", Content = options.SystemPrompt });
+            ollamaMessages.Add(
+                new OllamaMessage { Role = "system", Content = options.SystemPrompt }
+            );
         }
 
         foreach (var msg in messages)
@@ -272,8 +274,7 @@ public class OllamaProvider : ILLMProvider
             // assistant 消息携带 tool_calls
             if (msg.HasToolCalls)
             {
-                ollamaMsg.ToolCalls = msg
-                    .ToolCalls!.Select(tc => new OllamaToolCall
+                ollamaMsg.ToolCalls = msg.ToolCalls!.Select(tc => new OllamaToolCall
                     {
                         Function = new OllamaFunctionCall
                         {

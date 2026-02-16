@@ -30,7 +30,8 @@ public sealed class MCPClient : IAsyncDisposable
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
     {
         _options = options.Value;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MCPClient>.Instance;
+        _logger =
+            logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MCPClient>.Instance;
     }
 
     /// <summary>
@@ -67,7 +68,11 @@ public sealed class MCPClient : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogInformation("Connecting to MCP Server: {Command} {Arguments}", command, arguments);
+        _logger.LogInformation(
+            "Connecting to MCP Server: {Command} {Arguments}",
+            command,
+            arguments
+        );
 
         var startInfo = new ProcessStartInfo
         {
@@ -108,7 +113,10 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 连接到已有的传输层
     /// </summary>
-    public async Task ConnectAsync(IMCPTransport transport, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(
+        IMCPTransport transport,
+        CancellationToken cancellationToken = default
+    )
     {
         _transport = transport;
         await _transport.StartAsync(cancellationToken);
@@ -132,11 +140,7 @@ public sealed class MCPClient : IAsyncDisposable
             {
                 Roots = new RootsCapability { ListChanged = true },
             },
-            ClientInfo = new MCPClientInfo
-            {
-                Name = _options.Name,
-                Version = _options.Version,
-            },
+            ClientInfo = new MCPClientInfo { Name = _options.Name, Version = _options.Version },
         };
 
         var response = await SendRequestAsync<InitializeResult>(
@@ -157,7 +161,9 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取可用工具列表
     /// </summary>
-    public async Task<List<MCPToolDefinition>> ListToolsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<MCPToolDefinition>> ListToolsAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         EnsureInitialized();
 
@@ -182,11 +188,7 @@ public sealed class MCPClient : IAsyncDisposable
     {
         EnsureInitialized();
 
-        var callParams = new CallToolParams
-        {
-            Name = toolName,
-            Arguments = arguments,
-        };
+        var callParams = new CallToolParams { Name = toolName, Arguments = arguments };
 
         return await SendRequestAsync<CallToolResult>(
             MCPMethods.ToolsCall,
@@ -199,7 +201,9 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取资源列表
     /// </summary>
-    public async Task<List<MCPResource>> ListResourcesAsync(CancellationToken cancellationToken = default)
+    public async Task<List<MCPResource>> ListResourcesAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         EnsureInitialized();
 
@@ -236,7 +240,9 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取提示词列表
     /// </summary>
-    public async Task<List<MCPPrompt>> ListPromptsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<MCPPrompt>> ListPromptsAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         EnsureInitialized();
 
@@ -261,11 +267,7 @@ public sealed class MCPClient : IAsyncDisposable
     {
         EnsureInitialized();
 
-        var getParams = new GetPromptParams
-        {
-            Name = name,
-            Arguments = arguments,
-        };
+        var getParams = new GetPromptParams { Name = name, Arguments = arguments };
 
         return await SendRequestAsync<GetPromptResult>(
             MCPMethods.PromptsGet,
@@ -295,7 +297,9 @@ public sealed class MCPClient : IAsyncDisposable
             Params = @params,
         };
 
-        var tcs = new TaskCompletionSource<MCPResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<MCPResponse>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
         lock (_pendingRequests)
         {
@@ -319,7 +323,10 @@ public sealed class MCPClient : IAsyncDisposable
 
             var resultJson = JsonSerializer.Serialize(response.Result);
             return JsonSerializer.Deserialize<TResult>(resultJson)
-                ?? throw new MCPException(MCPErrorCodes.InternalError, "Failed to deserialize result");
+                ?? throw new MCPException(
+                    MCPErrorCodes.InternalError,
+                    "Failed to deserialize result"
+                );
         }
         finally
         {
@@ -341,11 +348,7 @@ public sealed class MCPClient : IAsyncDisposable
     {
         EnsureConnected();
 
-        var notification = new MCPNotification
-        {
-            Method = method,
-            Params = @params,
-        };
+        var notification = new MCPNotification { Method = method, Params = @params };
 
         var json = JsonSerializer.Serialize(notification);
         await _transport!.SendAsync(json, cancellationToken);
@@ -437,7 +440,8 @@ public class MCPException : Exception
 {
     public int ErrorCode { get; }
 
-    public MCPException(int errorCode, string message) : base(message)
+    public MCPException(int errorCode, string message)
+        : base(message)
     {
         ErrorCode = errorCode;
     }

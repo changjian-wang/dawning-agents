@@ -25,7 +25,9 @@ public static class MCPServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<MCPServerOptions>(configuration.GetSection(MCPServerOptions.SectionName));
+        services.Configure<MCPServerOptions>(
+            configuration.GetSection(MCPServerOptions.SectionName)
+        );
         services.TryAddSingleton<IMCPTransport, StdioTransport>();
         services.TryAddSingleton<MCPServer>();
         return services;
@@ -72,7 +74,9 @@ public static class MCPServiceCollectionExtensions
     /// <summary>
     /// 注册 MCP 资源提供者
     /// </summary>
-    public static IServiceCollection AddMCPResourceProvider<TProvider>(this IServiceCollection services)
+    public static IServiceCollection AddMCPResourceProvider<TProvider>(
+        this IServiceCollection services
+    )
         where TProvider : class, IMCPResourceProvider
     {
         services.AddSingleton<IMCPResourceProvider, TProvider>();
@@ -82,7 +86,9 @@ public static class MCPServiceCollectionExtensions
     /// <summary>
     /// 注册 MCP 提示词提供者
     /// </summary>
-    public static IServiceCollection AddMCPPromptProvider<TProvider>(this IServiceCollection services)
+    public static IServiceCollection AddMCPPromptProvider<TProvider>(
+        this IServiceCollection services
+    )
         where TProvider : class, IMCPPromptProvider
     {
         services.AddSingleton<IMCPPromptProvider, TProvider>();
@@ -104,7 +110,9 @@ public static class MCPServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<MCPClientOptions>(configuration.GetSection(MCPClientOptions.SectionName));
+        services.Configure<MCPClientOptions>(
+            configuration.GetSection(MCPClientOptions.SectionName)
+        );
         services.TryAddSingleton<MCPClient>();
         return services;
     }

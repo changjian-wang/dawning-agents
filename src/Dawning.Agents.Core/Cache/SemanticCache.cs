@@ -115,8 +115,8 @@ public class SemanticCache : ISemanticCache
                 )
                     ? createdAt
                     : DateTimeOffset.MinValue,
-                Metadata = chunk.Metadata
-                    .Where(kv => !kv.Key.StartsWith("_"))
+                Metadata = chunk
+                    .Metadata.Where(kv => !kv.Key.StartsWith("_"))
                     .ToDictionary(kv => kv.Key, kv => kv.Value),
             };
         }
@@ -137,7 +137,11 @@ public class SemanticCache : ISemanticCache
         CancellationToken cancellationToken = default
     )
     {
-        if (!_options.Enabled || string.IsNullOrWhiteSpace(query) || string.IsNullOrWhiteSpace(response))
+        if (
+            !_options.Enabled
+            || string.IsNullOrWhiteSpace(query)
+            || string.IsNullOrWhiteSpace(response)
+        )
         {
             return;
         }
@@ -164,8 +168,8 @@ public class SemanticCache : ISemanticCache
                 ["response"] = response,
                 ["createdAt"] = DateTimeOffset.UtcNow.ToString("O"),
                 ["namespace"] = _namespace,
-                ["_expiresAt"] = DateTimeOffset.UtcNow
-                    .AddMinutes(_options.ExpirationMinutes)
+                ["_expiresAt"] = DateTimeOffset
+                    .UtcNow.AddMinutes(_options.ExpirationMinutes)
                     .ToString("O"),
             };
 

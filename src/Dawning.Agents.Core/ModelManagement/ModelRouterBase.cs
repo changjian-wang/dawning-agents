@@ -63,9 +63,7 @@ public abstract class ModelRouterBase : IModelRouter
 
     public IReadOnlyList<ILLMProvider> GetAvailableProviders()
     {
-        return _providers
-            .Where(p => IsProviderHealthy(p.Name))
-            .ToList();
+        return _providers.Where(p => IsProviderHealthy(p.Name)).ToList();
     }
 
     public void ReportResult(ILLMProvider provider, ModelCallResult result)
@@ -89,8 +87,9 @@ public abstract class ModelRouterBase : IModelRouter
                     stats.TotalCost += result.Cost;
 
                     // 更新平均延迟（简单移动平均）
-                    stats.AverageLatencyMs = (stats.AverageLatencyMs * (stats.SuccessfulRequests - 1) +
-                                              result.LatencyMs) / stats.SuccessfulRequests;
+                    stats.AverageLatencyMs =
+                        (stats.AverageLatencyMs * (stats.SuccessfulRequests - 1) + result.LatencyMs)
+                        / stats.SuccessfulRequests;
                 }
                 else
                 {
@@ -110,7 +109,10 @@ public abstract class ModelRouterBase : IModelRouter
                     health.ConsecutiveFailures = 0;
                     health.ConsecutiveSuccesses++;
 
-                    if (!health.IsHealthy && health.ConsecutiveSuccesses >= _options.RecoveryThreshold)
+                    if (
+                        !health.IsHealthy
+                        && health.ConsecutiveSuccesses >= _options.RecoveryThreshold
+                    )
                     {
                         health.IsHealthy = true;
                         _logger.LogInformation("提供者 {Provider} 已恢复健康", name);
@@ -123,7 +125,10 @@ public abstract class ModelRouterBase : IModelRouter
                     health.LastError = result.Error;
                     health.LastErrorTime = DateTimeOffset.UtcNow;
 
-                    if (health.IsHealthy && health.ConsecutiveFailures >= _options.UnhealthyThreshold)
+                    if (
+                        health.IsHealthy
+                        && health.ConsecutiveFailures >= _options.UnhealthyThreshold
+                    )
                     {
                         health.IsHealthy = false;
                         _logger.LogWarning(

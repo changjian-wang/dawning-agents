@@ -76,9 +76,10 @@ public class DiagnosticsProvider : IDiagnosticsProvider
             Gen1Collections = GC.CollectionCount(1),
             Gen2Collections = GC.CollectionCount(2),
             PauseTimePercentage = gcMemoryInfo.PauseTimePercentage,
-            LastPauseDurationMs = gcMemoryInfo.PauseDurations.Length > 0
-                ? gcMemoryInfo.PauseDurations[^1].TotalMilliseconds
-                : 0,
+            LastPauseDurationMs =
+                gcMemoryInfo.PauseDurations.Length > 0
+                    ? gcMemoryInfo.PauseDurations[^1].TotalMilliseconds
+                    : 0,
             IsServerGC = GCSettings.IsServerGC,
             IsConcurrentGC = gcMemoryInfo.Concurrent,
             LatencyMode = GCSettings.LatencyMode.ToString(),

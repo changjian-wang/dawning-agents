@@ -58,16 +58,12 @@ public class ResilienceOptions : IValidatableOptions
     {
         if (Retry.MaxRetryAttempts < 0)
         {
-            throw new InvalidOperationException(
-                "Retry.MaxRetryAttempts must be >= 0."
-            );
+            throw new InvalidOperationException("Retry.MaxRetryAttempts must be >= 0.");
         }
 
         if (Retry.BaseDelayMs < 0)
         {
-            throw new InvalidOperationException(
-                "Retry.BaseDelayMs must be >= 0."
-            );
+            throw new InvalidOperationException("Retry.BaseDelayMs must be >= 0.");
         }
 
         if (CircuitBreaker.FailureRatio <= 0 || CircuitBreaker.FailureRatio > 1)
@@ -93,23 +89,17 @@ public class ResilienceOptions : IValidatableOptions
 
         if (Timeout.TimeoutSeconds <= 0)
         {
-            throw new InvalidOperationException(
-                "Timeout.TimeoutSeconds must be greater than 0."
-            );
+            throw new InvalidOperationException("Timeout.TimeoutSeconds must be greater than 0.");
         }
 
         if (Bulkhead.MaxConcurrency <= 0)
         {
-            throw new InvalidOperationException(
-                "Bulkhead.MaxConcurrency must be greater than 0."
-            );
+            throw new InvalidOperationException("Bulkhead.MaxConcurrency must be greater than 0.");
         }
 
         if (Bulkhead.MaxQueuedActions < 0)
         {
-            throw new InvalidOperationException(
-                "Bulkhead.MaxQueuedActions must be >= 0."
-            );
+            throw new InvalidOperationException("Bulkhead.MaxQueuedActions must be >= 0.");
         }
     }
 }

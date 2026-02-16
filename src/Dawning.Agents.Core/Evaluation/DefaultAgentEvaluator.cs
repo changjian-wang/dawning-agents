@@ -25,7 +25,9 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
     {
         _agent = agent;
         _options = options.Value;
-        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<DefaultAgentEvaluator>.Instance;
+        _logger =
+            logger
+            ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<DefaultAgentEvaluator>.Instance;
         _metricEvaluators = metricEvaluators?.ToList() ?? [];
 
         // 添加默认指标评估器
@@ -65,8 +67,8 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             stopwatch.Stop();
 
             actualOutput = response.FinalAnswer;
-            toolsCalled = response.Steps
-                .Where(s => s.Action != null)
+            toolsCalled = response
+                .Steps.Where(s => s.Action != null)
                 .Select(s => s.Action!)
                 .ToList();
             stepCount = response.Steps.Count;
@@ -106,9 +108,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         }
 
         // 计算总分
-        var totalScore = metricScores.Count > 0
-            ? metricScores.Values.Average() * 100
-            : 0;
+        var totalScore = metricScores.Count > 0 ? metricScores.Values.Average() * 100 : 0;
 
         var passed = failureReason == null && totalScore >= _options.PassThreshold;
 
@@ -133,7 +133,10 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
     )
     {
         var testCaseList = testCases.ToList();
-        _logger.LogInformation("Starting batch evaluation of {Count} test cases", testCaseList.Count);
+        _logger.LogInformation(
+            "Starting batch evaluation of {Count} test cases",
+            testCaseList.Count
+        );
 
         var overallStopwatch = Stopwatch.StartNew();
         var results = new List<EvaluationResult>();
@@ -167,7 +170,10 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
                 if (!result.Passed)
                 {
-                    _logger.LogWarning("Stopping evaluation due to failure: {TestCaseId}", result.TestCaseId);
+                    _logger.LogWarning(
+                        "Stopping evaluation due to failure: {TestCaseId}",
+                        result.TestCaseId
+                    );
                     break;
                 }
             }
@@ -242,7 +248,10 @@ public record MetricEvaluationContext
 public interface IMetricEvaluator
 {
     string MetricName { get; }
-    Task<double> EvaluateAsync(MetricEvaluationContext context, CancellationToken cancellationToken = default);
+    Task<double> EvaluateAsync(
+        MetricEvaluationContext context,
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
@@ -252,7 +261,10 @@ public sealed class KeywordMatchEvaluator : IMetricEvaluator
 {
     public string MetricName => "KeywordMatch";
 
-    public Task<double> EvaluateAsync(MetricEvaluationContext context, CancellationToken cancellationToken = default)
+    public Task<double> EvaluateAsync(
+        MetricEvaluationContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         var keywords = context.TestCase.ExpectedKeywords;
         if (keywords == null || keywords.Count == 0 || string.IsNullOrEmpty(context.ActualOutput))
@@ -275,7 +287,10 @@ public sealed class ToolCallAccuracyEvaluator : IMetricEvaluator
 {
     public string MetricName => "ToolCallAccuracy";
 
-    public Task<double> EvaluateAsync(MetricEvaluationContext context, CancellationToken cancellationToken = default)
+    public Task<double> EvaluateAsync(
+        MetricEvaluationContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         var expectedTools = context.TestCase.ExpectedTools;
         if (expectedTools == null || expectedTools.Count == 0)
@@ -290,7 +305,9 @@ public sealed class ToolCallAccuracyEvaluator : IMetricEvaluator
         }
 
         // 计算交集
-        var intersection = expectedTools.Intersect(actualTools, StringComparer.OrdinalIgnoreCase).Count();
+        var intersection = expectedTools
+            .Intersect(actualTools, StringComparer.OrdinalIgnoreCase)
+            .Count();
         var union = expectedTools.Union(actualTools, StringComparer.OrdinalIgnoreCase).Count();
 
         return Task.FromResult(union > 0 ? (double)intersection / union : 0.0);
@@ -304,7 +321,10 @@ public sealed class LatencyEvaluator : IMetricEvaluator
 {
     public string MetricName => "Latency";
 
-    public Task<double> EvaluateAsync(MetricEvaluationContext context, CancellationToken cancellationToken = default)
+    public Task<double> EvaluateAsync(
+        MetricEvaluationContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         var maxLatency = context.TestCase.MaxLatencyMs;
         if (maxLatency == null || maxLatency <= 0)
@@ -330,7 +350,10 @@ public sealed class ExactMatchEvaluator : IMetricEvaluator
 {
     public string MetricName => "ExactMatch";
 
-    public Task<double> EvaluateAsync(MetricEvaluationContext context, CancellationToken cancellationToken = default)
+    public Task<double> EvaluateAsync(
+        MetricEvaluationContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         var expected = context.TestCase.ExpectedOutput;
         if (string.IsNullOrEmpty(expected))
@@ -340,7 +363,9 @@ public sealed class ExactMatchEvaluator : IMetricEvaluator
 
         var actual = context.ActualOutput ?? string.Empty;
         return Task.FromResult(
-            string.Equals(expected.Trim(), actual.Trim(), StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0
+            string.Equals(expected.Trim(), actual.Trim(), StringComparison.OrdinalIgnoreCase)
+                ? 1.0
+                : 0.0
         );
     }
 }

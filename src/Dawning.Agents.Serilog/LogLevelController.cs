@@ -74,16 +74,17 @@ public class LogLevelController : ILogLevelController
             _cts = new CancellationTokenSource();
 
             // 自动恢复任务
-            _restoreTask = Task.Delay(duration, _cts.Token).ContinueWith(
-                _ =>
-                {
-                    if (!_disposed)
+            _restoreTask = Task.Delay(duration, _cts.Token)
+                .ContinueWith(
+                    _ =>
                     {
-                        Restore();
-                    }
-                },
-                TaskContinuationOptions.OnlyOnRanToCompletion
-            );
+                        if (!_disposed)
+                        {
+                            Restore();
+                        }
+                    },
+                    TaskContinuationOptions.OnlyOnRanToCompletion
+                );
         }
 
         public void Dispose()

@@ -46,33 +46,4 @@ public interface IToolRegistry
     /// </summary>
     /// <returns>分类名称列表</returns>
     IReadOnlyList<string> GetCategories();
-
-    /// <summary>
-    /// 注册工具集
-    /// </summary>
-    /// <param name="toolSet">要注册的工具集</param>
-    void RegisterToolSet(IToolSet toolSet);
-
-    /// <summary>
-    /// 根据名称获取工具集
-    /// </summary>
-    /// <param name="name">工具集名称</param>
-    /// <returns>工具集实例，未找到时返回 null</returns>
-    IToolSet? GetToolSet(string name);
-
-    /// <summary>
-    /// 获取所有已注册的工具集
-    /// </summary>
-    IReadOnlyList<IToolSet> GetAllToolSets();
-
-    /// <summary>
-    /// 注册虚拟工具
-    /// </summary>
-    /// <param name="virtualTool">要注册的虚拟工具</param>
-    void RegisterVirtualTool(IVirtualTool virtualTool);
-
-    /// <summary>
-    /// 获取所有虚拟工具
-    /// </summary>
-    IReadOnlyList<IVirtualTool> GetVirtualTools();
 }
