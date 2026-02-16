@@ -4,6 +4,7 @@ using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Abstractions.Tools;
+using Dawning.Agents.Core.Tools.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -16,10 +17,13 @@ namespace Dawning.Agents.Core.Agent;
 /// <para>使用 LLM 原生 Function Calling（ToolCalls）代替文本解析</para>
 /// <para>流程：构建消息 → ChatAsync → 检测 ToolCalls → 执行工具 → 回传结果 → 循环</para>
 /// <para>相比 ReActAgent（基于正则解析），此方式更可靠、准确率更高</para>
+/// <para>当注入 IToolSession 时，支持动态工具创建（create_tool）和 session/user/global 工具加载</para>
 /// </remarks>
 public class FunctionCallingAgent : AgentBase
 {
     private readonly IToolRegistry _toolRegistry;
+    private readonly IToolSession? _toolSession;
+    private readonly CreateToolTool? _createToolTool;
 
     /// <summary>
     /// 初始化 Function Calling Agent
@@ -28,17 +32,26 @@ public class FunctionCallingAgent : AgentBase
     /// <param name="options">Agent 配置选项</param>
     /// <param name="toolRegistry">工具注册表（必须提供）</param>
     /// <param name="memory">对话记忆（可选）</param>
+    /// <param name="toolSession">工具会话（可选，启用动态工具创建）</param>
     /// <param name="logger">日志记录器（可选）</param>
     public FunctionCallingAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
         IToolRegistry toolRegistry,
         IConversationMemory? memory = null,
+        IToolSession? toolSession = null,
         ILogger<FunctionCallingAgent>? logger = null
     )
         : base(llmProvider, options, memory, logger)
     {
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
+        _toolSession = toolSession;
+
+        // If session is available, create the create_tool tool
+        if (_toolSession != null)
+        {
+            _createToolTool = new CreateToolTool(_toolSession);
+        }
     }
 
     /// <summary>
@@ -69,9 +82,6 @@ public class FunctionCallingAgent : AgentBase
 
         try
         {
-            // 构建工具定义
-            var toolDefinitions = BuildToolDefinitions();
-
             // 构建消息历史
             var messages = new List<ChatMessage>();
             if (!string.IsNullOrWhiteSpace(Instructions))
@@ -94,6 +104,10 @@ public class FunctionCallingAgent : AgentBase
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 step++;
+
+                // Rebuild tool definitions each iteration — session tools may have changed
+                // (e.g. create_tool was called in a previous step)
+                var toolDefinitions = BuildToolDefinitions();
 
                 Logger.LogDebug("Function Calling 步骤 {Step}/{MaxSteps}", step, context.MaxSteps);
 
@@ -236,7 +250,7 @@ public class FunctionCallingAgent : AgentBase
         CancellationToken cancellationToken
     )
     {
-        var tool = _toolRegistry.GetTool(toolCall.FunctionName);
+        var tool = ResolveTool(toolCall.FunctionName);
         if (tool == null)
         {
             var errorMsg = $"Tool '{toolCall.FunctionName}' not found";
@@ -264,19 +278,89 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 从 IToolRegistry 构建 ToolDefinition 列表
+    /// 解析工具：Registry → create_tool → Session 工具
+    /// </summary>
+    private ITool? ResolveTool(string name)
+    {
+        // 1. Registry (core + user-registered tools)
+        var tool = _toolRegistry.GetTool(name);
+        if (tool != null)
+        {
+            return tool;
+        }
+
+        // 2. create_tool (built-in, not in registry)
+        if (
+            _createToolTool != null
+            && string.Equals(name, _createToolTool.Name, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return _createToolTool;
+        }
+
+        // 3. Session tools (ephemeral tools created at runtime)
+        if (_toolSession != null)
+        {
+            return _toolSession
+                .GetSessionTools()
+                .FirstOrDefault(t =>
+                    string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)
+                );
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 从 IToolRegistry + IToolSession 构建 ToolDefinition 列表
     /// </summary>
     private List<ToolDefinition> BuildToolDefinitions()
     {
-        var allTools = _toolRegistry.GetAllTools();
-        return allTools
-            .Select(t => new ToolDefinition
+        var definitions = new List<ToolDefinition>();
+
+        // 1. Registry tools (core + user-registered)
+        foreach (var tool in _toolRegistry.GetAllTools())
+        {
+            definitions.Add(
+                new ToolDefinition
+                {
+                    Name = tool.Name,
+                    Description = tool.Description,
+                    ParametersSchema = tool.ParametersSchema,
+                }
+            );
+        }
+
+        // 2. create_tool (if session available)
+        if (_createToolTool != null)
+        {
+            definitions.Add(
+                new ToolDefinition
+                {
+                    Name = _createToolTool.Name,
+                    Description = _createToolTool.Description,
+                    ParametersSchema = _createToolTool.ParametersSchema,
+                }
+            );
+        }
+
+        // 3. Session tools (dynamically created ephemeral tools)
+        if (_toolSession != null)
+        {
+            foreach (var tool in _toolSession.GetSessionTools())
             {
-                Name = t.Name,
-                Description = t.Description,
-                ParametersSchema = t.ParametersSchema,
-            })
-            .ToList();
+                definitions.Add(
+                    new ToolDefinition
+                    {
+                        Name = tool.Name,
+                        Description = tool.Description,
+                        ParametersSchema = tool.ParametersSchema,
+                    }
+                );
+            }
+        }
+
+        return definitions;
     }
 
     /// <summary>

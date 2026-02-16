@@ -29,8 +29,8 @@ public class EnterpriseSample : SampleBase
         // 注册核心工具
         services.AddCoreTools();
 
-        // 注册 Agent
-        services.AddReActAgent(options =>
+        // 注册 Function Calling Agent (推荐)
+        services.AddFunctionCallingAgent(options =>
         {
             options.Name = "EnterpriseAgent";
             options.Instructions = "你是一个企业级 AI 助手。";

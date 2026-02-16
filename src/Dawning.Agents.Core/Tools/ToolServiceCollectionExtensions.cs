@@ -89,8 +89,9 @@ public static class ToolServiceCollectionExtensions
                 )
             );
 
-            // 6. create_tool (needs IToolSession — registered per request scope)
-            // create_tool is registered separately as scoped since it depends on IToolSession
+            // Note: create_tool is NOT registered in the global registry. It depends on
+            // IToolSession (scoped) and is created by FunctionCallingAgent per scope.
+            // Session ephemeral tools are also resolved via IToolSession, not the registry.
 
             return new ToolRegistration("CoreTools");
         });

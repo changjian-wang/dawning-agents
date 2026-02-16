@@ -4,6 +4,43 @@
 
 ---
 
+## [Unreleased] - 2026-02-18
+
+### 🏗️ Tools Redesign (Phase A+B)
+
+#### Phase A: 核心工具重构 ✅
+- 将 92 个内置工具方法（10 个类, ~4300 行）精简为 **6 个核心工具**
+- **新增核心工具**: `ReadFileTool`, `WriteFileTool`, `EditFileTool`, `SearchTool`, `BashTool`, `CreateToolTool`
+- **新增基础设施**: `IToolSandbox` + `ToolSandbox`（Trust/WorkingDir/Timeout 沙箱模式）, `EphemeralTool`（动态脚本工具）, `IToolSession` + `ToolSession`（Session/User/Global 三级工具管理）, `IToolStore` + `FileToolStore`（JSON 文件持久化）
+- **删除**: 10 个旧内置工具类 (DateTimeTool, MathTool, JsonTool, UtilityTool, FileSystemTool, HttpTool, ProcessTool, GitTool, PackageManagerTool, CSharpierTool) + ToolSet, VirtualTool, ToolSelector 基础设施
+- **DI 简化**: `AddCoreTools()` 一个方法注册所有核心工具 + `AddToolSession()` 启用动态工具
+- 代码量从 ~11000 行降至 ~5500 行 (-50%)
+
+#### Phase B: Agent 集成 ✅
+- **FunctionCallingAgent** 新增可选 `IToolSession` 构造参数，启用动态工具创建
+- **create_tool 内置支持**: 当 IToolSession 可用时，Agent 自动创建 `CreateToolTool` 实例（不注册到全局 IToolRegistry，避免 scoped-into-singleton 问题）
+- **工具解析优先级**: Registry → create_tool → Session tools（`ResolveTool()` 方法）
+- **动态工具重建**: 每次 FC 循环迭代重建工具定义列表（`BuildToolDefinitions()`），确保 create_tool 创建的工具立即可用
+- **三源合并**: 工具定义从 IToolRegistry + create_tool + IToolSession 三个来源合并
+
+#### DI 注册
+- `ToolServiceCollectionExtensions` 注释更新：明确 create_tool 不在全局 Registry 中注册
+
+#### 文档
+- **RFC_TOOLS_REDESIGN.md**: 状态从"草案"更新为"Phase A+B 已完成"
+
+### 🧪 测试
+- Phase A: 删除旧工具测试 (30 文件)，新增 135 个核心工具测试 (8 文件)
+- Phase B: 新增 6 个 FunctionCallingAgent session 集成测试 + 1 个 DI 注册测试
+- 重构 FunctionCallingAgentTests: 添加 `CreateAgent()` 工厂方法，替换 14 处手动构造
+- 总测试数: **1,896** (1,929 → 1,896，净减 33 个旧工具测试)，全部通过
+
+### 📋 示例更新
+- **GettingStartedSample**: 重写为 FunctionCallingAgent + 核心工具展示
+- **EnterpriseSample**: 从 AddReActAgent 切换到 AddFunctionCallingAgent
+
+---
+
 ## [Unreleased] - 2026-02-11
 
 ### 🏗️ 架构重构 (Phase 1 企业级转型)

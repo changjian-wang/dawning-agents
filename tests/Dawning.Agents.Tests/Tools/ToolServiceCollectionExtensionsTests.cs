@@ -107,6 +107,20 @@ public class ToolServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddCoreTools_DoesNotRegisterCreateTool()
+    {
+        // create_tool depends on IToolSession (scoped) and is managed by FunctionCallingAgent
+        var services = new ServiceCollection();
+
+        services.AddCoreTools();
+        var provider = services.BuildServiceProvider();
+        provider.EnsureToolsRegistered();
+
+        var registry = provider.GetRequiredService<IToolRegistry>();
+        registry.HasTool("create_tool").Should().BeFalse();
+    }
+
+    [Fact]
     public void AddCoreTools_RegistersSandbox()
     {
         var services = new ServiceCollection();

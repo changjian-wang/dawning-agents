@@ -1,7 +1,8 @@
 # RFC: Tools 系统重新设计
 
-> **状态**: 草案  
+> **状态**: Phase A+B 已完成  
 > **创建日期**: 2026-02-16  
+> **更新日期**: 2026-02-18  
 > **作者**: Dawning.Agents Team
 
 ---
@@ -309,27 +310,27 @@ public record ToolExecutionResult
 
 ## 4. 实施计划
 
-### Phase A: 核心工具实现 (第 1 周)
+### Phase A: 核心工具实现 ✅
 
-| 步骤 | 任务 | 预估 |
+| 步骤 | 任务 | 状态 |
 |------|------|------|
-| A1 | 实现 `BashTool` + `IToolSandbox` (Trust + WorkingDir + Timeout 模式) | 1 天 |
-| A2 | 实现 `ReadFileTool` (行号标注、分块读取、编码检测) | 0.5 天 |
-| A3 | 实现 `WriteFileTool` (自动创建目录、内容校验) | 0.5 天 |
-| A4 | 实现 `EditFileTool` (搜索替换、唯一性校验、diff 预览) | 1 天 |
-| A5 | 实现 `SearchTool` (grep 模式 + glob 模式，结构化结果) | 0.5 天 |
-| A6 | 简化 `IToolRegistry`，移除 ToolSet/VirtualTool 方法 | 0.5 天 |
+| A1 | 实现 `BashTool` + `IToolSandbox` (Trust + WorkingDir + Timeout 模式) | ✅ |
+| A2 | 实现 `ReadFileTool` (行号标注、分块读取、编码检测) | ✅ |
+| A3 | 实现 `WriteFileTool` (自动创建目录、内容校验) | ✅ |
+| A4 | 实现 `EditFileTool` (搜索替换、唯一性校验、diff 预览) | ✅ |
+| A5 | 实现 `SearchTool` (grep 模式 + glob 模式，结构化结果) | ✅ |
+| A6 | 简化 `IToolRegistry`，移除 ToolSet/VirtualTool 方法 | ✅ |
 
-### Phase B: 动态工具 + 持久化 (第 2 周)
+### Phase B: 动态工具 + 持久化 + Agent 集成 ✅
 
-| 步骤 | 任务 | 预估 |
+| 步骤 | 任务 | 状态 |
 |------|------|------|
-| B1 | 实现 `EphemeralTool` + `CreateToolTool` | 1 天 |
-| B2 | 实现 `IToolStore` (JSON 文件存储) | 0.5 天 |
-| B3 | 实现 `IToolSession` (Session 内存 + User/Global 加载) | 1 天 |
-| B4 | 实现 `PromoteToolAsync` (Session → User → Global 升级) | 0.5 天 |
-| B5 | 更新 `FunctionCallingAgent` / `ReActAgent` 适配新工具 | 0.5 天 |
-| B6 | DI 注册重构 (`AddCoreTools()` 一个方法搞定) | 0.5 天 |
+| B1 | 实现 `EphemeralTool` + `CreateToolTool` | ✅ |
+| B2 | 实现 `IToolStore` (JSON 文件存储) | ✅ |
+| B3 | 实现 `IToolSession` (Session 内存 + User/Global 加载) | ✅ |
+| B4 | 实现 `PromoteToolAsync` (Session → User → Global 升级) | ✅ |
+| B5 | 更新 `FunctionCallingAgent` 适配新工具 (IToolSession + create_tool) | ✅ |
+| B6 | DI 注册重构 (`AddCoreTools()` 一个方法搞定) | ✅ |
 
 ### Phase C: 安全 + 清理 (第 3 周)
 

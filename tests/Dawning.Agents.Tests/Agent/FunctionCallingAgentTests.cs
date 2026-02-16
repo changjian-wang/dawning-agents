@@ -5,6 +5,7 @@ using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Core.Agent;
 using Dawning.Agents.Core.Memory;
 using Dawning.Agents.Core.Tools;
+using Dawning.Agents.Core.Tools.Core;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,25 @@ public class FunctionCallingAgentTests
         _toolRegistry = new ToolRegistry();
     }
 
+    /// <summary>
+    /// Helper to create a FunctionCallingAgent with default test parameters
+    /// </summary>
+    private FunctionCallingAgent CreateAgent(
+        IOptions<AgentOptions>? options = null,
+        IConversationMemory? memory = null,
+        IToolSession? session = null
+    )
+    {
+        return new FunctionCallingAgent(
+            _mockProvider.Object,
+            options ?? _options,
+            _toolRegistry,
+            memory,
+            session,
+            NullLogger<FunctionCallingAgent>.Instance
+        );
+    }
+
     private static Mock<ITool> CreateMockTool(
         string name,
         string description,
@@ -54,13 +74,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public void Constructor_ShouldSetNameAndInstructions()
     {
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         agent.Name.Should().Be("FunctionCallingTestAgent");
         agent.Instructions.Should().Be("You are a helpful assistant with tools.");
@@ -74,6 +88,7 @@ public class FunctionCallingAgentTests
                 _mockProvider.Object,
                 _options,
                 null!,
+                null,
                 null,
                 NullLogger<FunctionCallingAgent>.Instance
             );
@@ -97,13 +112,7 @@ public class FunctionCallingAgentTests
                 new ChatCompletionResponse { Content = "The answer is 42", FinishReason = "stop" }
             );
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("What is 6 * 7?");
 
@@ -150,13 +159,7 @@ public class FunctionCallingAgentTests
                 };
             });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("What is 6 * 7?");
 
@@ -213,13 +216,7 @@ public class FunctionCallingAgentTests
                 return new ChatCompletionResponse { Content = "Done", FinishReason = "stop" };
             });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("Search and calculate");
 
@@ -269,13 +266,7 @@ public class FunctionCallingAgentTests
                 };
             });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("Use a tool");
 
@@ -327,13 +318,7 @@ public class FunctionCallingAgentTests
                 };
             });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("Use the tool");
 
@@ -374,13 +359,7 @@ public class FunctionCallingAgentTests
             }
         );
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent(options: options);
 
         var response = await agent.RunAsync("Search forever");
 
@@ -395,13 +374,7 @@ public class FunctionCallingAgentTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("test", cts.Token);
 
@@ -422,13 +395,7 @@ public class FunctionCallingAgentTests
             )
             .ThrowsAsync(new InvalidOperationException("LLM Error"));
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("test");
 
@@ -454,13 +421,7 @@ public class FunctionCallingAgentTests
             )
             .ReturnsAsync(new ChatCompletionResponse { Content = "Answer", FinishReason = "stop" });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         await agent.RunAsync("What is 1+1?");
 
@@ -517,13 +478,7 @@ public class FunctionCallingAgentTests
                 return new ChatCompletionResponse { Content = "42", FinishReason = "stop" };
             });
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         await agent.RunAsync("What is 6*7?");
 
@@ -550,13 +505,7 @@ public class FunctionCallingAgentTests
             .ReturnsAsync(new ChatCompletionResponse { Content = "Hello!", FinishReason = "stop" });
 
         var memory = new BufferMemory(new SimpleTokenCounter());
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry,
-            memory,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent(memory: memory);
 
         var response = await agent.RunAsync("Hi");
 
@@ -590,13 +539,7 @@ public class FunctionCallingAgentTests
                 }
             );
 
-        var agent = new FunctionCallingAgent(
-            _mockProvider.Object,
-            _options,
-            _toolRegistry, // empty
-            null,
-            NullLogger<FunctionCallingAgent>.Instance
-        );
+        var agent = CreateAgent();
 
         var response = await agent.RunAsync("Who are you?");
 
@@ -612,6 +555,268 @@ public class FunctionCallingAgentTests
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WithSession_ShouldIncludeCreateToolInDefinitions()
+    {
+        // Agent with session should expose create_tool
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ChatCompletionResponse { Content = "OK", FinishReason = "stop" });
+
+        var session = new Mock<IToolSession>();
+        session.Setup(s => s.GetSessionTools()).Returns(new List<ITool>());
+
+        var agent = CreateAgent(session: session.Object);
+
+        await agent.RunAsync("Hello");
+
+        // Should include create_tool in tool definitions
+        _mockProvider.Verify(
+            p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.Is<ChatCompletionOptions>(o =>
+                        o.Tools != null && o.Tools.Any(t => t.Name == "create_tool")
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WithSession_ShouldResolveCreateToolCall()
+    {
+        // When LLM calls create_tool, the agent should resolve it via the session
+        var session = new Mock<IToolSession>();
+        session.Setup(s => s.GetSessionTools()).Returns(new List<ITool>());
+
+        // Mock create_tool — simulate creating a tool
+        var createdTool = CreateMockTool("my_script", "Custom script", "script output");
+        session
+            .Setup(s => s.CreateTool(It.IsAny<EphemeralToolDefinition>()))
+            .Returns(createdTool.Object);
+
+        var callCount = 0;
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    // LLM requests create_tool
+                    return new ChatCompletionResponse
+                    {
+                        Content = "",
+                        FinishReason = "tool_calls",
+                        ToolCalls =
+                        [
+                            new ToolCall(
+                                "call_1",
+                                "create_tool",
+                                """{"name":"my_script","description":"test script","script":"echo hello"}"""
+                            ),
+                        ],
+                    };
+                }
+
+                return new ChatCompletionResponse { Content = "Done", FinishReason = "stop" };
+            });
+
+        var agent = CreateAgent(session: session.Object);
+
+        var response = await agent.RunAsync("Create a tool");
+
+        response.Success.Should().BeTrue();
+        response.Steps.Should().HaveCount(2);
+        response.Steps[0].Observation.Should().Contain("Created tool");
+    }
+
+    [Fact]
+    public async Task RunAsync_WithSession_ShouldResolveSessionTools()
+    {
+        // Session tools should be available for execution
+        var sessionTool = CreateMockTool("my_counter", "Count lines", "42 lines");
+
+        var session = new Mock<IToolSession>();
+        session.Setup(s => s.GetSessionTools()).Returns(new List<ITool> { sessionTool.Object });
+
+        var callCount = 0;
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    return new ChatCompletionResponse
+                    {
+                        Content = "",
+                        FinishReason = "tool_calls",
+                        ToolCalls = [new ToolCall("call_1", "my_counter", """{}""")],
+                    };
+                }
+
+                return new ChatCompletionResponse { Content = "42 lines", FinishReason = "stop" };
+            });
+
+        var agent = CreateAgent(session: session.Object);
+
+        var response = await agent.RunAsync("Count lines");
+
+        response.Success.Should().BeTrue();
+        response.Steps[0].Observation.Should().Contain("42 lines");
+
+        sessionTool.Verify(
+            t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WithSession_ShouldIncludeSessionToolsInDefinitions()
+    {
+        // Verify that session tools appear in the tool definitions sent to LLM
+        var sessionTool = CreateMockTool("custom_tool", "A custom tool");
+        var session = new Mock<IToolSession>();
+        session.Setup(s => s.GetSessionTools()).Returns(new List<ITool> { sessionTool.Object });
+
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ChatCompletionResponse { Content = "OK", FinishReason = "stop" });
+
+        var agent = CreateAgent(session: session.Object);
+
+        await agent.RunAsync("Hello");
+
+        // Should include both create_tool AND custom_tool
+        _mockProvider.Verify(
+            p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.Is<ChatCompletionOptions>(o =>
+                        o.Tools != null
+                        && o.Tools.Any(t => t.Name == "create_tool")
+                        && o.Tools.Any(t => t.Name == "custom_tool")
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_WithoutSession_ShouldNotIncludeCreateTool()
+    {
+        // Without session, create_tool should NOT appear
+        var calcTool = CreateMockTool("Calculator", "Math");
+        _toolRegistry.Register(calcTool.Object);
+
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ChatCompletionResponse { Content = "OK", FinishReason = "stop" });
+
+        var agent = CreateAgent(); // no session
+
+        await agent.RunAsync("Hello");
+
+        _mockProvider.Verify(
+            p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.Is<ChatCompletionOptions>(o =>
+                        o.Tools != null && o.Tools.Count == 1 && o.Tools[0].Name == "Calculator"
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_RegistryToolTakesPriorityOverSessionTool()
+    {
+        // When same name exists in registry and session, registry wins
+        var registryTool = CreateMockTool("my_tool", "Registry version", "registry output");
+        _toolRegistry.Register(registryTool.Object);
+
+        var sessionTool = CreateMockTool("my_tool", "Session version", "session output");
+        var session = new Mock<IToolSession>();
+        session.Setup(s => s.GetSessionTools()).Returns(new List<ITool> { sessionTool.Object });
+
+        var callCount = 0;
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    return new ChatCompletionResponse
+                    {
+                        Content = "",
+                        FinishReason = "tool_calls",
+                        ToolCalls = [new ToolCall("call_1", "my_tool", """{}""")],
+                    };
+                }
+
+                return new ChatCompletionResponse { Content = "Done", FinishReason = "stop" };
+            });
+
+        var agent = CreateAgent(session: session.Object);
+
+        var response = await agent.RunAsync("Use my_tool");
+
+        response.Success.Should().BeTrue();
+        // Registry tool should be used, not session tool
+        response.Steps[0].Observation.Should().Contain("registry output");
+        registryTool.Verify(
+            t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        sessionTool.Verify(
+            t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never
         );
     }
 }

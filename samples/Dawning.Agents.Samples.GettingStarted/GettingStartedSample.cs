@@ -21,15 +21,18 @@ public class GettingStartedSample : SampleBase
         IConfiguration configuration
     )
     {
-        // 注册核心工具
+        // 注册 6 个核心工具 (read_file, write_file, edit_file, search, bash, create_tool)
         services.AddCoreTools();
 
-        // 注册 ReAct Agent
-        services.AddReActAgent(options =>
+        // 注册 Function Calling Agent (推荐，比 ReAct 更可靠)
+        services.AddFunctionCallingAgent(options =>
         {
             options.Name = "HelloAgent";
-            options.Instructions = "你是一个友好的 AI 助手，擅长回答问题和使用工具。";
-            options.MaxSteps = 5;
+            options.Instructions =
+                "你是一个友好的 AI 助手，擅长回答问题和使用工具。"
+                + "你可以使用 bash 执行命令、read_file 读取文件、search 搜索代码。"
+                + "如果需要重复执行某个操作，可以用 create_tool 创建可复用的工具。";
+            options.MaxSteps = 10;
         });
     }
 
@@ -45,8 +48,8 @@ public class GettingStartedSample : SampleBase
 
         ConsoleHelper.WaitForKey();
 
-        // 示例 3: 工具使用
-        await RunToolUsageAsync();
+        // 示例 3: 核心工具使用
+        await RunCoreToolsAsync();
     }
 
     /// <summary>
@@ -61,11 +64,20 @@ public class GettingStartedSample : SampleBase
         var registry = GetService<IToolRegistry>();
 
         ConsoleHelper.PrintInfo($"Agent 名称: {agent.Name}");
-        ConsoleHelper.PrintInfo($"可用工具数: {registry.GetAllTools().Count}");
+
+        // 列出核心工具
+        var tools = registry.GetAllTools();
+        ConsoleHelper.PrintInfo($"核心工具 ({tools.Count} 个):");
+        foreach (var tool in tools)
+        {
+            ConsoleHelper.PrintDim(
+                $"  - {tool.Name}: {tool.Description[..Math.Min(60, tool.Description.Length)]}..."
+            );
+        }
         Console.WriteLine();
 
         // 简单问答
-        var question = "你好！请简单介绍一下你自己。";
+        var question = "你好！请简单介绍一下你自己，以及你有哪些工具可以使用。";
         ConsoleHelper.PrintDim($"用户: {question}");
 
         var response = await agent.RunAsync(question);
@@ -99,31 +111,17 @@ public class GettingStartedSample : SampleBase
     }
 
     /// <summary>
-    /// 示例 3: 工具使用 - Agent 调用工具
+    /// 示例 3: 核心工具使用 - Agent 调用核心工具
     /// </summary>
-    private async Task RunToolUsageAsync()
+    private async Task RunCoreToolsAsync()
     {
-        ConsoleHelper.PrintTitle("示例 3: 工具使用");
-        ConsoleHelper.PrintStep(1, "让 Agent 使用内置工具");
+        ConsoleHelper.PrintTitle("示例 3: 核心工具使用");
+        ConsoleHelper.PrintStep(1, "让 Agent 使用核心工具完成任务");
 
         var agent = GetService<IAgent>();
-        var registry = GetService<IToolRegistry>();
-        var tools = registry.GetAllTools();
 
-        // 列出可用工具
-        ConsoleHelper.PrintInfo("可用工具:");
-        foreach (var tool in tools.Take(5))
-        {
-            ConsoleHelper.PrintDim($"  - {tool.Name}: {tool.Description}");
-        }
-        if (tools.Count > 5)
-        {
-            ConsoleHelper.PrintDim($"  ... 还有 {tools.Count - 5} 个工具");
-        }
-        Console.WriteLine();
-
-        // 使用工具的问题
-        var question = "现在是几点？今天是星期几？";
+        // 使用 bash 工具
+        var question = "请用 bash 执行 'echo Hello from Dawning.Agents && date' 并告诉我结果。";
         ConsoleHelper.PrintDim($"用户: {question}");
         Console.WriteLine();
 
