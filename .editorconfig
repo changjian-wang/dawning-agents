@@ -58,6 +58,31 @@ dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_style.camel_case_underscore.required_prefix = _
 dotnet_naming_style.camel_case_underscore.capitalization = camel_case
 
+# ── Meziantou.Analyzer 规则 ──
+# 默认将所有 Meziantou 规则设为 suggestion（因 TreatWarningsAsErrors=true）
+# 已修复的规则可逐步升级到 warning
+dotnet_diagnostic.MA0004.severity = suggestion
+dotnet_diagnostic.MA0006.severity = suggestion
+dotnet_diagnostic.MA0009.severity = suggestion
+dotnet_diagnostic.MA0011.severity = suggestion
+dotnet_diagnostic.MA0015.severity = suggestion
+dotnet_diagnostic.MA0023.severity = suggestion
+dotnet_diagnostic.MA0026.severity = suggestion
+dotnet_diagnostic.MA0046.severity = suggestion
+dotnet_diagnostic.MA0048.severity = none
+dotnet_diagnostic.MA0051.severity = suggestion
+dotnet_diagnostic.MA0056.severity = suggestion
+dotnet_diagnostic.MA0074.severity = suggestion
+dotnet_diagnostic.MA0144.severity = suggestion
+dotnet_diagnostic.MA0147.severity = suggestion
+dotnet_diagnostic.MA0158.severity = suggestion
+dotnet_diagnostic.MA0134.severity = suggestion
+dotnet_diagnostic.MA0021.severity = suggestion
+# MA0016: 返回集合抽象类型而非实现类型
+dotnet_diagnostic.MA0016.severity = suggestion
+# MA0002: IEqualityComparer<string> 或 StringComparer
+dotnet_diagnostic.MA0002.severity = suggestion
+
 [*.md]
 trim_trailing_whitespace = false
 

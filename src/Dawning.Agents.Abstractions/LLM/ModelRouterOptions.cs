@@ -39,6 +39,8 @@ public class ModelPricing
     public static class KnownPricing
     {
         // OpenAI 模型
+
+        /// <summary>GPT-4o 定价</summary>
         public static readonly ModelPricing Gpt4o = new()
         {
             Model = "gpt-4o",
@@ -46,6 +48,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.01m
         };
 
+        /// <summary>GPT-4o Mini 定价</summary>
         public static readonly ModelPricing Gpt4oMini = new()
         {
             Model = "gpt-4o-mini",
@@ -53,6 +56,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.0006m
         };
 
+        /// <summary>GPT-4 Turbo 定价</summary>
         public static readonly ModelPricing Gpt4Turbo = new()
         {
             Model = "gpt-4-turbo",
@@ -60,6 +64,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.03m
         };
 
+        /// <summary>GPT-3.5 Turbo 定价</summary>
         public static readonly ModelPricing Gpt35Turbo = new()
         {
             Model = "gpt-3.5-turbo",
@@ -68,6 +73,8 @@ public class ModelPricing
         };
 
         // Claude 模型
+
+        /// <summary>Claude 3 Opus 定价</summary>
         public static readonly ModelPricing Claude3Opus = new()
         {
             Model = "claude-3-opus",
@@ -75,6 +82,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.075m
         };
 
+        /// <summary>Claude 3 Sonnet 定价</summary>
         public static readonly ModelPricing Claude3Sonnet = new()
         {
             Model = "claude-3-sonnet",
@@ -82,6 +90,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.015m
         };
 
+        /// <summary>Claude 3 Haiku 定价</summary>
         public static readonly ModelPricing Claude3Haiku = new()
         {
             Model = "claude-3-haiku",
@@ -90,6 +99,8 @@ public class ModelPricing
         };
 
         // 本地模型（免费）
+
+        /// <summary>Ollama 本地模型定价（免费）</summary>
         public static readonly ModelPricing Ollama = new()
         {
             Model = "ollama",

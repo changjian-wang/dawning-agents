@@ -114,7 +114,7 @@ public record ImageContent : ContentItem
         CancellationToken cancellationToken = default
     )
     {
-        var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+        var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
         var base64 = Convert.ToBase64String(bytes);
         var mimeType = GetMimeTypeFromExtension(Path.GetExtension(filePath));
         return new ImageContent { Base64Data = base64, MimeType = mimeType };

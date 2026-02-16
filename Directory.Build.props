@@ -23,9 +23,17 @@
         <PackageTags>ai;agent;llm;openai;ollama;azure;multi-agent;rag</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <!-- 缺失 XML 注释暂时不作为错误 -->
+        <!-- 缺失 XML 注释暂时不作为错误（Abstractions 包单独覆盖以强制 XML 文档） -->
         <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
     </PropertyGroup>
+
+    <!-- Roslyn 分析器 -->
+    <ItemGroup>
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.302">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
     <!-- 源代码链接 -->
     <PropertyGroup>

@@ -2,6 +2,8 @@
     <PropertyGroup>
         <PackageId>Dawning.Agents.Abstractions</PackageId>
         <Description>Core interfaces and models for Dawning.Agents - A minimalist .NET AI Agent framework</Description>
+        <!-- 覆盖全局 NoWarn：Abstractions 包强制要求 XML 文档注释（移除 CS1591） -->
+        <NoWarn>CS1573</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
