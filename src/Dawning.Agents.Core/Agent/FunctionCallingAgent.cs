@@ -151,7 +151,7 @@ public class FunctionCallingAgent : AgentBase
                         ", ",
                         response.ToolCalls!.Select(tc => tc.FunctionName)
                     );
-                    context.Steps.Add(
+                    context.AddStep(
                         new AgentStep
                         {
                             StepNumber = step,
@@ -173,7 +173,7 @@ public class FunctionCallingAgent : AgentBase
                     // LLM 返回最终答案（无工具调用）
                     var finalAnswer = response.Content;
 
-                    context.Steps.Add(
+                    context.AddStep(
                         new AgentStep
                         {
                             StepNumber = step,

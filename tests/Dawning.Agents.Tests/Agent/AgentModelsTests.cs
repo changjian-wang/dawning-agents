@@ -33,7 +33,7 @@ public class AgentModelsTests
         };
 
         // Act
-        context.Steps.Add(step);
+        context.AddStep(step);
 
         // Assert
         context.Steps.Should().HaveCount(1);

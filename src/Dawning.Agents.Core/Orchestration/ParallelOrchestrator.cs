@@ -65,20 +65,36 @@ public sealed class ParallelOrchestrator : OrchestratorBase
         // 使用 SemaphoreSlim 控制并发度
         using var semaphore = new SemaphoreSlim(Options.MaxConcurrency);
 
-        var tasks = _agents.Select(
-            async (agent, index) =>
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
+        var tasks = _agents
+            .Select(
+                async (agent, index) =>
                 {
-                    return await ExecuteAgentAsync(agent, input, index, cancellationToken);
+                    await semaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        return await ExecuteAgentAsync(agent, input, index, cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        // Per-task error handling: capture the failure as a record
+                        // so partial results from other agents are not lost
+                        return new AgentExecutionRecord
+                        {
+                            AgentName = agent.Name,
+                            Input = input,
+                            Response = AgentResponse.Failed(ex.Message, [], TimeSpan.Zero, ex),
+                            ExecutionOrder = index,
+                            StartTime = DateTimeOffset.UtcNow,
+                            EndTime = DateTimeOffset.UtcNow,
+                        };
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
                 }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-        );
+            )
+            .ToList();
 
         AgentExecutionRecord[] results;
 
@@ -86,9 +102,15 @@ public sealed class ParallelOrchestrator : OrchestratorBase
         {
             results = await Task.WhenAll(tasks);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException)
         {
-            Logger.LogError(ex, "并行执行 Agent 时发生错误");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // This should rarely happen now since per-task errors are caught above,
+            // but guard against unexpected aggregate exceptions
+            Logger.LogError(ex, "并行执行 Agent 时发生意外错误");
 
             if (!Options.ContinueOnError)
             {
@@ -99,7 +121,6 @@ public sealed class ParallelOrchestrator : OrchestratorBase
                 );
             }
 
-            // 收集已完成的结果
             results = [];
         }
 

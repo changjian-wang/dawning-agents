@@ -23,7 +23,8 @@ public record DocumentChunk
     /// <summary>
     /// 元数据（来源文件、页码等）
     /// </summary>
-    public Dictionary<string, string> Metadata { get; init; } = [];
+    public IReadOnlyDictionary<string, string> Metadata { get; init; } =
+        new Dictionary<string, string>();
 
     /// <summary>
     /// 所属文档 ID

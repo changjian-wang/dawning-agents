@@ -5,6 +5,9 @@ namespace Dawning.Agents.Abstractions.Agent;
 /// </summary>
 public class AgentContext
 {
+    private readonly List<AgentStep> _steps = [];
+    private readonly Dictionary<string, object> _metadata = [];
+
     /// <summary>
     /// 会话 ID
     /// </summary>
@@ -16,9 +19,9 @@ public class AgentContext
     public required string UserInput { get; init; }
 
     /// <summary>
-    /// 执行步骤历史
+    /// 执行步骤历史（只读视图）
     /// </summary>
-    public List<AgentStep> Steps { get; } = [];
+    public IReadOnlyList<AgentStep> Steps => _steps;
 
     /// <summary>
     /// 最大执行步骤数，防止无限循环
@@ -26,7 +29,20 @@ public class AgentContext
     public int MaxSteps { get; init; } = 10;
 
     /// <summary>
-    /// 自定义元数据
+    /// 自定义元数据（只读视图）
     /// </summary>
-    public Dictionary<string, object> Metadata { get; } = [];
+    public IReadOnlyDictionary<string, object> Metadata => _metadata;
+
+    /// <summary>
+    /// 添加执行步骤
+    /// </summary>
+    /// <param name="step">要添加的步骤</param>
+    public void AddStep(AgentStep step) => _steps.Add(step);
+
+    /// <summary>
+    /// 设置元数据
+    /// </summary>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    public void SetMetadata(string key, object value) => _metadata[key] = value;
 }

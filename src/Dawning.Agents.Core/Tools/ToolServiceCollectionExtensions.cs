@@ -85,6 +85,7 @@ public static class ToolServiceCollectionExtensions
                 new BashTool(
                     sandbox,
                     options,
+                    sp.GetService<CommandAnalyzer>(),
                     sp.GetService<Microsoft.Extensions.Logging.ILogger<BashTool>>()
                 )
             );

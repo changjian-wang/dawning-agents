@@ -107,7 +107,7 @@ public abstract class AgentBase : IAgent
 
                 // 执行单步
                 var step = await ExecuteStepAsync(context, stepNumber, cancellationToken);
-                context.Steps.Add(step);
+                context.AddStep(step);
 
                 // 检查是否有最终答案
                 var finalAnswer = ExtractFinalAnswer(step);

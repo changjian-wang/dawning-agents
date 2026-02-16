@@ -17,42 +17,26 @@ public sealed class BashTool : ITool
 {
     private readonly IToolSandbox _sandbox;
     private readonly ToolSandboxOptions _defaultOptions;
+    private readonly CommandAnalyzer _commandAnalyzer;
     private readonly ILogger<BashTool> _logger;
-
-    /// <summary>
-    /// 危险命令模式列表
-    /// </summary>
-    private static readonly string[] DangerousPatterns =
-    [
-        "rm -rf /",
-        "rm -rf /*",
-        "rm -rf ~",
-        ":(){:|:&};:",
-        "mkfs.",
-        "dd if=/dev/",
-        "> /dev/sda",
-        "chmod -R 777 /",
-        "shutdown",
-        "reboot",
-        "halt",
-        "init 0",
-        "init 6",
-    ];
 
     /// <summary>
     /// 创建 BashTool
     /// </summary>
     /// <param name="sandbox">工具沙箱</param>
     /// <param name="defaultOptions">默认沙箱选项</param>
+    /// <param name="commandAnalyzer">命令分析器（可选，默认使用标准配置）</param>
     /// <param name="logger">日志</param>
     public BashTool(
         IToolSandbox sandbox,
         ToolSandboxOptions? defaultOptions = null,
+        CommandAnalyzer? commandAnalyzer = null,
         ILogger<BashTool>? logger = null
     )
     {
         _sandbox = sandbox;
         _defaultOptions = defaultOptions ?? new ToolSandboxOptions();
+        _commandAnalyzer = commandAnalyzer ?? new CommandAnalyzer();
         _logger = logger ?? NullLogger<BashTool>.Instance;
     }
 
@@ -131,11 +115,25 @@ public sealed class BashTool : ITool
             return ToolResult.Fail("Command cannot be empty");
         }
 
-        // Check for dangerous commands
-        var dangerCheck = CheckDangerousCommand(command);
-        if (dangerCheck != null)
+        // Analyze command safety
+        var analysis = _commandAnalyzer.Analyze(command);
+        if (!analysis.IsAllowed)
         {
-            return ToolResult.Fail($"Blocked dangerous command: {dangerCheck}");
+            _logger.LogWarning(
+                "Blocked command: {Command} — {Reason}",
+                TruncateForLog(command),
+                analysis.Message
+            );
+            return ToolResult.Fail($"Blocked dangerous command: {analysis.Message}");
+        }
+
+        if (analysis.HasWarning)
+        {
+            _logger.LogWarning(
+                "Command warning: {Command} — {Warning}",
+                TruncateForLog(command),
+                analysis.Message
+            );
         }
 
         var options = new ToolSandboxOptions
@@ -155,21 +153,6 @@ public sealed class BashTool : ITool
             .ConfigureAwait(false);
 
         return FormatResult(result);
-    }
-
-    private static string? CheckDangerousCommand(string command)
-    {
-        var normalized = command.ToLowerInvariant().Trim();
-
-        foreach (var pattern in DangerousPatterns)
-        {
-            if (normalized.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-            {
-                return pattern;
-            }
-        }
-
-        return null;
     }
 
     private static ToolResult FormatResult(ToolExecutionResult result)

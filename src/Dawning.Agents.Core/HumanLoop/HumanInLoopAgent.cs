@@ -213,7 +213,7 @@ public class HumanInLoopAgent : IAgent
                 // 复制元数据
                 foreach (var kvp in context.Metadata)
                 {
-                    context.Metadata[kvp.Key] = kvp.Value;
+                    context.SetMetadata(kvp.Key, kvp.Value);
                 }
             }
         }

@@ -356,6 +356,75 @@ public class ParallelOrchestratorTests
         result.Duration.Should().BeGreaterThan(TimeSpan.Zero);
     }
 
+    [Fact]
+    public async Task RunAsync_PartialFailure_WithContinueOnError_CollectsPartialResults()
+    {
+        // Arrange
+        _options.ContinueOnError = true;
+        _options.AggregationStrategy = ResultAggregationStrategy.Merge;
+        var orchestrator = new ParallelOrchestrator("test", _mockOptions.Object);
+
+        // Agent1: succeeds
+        orchestrator.AddAgent(CreateMockAgent("Agent1", "Success1").Object);
+
+        // Agent2: throws exception
+        var throwingAgent = new Mock<IAgent>();
+        throwingAgent.Setup(a => a.Name).Returns("Agent2");
+        throwingAgent
+            .Setup(a => a.RunAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Agent2 crashed"));
+        orchestrator.AddAgent(throwingAgent.Object);
+
+        // Agent3: succeeds
+        orchestrator.AddAgent(CreateMockAgent("Agent3", "Success3").Object);
+
+        // Act
+        var result = await orchestrator.RunAsync("input");
+
+        // Assert — successful agents' results are preserved
+        result.Success.Should().BeTrue();
+        result.FinalOutput.Should().Contain("Success1");
+        result.FinalOutput.Should().Contain("Success3");
+        result.AgentResults.Should().HaveCount(3);
+
+        // The failed agent should still appear in results
+        var failedRecord = result.AgentResults.FirstOrDefault(r => r.AgentName == "Agent2");
+        failedRecord.Should().NotBeNull();
+        failedRecord!.Response.Success.Should().BeFalse();
+        failedRecord.Response.Error.Should().Contain("Agent2 crashed");
+    }
+
+    [Fact]
+    public async Task RunAsync_AllAgentsThrow_ReturnsFailure()
+    {
+        // Arrange
+        _options.ContinueOnError = true;
+        var orchestrator = new ParallelOrchestrator("test", _mockOptions.Object);
+
+        var throwingAgent1 = new Mock<IAgent>();
+        throwingAgent1.Setup(a => a.Name).Returns("Agent1");
+        throwingAgent1
+            .Setup(a => a.RunAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Crash1"));
+
+        var throwingAgent2 = new Mock<IAgent>();
+        throwingAgent2.Setup(a => a.Name).Returns("Agent2");
+        throwingAgent2
+            .Setup(a => a.RunAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Crash2"));
+
+        orchestrator.AddAgent(throwingAgent1.Object);
+        orchestrator.AddAgent(throwingAgent2.Object);
+
+        // Act
+        var result = await orchestrator.RunAsync("input");
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("都执行失败");
+        result.AgentResults.Should().HaveCount(2);
+    }
+
     private static Mock<IAgent> CreateMockAgent(string name, string result)
     {
         var mock = new Mock<IAgent>();
