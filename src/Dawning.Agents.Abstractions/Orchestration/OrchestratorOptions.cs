@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Orchestration;
 
 /// <summary>
@@ -16,7 +18,7 @@ namespace Dawning.Agents.Abstractions.Orchestration;
 /// }
 /// </code>
 /// </remarks>
-public class OrchestratorOptions
+public class OrchestratorOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Chroma;
 
 /// <summary>
@@ -17,7 +19,7 @@ namespace Dawning.Agents.Chroma;
 /// }
 /// </code>
 /// </remarks>
-public class ChromaOptions
+public class ChromaOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

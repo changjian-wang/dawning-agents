@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Resilience;
 
 /// <summary>
@@ -26,8 +28,9 @@ namespace Dawning.Agents.Abstractions.Resilience;
 /// }
 /// </code>
 /// </remarks>
-public class ResilienceOptions
+public class ResilienceOptions : IValidatableOptions
 {
+    /// <summary>配置节名称</summary>
     public const string SectionName = "Resilience";
 
     /// <summary>
@@ -49,6 +52,66 @@ public class ResilienceOptions
     /// 舱壁隔离策略配置
     /// </summary>
     public BulkheadOptions Bulkhead { get; set; } = new();
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (Retry.MaxRetryAttempts < 0)
+        {
+            throw new InvalidOperationException(
+                "Retry.MaxRetryAttempts must be >= 0."
+            );
+        }
+
+        if (Retry.BaseDelayMs < 0)
+        {
+            throw new InvalidOperationException(
+                "Retry.BaseDelayMs must be >= 0."
+            );
+        }
+
+        if (CircuitBreaker.FailureRatio <= 0 || CircuitBreaker.FailureRatio > 1)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreaker.FailureRatio must be between 0 (exclusive) and 1 (inclusive)."
+            );
+        }
+
+        if (CircuitBreaker.BreakDurationSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreaker.BreakDurationSeconds must be greater than 0."
+            );
+        }
+
+        if (CircuitBreaker.MinimumThroughput <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreaker.MinimumThroughput must be greater than 0."
+            );
+        }
+
+        if (Timeout.TimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "Timeout.TimeoutSeconds must be greater than 0."
+            );
+        }
+
+        if (Bulkhead.MaxConcurrency <= 0)
+        {
+            throw new InvalidOperationException(
+                "Bulkhead.MaxConcurrency must be greater than 0."
+            );
+        }
+
+        if (Bulkhead.MaxQueuedActions < 0)
+        {
+            throw new InvalidOperationException(
+                "Bulkhead.MaxQueuedActions must be >= 0."
+            );
+        }
+    }
 }
 
 /// <summary>

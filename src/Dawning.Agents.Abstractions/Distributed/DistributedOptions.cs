@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Distributed;
 
 /// <summary>
@@ -15,7 +17,7 @@ namespace Dawning.Agents.Abstractions.Distributed;
 /// }
 /// </code>
 /// </remarks>
-public sealed class RedisOptions
+public sealed class RedisOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

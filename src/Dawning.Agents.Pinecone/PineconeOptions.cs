@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Pinecone;
 
 /// <summary>
@@ -19,7 +21,7 @@ namespace Dawning.Agents.Pinecone;
 /// 环境变量:
 /// - PINECONE_API_KEY: API 密钥
 /// </remarks>
-public class PineconeOptions
+public class PineconeOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

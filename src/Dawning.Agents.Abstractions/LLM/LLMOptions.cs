@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
@@ -24,7 +26,7 @@ namespace Dawning.Agents.Abstractions.LLM;
 /// 或使用传统环境变量（向后兼容）:
 /// - OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT 等
 /// </remarks>
-public class LLMOptions
+public class LLMOptions : IValidatableOptions
 {
     /// <summary>配置节名称</summary>
     public const string SectionName = "LLM";

@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
@@ -15,7 +17,7 @@ namespace Dawning.Agents.Abstractions.Agent;
 /// }
 /// </code>
 /// </remarks>
-public class AgentOptions
+public class AgentOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

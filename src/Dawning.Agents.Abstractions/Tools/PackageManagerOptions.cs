@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
@@ -20,7 +22,7 @@ namespace Dawning.Agents.Abstractions.Tools;
 /// }
 /// </code>
 /// </remarks>
-public class PackageManagerOptions
+public class PackageManagerOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -132,7 +134,8 @@ public class PackageManagerOptions
         return System.Text.RegularExpressions.Regex.IsMatch(
             input,
             regexPattern,
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase,
+            TimeSpan.FromSeconds(1)
         );
     }
 }

@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Weaviate;
 
 /// <summary>
@@ -17,7 +19,7 @@ namespace Dawning.Agents.Weaviate;
 /// }
 /// </code>
 /// </remarks>
-public class WeaviateOptions
+public class WeaviateOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

@@ -4,6 +4,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.Azure;
 
@@ -153,7 +154,7 @@ public static class AzureOpenAIServiceCollectionExtensions
 /// <summary>
 /// Azure OpenAI Provider 配置选项
 /// </summary>
-public class AzureOpenAIProviderOptions
+public class AzureOpenAIProviderOptions : IValidatableOptions
 {
     /// <summary>
     /// Azure OpenAI 端点

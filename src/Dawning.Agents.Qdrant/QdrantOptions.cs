@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Qdrant;
 
 /// <summary>
@@ -17,7 +19,7 @@ namespace Dawning.Agents.Qdrant;
 /// }
 /// </code>
 /// </remarks>
-public class QdrantOptions
+public class QdrantOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

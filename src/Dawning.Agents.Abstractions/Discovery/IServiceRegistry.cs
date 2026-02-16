@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.Abstractions.Discovery;
 
@@ -70,8 +71,9 @@ public sealed record ServiceInstance
 /// <summary>
 /// 服务注册选项
 /// </summary>
-public sealed class ServiceRegistryOptions
+public sealed class ServiceRegistryOptions : IValidatableOptions
 {
+    /// <summary>配置节名称</summary>
     public const string SectionName = "ServiceRegistry";
 
     /// <summary>
@@ -89,6 +91,7 @@ public sealed class ServiceRegistryOptions
     /// </summary>
     public int HealthCheckIntervalSeconds { get; set; } = 15;
 
+    /// <summary>验证配置是否有效</summary>
     public void Validate()
     {
         if (HeartbeatIntervalSeconds <= 0)

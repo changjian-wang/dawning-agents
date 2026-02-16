@@ -3,6 +3,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.OpenAI;
 
@@ -92,7 +93,7 @@ public static class OpenAIServiceCollectionExtensions
 /// <summary>
 /// OpenAI Provider 配置选项
 /// </summary>
-public class OpenAIProviderOptions
+public class OpenAIProviderOptions : IValidatableOptions
 {
     /// <summary>
     /// OpenAI API Key

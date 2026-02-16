@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.RAG;
 
 /// <summary>
@@ -17,7 +19,7 @@ namespace Dawning.Agents.Abstractions.RAG;
 /// }
 /// </code>
 /// </remarks>
-public class RAGOptions
+public class RAGOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

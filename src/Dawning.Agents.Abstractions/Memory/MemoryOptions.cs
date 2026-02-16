@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Memory;
 
 /// <summary>
@@ -21,7 +23,7 @@ namespace Dawning.Agents.Abstractions.Memory;
 /// }
 /// </code>
 /// </remarks>
-public class MemoryOptions
+public class MemoryOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -75,6 +77,59 @@ public class MemoryOptions
     /// 最大上下文 token 数
     /// </summary>
     public int MaxContextTokens { get; set; } = 8192;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (MaxContextTokens <= 0)
+        {
+            throw new InvalidOperationException(
+                "MaxContextTokens must be greater than 0."
+            );
+        }
+
+        if (WindowSize <= 0)
+        {
+            throw new InvalidOperationException(
+                "WindowSize must be greater than 0."
+            );
+        }
+
+        if (MaxRecentMessages <= 0)
+        {
+            throw new InvalidOperationException(
+                "MaxRecentMessages must be greater than 0."
+            );
+        }
+
+        if (SummaryThreshold <= 0)
+        {
+            throw new InvalidOperationException(
+                "SummaryThreshold must be greater than 0."
+            );
+        }
+
+        if (DowngradeThreshold <= 0)
+        {
+            throw new InvalidOperationException(
+                "DowngradeThreshold must be greater than 0."
+            );
+        }
+
+        if (RetrieveTopK <= 0)
+        {
+            throw new InvalidOperationException(
+                "RetrieveTopK must be greater than 0."
+            );
+        }
+
+        if (MinRelevanceScore < 0 || MinRelevanceScore > 1)
+        {
+            throw new InvalidOperationException(
+                "MinRelevanceScore must be between 0 and 1."
+            );
+        }
+    }
 }
 
 /// <summary>

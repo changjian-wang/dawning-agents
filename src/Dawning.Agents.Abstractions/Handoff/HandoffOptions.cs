@@ -1,9 +1,11 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Handoff;
 
 /// <summary>
 /// Handoff 配置选项
 /// </summary>
-public class HandoffOptions
+public class HandoffOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
