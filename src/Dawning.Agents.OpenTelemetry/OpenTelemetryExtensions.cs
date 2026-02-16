@@ -1,11 +1,12 @@
 using System;
+using Dawning.Agents.Core.Observability;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Dawning.Agents.Core.Observability;
+namespace Dawning.Agents.OpenTelemetry;
 
 /// <summary>
 /// OpenTelemetry 配置选项

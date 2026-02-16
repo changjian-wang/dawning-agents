@@ -12,7 +12,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 
-namespace Dawning.Agents.Core.Logging;
+namespace Dawning.Agents.Serilog;
 
 /// <summary>
 /// Serilog 日志 DI 扩展方法
@@ -220,7 +220,10 @@ public static class LoggingServiceCollectionExtensions
     /// <summary>
     /// 配置 Seq Sink
     /// </summary>
-    private static void ConfigureSeqSink(LoggerConfiguration loggerConfig, SeqLoggingOptions seqOptions)
+    private static void ConfigureSeqSink(
+        LoggerConfiguration loggerConfig,
+        SeqLoggingOptions seqOptions
+    )
     {
         loggerConfig.WriteTo.Seq(
             seqOptions.ServerUrl,
@@ -251,17 +254,19 @@ public static class LoggingServiceCollectionExtensions
         };
     }
 
-    private static Serilog.RollingInterval ConvertRollingInterval(RollingIntervalType interval)
+    private static global::Serilog.RollingInterval ConvertRollingInterval(
+        RollingIntervalType interval
+    )
     {
         return interval switch
         {
-            RollingIntervalType.Infinite => Serilog.RollingInterval.Infinite,
-            RollingIntervalType.Year => Serilog.RollingInterval.Year,
-            RollingIntervalType.Month => Serilog.RollingInterval.Month,
-            RollingIntervalType.Day => Serilog.RollingInterval.Day,
-            RollingIntervalType.Hour => Serilog.RollingInterval.Hour,
-            RollingIntervalType.Minute => Serilog.RollingInterval.Minute,
-            _ => Serilog.RollingInterval.Day,
+            RollingIntervalType.Infinite => global::Serilog.RollingInterval.Infinite,
+            RollingIntervalType.Year => global::Serilog.RollingInterval.Year,
+            RollingIntervalType.Month => global::Serilog.RollingInterval.Month,
+            RollingIntervalType.Day => global::Serilog.RollingInterval.Day,
+            RollingIntervalType.Hour => global::Serilog.RollingInterval.Hour,
+            RollingIntervalType.Minute => global::Serilog.RollingInterval.Minute,
+            _ => global::Serilog.RollingInterval.Day,
         };
     }
 }

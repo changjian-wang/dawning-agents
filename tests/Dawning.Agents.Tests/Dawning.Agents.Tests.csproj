@@ -29,6 +29,8 @@
         <ProjectReference Include="..\..\src\Dawning.Agents.Chroma\Dawning.Agents.Chroma.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.Weaviate\Dawning.Agents.Weaviate.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.MCP\Dawning.Agents.MCP.csproj" />
+        <ProjectReference Include="..\..\src\Dawning.Agents.OpenTelemetry\Dawning.Agents.OpenTelemetry.csproj" />
+        <ProjectReference Include="..\..\src\Dawning.Agents.Serilog\Dawning.Agents.Serilog.csproj" />
     </ItemGroup>
 
     <ItemGroup>

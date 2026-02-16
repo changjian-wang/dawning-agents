@@ -1,5 +1,5 @@
 using Dawning.Agents.Abstractions.Logging;
-using Dawning.Agents.Core.Logging;
+using Dawning.Agents.Serilog;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

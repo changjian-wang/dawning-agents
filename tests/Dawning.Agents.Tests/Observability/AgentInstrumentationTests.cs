@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using Dawning.Agents.Core.Observability;
+using Dawning.Agents.OpenTelemetry;
 using FluentAssertions;
 using Xunit;
 

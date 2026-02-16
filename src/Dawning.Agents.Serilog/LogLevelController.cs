@@ -2,7 +2,7 @@ using Dawning.Agents.Abstractions.Logging;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Dawning.Agents.Core.Logging;
+namespace Dawning.Agents.Serilog;
 
 /// <summary>
 /// 日志级别控制器实现

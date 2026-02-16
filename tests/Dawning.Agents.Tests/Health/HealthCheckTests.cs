@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Core.Health;
+using Dawning.Agents.Redis;
 using FluentAssertions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;

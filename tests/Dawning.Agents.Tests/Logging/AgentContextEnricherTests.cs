@@ -1,5 +1,5 @@
 using Dawning.Agents.Abstractions.Logging;
-using Dawning.Agents.Core.Logging;
+using Dawning.Agents.Serilog;
 using FluentAssertions;
 using Serilog.Events;
 using Serilog.Parsing;
@@ -197,7 +197,7 @@ public class AgentContextEnricherTests
         return null;
     }
 
-    private sealed class LogEventPropertyFactory : Serilog.Core.ILogEventPropertyFactory
+    private sealed class LogEventPropertyFactory : global::Serilog.Core.ILogEventPropertyFactory
     {
         public LogEventProperty CreateProperty(
             string name,

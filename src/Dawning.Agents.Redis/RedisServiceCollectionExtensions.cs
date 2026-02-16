@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using StackExchange.Redis;
 
 namespace Dawning.Agents.Redis;
@@ -152,6 +153,24 @@ public static class RedisServiceCollectionExtensions
         );
 
         services.TryAddSingleton<RedisMemoryStoreFactory>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Redis 健康检查
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="redisConnectionString">Redis 连接字符串</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddRedisHealthChecks(
+        this IServiceCollection services,
+        string redisConnectionString
+    )
+    {
+        var healthChecks = services.AddHealthChecks();
+        healthChecks.AddRedis(redisConnectionString, name: "redis");
+        services.AddSingleton<IHealthCheck, RedisHealthCheck>();
 
         return services;
     }

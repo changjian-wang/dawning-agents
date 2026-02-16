@@ -4,7 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
-namespace Dawning.Agents.Core.Health;
+namespace Dawning.Agents.Redis;
 
 /// <summary>
 /// Redis 连接健康检查

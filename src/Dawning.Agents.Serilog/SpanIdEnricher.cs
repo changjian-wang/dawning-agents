@@ -1,7 +1,7 @@
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Dawning.Agents.Core.Logging;
+namespace Dawning.Agents.Serilog;
 
 /// <summary>
 /// Span ID Enricher - 添加 OpenTelemetry Span ID 到日志

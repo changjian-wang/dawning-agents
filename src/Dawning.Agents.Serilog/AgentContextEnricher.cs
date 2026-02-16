@@ -2,7 +2,7 @@ using Dawning.Agents.Abstractions.Logging;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Dawning.Agents.Core.Logging;
+namespace Dawning.Agents.Serilog;
 
 /// <summary>
 /// Agent 日志上下文 Enricher - 将 AgentLogContext 信息添加到日志事件
