@@ -19,6 +19,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Dawning.Agents.Abstractions\Dawning.Agents.Abstractions.csproj" />
+        <ProjectReference Include="..\Dawning.Agents.OpenAI\Dawning.Agents.OpenAI.csproj" />
     </ItemGroup>
 
     <ItemGroup>
