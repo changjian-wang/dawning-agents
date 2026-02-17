@@ -74,7 +74,10 @@ public abstract class AgentBase : IAgent
     /// <param name="input">用户输入</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>Agent 响应</returns>
-    public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default)
+    public virtual Task<AgentResponse> RunAsync(
+        string input,
+        CancellationToken cancellationToken = default
+    )
     {
         var context = new AgentContext { UserInput = input, MaxSteps = Options.MaxSteps };
         return RunAsync(context, cancellationToken);
@@ -86,7 +89,7 @@ public abstract class AgentBase : IAgent
     /// <param name="context">执行上下文，包含用户输入和历史步骤</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>Agent 响应</returns>
-    public async Task<AgentResponse> RunAsync(
+    public virtual async Task<AgentResponse> RunAsync(
         AgentContext context,
         CancellationToken cancellationToken = default
     )

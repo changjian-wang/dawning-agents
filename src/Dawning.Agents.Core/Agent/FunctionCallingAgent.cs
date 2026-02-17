@@ -66,7 +66,7 @@ public class FunctionCallingAgent : AgentBase
     /// <item>如果响应不含 ToolCalls：返回最终答案</item>
     /// </list>
     /// </remarks>
-    public new async Task<AgentResponse> RunAsync(
+    public override async Task<AgentResponse> RunAsync(
         AgentContext context,
         CancellationToken cancellationToken = default
     )
@@ -233,7 +233,7 @@ public class FunctionCallingAgent : AgentBase
     /// <summary>
     /// 使用 Function Calling 模式执行 Agent 任务
     /// </summary>
-    public new Task<AgentResponse> RunAsync(
+    public override Task<AgentResponse> RunAsync(
         string input,
         CancellationToken cancellationToken = default
     )
