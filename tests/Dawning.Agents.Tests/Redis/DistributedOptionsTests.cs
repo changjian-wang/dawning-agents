@@ -141,4 +141,128 @@ public sealed class DistributedOptionsTests
         // Assert
         DistributedSessionOptions.SectionName.Should().Be("DistributedSession");
     }
+
+    #region DistributedQueueOptions Validate Tests
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new DistributedQueueOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_EmptyQueueName_Throws()
+    {
+        var options = new DistributedQueueOptions { QueueName = "" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*QueueName*");
+    }
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_NegativeMaxRetries_Throws()
+    {
+        var options = new DistributedQueueOptions { MaxRetries = -1 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxRetries*");
+    }
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_ZeroVisibilityTimeout_Throws()
+    {
+        var options = new DistributedQueueOptions { VisibilityTimeout = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*VisibilityTimeout*");
+    }
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_ZeroBatchSize_Throws()
+    {
+        var options = new DistributedQueueOptions { BatchSize = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BatchSize*");
+    }
+
+    [Fact]
+    public void DistributedQueueOptions_Validate_ZeroPollInterval_Throws()
+    {
+        var options = new DistributedQueueOptions { PollInterval = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*PollInterval*");
+    }
+
+    #endregion
+
+    #region DistributedLockOptions Validate Tests
+
+    [Fact]
+    public void DistributedLockOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new DistributedLockOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void DistributedLockOptions_Validate_ZeroDefaultExpiry_Throws()
+    {
+        var options = new DistributedLockOptions { DefaultExpiry = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*DefaultExpiry*");
+    }
+
+    [Fact]
+    public void DistributedLockOptions_Validate_ZeroDefaultWaitTimeout_Throws()
+    {
+        var options = new DistributedLockOptions { DefaultWaitTimeout = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*DefaultWaitTimeout*");
+    }
+
+    [Fact]
+    public void DistributedLockOptions_Validate_ZeroRetryInterval_Throws()
+    {
+        var options = new DistributedLockOptions { RetryInterval = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*RetryInterval*");
+    }
+
+    [Fact]
+    public void DistributedLockOptions_Validate_RenewalIntervalOutOfRange_Throws()
+    {
+        var options = new DistributedLockOptions { RenewalInterval = 1.0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*RenewalInterval*");
+    }
+
+    #endregion
+
+    #region DistributedSessionOptions Validate Tests
+
+    [Fact]
+    public void DistributedSessionOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new DistributedSessionOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void DistributedSessionOptions_Validate_ZeroDefaultExpiry_Throws()
+    {
+        var options = new DistributedSessionOptions { DefaultExpiry = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*DefaultExpiry*");
+    }
+
+    [Fact]
+    public void DistributedSessionOptions_Validate_ZeroMaxMessages_Throws()
+    {
+        var options = new DistributedSessionOptions { MaxMessages = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxMessages*");
+    }
+
+    #endregion
 }

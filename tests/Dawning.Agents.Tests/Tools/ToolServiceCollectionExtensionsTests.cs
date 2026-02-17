@@ -38,6 +38,32 @@ public class ToolServiceCollectionExtensionsTests
         act.Should().NotThrow();
     }
 
+    [Fact]
+    public void AddToolRegistry_RegistersIToolReader()
+    {
+        var services = new ServiceCollection();
+        services.AddToolRegistry();
+        var provider = services.BuildServiceProvider();
+
+        var reader = provider.GetRequiredService<IToolReader>();
+        var registry = provider.GetRequiredService<IToolRegistry>();
+
+        reader.Should().BeSameAs(registry);
+    }
+
+    [Fact]
+    public void AddToolRegistry_RegistersIToolRegistrar()
+    {
+        var services = new ServiceCollection();
+        services.AddToolRegistry();
+        var provider = services.BuildServiceProvider();
+
+        var registrar = provider.GetRequiredService<IToolRegistrar>();
+        var registry = provider.GetRequiredService<IToolRegistry>();
+
+        registrar.Should().BeSameAs(registry);
+    }
+
     #endregion
 
     #region AddTool Tests

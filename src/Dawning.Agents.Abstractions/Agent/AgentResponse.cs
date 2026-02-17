@@ -36,6 +36,11 @@ public record AgentResponse
     public TimeSpan Duration { get; init; }
 
     /// <summary>
+    /// 总成本（USD）
+    /// </summary>
+    public decimal TotalCost { get; init; }
+
+    /// <summary>
     /// 创建成功响应
     /// </summary>
     public static AgentResponse Successful(
@@ -49,6 +54,7 @@ public record AgentResponse
             FinalAnswer = finalAnswer,
             Steps = steps,
             Duration = duration,
+            TotalCost = steps.Sum(s => s.Cost),
         };
 
     /// <summary>
@@ -66,6 +72,7 @@ public record AgentResponse
             Error = error,
             Steps = steps,
             Duration = duration,
+            TotalCost = steps.Sum(s => s.Cost),
             Exception = exception,
         };
 }

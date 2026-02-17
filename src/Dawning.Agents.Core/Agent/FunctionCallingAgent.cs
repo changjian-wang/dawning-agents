@@ -21,7 +21,7 @@ namespace Dawning.Agents.Core.Agent;
 /// </remarks>
 public class FunctionCallingAgent : AgentBase
 {
-    private readonly IToolRegistry _toolRegistry;
+    private readonly IToolReader _toolRegistry;
     private readonly IToolSession? _toolSession;
     private readonly CreateToolTool? _createToolTool;
 
@@ -30,14 +30,14 @@ public class FunctionCallingAgent : AgentBase
     /// </summary>
     /// <param name="llmProvider">LLM 提供者</param>
     /// <param name="options">Agent 配置选项</param>
-    /// <param name="toolRegistry">工具注册表（必须提供）</param>
+    /// <param name="toolRegistry">工具只读查询（必须提供）</param>
     /// <param name="memory">对话记忆（可选）</param>
     /// <param name="toolSession">工具会话（可选，启用动态工具创建）</param>
     /// <param name="logger">日志记录器（可选）</param>
     public FunctionCallingAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
-        IToolRegistry toolRegistry,
+        IToolReader toolRegistry,
         IConversationMemory? memory = null,
         IToolSession? toolSession = null,
         ILogger<FunctionCallingAgent>? logger = null
@@ -74,6 +74,7 @@ public class FunctionCallingAgent : AgentBase
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
+        var costTracker = CreateCostTracker();
         Logger.LogInformation(
             "FunctionCallingAgent {AgentName} 开始执行任务: {Input}",
             Name,
@@ -124,6 +125,9 @@ public class FunctionCallingAgent : AgentBase
                     cancellationToken
                 );
 
+                var stepCost = EstimateStepCost(response);
+                costTracker?.Add(stepCost);
+
                 if (response.HasToolCalls)
                 {
                     // LLM 请求调用工具
@@ -165,6 +169,7 @@ public class FunctionCallingAgent : AgentBase
                                 )
                             ),
                             Observation = toolResultSummary.ToString().TrimEnd(),
+                            Cost = stepCost,
                         }
                     );
                 }
@@ -179,6 +184,7 @@ public class FunctionCallingAgent : AgentBase
                             StepNumber = step,
                             RawOutput = finalAnswer,
                             Thought = "生成最终答案",
+                            Cost = stepCost,
                         }
                     );
 
@@ -208,6 +214,17 @@ public class FunctionCallingAgent : AgentBase
                 context.Steps,
                 stopwatch.Elapsed
             );
+        }
+        catch (BudgetExceededException ex)
+        {
+            stopwatch.Stop();
+            Logger.LogWarning(
+                "FunctionCallingAgent {AgentName} 成本超出预算: {TotalCost:F4} > {Budget:F4}",
+                Name,
+                ex.TotalCost,
+                ex.Budget
+            );
+            return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
         catch (OperationCanceledException)
         {

@@ -86,4 +86,90 @@ public class LoggingOptionsTests
         // Assert
         options.OutputTemplate.Should().Contain("{AgentName}");
     }
+
+    [Fact]
+    public void LoggingOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new LoggingOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void LoggingOptions_Validate_WithInvalidMinimumLevel_Throws()
+    {
+        var options = new LoggingOptions { MinimumLevel = "InvalidLevel" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MinimumLevel*");
+    }
+
+    [Fact]
+    public void LoggingOptions_Validate_WithZeroRetainedFileCount_Throws()
+    {
+        var options = new LoggingOptions { RetainedFileCount = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*RetainedFileCount*");
+    }
+
+    [Fact]
+    public void LoggingOptions_Validate_FileEnabled_EmptyPath_Throws()
+    {
+        var options = new LoggingOptions { EnableFile = true, FilePath = "" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*FilePath*");
+    }
+
+    [Fact]
+    public void LoggingOptions_Validate_CascadesToElasticsearch()
+    {
+        var options = new LoggingOptions
+        {
+            Elasticsearch = new ElasticsearchLoggingOptions { BatchSize = 0 },
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BatchSize*");
+    }
+
+    [Fact]
+    public void LoggingOptions_Validate_CascadesToSeq()
+    {
+        var options = new LoggingOptions
+        {
+            Seq = new SeqLoggingOptions { BatchIntervalSeconds = 0 },
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BatchIntervalSeconds*");
+    }
+
+    [Fact]
+    public void ElasticsearchLoggingOptions_Validate_EnabledWithEmptyUris_Throws()
+    {
+        var options = new ElasticsearchLoggingOptions { Enabled = true, NodeUris = [] };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*NodeUris*");
+    }
+
+    [Fact]
+    public void ElasticsearchLoggingOptions_Validate_ZeroBatchIntervalSeconds_Throws()
+    {
+        var options = new ElasticsearchLoggingOptions { BatchIntervalSeconds = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BatchIntervalSeconds*");
+    }
+
+    [Fact]
+    public void SeqLoggingOptions_Validate_EnabledWithEmptyUrl_Throws()
+    {
+        var options = new SeqLoggingOptions { Enabled = true, ServerUrl = "" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ServerUrl*");
+    }
+
+    [Fact]
+    public void SeqLoggingOptions_Validate_ZeroBatchIntervalSeconds_Throws()
+    {
+        var options = new SeqLoggingOptions { BatchIntervalSeconds = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BatchIntervalSeconds*");
+    }
 }

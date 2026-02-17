@@ -97,6 +97,7 @@ public abstract class AgentBase : IAgent
         ArgumentNullException.ThrowIfNull(context);
 
         var stopwatch = Stopwatch.StartNew();
+        var costTracker = CreateCostTracker();
         Logger.LogInformation("Agent {AgentName} 开始执行任务: {Input}", Name, context.UserInput);
 
         try
@@ -111,6 +112,9 @@ public abstract class AgentBase : IAgent
                 // 执行单步
                 var step = await ExecuteStepAsync(context, stepNumber, cancellationToken);
                 context.AddStep(step);
+
+                // 累加成本并检查预算
+                costTracker?.Add(step.Cost);
 
                 // 检查是否有最终答案
                 var finalAnswer = ExtractFinalAnswer(step);
@@ -138,6 +142,17 @@ public abstract class AgentBase : IAgent
                 context.Steps,
                 stopwatch.Elapsed
             );
+        }
+        catch (BudgetExceededException ex)
+        {
+            stopwatch.Stop();
+            Logger.LogWarning(
+                "Agent {AgentName} 成本超出预算: {TotalCost:F4} > {Budget:F4}",
+                Name,
+                ex.TotalCost,
+                ex.Budget
+            );
+            return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
         catch (OperationCanceledException)
         {
@@ -175,6 +190,26 @@ public abstract class AgentBase : IAgent
     /// 当返回非 null 值时，Agent 循环将终止并返回成功响应
     /// </remarks>
     protected abstract string? ExtractFinalAnswer(AgentStep step);
+
+    /// <summary>
+    /// 从 LLM 响应估算步骤成本（USD）
+    /// </summary>
+    /// <param name="response">LLM 响应</param>
+    /// <returns>估算成本</returns>
+    protected static decimal EstimateStepCost(ChatCompletionResponse response)
+    {
+        return ModelPricing
+            .KnownPricing.GetPricing("default")
+            .CalculateCost(response.PromptTokens, response.CompletionTokens);
+    }
+
+    /// <summary>
+    /// 创建成本追踪器（如果配置了预算）
+    /// </summary>
+    protected CostTracker? CreateCostTracker()
+    {
+        return Options.MaxCostPerRun.HasValue ? new CostTracker(Options.MaxCostPerRun.Value) : null;
+    }
 
     /// <summary>
     /// 保存对话到记忆（如果已配置）

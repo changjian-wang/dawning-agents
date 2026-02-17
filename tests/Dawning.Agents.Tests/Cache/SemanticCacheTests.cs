@@ -371,3 +371,59 @@ public class SemanticCacheTests
 
     #endregion
 }
+
+public class SemanticCacheOptionsTests
+{
+    [Fact]
+    public void Default_Options_Should_Have_Expected_Values()
+    {
+        var options = new SemanticCacheOptions();
+
+        options.Enabled.Should().BeTrue();
+        options.SimilarityThreshold.Should().Be(0.95f);
+        options.MaxEntries.Should().Be(10000);
+        options.ExpirationMinutes.Should().Be(1440);
+        options.Namespace.Should().Be("default");
+        SemanticCacheOptions.SectionName.Should().Be("SemanticCache");
+    }
+
+    [Fact]
+    public void Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new SemanticCacheOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_SimilarityThresholdOutOfRange_Throws()
+    {
+        var options = new SemanticCacheOptions { SimilarityThreshold = 1.5f };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*SimilarityThreshold*");
+    }
+
+    [Fact]
+    public void Validate_NegativeSimilarityThreshold_Throws()
+    {
+        var options = new SemanticCacheOptions { SimilarityThreshold = -0.1f };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*SimilarityThreshold*");
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxEntries_Throws()
+    {
+        var options = new SemanticCacheOptions { MaxEntries = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxEntries*");
+    }
+
+    [Fact]
+    public void Validate_ZeroExpirationMinutes_Throws()
+    {
+        var options = new SemanticCacheOptions { ExpirationMinutes = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ExpirationMinutes*");
+    }
+}

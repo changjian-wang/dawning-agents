@@ -16,7 +16,10 @@ public static class ToolServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddToolRegistry(this IServiceCollection services)
     {
-        services.TryAddSingleton<IToolRegistry, ToolRegistry>();
+        services.TryAddSingleton<ToolRegistry>();
+        services.TryAddSingleton<IToolRegistry>(sp => sp.GetRequiredService<ToolRegistry>());
+        services.TryAddSingleton<IToolReader>(sp => sp.GetRequiredService<ToolRegistry>());
+        services.TryAddSingleton<IToolRegistrar>(sp => sp.GetRequiredService<ToolRegistry>());
         services.TryAddSingleton<ToolScanner>();
         return services;
     }

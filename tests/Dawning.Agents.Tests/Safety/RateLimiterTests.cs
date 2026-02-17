@@ -296,3 +296,59 @@ public class TokenRateLimiterTests
         limiter.GetUsedTokens("session1").Should().Be(0);
     }
 }
+
+public class RateLimitOptionsTests
+{
+    [Fact]
+    public void Default_Options_Should_Have_Expected_Values()
+    {
+        var options = new RateLimitOptions();
+
+        options.MaxRequestsPerWindow.Should().Be(60);
+        options.WindowSize.Should().Be(TimeSpan.FromMinutes(1));
+        options.MaxTokensPerSession.Should().Be(100000);
+        options.MaxTokensPerRequest.Should().Be(4000);
+        options.Enabled.Should().BeTrue();
+        RateLimitOptions.SectionName.Should().Be("RateLimit");
+    }
+
+    [Fact]
+    public void Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new RateLimitOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxRequestsPerWindow_Throws()
+    {
+        var options = new RateLimitOptions { MaxRequestsPerWindow = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxRequestsPerWindow*");
+    }
+
+    [Fact]
+    public void Validate_ZeroWindowSize_Throws()
+    {
+        var options = new RateLimitOptions { WindowSize = TimeSpan.Zero };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*WindowSize*");
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxTokensPerSession_Throws()
+    {
+        var options = new RateLimitOptions { MaxTokensPerSession = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxTokensPerSession*");
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxTokensPerRequest_Throws()
+    {
+        var options = new RateLimitOptions { MaxTokensPerRequest = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxTokensPerRequest*");
+    }
+}

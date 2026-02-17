@@ -246,4 +246,36 @@ public class OpenTelemetryOptionsTests
         options.SamplingRatio.Should().Be(1.0);
         OpenTelemetryOptions.SectionName.Should().Be("OpenTelemetry");
     }
+
+    [Fact]
+    public void Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new OpenTelemetryOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_SamplingRatioOutOfRange_Throws()
+    {
+        var options = new OpenTelemetryOptions { SamplingRatio = 1.5 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*SamplingRatio*");
+    }
+
+    [Fact]
+    public void Validate_NegativeSamplingRatio_Throws()
+    {
+        var options = new OpenTelemetryOptions { SamplingRatio = -0.1 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*SamplingRatio*");
+    }
+
+    [Fact]
+    public void Validate_EmptyServiceName_Throws()
+    {
+        var options = new OpenTelemetryOptions { ServiceName = "" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ServiceName*");
+    }
 }

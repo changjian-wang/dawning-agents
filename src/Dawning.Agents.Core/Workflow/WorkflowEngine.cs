@@ -13,12 +13,12 @@ namespace Dawning.Agents.Core.Workflow;
 public class WorkflowEngine : IWorkflowEngine
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IToolRegistry? _toolRegistry;
+    private readonly IToolReader? _toolRegistry;
     private readonly ILogger<WorkflowEngine> _logger;
 
     public WorkflowEngine(
         IServiceProvider serviceProvider,
-        IToolRegistry? toolRegistry = null,
+        IToolReader? toolRegistry = null,
         ILogger<WorkflowEngine>? logger = null
     )
     {

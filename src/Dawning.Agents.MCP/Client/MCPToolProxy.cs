@@ -82,7 +82,7 @@ public static class MCPToolRegistryExtensions
     /// 从 MCP Client 注册所有远程工具
     /// </summary>
     public static async Task RegisterMCPToolsAsync(
-        this IToolRegistry registry,
+        this IToolRegistrar registry,
         MCPClient client,
         CancellationToken cancellationToken = default
     )

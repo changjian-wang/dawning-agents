@@ -180,6 +180,105 @@ public class EvaluationOptionsTests
         options.ContinueOnFailure.Should().BeTrue();
         options.EnabledMetrics.Should().Contain(EvaluationMetric.ContainsKeywords);
     }
+
+    [Fact]
+    public void EvaluationOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new EvaluationOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_PassThresholdOutOfRange_Throws()
+    {
+        var options = new EvaluationOptions { PassThreshold = 101 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*PassThreshold*");
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_NegativePassThreshold_Throws()
+    {
+        var options = new EvaluationOptions { PassThreshold = -1 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*PassThreshold*");
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_ZeroMaxConcurrency_Throws()
+    {
+        var options = new EvaluationOptions { MaxConcurrency = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxConcurrency*");
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_ZeroTestTimeoutSeconds_Throws()
+    {
+        var options = new EvaluationOptions { TestTimeoutSeconds = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*TestTimeoutSeconds*");
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_CascadesToLLMJudge()
+    {
+        var options = new EvaluationOptions { LLMJudge = new LLMJudgeOptions { Model = "" } };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Model*");
+    }
+
+    [Fact]
+    public void EvaluationOptions_Validate_CascadesToSemanticSimilarity()
+    {
+        var options = new EvaluationOptions
+        {
+            SemanticSimilarity = new SemanticSimilarityOptions { Threshold = 1.5f },
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Threshold*");
+    }
+
+    [Fact]
+    public void LLMJudgeOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new LLMJudgeOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void LLMJudgeOptions_Validate_EmptyModel_Throws()
+    {
+        var options = new LLMJudgeOptions { Model = "" };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Model*");
+    }
+
+    [Fact]
+    public void LLMJudgeOptions_Validate_TemperatureOutOfRange_Throws()
+    {
+        var options = new LLMJudgeOptions { Temperature = 3.0f };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Temperature*");
+    }
+
+    [Fact]
+    public void SemanticSimilarityOptions_Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new SemanticSimilarityOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void SemanticSimilarityOptions_Validate_ThresholdOutOfRange_Throws()
+    {
+        var options = new SemanticSimilarityOptions { Threshold = -0.1f };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Threshold*");
+    }
 }
 
 public class KeywordMatchEvaluatorTests

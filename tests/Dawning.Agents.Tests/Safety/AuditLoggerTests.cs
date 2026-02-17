@@ -299,3 +299,44 @@ public class InMemoryAuditLoggerTests
         entries[0].Input.Should().Be("[REDACTED]");
     }
 }
+
+public class AuditOptionsTests
+{
+    [Fact]
+    public void Default_Options_Should_Have_Expected_Values()
+    {
+        var options = new AuditOptions();
+
+        options.Enabled.Should().BeTrue();
+        options.LogInput.Should().BeTrue();
+        options.LogOutput.Should().BeTrue();
+        options.LogToolArgs.Should().BeTrue();
+        options.MaxContentLength.Should().Be(1000);
+        options.MaxInMemoryEntries.Should().Be(10000);
+        AuditOptions.SectionName.Should().Be("Audit");
+    }
+
+    [Fact]
+    public void Validate_WithValidConfig_DoesNotThrow()
+    {
+        var options = new AuditOptions();
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxContentLength_Throws()
+    {
+        var options = new AuditOptions { MaxContentLength = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxContentLength*");
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxInMemoryEntries_Throws()
+    {
+        var options = new AuditOptions { MaxInMemoryEntries = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxInMemoryEntries*");
+    }
+}

@@ -45,6 +45,14 @@ public class AgentOptions : IValidatableOptions
     public int MaxTokens { get; set; } = 1024;
 
     /// <summary>
+    /// 单次运行最大成本（USD），null 表示无限制
+    /// </summary>
+    /// <remarks>
+    /// 当累计成本超过此值时抛出 <see cref="BudgetExceededException"/>
+    /// </remarks>
+    public decimal? MaxCostPerRun { get; set; }
+
+    /// <summary>
     /// 验证配置
     /// </summary>
     public void Validate()
@@ -57,6 +65,11 @@ public class AgentOptions : IValidatableOptions
         if (MaxSteps <= 0)
         {
             throw new InvalidOperationException("MaxSteps must be greater than 0");
+        }
+
+        if (MaxCostPerRun is <= 0)
+        {
+            throw new InvalidOperationException("MaxCostPerRun must be greater than 0");
         }
     }
 }

@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 public sealed class MCPServer : IAsyncDisposable
 {
     private readonly MCPServerOptions _options;
-    private readonly IToolRegistry _toolRegistry;
+    private readonly IToolReader _toolRegistry;
     private readonly IMCPTransport _transport;
     private readonly ILogger<MCPServer> _logger;
     private readonly List<IMCPResourceProvider> _resourceProviders = [];
@@ -29,7 +29,7 @@ public sealed class MCPServer : IAsyncDisposable
 
     public MCPServer(
         IOptions<MCPServerOptions> options,
-        IToolRegistry toolRegistry,
+        IToolReader toolRegistry,
         IMCPTransport transport,
         ILogger<MCPServer>? logger = null
     )

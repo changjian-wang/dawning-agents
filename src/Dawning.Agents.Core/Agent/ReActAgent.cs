@@ -19,7 +19,7 @@ namespace Dawning.Agents.Core.Agent;
 /// </remarks>
 public partial class ReActAgent : AgentBase
 {
-    private readonly IToolRegistry? _toolRegistry;
+    private readonly IToolReader? _toolRegistry;
 
     /// <summary>
     /// 匹配 "Thought: ..." 部分，提取 Agent 的思考过程
@@ -50,13 +50,13 @@ public partial class ReActAgent : AgentBase
     /// </summary>
     /// <param name="llmProvider">LLM 提供者，用于调用语言模型</param>
     /// <param name="options">Agent 配置选项</param>
-    /// <param name="toolRegistry">工具注册表（可选）</param>
+    /// <param name="toolRegistry">工具只读查询（可选）</param>
     /// <param name="memory">对话记忆（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
     public ReActAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
-        IToolRegistry? toolRegistry = null,
+        IToolReader? toolRegistry = null,
         IConversationMemory? memory = null,
         ILogger<ReActAgent>? logger = null
     )

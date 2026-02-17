@@ -1,16 +1,10 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具注册表 - 管理和检索已注册的工具
+/// 工具只读查询接口 - 检索已注册的工具
 /// </summary>
-public interface IToolRegistry
+public interface IToolReader
 {
-    /// <summary>
-    /// 注册工具
-    /// </summary>
-    /// <param name="tool">要注册的工具</param>
-    void Register(ITool tool);
-
     /// <summary>
     /// 根据名称获取工具
     /// </summary>
@@ -47,3 +41,20 @@ public interface IToolRegistry
     /// <returns>分类名称列表</returns>
     IReadOnlyList<string> GetCategories();
 }
+
+/// <summary>
+/// 工具注册接口 - 注册工具到注册表
+/// </summary>
+public interface IToolRegistrar
+{
+    /// <summary>
+    /// 注册工具
+    /// </summary>
+    /// <param name="tool">要注册的工具</param>
+    void Register(ITool tool);
+}
+
+/// <summary>
+/// 工具注册表 - 管理和检索已注册的工具（组合接口，向后兼容）
+/// </summary>
+public interface IToolRegistry : IToolReader, IToolRegistrar { }

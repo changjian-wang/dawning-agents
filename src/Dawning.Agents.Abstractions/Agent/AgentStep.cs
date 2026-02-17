@@ -39,4 +39,9 @@ public record AgentStep
     /// 步骤执行时间
     /// </summary>
     public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// 本步骤成本（USD）
+    /// </summary>
+    public decimal Cost { get; init; }
 }

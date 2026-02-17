@@ -13,7 +13,7 @@ namespace Dawning.Agents.Core.Diagnostics;
 /// </summary>
 public class DiagnosticsProvider : IDiagnosticsProvider
 {
-    private readonly IToolRegistry? _toolRegistry;
+    private readonly IToolReader? _toolRegistry;
     private readonly ILogger<DiagnosticsProvider> _logger;
 
     // 运行时统计（简单计数）
@@ -24,7 +24,7 @@ public class DiagnosticsProvider : IDiagnosticsProvider
     private static int _activeSessionCount;
 
     public DiagnosticsProvider(
-        IToolRegistry? toolRegistry = null,
+        IToolReader? toolRegistry = null,
         ILogger<DiagnosticsProvider>? logger = null
     )
     {
