@@ -182,7 +182,7 @@ public abstract class AgentBase : IAgent
     /// <param name="userInput">用户输入</param>
     /// <param name="assistantResponse">Agent 响应</param>
     /// <param name="cancellationToken">取消令牌</param>
-    private async Task SaveToMemoryAsync(
+    protected async Task SaveToMemoryAsync(
         string userInput,
         string assistantResponse,
         CancellationToken cancellationToken

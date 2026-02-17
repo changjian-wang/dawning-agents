@@ -190,14 +190,7 @@ public class FunctionCallingAgent : AgentBase
                     );
 
                     // 保存到 Memory
-                    if (Memory != null)
-                    {
-                        await SaveToMemoryInternalAsync(
-                            context.UserInput,
-                            finalAnswer,
-                            cancellationToken
-                        );
-                    }
+                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken);
 
                     return AgentResponse.Successful(finalAnswer, context.Steps, stopwatch.Elapsed);
                 }
@@ -228,18 +221,6 @@ public class FunctionCallingAgent : AgentBase
             Logger.LogError(ex, "FunctionCallingAgent {AgentName} 执行出错", Name);
             return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
-    }
-
-    /// <summary>
-    /// 使用 Function Calling 模式执行 Agent 任务
-    /// </summary>
-    public override Task<AgentResponse> RunAsync(
-        string input,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var context = new AgentContext { UserInput = input, MaxSteps = Options.MaxSteps };
-        return RunAsync(context, cancellationToken);
     }
 
     /// <summary>
@@ -361,32 +342,6 @@ public class FunctionCallingAgent : AgentBase
         }
 
         return definitions;
-    }
-
-    /// <summary>
-    /// 保存到对话 Memory
-    /// </summary>
-    private async Task SaveToMemoryInternalAsync(
-        string userInput,
-        string assistantResponse,
-        CancellationToken cancellationToken
-    )
-    {
-        try
-        {
-            await Memory!.AddMessageAsync(
-                new ConversationMessage { Role = "user", Content = userInput },
-                cancellationToken
-            );
-            await Memory.AddMessageAsync(
-                new ConversationMessage { Role = "assistant", Content = assistantResponse },
-                cancellationToken
-            );
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "保存对话到记忆时出错");
-        }
     }
 
     // AgentBase 抽象方法的最小实现（FunctionCallingAgent 重写了 RunAsync，不使用这些方法）

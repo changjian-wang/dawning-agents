@@ -768,6 +768,56 @@ public class FunctionCallingAgentTests
     }
 
     [Fact]
+    public async Task RunAsync_ViaIAgentInterface_ShouldDispatchToFunctionCallingAgent()
+    {
+        // 回归测试：通过 IAgent 接口调用 RunAsync，确保多态派发到 FunctionCallingAgent
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "Hello from FC!", FinishReason = "stop" }
+            );
+
+        IAgent agent = CreateAgent();
+
+        var response = await agent.RunAsync("test");
+
+        response.Success.Should().BeTrue();
+        response.FinalAnswer.Should().Be("Hello from FC!");
+        response.Steps.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task RunAsync_ViaIAgentInterface_WithContext_ShouldDispatchToFunctionCallingAgent()
+    {
+        // 回归测试：通过 IAgent 接口调用 RunAsync(AgentContext)，确保多态派发正确
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse { Content = "Context works!", FinishReason = "stop" }
+            );
+
+        IAgent agent = CreateAgent();
+        var context = new AgentContext { UserInput = "test", MaxSteps = 5 };
+
+        var response = await agent.RunAsync(context);
+
+        response.Success.Should().BeTrue();
+        response.FinalAnswer.Should().Be("Context works!");
+    }
+
+    [Fact]
     public async Task RunAsync_RegistryToolTakesPriorityOverSessionTool()
     {
         // When same name exists in registry and session, registry wins
