@@ -134,37 +134,42 @@ public enum WorkflowNodeType
 /// </summary>
 public class WorkflowContext
 {
+    private readonly Dictionary<string, object?> _state = new();
+    private readonly Dictionary<string, NodeExecutionResult> _nodeResults = new();
+    private readonly List<WorkflowExecutionStep> _executionHistory = [];
+    private readonly Dictionary<string, object?> _metadata = new();
+
     /// <summary>
     /// 输入数据
     /// </summary>
     public string Input { get; set; } = string.Empty;
 
     /// <summary>
-    /// 共享状态
+    /// 共享状态（只读视图）
     /// </summary>
-    public Dictionary<string, object?> State { get; } = new();
+    public IReadOnlyDictionary<string, object?> State => _state;
 
     /// <summary>
-    /// 节点执行结果
+    /// 节点执行结果（只读视图）
     /// </summary>
-    public Dictionary<string, NodeExecutionResult> NodeResults { get; } = new();
+    public IReadOnlyDictionary<string, NodeExecutionResult> NodeResults => _nodeResults;
 
     /// <summary>
-    /// 执行历史
+    /// 执行历史（只读视图）
     /// </summary>
-    public List<WorkflowExecutionStep> ExecutionHistory { get; } = [];
+    public IReadOnlyList<WorkflowExecutionStep> ExecutionHistory => _executionHistory;
 
     /// <summary>
-    /// 元数据
+    /// 元数据（只读视图）
     /// </summary>
-    public Dictionary<string, object?> Metadata { get; } = new();
+    public IReadOnlyDictionary<string, object?> Metadata => _metadata;
 
     /// <summary>
     /// 获取状态值
     /// </summary>
     public T? GetState<T>(string key)
     {
-        if (State.TryGetValue(key, out var value) && value is T typedValue)
+        if (_state.TryGetValue(key, out var value) && value is T typedValue)
         {
             return typedValue;
         }
@@ -176,7 +181,31 @@ public class WorkflowContext
     /// </summary>
     public void SetState<T>(string key, T value)
     {
-        State[key] = value;
+        _state[key] = value;
+    }
+
+    /// <summary>
+    /// 添加节点执行结果
+    /// </summary>
+    public void AddNodeResult(string nodeId, NodeExecutionResult result)
+    {
+        _nodeResults[nodeId] = result;
+    }
+
+    /// <summary>
+    /// 添加执行步骤
+    /// </summary>
+    public void AddExecutionStep(WorkflowExecutionStep step)
+    {
+        _executionHistory.Add(step);
+    }
+
+    /// <summary>
+    /// 设置元数据
+    /// </summary>
+    public void SetMetadata(string key, object? value)
+    {
+        _metadata[key] = value;
     }
 
     /// <summary>
@@ -184,8 +213,8 @@ public class WorkflowContext
     /// </summary>
     public NodeExecutionResult? GetLastResult()
     {
-        return ExecutionHistory.Count > 0
-            ? NodeResults.GetValueOrDefault(ExecutionHistory[^1].NodeId)
+        return _executionHistory.Count > 0
+            ? _nodeResults.GetValueOrDefault(_executionHistory[^1].NodeId)
             : null;
     }
 }
@@ -332,10 +361,10 @@ public record WorkflowResult
     /// <summary>
     /// 执行历史
     /// </summary>
-    public List<WorkflowExecutionStep>? ExecutionHistory { get; init; }
+    public IReadOnlyList<WorkflowExecutionStep>? ExecutionHistory { get; init; }
 
     /// <summary>
     /// 最终状态
     /// </summary>
-    public Dictionary<string, object?>? FinalState { get; init; }
+    public IReadOnlyDictionary<string, object?>? FinalState { get; init; }
 }

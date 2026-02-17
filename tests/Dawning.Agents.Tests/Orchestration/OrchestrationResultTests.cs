@@ -147,7 +147,7 @@ public class OrchestrationContextTests
         };
 
         // Act
-        context.ExecutionHistory.Add(record);
+        context.AddExecutionRecord(record);
 
         // Assert
         context.ExecutionHistory.Should().HaveCount(1);
@@ -161,8 +161,8 @@ public class OrchestrationContextTests
         var context = new OrchestrationContext { UserInput = "test" };
 
         // Act
-        context.Metadata["key1"] = "value1";
-        context.Metadata["key2"] = 42;
+        context.SetMetadata("key1", "value1");
+        context.SetMetadata("key2", 42);
 
         // Assert
         context.Metadata.Should().HaveCount(2);

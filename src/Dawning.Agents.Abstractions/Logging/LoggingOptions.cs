@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Logging;
 
 /// <summary>
@@ -22,7 +24,7 @@ namespace Dawning.Agents.Abstractions.Logging;
 /// }
 /// </code>
 /// </remarks>
-public class LoggingOptions
+public class LoggingOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -100,12 +102,39 @@ public class LoggingOptions
     /// Seq 配置（开发环境推荐）
     /// </summary>
     public SeqLoggingOptions? Seq { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        var validLevels = new[] { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
+        if (!validLevels.Contains(MinimumLevel, StringComparer.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"MinimumLevel '{MinimumLevel}' is not valid. Must be one of: {string.Join(", ", validLevels)}"
+            );
+        }
+
+        if (RetainedFileCount <= 0)
+        {
+            throw new InvalidOperationException("RetainedFileCount must be greater than 0");
+        }
+
+        if (EnableFile && string.IsNullOrWhiteSpace(FilePath))
+        {
+            throw new InvalidOperationException(
+                "FilePath is required when file logging is enabled"
+            );
+        }
+
+        Elasticsearch?.Validate();
+        Seq?.Validate();
+    }
 }
 
 /// <summary>
 /// Elasticsearch 日志配置
 /// </summary>
-public class ElasticsearchLoggingOptions
+public class ElasticsearchLoggingOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用
@@ -151,12 +180,35 @@ public class ElasticsearchLoggingOptions
     /// 批量发送间隔（秒）
     /// </summary>
     public int BatchIntervalSeconds { get; set; } = 2;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (Enabled && (NodeUris == null || NodeUris.Length == 0))
+        {
+            throw new InvalidOperationException(
+                "Elasticsearch NodeUris must contain at least one URI when enabled"
+            );
+        }
+
+        if (BatchSize <= 0)
+        {
+            throw new InvalidOperationException("Elasticsearch BatchSize must be greater than 0");
+        }
+
+        if (BatchIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "Elasticsearch BatchIntervalSeconds must be greater than 0"
+            );
+        }
+    }
 }
 
 /// <summary>
 /// Seq 日志配置
 /// </summary>
-public class SeqLoggingOptions
+public class SeqLoggingOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用
@@ -177,6 +229,20 @@ public class SeqLoggingOptions
     /// 批量发送间隔（秒）
     /// </summary>
     public int BatchIntervalSeconds { get; set; } = 2;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (Enabled && string.IsNullOrWhiteSpace(ServerUrl))
+        {
+            throw new InvalidOperationException("Seq ServerUrl is required when enabled");
+        }
+
+        if (BatchIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException("Seq BatchIntervalSeconds must be greater than 0");
+        }
+    }
 }
 
 /// <summary>

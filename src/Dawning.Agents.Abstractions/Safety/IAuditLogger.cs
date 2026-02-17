@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
@@ -221,7 +223,7 @@ public record AuditFilter
 /// <summary>
 /// 审计日志配置
 /// </summary>
-public class AuditOptions
+public class AuditOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -257,4 +259,18 @@ public class AuditOptions
     /// 内存存储最大条目数
     /// </summary>
     public int MaxInMemoryEntries { get; set; } = 10000;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (MaxContentLength <= 0)
+        {
+            throw new InvalidOperationException("MaxContentLength must be greater than 0");
+        }
+
+        if (MaxInMemoryEntries <= 0)
+        {
+            throw new InvalidOperationException("MaxInMemoryEntries must be greater than 0");
+        }
+    }
 }

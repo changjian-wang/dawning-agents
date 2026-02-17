@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Multimodal;
 
 /// <summary>
@@ -114,7 +116,7 @@ public interface ITextToSpeechProvider
 /// <summary>
 /// 转录配置选项
 /// </summary>
-public class TranscriptionOptions
+public class TranscriptionOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -163,6 +165,17 @@ public class TranscriptionOptions
     /// 时间戳粒度
     /// </summary>
     public TimestampGranularity TimestampGranularity { get; set; } = TimestampGranularity.Segment;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (Temperature is < 0 or > 1)
+        {
+            throw new InvalidOperationException(
+                "Transcription Temperature must be between 0 and 1"
+            );
+        }
+    }
 }
 
 /// <summary>
@@ -335,7 +348,7 @@ public record TranscriptionWord
 /// <summary>
 /// 语音合成配置选项
 /// </summary>
-public class SpeechOptions
+public class SpeechOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -379,6 +392,20 @@ public class SpeechOptions
     /// 音量调整（仅部分提供者支持）
     /// </summary>
     public double? Volume { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Voice))
+        {
+            throw new InvalidOperationException("Speech Voice is required");
+        }
+
+        if (Speed is < 0.25 or > 4.0)
+        {
+            throw new InvalidOperationException("Speech Speed must be between 0.25 and 4.0");
+        }
+    }
 }
 
 /// <summary>

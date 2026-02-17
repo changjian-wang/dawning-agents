@@ -78,7 +78,7 @@ public sealed class SequentialOrchestrator : OrchestratorBase
 
             var agent = _agents[i];
             var record = await ExecuteAgentAsync(agent, currentInput, i, cancellationToken);
-            context.ExecutionHistory.Add(record);
+            context.AddExecutionRecord(record);
 
             if (!record.Response.Success)
             {

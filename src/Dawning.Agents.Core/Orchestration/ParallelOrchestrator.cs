@@ -127,7 +127,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
         // 添加到执行历史
         foreach (var record in results)
         {
-            context.ExecutionHistory.Add(record);
+            context.AddExecutionRecord(record);
         }
 
         // 检查是否所有都失败了

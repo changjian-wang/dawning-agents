@@ -1,4 +1,5 @@
 using System;
+using Dawning.Agents.Abstractions;
 using Dawning.Agents.Core.Observability;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ namespace Dawning.Agents.OpenTelemetry;
 /// <summary>
 /// OpenTelemetry 配置选项
 /// </summary>
-public sealed class OpenTelemetryOptions
+public sealed class OpenTelemetryOptions : IValidatableOptions
 {
     public const string SectionName = "OpenTelemetry";
 
@@ -54,6 +55,20 @@ public sealed class OpenTelemetryOptions
     /// 是否启用控制台导出 (开发环境)
     /// </summary>
     public bool EnableConsoleExporter { get; set; } = false;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (SamplingRatio is < 0.0 or > 1.0)
+        {
+            throw new InvalidOperationException("SamplingRatio must be between 0.0 and 1.0");
+        }
+
+        if (string.IsNullOrWhiteSpace(ServiceName))
+        {
+            throw new InvalidOperationException("ServiceName is required");
+        }
+    }
 }
 
 /// <summary>

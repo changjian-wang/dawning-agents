@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Cache;
 
 /// <summary>
@@ -93,7 +95,7 @@ public record SemanticCacheResult
 /// }
 /// </code>
 /// </remarks>
-public class SemanticCacheOptions
+public class SemanticCacheOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -127,4 +129,23 @@ public class SemanticCacheOptions
     /// 命名空间，用于隔离不同应用的缓存
     /// </summary>
     public string Namespace { get; set; } = "default";
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (SimilarityThreshold is < 0f or > 1f)
+        {
+            throw new InvalidOperationException("SimilarityThreshold must be between 0.0 and 1.0");
+        }
+
+        if (MaxEntries <= 0)
+        {
+            throw new InvalidOperationException("MaxEntries must be greater than 0");
+        }
+
+        if (ExpirationMinutes <= 0)
+        {
+            throw new InvalidOperationException("ExpirationMinutes must be greater than 0");
+        }
+    }
 }

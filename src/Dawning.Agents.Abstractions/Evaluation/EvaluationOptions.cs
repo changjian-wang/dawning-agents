@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Evaluation;
 
 /// <summary>
@@ -49,7 +51,7 @@ public enum EvaluationMetric
 /// <summary>
 /// 评估配置选项
 /// </summary>
-public sealed class EvaluationOptions
+public sealed class EvaluationOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -105,12 +107,34 @@ public sealed class EvaluationOptions
     /// 语义相似度配置
     /// </summary>
     public SemanticSimilarityOptions? SemanticSimilarity { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (PassThreshold is < 0 or > 100)
+        {
+            throw new InvalidOperationException("PassThreshold must be between 0 and 100");
+        }
+
+        if (MaxConcurrency <= 0)
+        {
+            throw new InvalidOperationException("MaxConcurrency must be greater than 0");
+        }
+
+        if (TestTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("TestTimeoutSeconds must be greater than 0");
+        }
+
+        LLMJudge?.Validate();
+        SemanticSimilarity?.Validate();
+    }
 }
 
 /// <summary>
 /// LLM-as-Judge 配置
 /// </summary>
-public sealed class LLMJudgeOptions
+public sealed class LLMJudgeOptions : IValidatableOptions
 {
     /// <summary>
     /// 使用的模型
@@ -132,12 +156,26 @@ public sealed class LLMJudgeOptions
     /// </summary>
     public List<string> ScoringDimensions { get; set; } =
     ["Accuracy", "Relevance", "Completeness", "Clarity"];
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Model))
+        {
+            throw new InvalidOperationException("LLMJudge Model is required");
+        }
+
+        if (Temperature is < 0f or > 2f)
+        {
+            throw new InvalidOperationException("LLMJudge Temperature must be between 0.0 and 2.0");
+        }
+    }
 }
 
 /// <summary>
 /// 语义相似度配置
 /// </summary>
-public sealed class SemanticSimilarityOptions
+public sealed class SemanticSimilarityOptions : IValidatableOptions
 {
     /// <summary>
     /// 相似度阈值
@@ -148,6 +186,17 @@ public sealed class SemanticSimilarityOptions
     /// 使用的 Embedding 模型
     /// </summary>
     public string? EmbeddingModel { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (Threshold is < 0f or > 1f)
+        {
+            throw new InvalidOperationException(
+                "SemanticSimilarity Threshold must be between 0.0 and 1.0"
+            );
+        }
+    }
 }
 
 /// <summary>

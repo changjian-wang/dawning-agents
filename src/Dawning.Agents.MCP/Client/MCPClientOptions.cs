@@ -1,9 +1,11 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.MCP.Client;
 
 /// <summary>
 /// MCP Client 配置选项
 /// </summary>
-public sealed class MCPClientOptions
+public sealed class MCPClientOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -49,4 +51,33 @@ public sealed class MCPClientOptions
     /// 重连间隔（秒）
     /// </summary>
     public int ReconnectIntervalSeconds { get; set; } = 5;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            throw new InvalidOperationException("MCPClient Name is required");
+        }
+
+        if (ConnectionTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("ConnectionTimeoutSeconds must be greater than 0");
+        }
+
+        if (RequestTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("RequestTimeoutSeconds must be greater than 0");
+        }
+
+        if (ToolCallTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("ToolCallTimeoutSeconds must be greater than 0");
+        }
+
+        if (MaxReconnectAttempts < 0)
+        {
+            throw new InvalidOperationException("MaxReconnectAttempts must be non-negative");
+        }
+    }
 }

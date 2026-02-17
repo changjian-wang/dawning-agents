@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
@@ -204,7 +206,7 @@ public class ModelStatistics
 /// <summary>
 /// 模型路由器配置选项
 /// </summary>
-public class ModelRouterOptions
+public class ModelRouterOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -245,6 +247,32 @@ public class ModelRouterOptions
     /// 自定义模型定价配置
     /// </summary>
     public Dictionary<string, ModelPricing> CustomPricing { get; set; } = new();
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (HealthCheckIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "HealthCheckIntervalSeconds must be greater than 0"
+            );
+        }
+
+        if (UnhealthyThreshold <= 0)
+        {
+            throw new InvalidOperationException("UnhealthyThreshold must be greater than 0");
+        }
+
+        if (RecoveryThreshold <= 0)
+        {
+            throw new InvalidOperationException("RecoveryThreshold must be greater than 0");
+        }
+
+        if (MaxFailoverRetries < 0)
+        {
+            throw new InvalidOperationException("MaxFailoverRetries must be non-negative");
+        }
+    }
 }
 
 /// <summary>

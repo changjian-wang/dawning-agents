@@ -91,7 +91,7 @@ public sealed class RedisOptions : IValidatableOptions
 /// <summary>
 /// 分布式队列配置选项
 /// </summary>
-public sealed class DistributedQueueOptions
+public sealed class DistributedQueueOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -137,12 +137,41 @@ public sealed class DistributedQueueOptions
     /// 轮询间隔（毫秒）
     /// </summary>
     public int PollInterval { get; set; } = 100;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(QueueName))
+        {
+            throw new InvalidOperationException("QueueName is required");
+        }
+
+        if (MaxRetries < 0)
+        {
+            throw new InvalidOperationException("MaxRetries must be non-negative");
+        }
+
+        if (VisibilityTimeout <= 0)
+        {
+            throw new InvalidOperationException("VisibilityTimeout must be greater than 0");
+        }
+
+        if (BatchSize <= 0)
+        {
+            throw new InvalidOperationException("BatchSize must be greater than 0");
+        }
+
+        if (PollInterval <= 0)
+        {
+            throw new InvalidOperationException("PollInterval must be greater than 0");
+        }
+    }
 }
 
 /// <summary>
 /// 分布式锁配置选项
 /// </summary>
-public sealed class DistributedLockOptions
+public sealed class DistributedLockOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -178,12 +207,38 @@ public sealed class DistributedLockOptions
     /// 自动续期间隔（锁过期时间的比例）
     /// </summary>
     public double RenewalInterval { get; set; } = 0.5;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (DefaultExpiry <= 0)
+        {
+            throw new InvalidOperationException("DefaultExpiry must be greater than 0");
+        }
+
+        if (DefaultWaitTimeout <= 0)
+        {
+            throw new InvalidOperationException("DefaultWaitTimeout must be greater than 0");
+        }
+
+        if (RetryInterval <= 0)
+        {
+            throw new InvalidOperationException("RetryInterval must be greater than 0");
+        }
+
+        if (RenewalInterval is <= 0 or >= 1)
+        {
+            throw new InvalidOperationException(
+                "RenewalInterval must be between 0 and 1 (exclusive)"
+            );
+        }
+    }
 }
 
 /// <summary>
 /// 分布式会话配置选项
 /// </summary>
-public sealed class DistributedSessionOptions
+public sealed class DistributedSessionOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -209,4 +264,18 @@ public sealed class DistributedSessionOptions
     /// 最大消息数量
     /// </summary>
     public int MaxMessages { get; set; } = 100;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (DefaultExpiry <= 0)
+        {
+            throw new InvalidOperationException("DefaultExpiry must be greater than 0");
+        }
+
+        if (MaxMessages <= 0)
+        {
+            throw new InvalidOperationException("MaxMessages must be greater than 0");
+        }
+    }
 }

@@ -91,10 +91,10 @@ public class WorkflowEngine : IWorkflowEngine
 
                 // 执行节点
                 var result = await ExecuteNodeAsync(nodeDefinition, context, cancellationToken);
-                context.NodeResults[nodeDefinition.Id] = result;
+                context.AddNodeResult(nodeDefinition.Id, result);
 
                 // 更新执行步骤
-                context.ExecutionHistory.Add(
+                context.AddExecutionStep(
                     step with
                     {
                         CompletedAt = DateTime.UtcNow,

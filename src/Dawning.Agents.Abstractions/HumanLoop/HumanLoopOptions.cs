@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
@@ -29,7 +31,7 @@ public class ApprovalConfig
 /// <summary>
 /// 人机协作配置
 /// </summary>
-public class HumanLoopOptions
+public class HumanLoopOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -84,4 +86,18 @@ public class HumanLoopOptions
     /// </summary>
     public string[] CriticalRiskKeywords { get; set; } =
     ["production", "financial", "customer data", "credentials", "生产", "财务", "客户数据", "凭证"];
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (DefaultTimeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("DefaultTimeout must be greater than zero");
+        }
+
+        if (MaxRetries < 0)
+        {
+            throw new InvalidOperationException("MaxRetries must be non-negative");
+        }
+    }
 }

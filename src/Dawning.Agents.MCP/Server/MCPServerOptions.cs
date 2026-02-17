@@ -1,9 +1,11 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.MCP.Server;
 
 /// <summary>
 /// MCP Server 配置选项
 /// </summary>
-public sealed class MCPServerOptions
+public sealed class MCPServerOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -59,6 +61,30 @@ public sealed class MCPServerOptions
     /// HTTP 端口（仅 HTTP 传输时使用）
     /// </summary>
     public int HttpPort { get; set; } = 8080;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            throw new InvalidOperationException("MCP Server Name is required");
+        }
+
+        if (ToolTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("ToolTimeoutSeconds must be greater than 0");
+        }
+
+        if (MaxConcurrentRequests <= 0)
+        {
+            throw new InvalidOperationException("MaxConcurrentRequests must be greater than 0");
+        }
+
+        if (HttpPort is < 1 or > 65535)
+        {
+            throw new InvalidOperationException("HttpPort must be between 1 and 65535");
+        }
+    }
 }
 
 /// <summary>

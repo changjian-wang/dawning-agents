@@ -431,8 +431,8 @@ public class WorkflowTests
     {
         var context = new WorkflowContext();
         var result = NodeExecutionResult.Ok("node1", "output");
-        context.NodeResults["node1"] = result;
-        context.ExecutionHistory.Add(
+        context.AddNodeResult("node1", result);
+        context.AddExecutionStep(
             new WorkflowExecutionStep
             {
                 NodeId = "node1",
