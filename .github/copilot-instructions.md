@@ -54,6 +54,7 @@ Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 Ope
 | deployment | Docker、K8s、可观测性、回滚 |
 | changelog | CHANGELOG 格式、DocFX、release notes |
 | troubleshooting | 构建/测试/部署排错、LLM 调试 |
+| deep-audit | 逐行深度代码审计、安全/线程/资源/DI 全维度检查 |
 
 ## Skill 使用规则
 
