@@ -1,20 +1,11 @@
-namespace Dawning.Agents.Abstractions;
+using Dawning.Agents.Abstractions;
+
+namespace Dawning.Agents.Abstractions.{Area};
 
 /// <summary>
 /// Configuration options for {ServiceName}.
 /// </summary>
-/// <remarks>
-/// Configuration in appsettings.json:
-/// <code>
-/// {
-///   "{SectionName}": {
-///     "Option1": "value",
-///     "Option2": 30
-///   }
-/// }
-/// </code>
-/// </remarks>
-public class {ServiceName}Options
+public class {ServiceName}Options : IValidatableOptions
 {
     /// <summary>
     /// Configuration section name.
@@ -22,19 +13,16 @@ public class {ServiceName}Options
     public const string SectionName = "{SectionName}";
 
     /// <summary>
-    /// Gets or sets option 1.
+    /// Option 1.
     /// </summary>
     public string Option1 { get; set; } = "default";
 
     /// <summary>
-    /// Gets or sets option 2.
+    /// Option 2.
     /// </summary>
     public int Option2 { get; set; } = 30;
 
-    /// <summary>
-    /// Validates the options.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">When options are invalid.</exception>
+    /// <inheritdoc />
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Option1))
@@ -44,7 +32,7 @@ public class {ServiceName}Options
 
         if (Option2 <= 0)
         {
-            throw new InvalidOperationException($"{nameof(Option2)} must be positive.");
+            throw new InvalidOperationException($"{nameof(Option2)} must be greater than 0.");
         }
     }
 }

@@ -1,175 +1,61 @@
 ---
 name: run-tests
-description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq. Trigger phrases: run tests, 跑测试, verify changes, 验证改动, does this work, 能用吗, test coverage, 测试覆盖率"
+description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq."
 ---
 
 # Run Tests Skill
 
 ## What This Skill Does
 
-Executes and manages unit tests for the Dawning.Agents project using xUnit, FluentAssertions, and Moq.
+Runs and validates test suites for Dawning.Agents.
 
-## When to Use
-
-- "Run tests" / "跑测试"
-- "Verify my changes" / "验证我的改动"
-- "Does this work?" / "能用吗"
-- "Test this feature" / "测试这个功能"
-- "Check test coverage" / "看看测试覆盖率"
-- After making any code changes
-
-## Test Commands
-
-### Quick Reference
+## Quick Commands
 
 | Command | Purpose |
-|---------|---------|
+|---|---|
 | `dotnet test --nologo` | Run all tests |
-| `dotnet test --filter "ClassName"` | Run tests in class |
-| `dotnet test --filter "MethodName"` | Run specific test |
-| `dotnet test --collect:"XPlat Code Coverage"` | With coverage |
+| `dotnet test --nologo -v q` | Quiet full run |
+| `dotnet test --filter "FullyQualifiedName~Tools"` | Filter by namespace/class |
+| `dotnet test --collect:"XPlat Code Coverage"` | Coverage collection |
 
-### Run All Tests
+## Run All Tests
 
 ```bash
-# Windows (PowerShell)
-cd C:\github\dawning-agents
-dotnet test --nologo
-
-# macOS/Linux (Bash)
-cd ~/github/dawning-agents
+cd /path/to/dawning-agents
 dotnet test --nologo
 ```
 
-### Using Scripts
+## Targeted Runs
 
 ```bash
-# Windows (PowerShell)
-./.github/skills/run-tests/scripts/run-tests.ps1
-./.github/skills/run-tests/scripts/run-tests.ps1 -Filter "ToolRegistry" -Coverage
-
-# macOS/Linux (Bash)
-chmod +x ./.github/skills/run-tests/scripts/run-tests.sh
-./.github/skills/run-tests/scripts/run-tests.sh
-./.github/skills/run-tests/scripts/run-tests.sh -f "ToolRegistry" --coverage
+dotnet test --filter "FullyQualifiedName~Dawning.Agents.Tests.Tools"
+dotnet test --filter "FullyQualifiedName~FunctionCallingAgentTests"
+dotnet test --filter "FullyQualifiedName~RunAsync"
 ```
 
-### Run Specific Tests
+## Current Test Status (2026-02)
 
-```powershell
-# By class name
-dotnet test --filter "FullyQualifiedName~OllamaProviderTests"
+- Runtime total: `2046` tests passing (from `dotnet test`)
+- Test methods (`[Fact]`/`[Theory]`): ~`1822`
+- Stack: xUnit + FluentAssertions + Moq
 
-# By method name
-dotnet test --filter "FullyQualifiedName~ChatAsync_WithValidInput_ReturnsResponse"
+## Test Project Structure
 
-# By namespace
-dotnet test --filter "Namespace~Dawning.Agents.Tests.Tools"
-```
+`tests/Dawning.Agents.Tests/` includes major areas:
 
-## Test Structure
+- Agent, Architecture, Cache, Chroma, Communication
+- Configuration, Diagnostics, Discovery, Evaluation
+- Handoff, Health, HumanLoop, LLM, Logging, MCP, Memory
+- Multimodal, Observability, Orchestration, Prompts
+- RAG, Redis, Resilience, Safety, Scaling, Telemetry, Tools, Validation, Weaviate, Workflow
 
-### File Location
+## Script Helpers
 
-```
-tests/Dawning.Agents.Tests/
-├── LLM/
-│   └── OllamaProviderTests.cs
-├── Agent/
-│   └── ReActAgentTests.cs
-├── Tools/
-│   └── ToolRegistryTests.cs
-├── Memory/
-│   └── BufferMemoryTests.cs
-└── ...
-```
+- `./.github/skills/run-tests/scripts/run-tests.ps1`
+- `./.github/skills/run-tests/scripts/run-tests.sh`
 
-### Test Naming Convention
+## Failure Workflow
 
-```
-MethodName_Scenario_ExpectedResult
-```
-
-Examples:
-- `ChatAsync_WithValidInput_ReturnsResponse`
-- `GetTool_WithUnknownName_ReturnsNull`
-- `AddMessage_WhenMemoryFull_RemovesOldest`
-
-## Test Template
-
-Use this template when creating new tests:
-
-```csharp
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-
-namespace Dawning.Agents.Tests;
-
-public class MyServiceTests
-{
-    private readonly Mock<ILogger<MyService>> _loggerMock;
-    private readonly Mock<IDependency> _dependencyMock;
-    private readonly MyService _sut; // System Under Test
-
-    public MyServiceTests()
-    {
-        _loggerMock = new Mock<ILogger<MyService>>();
-        _dependencyMock = new Mock<IDependency>();
-        _sut = new MyService(
-            _dependencyMock.Object,
-            _loggerMock.Object);
-    }
-
-    [Fact]
-    public async Task DoSomething_WithValidInput_ReturnsExpectedResult()
-    {
-        // Arrange
-        var input = new Input { Value = "test" };
-        _dependencyMock
-            .Setup(x => x.ProcessAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("processed");
-
-        // Act
-        var result = await _sut.DoSomethingAsync(input);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task DoSomething_WithInvalidInput_ThrowsException(string? value)
-    {
-        // Arrange
-        var input = new Input { Value = value };
-
-        // Act
-        var act = () => _sut.DoSomethingAsync(input);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-}
-```
-
-## Current Status
-
-| Metric | Value |
-|--------|-------|
-| Framework | xUnit |
-| Assertions | FluentAssertions |
-| Mocking | Moq |
-| Total Tests | ~1,183 |
-| Coverage | ~72.9% |
-
-## After Running Tests
-
-| Result | Action |
-|--------|--------|
-| ✅ All pass | Proceed with commit |
-| ❌ Failures | Read error, fix issue, re-run |
+1. Re-run with `--filter` to isolate failures.
+2. Fix behavior first, assertions second.
+3. Re-run focused tests, then full suite.

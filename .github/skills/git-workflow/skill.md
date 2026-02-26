@@ -1,181 +1,60 @@
 ---
 name: git-workflow
-description: "Git operations for Dawning.Agents with conventional commit messages. Trigger phrases: commit, push, 提交, check status, view history, stage changes, create branch"
+description: "Git operations for Dawning.Agents with conventional commit messages."
 ---
 
 # Git Workflow Skill
 
 ## What This Skill Does
 
-Manages Git operations for the Dawning.Agents project with conventional commit messages.
+Applies Git workflow and conventional commits for Dawning.Agents.
 
-## When to Use
-
-- "Commit my changes"
-- "Push to remote"
-- "Check git status"
-- "View history"
-- "What changed?"
-- "Create a branch"
-
-## Common Commands
-
-### Quick Reference
-
-| Command | Purpose |
-|---------|---------|
-| `git status` | View changes |
-| `git diff` | View unstaged changes |
-| `git add -A` | Stage all changes |
-| `git commit -m "..."` | Commit |
-| `git push` | Push to remote |
-| `git log --oneline -10` | Recent history |
-
-### Full Workflow
+## Standard Flow
 
 ```bash
-# Windows (PowerShell)
-cd C:\github\dawning-agents
-
-# macOS/Linux (Bash)
-cd ~/github/dawning-agents
-
-# 1. Check status
 git status
-
-# 2. Review changes
 git diff
-
-# 3. Stage changes
 git add -A
-
-# 4. Commit
-git commit -m "type(scope): description"
-
-# 5. Push
+git commit -m "type(scope): summary"
 git push
 ```
 
-### Pre-commit Script
+## Commit Format
 
-```bash
-# Windows (PowerShell)
-./.github/skills/git-workflow/scripts/pre-commit.ps1
-./.github/skills/git-workflow/scripts/pre-commit.ps1 -SkipFormat
-
-# macOS/Linux (Bash)
-chmod +x ./.github/skills/git-workflow/scripts/pre-commit.sh
-./.github/skills/git-workflow/scripts/pre-commit.sh
-./.github/skills/git-workflow/scripts/pre-commit.sh --skip-format
-```
-
-## Commit Message Convention
-
-### Format
-
-```
+```text
 type(scope): description
-
-[optional body]
 ```
 
 ### Types
 
-| Type | When to Use |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, no code change |
-| `refactor` | Code change without feature/fix |
-| `test` | Adding/updating tests |
-| `chore` | Maintenance tasks |
-| `perf` | Performance improvement |
+`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`
 
-### Scopes for This Project
+### Recommended Scopes
 
-| Scope | Area |
-|-------|------|
-| `llm` | LLM Provider |
-| `agent` | Agent core |
-| `tools` | Tools system |
-| `memory` | Memory system |
-| `humanloop` | Human-in-the-loop |
-| `handoff` | Multi-agent handoff |
-| `safety` | Safety guardrails |
-| `demo` | Demo application |
-| `test` | Test related |
+- Core domains: `agent`, `llm`, `tools`, `memory`, `workflow`, `orchestration`, `safety`, `resilience`
+- Platform modules: `mcp`, `observability`, `logging`, `telemetry`, `diagnostics`, `health`, `scaling`
+- Data/RAG: `rag`, `redis`, `chroma`, `pinecone`, `qdrant`, `weaviate`
+- App/config/docs: `api`, `samples`, `config`, `docs`, `test`
+- Providers: `openai`, `azure`, `serilog`
 
 ### Examples
 
 ```bash
-# New feature
-feat(tools): add CodeReviewTool for automated code review
-
-# Bug fix
-fix(agent): handle null response from LLM provider
-
-# Documentation
-docs(readme): update installation instructions
-
-# Refactoring
-refactor(humanloop): move ConsoleInteractionHandler to Demo
-
-# Tests
-test(memory): add WindowMemory edge case tests
-
-# Maintenance
-chore: add .vs/ to gitignore
+feat(tools): split registry interfaces into reader and registrar
+fix(agent): enforce max cost budget per run
+test(validation): add options Validate coverage for safety and cache
+chore(config): align sample appsettings defaults
 ```
 
-## Pre-Commit Checklist
+## Pre-commit Checks
 
-Before committing, ensure:
-
-```powershell
-# 1. Build passes
+```bash
 dotnet build --nologo -v q
-
-# 2. Tests pass
 dotnet test --nologo
-
-# 3. Code formatted
-dotnet csharpier .
+~/.dotnet/tools/csharpier format .
 ```
 
-## Branch Naming (if needed)
+## Helpers
 
-```
-feature/add-code-review-skill
-fix/null-pointer-in-agent
-refactor/simplify-memory-api
-docs/update-readme
-```
-
-## Useful Git Commands
-
-### View Changes
-
-```powershell
-# Unstaged changes
-git diff
-
-# Staged changes
-git diff --staged
-
-# Changes in specific file
-git diff path/to/file.cs
-```
-
-### History
-
-```powershell
-# Recent commits
-git log --oneline -20
-
-# Commits affecting specific file
-git log --oneline -- path/to/file.cs
-
-# Show specific commit
-git show <commit-hash>
-```
+- `./.github/skills/git-workflow/scripts/pre-commit.ps1`
+- `./.github/skills/git-workflow/scripts/pre-commit.sh`

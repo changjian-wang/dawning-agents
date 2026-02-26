@@ -1,118 +1,60 @@
 ---
 name: code-review
-description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, CSharpier formatting, naming conventions, and best practices. Trigger phrases: review code, 审查代码, check this code, code quality, PR review"
+description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, CSharpier formatting, naming conventions, and best practices."
 ---
 
 # Code Review Skill
 
 ## What This Skill Does
 
-Reviews code changes in the Dawning.Agents project to ensure they follow established patterns, conventions, and best practices.
-
-## When to Use
-
-- "Review this code"
-- "Check code quality"
-- "Is this implementation correct?"
-- "Review my PR/changes"
-- "What's wrong with this code?"
+Reviews code changes against Dawning.Agents architecture, coding standards, and regression risk.
 
 ## Review Checklist
 
-### 1. Architecture Compliance
+### 1. Architecture and DI
 
-| Check | Requirement |
-|-------|-------------|
-| DI | All services via dependency injection, no `new` for services |
-| Separation | Interfaces in `Abstractions/`, implementations in `Core/` |
-| Logger | `ILogger<T>` with `NullLogger` fallback |
-| Async | `CancellationToken` on all async methods |
-| Config | `IOptions<T>` for configuration |
+- Service contracts in `Abstractions`, implementations in `Core`/provider modules
+- No static factories for runtime services
+- Constructor injection used consistently
+- Async methods include `CancellationToken`
 
-### 2. Code Style (CSharpier)
+### 2. Tool Interfaces (ISP)
 
-```csharp
-// ✅ Long parameter lists: one per line
-public MyService(
-    ILLMProvider llmProvider,
-    IOptions<MyOptions> options,
-    ILogger<MyService>? logger = null
-)
-{
-}
+- Read-only consumers depend on `IToolReader`
+- Registration/setup code depends on `IToolRegistrar`
+- `IToolRegistry` used only when both read/write are needed
 
-// ✅ Collections: trailing comma
-var list = new List<string>
-{
-    "item1",
-    "item2",
-};
+### 3. Options and Validation
 
-// ✅ Method chains: one call per line
-var result = items
-    .Where(x => x.IsActive)
-    .Select(x => x.Name)
-    .ToList();
+- Public options implement `IValidatableOptions`
+- `Validate()` covers required fields and range checks
+- Tests include valid/invalid cases for `Validate()`
 
-// ✅ Always use braces
-if (condition)
-{
-    DoSomething();
-}
-```
+### 4. Cost/Budget Safety
 
-### 3. Naming Conventions
+- Cost-sensitive flows use `ICostTracker` appropriately
+- Budget overflow handled via `BudgetExceededException`
+- Response/step cost fields remain consistent (`AgentStep.Cost`, `AgentResponse.TotalCost`)
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Interface | `I` prefix | `ILLMProvider` |
-| Config | `Options` suffix | `LLMOptions` |
-| DI extension | `Add` prefix | `AddLLMProvider` |
-| Async method | `Async` suffix | `ChatAsync` |
+### 5. Quality Gates
 
-### 4. Required Elements
+- Public APIs have XML docs
+- Null handling uses guard clauses
+- Logging is structured and meaningful
+- Unit tests added for behavior changes
+- CSharpier formatting passes
 
-- [ ] XML documentation on public APIs
-- [ ] Unit tests for new functionality
-- [ ] No hardcoded configuration values
-
-## Output Format
-
-Use this template for review results:
+## Review Output Format
 
 ```markdown
-## Code Review Summary
+## Findings
+1. [Severity] file:line - issue
 
-### ✅ Good
-- [list positive aspects]
+## Open Questions
+1. ...
 
-### ⚠️ Suggestions
-- [suggestions with code examples]
-
-### ❌ Issues (must fix)
-- [critical issues]
-
-### Overall: [Pass / Pass with suggestions / Needs changes]
+## Summary
+- ...
 ```
 
-## Example Review
-
-**Input:** A new service class
-
-**Output:**
-```
-## Code Review Summary
-
-### ✅ Good
-- Correct interface separation
-- Proper DI pattern used
-
-### ⚠️ Suggestions
-- Add XML documentation to public methods
-- Consider adding unit tests
-
-### ❌ Issues
-- Missing CancellationToken on async method
-
-### Overall: Needs changes
-```
+Order findings by severity first: correctness > security > performance > maintainability.

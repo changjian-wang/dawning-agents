@@ -1,4 +1,4 @@
-namespace Dawning.Agents.Abstractions;
+namespace Dawning.Agents.Abstractions.{Area};
 
 /// <summary>
 /// {ServiceDescription}
@@ -13,5 +13,6 @@ public interface I{ServiceName}
     /// <returns>{ReturnDescription}</returns>
     Task<{ReturnType}> {MethodName}Async(
         {InputType} input,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }
