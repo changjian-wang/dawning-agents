@@ -381,6 +381,8 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     private PointStruct CreatePoint(DocumentChunk chunk)
     {
+        ArgumentNullException.ThrowIfNull(chunk.Embedding, "chunk.Embedding");
+
         var payload = new Dictionary<string, Value>
         {
             ["id"] = chunk.Id,
@@ -404,7 +406,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         return new PointStruct
         {
             Id = pointId,
-            Vectors = chunk.Embedding!,
+            Vectors = chunk.Embedding,
             Payload = { payload },
         };
     }

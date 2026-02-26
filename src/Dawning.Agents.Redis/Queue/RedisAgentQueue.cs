@@ -26,6 +26,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     private readonly string _queueKey;
     private readonly string _deadLetterKey;
     private readonly string _consumerName;
+    private int _count;
     private bool _initialized;
     private bool _disposed;
 
@@ -36,7 +37,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     public string ConsumerName => _consumerName;
 
     /// <inheritdoc />
-    public int Count => (int)GetPendingCountAsync().GetAwaiter().GetResult();
+    public int Count => Volatile.Read(ref _count);
 
     /// <inheritdoc />
     public bool CanWrite => !_disposed;
@@ -163,6 +164,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 );
             }
 
+            Interlocked.Increment(ref _count);
             return item.Id;
         }
         catch (Exception ex)
@@ -214,6 +216,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 entry.Id
             );
 
+            Interlocked.Decrement(ref _count);
             return message.WorkItem;
         }
         catch (Exception ex)

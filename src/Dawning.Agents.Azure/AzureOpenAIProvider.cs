@@ -74,6 +74,7 @@ public class AzureOpenAIProvider : OpenAIProviderBase
         ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
+        ValidateEndpoint(endpoint);
 
         var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
         return client.GetChatClient(deploymentName);
@@ -88,8 +89,23 @@ public class AzureOpenAIProvider : OpenAIProviderBase
         ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
         ArgumentNullException.ThrowIfNull(credential);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
+        ValidateEndpoint(endpoint);
 
         var client = new AzureOpenAIClient(new Uri(endpoint), credential);
         return client.GetChatClient(deploymentName);
+    }
+
+    private static void ValidateEndpoint(string endpoint)
+    {
+        if (
+            !Uri.TryCreate(endpoint, UriKind.Absolute, out var uri)
+            || uri.Scheme != Uri.UriSchemeHttps
+        )
+        {
+            throw new ArgumentException(
+                "Azure OpenAI endpoint must be a valid HTTPS URL",
+                nameof(endpoint)
+            );
+        }
     }
 }

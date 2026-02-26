@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,13 +19,18 @@ namespace Dawning.Agents.Weaviate;
 /// - 多租户
 /// - 混合搜索（向量 + 关键词）
 /// </remarks>
-public class WeaviateVectorStore : IVectorStore
+public partial class WeaviateVectorStore : IVectorStore
 {
+    private static readonly Regex ValidClassNameRegex = ClassNameRegex();
     private readonly HttpClient _httpClient;
     private readonly WeaviateOptions _options;
     private readonly ILogger<WeaviateVectorStore> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
     private int _count;
+    private bool _classEnsured;
+
+    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
+    private static partial Regex ClassNameRegex();
 
     /// <inheritdoc />
     public string Name => "Weaviate";
@@ -54,6 +60,14 @@ public class WeaviateVectorStore : IVectorStore
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
+        if (!ValidClassNameRegex.IsMatch(_options.ClassName))
+        {
+            throw new ArgumentException(
+                $"Invalid Weaviate ClassName '{_options.ClassName}'. Must match ^[a-zA-Z][a-zA-Z0-9_]*$",
+                nameof(options)
+            );
+        }
+
         _httpClient.BaseAddress = new Uri(_options.BaseUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
 
@@ -61,14 +75,12 @@ public class WeaviateVectorStore : IVectorStore
         {
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ApiKey}");
         }
-
-        // 确保 Schema 类存在
-        EnsureClassExistsAsync().GetAwaiter().GetResult();
     }
 
     /// <inheritdoc />
     public async Task AddAsync(DocumentChunk chunk, CancellationToken cancellationToken = default)
     {
+        await EnsureClassExistsOnceAsync(cancellationToken);
         await AddBatchAsync([chunk], cancellationToken);
     }
 
@@ -78,6 +90,8 @@ public class WeaviateVectorStore : IVectorStore
         CancellationToken cancellationToken = default
     )
     {
+        await EnsureClassExistsOnceAsync(cancellationToken);
+
         var chunkList = chunks.ToList();
         if (chunkList.Count == 0)
         {
@@ -139,7 +153,11 @@ public class WeaviateVectorStore : IVectorStore
             minScore
         );
 
-        // 使用 GraphQL API 进行向量搜索
+        await EnsureClassExistsOnceAsync(cancellationToken);
+
+        // ClassName is validated in constructor via regex — safe for GraphQL interpolation
+        // Embedding vector is serialized via JSON to prevent format injection
+        var vectorJson = JsonSerializer.Serialize(queryEmbedding);
         var graphqlQuery = new WeaviateGraphQLQuery
         {
             Query = $$"""
@@ -147,7 +165,7 @@ public class WeaviateVectorStore : IVectorStore
                     Get {
                         {{_options.ClassName}}(
                             nearVector: {
-                                vector: [{{string.Join(",", queryEmbedding)}}]
+                                vector: {{vectorJson}}
                             }
                             limit: {{topK}}
                         ) {
@@ -263,6 +281,7 @@ public class WeaviateVectorStore : IVectorStore
         CancellationToken cancellationToken = default
     )
     {
+        await EnsureClassExistsOnceAsync(cancellationToken);
         _logger.LogDebug("Getting chunk {Id} from Weaviate", id);
 
         var response = await _httpClient.GetAsync(
@@ -322,6 +341,7 @@ public class WeaviateVectorStore : IVectorStore
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
+        await EnsureClassExistsOnceAsync(cancellationToken);
         _logger.LogDebug("Deleting chunk {Id} from Weaviate", id);
 
         var response = await _httpClient.DeleteAsync(
@@ -344,6 +364,7 @@ public class WeaviateVectorStore : IVectorStore
         CancellationToken cancellationToken = default
     )
     {
+        await EnsureClassExistsOnceAsync(cancellationToken);
         _logger.LogDebug("Deleting chunks by documentId {DocumentId} from Weaviate", documentId);
 
         // 使用批量删除 API
@@ -397,6 +418,20 @@ public class WeaviateVectorStore : IVectorStore
         await EnsureClassExistsAsync(cancellationToken);
 
         Interlocked.Exchange(ref _count, 0);
+    }
+
+    /// <summary>
+    /// 确保 Schema 类已创建（懒初始化，仅执行一次）
+    /// </summary>
+    private async Task EnsureClassExistsOnceAsync(CancellationToken cancellationToken = default)
+    {
+        if (_classEnsured)
+        {
+            return;
+        }
+
+        await EnsureClassExistsAsync(cancellationToken);
+        _classEnsured = true;
     }
 
     /// <summary>

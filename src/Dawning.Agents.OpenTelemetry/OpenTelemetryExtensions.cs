@@ -68,6 +68,14 @@ public sealed class OpenTelemetryOptions : IValidatableOptions
         {
             throw new InvalidOperationException("ServiceName is required");
         }
+
+        if (
+            !string.IsNullOrEmpty(OtlpEndpoint)
+            && !Uri.TryCreate(OtlpEndpoint, UriKind.Absolute, out _)
+        )
+        {
+            throw new InvalidOperationException("OtlpEndpoint must be a valid absolute URI");
+        }
     }
 }
 

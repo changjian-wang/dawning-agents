@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Pinecone;
 
 namespace Dawning.Agents.Tests.RAG;
 
@@ -26,7 +27,11 @@ public class PineconeVectorStoreTests
         );
 
         // Act
-        var store = new PineconeVectorStore(options, NullLogger<PineconeVectorStore>.Instance);
+        var store = new PineconeVectorStore(
+            new PineconeClient("test-api-key"),
+            options,
+            NullLogger<PineconeVectorStore>.Instance
+        );
 
         // Assert
         store.Should().NotBeNull();
@@ -35,10 +40,20 @@ public class PineconeVectorStoreTests
     }
 
     [Fact]
+    public void Constructor_WithNullClient_ThrowsArgumentNullException()
+    {
+        // Act
+        var act = () => new PineconeVectorStore(null!, null!, null);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("client");
+    }
+
+    [Fact]
     public void Constructor_WithNullOptions_ThrowsArgumentNullException()
     {
         // Act
-        var act = () => new PineconeVectorStore(null!, null);
+        var act = () => new PineconeVectorStore(new PineconeClient("test-api-key"), null!, null);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("options");
@@ -58,7 +73,7 @@ public class PineconeVectorStoreTests
         );
 
         // Act
-        var act = () => new PineconeVectorStore(options, null);
+        var act = () => new PineconeVectorStore(new PineconeClient("dummy"), options, null);
 
         // Assert
         act.Should().Throw<InvalidOperationException>().WithMessage("*ApiKey*");
@@ -76,7 +91,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act
         var act = async () => await store.AddAsync(null!);
@@ -97,7 +112,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
         var chunk = new DocumentChunk
         {
             Id = "test-1",
@@ -124,7 +139,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act
         var act = async () => await store.SearchAsync(null!);
@@ -145,7 +160,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act
         var act = async () => await store.SearchAsync(Array.Empty<float>());
@@ -166,7 +181,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.DeleteAsync(null!));
@@ -186,7 +201,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.DeleteByDocumentIdAsync(null!));
@@ -205,7 +220,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.GetAsync(null!));
@@ -224,7 +239,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act
         var act = async () => await store.AddBatchAsync(null!);
@@ -245,7 +260,7 @@ public class PineconeVectorStoreTests
                 VectorSize = 1536,
             }
         );
-        var store = new PineconeVectorStore(options, null);
+        var store = new PineconeVectorStore(new PineconeClient("test-api-key"), options, null);
 
         // Act
         await store.DisposeAsync();

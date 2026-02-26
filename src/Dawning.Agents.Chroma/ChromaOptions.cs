@@ -105,6 +105,11 @@ public class ChromaOptions : IValidatableOptions
         {
             throw new InvalidOperationException("VectorDimension must be positive");
         }
+
+        if (TimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("Chroma TimeoutSeconds must be greater than 0");
+        }
     }
 }
 

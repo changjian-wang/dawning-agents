@@ -21,11 +21,11 @@ public sealed class MCPClient : IAsyncDisposable
     private readonly SemaphoreSlim _requestLock = new(1, 1);
     private IMCPTransport? _transport;
     private Process? _serverProcess;
-    private int _requestId;
+    private long _requestId;
     private bool _initialized;
     private MCPServerInfo? _serverInfo;
     private MCPServerCapabilities? _serverCapabilities;
-    private readonly Dictionary<int, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
+    private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
 
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
     {
@@ -87,7 +87,17 @@ public sealed class MCPClient : IAsyncDisposable
         };
 
         _serverProcess = new Process { StartInfo = startInfo };
-        _serverProcess.Start();
+
+        try
+        {
+            _serverProcess.Start();
+        }
+        catch
+        {
+            _serverProcess.Dispose();
+            _serverProcess = null;
+            throw;
+        }
 
         _transport = new StdioTransport(
             _serverProcess.StandardOutput.BaseStream,
@@ -363,7 +373,13 @@ public sealed class MCPClient : IAsyncDisposable
         {
             try
             {
-                var message = await _transport!.ReceiveAsync(cancellationToken);
+                var transport = _transport;
+                if (transport == null || !transport.IsConnected)
+                {
+                    break;
+                }
+
+                var message = await transport.ReceiveAsync(cancellationToken);
                 if (message == null)
                 {
                     continue;
@@ -375,7 +391,7 @@ public sealed class MCPClient : IAsyncDisposable
                     continue;
                 }
 
-                var id = Convert.ToInt32(response.Id);
+                var id = Convert.ToInt64(response.Id);
 
                 TaskCompletionSource<MCPResponse>? tcs;
                 lock (_pendingRequests)

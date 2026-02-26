@@ -101,6 +101,16 @@ public class WeaviateOptions : IValidatableOptions
             throw new InvalidOperationException("Weaviate ClassName is required");
         }
 
+        if (Scheme is not "http" and not "https")
+        {
+            throw new InvalidOperationException("Weaviate Scheme must be 'http' or 'https'");
+        }
+
+        if (TimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("Weaviate TimeoutSeconds must be greater than 0");
+        }
+
         if (VectorDimension <= 0)
         {
             throw new InvalidOperationException("VectorDimension must be greater than 0");

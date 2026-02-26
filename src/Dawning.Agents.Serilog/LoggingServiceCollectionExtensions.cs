@@ -171,28 +171,6 @@ public static class LoggingServiceCollectionExtensions
     {
         var nodes = esOptions.NodeUris.Select(uri => new Uri(uri)).ToArray();
 
-        // 配置传输
-        TransportConfiguration transportConfig;
-
-        if (!string.IsNullOrEmpty(esOptions.ApiKey))
-        {
-            transportConfig = new TransportConfiguration(
-                new Uri(esOptions.NodeUris[0])
-            ).Authentication(new ApiKey(esOptions.ApiKey));
-        }
-        else if (
-            !string.IsNullOrEmpty(esOptions.Username) && !string.IsNullOrEmpty(esOptions.Password)
-        )
-        {
-            transportConfig = new TransportConfiguration(
-                new Uri(esOptions.NodeUris[0])
-            ).Authentication(new BasicAuthentication(esOptions.Username, esOptions.Password));
-        }
-        else
-        {
-            transportConfig = new TransportConfiguration(new Uri(esOptions.NodeUris[0]));
-        }
-
         loggerConfig.WriteTo.Elasticsearch(
             nodes,
             opts =>

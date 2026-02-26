@@ -2,6 +2,8 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Pinecone;
 
 namespace Dawning.Agents.Pinecone;
 
@@ -43,6 +45,11 @@ public static class PineconeServiceCollectionExtensions
             }
         });
 
+        services.TryAddSingleton(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<PineconeOptions>>().Value;
+            return new PineconeClient(opts.ApiKey);
+        });
         services.TryAddSingleton<IVectorStore, PineconeVectorStore>();
         return services;
     }
@@ -56,6 +63,11 @@ public static class PineconeServiceCollectionExtensions
     )
     {
         services.Configure(configure);
+        services.TryAddSingleton(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<PineconeOptions>>().Value;
+            return new PineconeClient(opts.ApiKey);
+        });
         services.TryAddSingleton<IVectorStore, PineconeVectorStore>();
         return services;
     }

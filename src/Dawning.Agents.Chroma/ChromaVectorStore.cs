@@ -396,14 +396,14 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             return 0;
         }
 
-        // Chroma 不返回删除数量，我们无法精确知道删除了多少
+        // Chroma 不返回删除数量
         _logger.LogDebug(
             "Deleted chunks for document {DocumentId} from Chroma collection {Collection}",
             documentId,
             _options.CollectionName
         );
 
-        return -1; // 表示删除成功但数量未知
+        return 0; // Chroma API 不提供已删除数量
     }
 
     /// <inheritdoc />
@@ -523,7 +523,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        _httpClient.Dispose();
+        // HttpClient lifetime is managed by IHttpClientFactory — do not dispose here
         return ValueTask.CompletedTask;
     }
 }

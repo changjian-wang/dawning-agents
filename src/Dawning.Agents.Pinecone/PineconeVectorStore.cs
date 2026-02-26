@@ -35,17 +35,18 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     /// 创建 Pinecone 向量存储
     /// </summary>
     public PineconeVectorStore(
+        PineconeClient client,
         IOptions<PineconeOptions> options,
         ILogger<PineconeVectorStore>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(options);
 
+        _client = client;
         _options = options.Value;
         _options.Validate();
         _logger = logger ?? NullLogger<PineconeVectorStore>.Instance;
-
-        _client = new PineconeClient(_options.ApiKey);
 
         _logger.LogDebug(
             "PineconeVectorStore 已创建，索引: {Index}，命名空间: {Namespace}",

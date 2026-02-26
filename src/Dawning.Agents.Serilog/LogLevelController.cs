@@ -61,7 +61,7 @@ public class LogLevelController : ILogLevelController
         private readonly LogEventLevel _originalLevel;
         private readonly CancellationTokenSource _cts;
         private readonly Task _restoreTask;
-        private bool _disposed;
+        private int _disposed;
 
         public TemporaryLevelScope(
             LogLevelController controller,
@@ -78,7 +78,7 @@ public class LogLevelController : ILogLevelController
                 .ContinueWith(
                     _ =>
                     {
-                        if (!_disposed)
+                        if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                         {
                             Restore();
                         }
@@ -89,12 +89,11 @@ public class LogLevelController : ILogLevelController
 
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
             {
                 return;
             }
 
-            _disposed = true;
             _cts.Cancel();
             _cts.Dispose();
             Restore();
