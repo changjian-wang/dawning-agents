@@ -90,7 +90,10 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
         var fullPath = Path.GetFullPath(Path.Combine(_rootPath, path));
 
         // 安全检查：确保路径在根目录内
-        if (!fullPath.StartsWith(_rootPath, StringComparison.OrdinalIgnoreCase))
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        if (!fullPath.StartsWith(_rootPath, comparison))
         {
             _logger.LogWarning("Path traversal attempt: {Uri}", uri);
             return null;

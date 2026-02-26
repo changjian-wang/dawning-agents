@@ -26,6 +26,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     private object? _index; // 使用 object 因为 Index<T> 是泛型
     private bool _initialized;
     private int _count;
+    private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Pinecone";
 
@@ -279,6 +280,24 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             return _index;
         }
 
+        await _initLock.WaitAsync();
+        try
+        {
+            if (_initialized && _index != null)
+            {
+                return _index;
+            }
+
+            return await InitializeIndexAsync();
+        }
+        finally
+        {
+            _initLock.Release();
+        }
+    }
+
+    private async Task<dynamic> InitializeIndexAsync()
+    {
         // 检查索引是否存在
         var indexes = await _client.ListIndexes();
         var indexExists = indexes.Any(i => i.Name == _options.IndexName);

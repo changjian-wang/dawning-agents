@@ -31,10 +31,10 @@ public class RedisHealthCheck : IHealthCheck
         {
             var db = _redis.GetDatabase();
             var pong = await db.PingAsync();
-            _logger.LogDebug($"RedisHealthCheck: Ping={pong.TotalMilliseconds}ms");
+            _logger.LogDebug("RedisHealthCheck: Ping={PingMs}ms", pong.TotalMilliseconds);
             return HealthCheckResult.Healthy($"Redis 正常, Ping={pong.TotalMilliseconds}ms");
         }
-        catch (System.Exception ex)
+        catch (RedisConnectionException ex)
         {
             _logger.LogError(ex, "RedisHealthCheck: 连接失败");
             return HealthCheckResult.Unhealthy("Redis 连接失败", ex);

@@ -31,7 +31,11 @@ public class QdrantVectorStoreTests
 
         // Act - 注意：这会尝试连接到 Qdrant，在没有 Qdrant 运行时会失败
         // 这里只测试对象创建，不测试实际连接
-        var store = new QdrantVectorStore(options, NullLogger<QdrantVectorStore>.Instance);
+        var store = new QdrantVectorStore(
+            new QdrantClient("localhost", 6334),
+            options,
+            NullLogger<QdrantVectorStore>.Instance
+        );
 
         // Assert
         store.Should().NotBeNull();
@@ -40,10 +44,20 @@ public class QdrantVectorStoreTests
     }
 
     [Fact]
+    public void Constructor_WithNullClient_ThrowsArgumentNullException()
+    {
+        // Act
+        var act = () => new QdrantVectorStore(null!, null!, null);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("client");
+    }
+
+    [Fact]
     public void Constructor_WithNullOptions_ThrowsArgumentNullException()
     {
         // Act
-        var act = () => new QdrantVectorStore(null!, null);
+        var act = () => new QdrantVectorStore(new QdrantClient("localhost", 6334), null!, null);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("options");
@@ -63,7 +77,7 @@ public class QdrantVectorStoreTests
         );
 
         // Act
-        var act = () => new QdrantVectorStore(options, null);
+        var act = () => new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Assert
         act.Should().Throw<InvalidOperationException>().WithMessage("*Host*");
@@ -82,7 +96,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act
         var act = async () => await store.AddAsync(null!);
@@ -104,7 +118,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
         var chunk = new DocumentChunk
         {
             Id = "test-1",
@@ -132,7 +146,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act
         var act = async () => await store.SearchAsync(null!);
@@ -154,7 +168,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act
         var act = async () => await store.SearchAsync(Array.Empty<float>());
@@ -176,7 +190,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.DeleteAsync(null!));
@@ -197,7 +211,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.DeleteByDocumentIdAsync(null!));
@@ -217,7 +231,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act & Assert - ArgumentNullException is a subclass of ArgumentException
         await Assert.ThrowsAnyAsync<ArgumentException>(() => store.GetAsync(null!));
@@ -237,7 +251,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act
         var act = async () => await store.AddBatchAsync(null!);
@@ -259,7 +273,7 @@ public class QdrantVectorStoreTests
                 VectorSize = 384,
             }
         );
-        var store = new QdrantVectorStore(options, null);
+        var store = new QdrantVectorStore(new QdrantClient("localhost", 6334), options, null);
 
         // Act
         await store.DisposeAsync();

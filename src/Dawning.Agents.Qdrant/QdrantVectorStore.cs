@@ -26,6 +26,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     private readonly ILogger<QdrantVectorStore> _logger;
     private bool _collectionInitialized;
     private int _count;
+    private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Qdrant";
 
@@ -35,17 +36,18 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     /// 创建 Qdrant 向量存储
     /// </summary>
     public QdrantVectorStore(
+        QdrantClient client,
         IOptions<QdrantOptions> options,
         ILogger<QdrantVectorStore>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(options);
 
+        _client = client;
         _options = options.Value;
         _options.Validate();
         _logger = logger ?? NullLogger<QdrantVectorStore>.Instance;
-
-        _client = CreateClient();
 
         _logger.LogDebug(
             "QdrantVectorStore 已创建，端点: {Host}:{Port}，集合: {Collection}",
@@ -326,21 +328,6 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     #region Private Helpers
 
-    private QdrantClient CreateClient()
-    {
-        if (!string.IsNullOrWhiteSpace(_options.ApiKey))
-        {
-            return new QdrantClient(
-                _options.Host,
-                _options.Port,
-                https: _options.UseTls,
-                apiKey: _options.ApiKey
-            );
-        }
-
-        return new QdrantClient(_options.Host, _options.Port, https: _options.UseTls);
-    }
-
     private async Task EnsureCollectionExistsAsync(CancellationToken cancellationToken)
     {
         if (_collectionInitialized)
@@ -348,35 +335,52 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        var exists = await _client.CollectionExistsAsync(
-            _options.CollectionName,
-            cancellationToken
-        );
-        if (!exists)
+        await _initLock.WaitAsync(cancellationToken);
+        try
         {
-            await _client.CreateCollectionAsync(
-                _options.CollectionName,
-                new VectorParams { Size = (ulong)_options.VectorSize, Distance = Distance.Cosine },
-                cancellationToken: cancellationToken
-            );
+            if (_collectionInitialized)
+            {
+                return;
+            }
 
-            _logger.LogInformation(
-                "Created Qdrant collection {Collection} with vector size {VectorSize}",
-                _options.CollectionName,
-                _options.VectorSize
-            );
-        }
-        else
-        {
-            // 获取当前数量
-            var info = await _client.GetCollectionInfoAsync(
+            var exists = await _client.CollectionExistsAsync(
                 _options.CollectionName,
                 cancellationToken
             );
-            _count = (int)info.PointsCount;
-        }
+            if (!exists)
+            {
+                await _client.CreateCollectionAsync(
+                    _options.CollectionName,
+                    new VectorParams
+                    {
+                        Size = (ulong)_options.VectorSize,
+                        Distance = Distance.Cosine,
+                    },
+                    cancellationToken: cancellationToken
+                );
 
-        _collectionInitialized = true;
+                _logger.LogInformation(
+                    "Created Qdrant collection {Collection} with vector size {VectorSize}",
+                    _options.CollectionName,
+                    _options.VectorSize
+                );
+            }
+            else
+            {
+                // 获取当前数量
+                var info = await _client.GetCollectionInfoAsync(
+                    _options.CollectionName,
+                    cancellationToken
+                );
+                _count = (int)info.PointsCount;
+            }
+
+            _collectionInitialized = true;
+        }
+        finally
+        {
+            _initLock.Release();
+        }
     }
 
     private PointStruct CreatePoint(DocumentChunk chunk)

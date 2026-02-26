@@ -28,6 +28,7 @@ public partial class WeaviateVectorStore : IVectorStore
     private readonly JsonSerializerOptions _jsonOptions;
     private int _count;
     private bool _classEnsured;
+    private readonly SemaphoreSlim _initLock = new(1, 1);
 
     [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
     private static partial Regex ClassNameRegex();
@@ -430,8 +431,21 @@ public partial class WeaviateVectorStore : IVectorStore
             return;
         }
 
-        await EnsureClassExistsAsync(cancellationToken);
-        _classEnsured = true;
+        await _initLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_classEnsured)
+            {
+                return;
+            }
+
+            await EnsureClassExistsAsync(cancellationToken);
+            _classEnsured = true;
+        }
+        finally
+        {
+            _initLock.Release();
+        }
     }
 
     /// <summary>

@@ -26,6 +26,7 @@ public sealed class MCPClient : IAsyncDisposable
     private MCPServerInfo? _serverInfo;
     private MCPServerCapabilities? _serverCapabilities;
     private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
+    private Task? _listenerTask;
 
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
     {
@@ -108,7 +109,7 @@ public sealed class MCPClient : IAsyncDisposable
         await _transport.StartAsync(cancellationToken);
 
         // 启动响应监听
-        _ = ListenForResponsesAsync(cancellationToken);
+        _listenerTask = ListenForResponsesAsync(cancellationToken);
 
         // 发送初始化请求
         await InitializeAsync(cancellationToken);
@@ -132,7 +133,7 @@ public sealed class MCPClient : IAsyncDisposable
         await _transport.StartAsync(cancellationToken);
 
         // 启动响应监听
-        _ = ListenForResponsesAsync(cancellationToken);
+        _listenerTask = ListenForResponsesAsync(cancellationToken);
 
         // 发送初始化请求
         await InitializeAsync(cancellationToken);

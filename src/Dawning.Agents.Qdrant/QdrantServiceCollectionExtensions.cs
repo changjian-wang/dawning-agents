@@ -2,6 +2,8 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Qdrant.Client;
 
 namespace Dawning.Agents.Qdrant;
 
@@ -32,6 +34,7 @@ public static class QdrantServiceCollectionExtensions
     )
     {
         services.Configure<QdrantOptions>(configuration.GetSection(QdrantOptions.SectionName));
+        RegisterQdrantClient(services);
         services.TryAddSingleton<IVectorStore, QdrantVectorStore>();
         return services;
     }
@@ -45,6 +48,7 @@ public static class QdrantServiceCollectionExtensions
     )
     {
         services.Configure(configure);
+        RegisterQdrantClient(services);
         services.TryAddSingleton<IVectorStore, QdrantVectorStore>();
         return services;
     }
@@ -101,6 +105,17 @@ public static class QdrantServiceCollectionExtensions
             options.VectorSize = vectorSize;
             options.ApiKey = apiKey;
             options.UseTls = true;
+        });
+    }
+
+    private static void RegisterQdrantClient(IServiceCollection services)
+    {
+        services.TryAddSingleton(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<QdrantOptions>>().Value;
+            return !string.IsNullOrWhiteSpace(opts.ApiKey)
+                ? new QdrantClient(opts.Host, opts.Port, https: opts.UseTls, apiKey: opts.ApiKey)
+                : new QdrantClient(opts.Host, opts.Port, https: opts.UseTls);
         });
     }
 }
