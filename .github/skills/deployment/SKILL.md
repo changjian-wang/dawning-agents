@@ -1,6 +1,8 @@
 ---
-description: "Deployment infrastructure for Dawning.Agents: Docker builds, docker-compose dev/prod, Kubernetes manifests, observability stack, and rollback procedures. Use when deploying, configuring containers, setting up K8s, or managing the observability stack."
+description: "Deployment infrastructure for Dawning.Agents: Docker, K8s, observability, rollback. Trigger: 部署, deploy, docker, k8s, kubernetes, 容器, container, helm, rollback, 回滚, observability, 可观测性, grafana, prometheus"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} deployment — {触发原因}`
 
 # Deployment Infrastructure
 

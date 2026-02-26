@@ -1,7 +1,8 @@
 ---
-name: run-tests
-description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq."
+description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq. Trigger: 测试, test, xunit, 跑测试, run tests, coverage, 覆盖率, 测试失败, test failure"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} run-tests — {触发原因}`
 
 # Run Tests Skill
 

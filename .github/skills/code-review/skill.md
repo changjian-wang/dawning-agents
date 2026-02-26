@@ -1,7 +1,8 @@
 ---
-name: code-review
-description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, CSharpier formatting, naming conventions, and best practices."
+description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, naming, best practices. Trigger: 代码审查, review, 审查, code review, check code, 检查代码, PR review"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} code-review — {触发原因}`
 
 # Code Review Skill
 
@@ -43,6 +44,17 @@ Reviews code changes against Dawning.Agents architecture, coding standards, and 
 - Logging is structured and meaningful
 - Unit tests added for behavior changes
 - CSharpier formatting passes
+
+### 6. 禁止事项检查（Forbidden Patterns）
+
+- ❌ `new HttpClient()` — 必须 `IHttpClientFactory`
+- ❌ `new XxxService()` — 必须 DI 注入
+- ❌ 静态工厂创建服务
+- ❌ `[Obsolete]` 标注
+- ❌ `Abstractions/` 引用 `Core/`
+- ❌ `IMapper` / AutoMapper
+- ❌ 同步 I/O（`.Result`、`.Wait()`）
+- ❌ 遗漏 `CancellationToken` 传递
 
 ## Review Output Format
 

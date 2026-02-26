@@ -1,6 +1,8 @@
 ---
-description: "NuGet release workflow for Dawning.Agents: versioning, packing, publishing, tag-based CI/CD, and release checklist. Use when releasing packages, bumping versions, creating tags, or troubleshooting NuGet publishing."
+description: "NuGet release workflow for Dawning.Agents: versioning, packing, publishing, CI/CD. Trigger: nuget, 发布, release, publish, pack, version, 版本, 打包, tag"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} nuget-release — {触发原因}`
 
 # NuGet Release Workflow
 

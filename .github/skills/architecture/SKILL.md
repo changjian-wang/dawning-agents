@@ -1,13 +1,18 @@
 ---
-name: architecture
-description: "Dawning.Agents architecture reference. Accurate project structure, core interfaces, DI methods, and module boundaries."
+description: "Dawning.Agents architecture reference: project structure, core interfaces, DI API, module boundaries. Trigger: 架构, 项目结构, project structure, interface, module, DI, namespace, where should I put"
 ---
 
 # Architecture Skill
 
-## What This Skill Does
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} architecture — {触发原因}`
 
-Provides current architecture facts for Dawning.Agents so code changes follow real module boundaries and APIs.
+## 项目概述
+
+Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 OpenAI Agents SDK 的极简风格。
+
+- **目标用户**：需要在 .NET 生态中构建 LLM 驱动 Agent 的企业开发者
+- **核心价值**：极简 API + 纯依赖注入 + 企业级基础设施（可观测性、弹性、安全）
+- **当前阶段**：pre-release（0.1.0-preview），快速迭代，API 不稳定
 
 ## When to Use
 

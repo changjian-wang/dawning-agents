@@ -1,7 +1,8 @@
 ---
-name: markdown
-description: "Markdown formatting rules and conventions for Dawning.Agents documentation. Trigger phrases: write markdown, 写文档, README, CHANGELOG, API docs, documentation"
+description: "Markdown formatting rules and conventions for Dawning.Agents documentation. Trigger: markdown, 写文档, README, API docs, documentation, XML docs, 文档格式, 注释规范"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} markdown — {触发原因}`
 
 # Markdown Formatting Skill
 

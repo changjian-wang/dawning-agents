@@ -1,7 +1,8 @@
 ---
-name: build-project
-description: "Build and compile Dawning.Agents .NET project. Handles compilation errors and common build issues."
+description: "Build and compile Dawning.Agents .NET project. Handles compilation errors and common build issues. Trigger: 构建, 编译, build, compile, dotnet build, restore, 编译错误, build error"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} build-project — {触发原因}`
 
 # Build Project Skill
 

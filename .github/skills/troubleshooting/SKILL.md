@@ -1,6 +1,8 @@
 ---
-description: "Troubleshooting and diagnostics for Dawning.Agents: build failures, test failures, deployment issues, LLM debugging, performance analysis, and common error patterns. Use when diagnosing errors, debugging failures, or investigating performance problems."
+description: "Troubleshooting and diagnostics for Dawning.Agents: build/test/deploy failures, LLM debugging, performance. Trigger: 排错, 报错, error, debug, 调试, troubleshoot, diagnose, 性能, performance, 失败, failure, crash"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} troubleshooting — {触发原因}`
 
 # Troubleshooting & Diagnostics
 

@@ -1,6 +1,8 @@
 ---
-description: "CHANGELOG management and documentation generation for Dawning.Agents: CHANGELOG.md format, DocFX workflow, release notes extraction, and API doc generation. Use when updating changelog, generating docs, or preparing release notes."
+description: "CHANGELOG management and documentation generation for Dawning.Agents: format, DocFX, release notes, API docs. Trigger: changelog, 变更日志, release notes, DocFX, 文档生成, documentation, 写文档, API docs"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} changelog — {触发原因}`
 
 # Changelog & Documentation
 

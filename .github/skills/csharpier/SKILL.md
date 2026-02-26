@@ -1,7 +1,8 @@
 ---
-name: csharpier
-description: "CSharpier code formatting rules and conventions for Dawning.Agents. Use when writing or reviewing C# code. Trigger phrases: format code, 格式化代码, csharpier, code style, 代码风格"
+description: "CSharpier code formatting rules and conventions for Dawning.Agents. Trigger: format, 格式化, csharpier, code style, 代码风格, formatting, 排版"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} csharpier — {触发原因}`
 
 # CSharpier Formatting Skill
 

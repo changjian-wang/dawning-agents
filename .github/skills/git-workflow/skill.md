@@ -1,7 +1,8 @@
 ---
-name: git-workflow
-description: "Git operations for Dawning.Agents with conventional commit messages."
+description: "Git operations for Dawning.Agents with conventional commit messages. Trigger: git, commit, 提交, push, branch, 分支, merge, tag, 标签, pre-commit"
 ---
+
+> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} git-workflow — {触发原因}`
 
 # Git Workflow Skill
 
