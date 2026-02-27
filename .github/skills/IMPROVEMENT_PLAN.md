@@ -183,5 +183,5 @@ Q&A 列表
 | 6 | 3.1 Custom Agent | ✅ 完成 — auditor.agent.md + releaser.agent.md |
 | 7 | 3.2 Skill 自测试 | ✅ 完成 — 每个 skill 增加验收场景 |
 | — | copilot-instructions.md | ✅ 更新 — 新增 skill 索引、编排链、Agent 表 |
-| — | 2.3 跨项目复用 | 待评估 — 需要用户确认 dawning 项目意愿 |
-| — | 2.2 模板 — 更多新 skill | 待评估 — performance、dependency-update |
+| — | 2.3 跨项目复用 | ✅ 完成 — dawning 项目新增 4 个 skills (git-workflow, markdown, build-project, changelog) |
+| — | 2.2 模板 — 更多新 skill | ✅ 完成 — performance, dependency-update |

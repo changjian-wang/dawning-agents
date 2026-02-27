@@ -56,6 +56,8 @@ Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 Ope
 | troubleshooting | 构建/测试/部署排错、LLM 调试 | 排错, error, debug, troubleshoot |
 | deep-audit | 逐行深度代码审计、安全/线程/资源/DI 全维度检查 | 深度审计, deep audit, 代码体检 |
 | security-audit | 安全专项：OWASP Top 10、依赖漏洞、密钥泄露 | 安全审计, security, vulnerability |
+| performance | BenchmarkDotNet、热路径、内存分配、异步开销 | 性能, benchmark, 热路径, allocation, optimize |
+| dependency-update | NuGet 依赖升级、破坏性变更评估、CVE 修补 | 依赖更新, NuGet update, 升级, outdated, CVE |
 
 ## 标准编排链
 
