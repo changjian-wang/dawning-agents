@@ -24,7 +24,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     private readonly PineconeOptions _options;
     private readonly ILogger<PineconeVectorStore> _logger;
     private object? _index; // 使用 object 因为 Index<T> 是泛型
-    private bool _initialized;
+    private volatile bool _initialized;
     private int _count;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
@@ -82,7 +82,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("DocumentChunk must have an embedding", nameof(chunk));
         }
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         var metadata = BuildMetadata(chunk);
         var vector = new Vector
@@ -115,7 +115,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         var vectors = chunkList
             .Select(chunk => new Vector
@@ -156,7 +156,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("Query embedding cannot be empty", nameof(queryEmbedding));
         }
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         var queryResponse = await index.Query(
             queryEmbedding,
@@ -198,7 +198,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         await index.Delete(new[] { id }, _options.Namespace);
 
@@ -214,7 +214,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         // Pinecone 支持按 metadata 过滤删除
         var filter = new MetadataMap { ["document_id"] = documentId };
@@ -229,7 +229,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         // 删除命名空间中的所有向量
         await index.DeleteAll(_options.Namespace);
@@ -248,7 +248,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        var index = await GetIndexAsync();
+        var index = await GetIndexAsync(cancellationToken);
 
         var response =
             await index.Fetch(new[] { id }, _options.Namespace) as IDictionary<string, Vector>;
@@ -261,26 +261,27 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         return VectorToChunk(vector);
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
+        _initLock.Dispose();
         if (_index is IDisposable disposable)
         {
             disposable.Dispose();
         }
         _client.Dispose();
-        await Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     #region Private Helpers
 
-    private async Task<dynamic> GetIndexAsync()
+    private async Task<dynamic> GetIndexAsync(CancellationToken cancellationToken = default)
     {
         if (_initialized && _index != null)
         {
             return _index;
         }
 
-        await _initLock.WaitAsync();
+        await _initLock.WaitAsync(cancellationToken);
         try
         {
             if (_initialized && _index != null)

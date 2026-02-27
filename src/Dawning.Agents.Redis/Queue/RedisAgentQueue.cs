@@ -27,8 +27,9 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     private readonly string _deadLetterKey;
     private readonly string _consumerName;
     private int _count;
-    private bool _initialized;
+    private volatile bool _initialized;
     private bool _disposed;
+    private readonly SemaphoreSlim _initLock = new(1, 1);
 
     /// <inheritdoc />
     public string ConsumerGroup => _options.ConsumerGroup;
@@ -75,26 +76,39 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             return;
         }
 
+        await _initLock.WaitAsync();
         try
         {
-            // 尝试创建消费者组，如果已存在则忽略错误
-            await _database
-                .StreamCreateConsumerGroupAsync(_queueKey, _options.ConsumerGroup, "0-0", true)
-                .ConfigureAwait(false);
+            if (_initialized)
+            {
+                return;
+            }
 
-            _logger.LogInformation(
-                "Created consumer group {Group} for queue {Queue}",
-                _options.ConsumerGroup,
-                _queueKey
-            );
+            try
+            {
+                // 尝试创建消费者组，如果已存在则忽略错误
+                await _database
+                    .StreamCreateConsumerGroupAsync(_queueKey, _options.ConsumerGroup, "0-0", true)
+                    .ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "Created consumer group {Group} for queue {Queue}",
+                    _options.ConsumerGroup,
+                    _queueKey
+                );
+            }
+            catch (RedisServerException ex) when (ex.Message.Contains("BUSYGROUP"))
+            {
+                // 消费者组已存在，忽略
+                _logger.LogDebug("Consumer group {Group} already exists", _options.ConsumerGroup);
+            }
+
+            _initialized = true;
         }
-        catch (RedisServerException ex) when (ex.Message.Contains("BUSYGROUP"))
+        finally
         {
-            // 消费者组已存在，忽略
-            _logger.LogDebug("Consumer group {Group} already exists", _options.ConsumerGroup);
+            _initLock.Release();
         }
-
-        _initialized = true;
     }
 
     /// <inheritdoc />
@@ -353,15 +367,16 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         if (_disposed)
         {
-            return;
+            return ValueTask.CompletedTask;
         }
 
         _disposed = true;
+        _initLock.Dispose();
         _logger.LogDebug("Disposed Redis agent queue");
-        await Task.CompletedTask.ConfigureAwait(false);
+        return ValueTask.CompletedTask;
     }
 }

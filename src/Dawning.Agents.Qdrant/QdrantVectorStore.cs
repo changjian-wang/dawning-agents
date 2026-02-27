@@ -24,7 +24,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     private readonly QdrantClient _client;
     private readonly QdrantOptions _options;
     private readonly ILogger<QdrantVectorStore> _logger;
-    private bool _collectionInitialized;
+    private volatile bool _collectionInitialized;
     private int _count;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
@@ -320,10 +320,11 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         return point != null ? RetrievedPointToChunk(point) : null;
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
+        _initLock.Dispose();
         _client.Dispose();
-        await Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     #region Private Helpers

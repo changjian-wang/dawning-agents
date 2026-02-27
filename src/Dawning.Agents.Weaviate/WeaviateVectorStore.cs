@@ -19,7 +19,7 @@ namespace Dawning.Agents.Weaviate;
 /// - 多租户
 /// - 混合搜索（向量 + 关键词）
 /// </remarks>
-public partial class WeaviateVectorStore : IVectorStore
+public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 {
     private static readonly Regex ValidClassNameRegex = ClassNameRegex();
     private readonly HttpClient _httpClient;
@@ -27,7 +27,7 @@ public partial class WeaviateVectorStore : IVectorStore
     private readonly ILogger<WeaviateVectorStore> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
     private int _count;
-    private bool _classEnsured;
+    private volatile bool _classEnsured;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
@@ -419,6 +419,13 @@ public partial class WeaviateVectorStore : IVectorStore
         await EnsureClassExistsAsync(cancellationToken);
 
         Interlocked.Exchange(ref _count, 0);
+    }
+
+    /// <inheritdoc />
+    public ValueTask DisposeAsync()
+    {
+        _initLock.Dispose();
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
