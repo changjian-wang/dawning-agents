@@ -19,10 +19,6 @@ description: "Security-focused audit for Dawning.Agents: OWASP Top 10, dependenc
 - **前置**：无
 - **后续**：`code-update` → `build-project` → `run-tests` → `git-workflow`
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} security-audit — {触发原因}`
-
 ---
 
 ## 审计维度（8 个）

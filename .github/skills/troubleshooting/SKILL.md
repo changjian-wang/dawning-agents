@@ -19,10 +19,6 @@ description: "Troubleshooting and diagnostics for Dawning.Agents: build/test/dep
 - **前置**：任意 skill（出错后触发）
 - **后续**：`code-update`（需要修代码时）或 `deployment`（部署问题时）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} troubleshooting — {触发原因}`
-
 ---
 
 ## Build Failures

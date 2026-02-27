@@ -19,10 +19,6 @@ description: "Make code changes in Dawning.Agents with current patterns: DI, log
 - **前置**：`architecture`（确认代码放置位置）
 - **后续**：`build-project` → `run-tests` → `csharpier` → `git-workflow`
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} code-update — {触发原因}`
-
 ---
 
 ## Required Patterns

@@ -19,10 +19,6 @@ description: "Deep code audit for Dawning.Agents: systematically read every line
 - **前置**：无
 - **后续**：`code-update` → `build-project` → `run-tests` → `csharpier` → `git-workflow`
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} deep-audit — {触发原因}`
-
 ---
 
 ## 执行流程（必须严格按序）

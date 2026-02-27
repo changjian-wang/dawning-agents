@@ -19,10 +19,6 @@ description: "Build and compile Dawning.Agents .NET project. Handles compilation
 - **前置**：`code-update`（代码变更后）
 - **后续**：`run-tests`（构建通过后）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} build-project — {触发原因}`
-
 ---
 
 ## Quick Commands

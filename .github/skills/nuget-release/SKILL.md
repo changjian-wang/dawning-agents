@@ -19,10 +19,6 @@ description: "NuGet release workflow for Dawning.Agents: versioning, packing, pu
 - **前置**：`changelog`（更新变更日志后发布）
 - **后续**：`deployment`（发布后部署）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} nuget-release — {触发原因}`
-
 ---
 
 ## Version Management

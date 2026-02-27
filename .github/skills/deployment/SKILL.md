@@ -19,10 +19,6 @@ description: "Deployment infrastructure for Dawning.Agents: Docker, K8s, observa
 - **前置**：`nuget-release`（发布后部署）
 - **后续**：`troubleshooting`（部署出问题时）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} deployment — {触发原因}`
-
 ---
 
 ## Docker

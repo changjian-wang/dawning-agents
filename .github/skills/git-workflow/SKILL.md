@@ -19,10 +19,6 @@ description: "Git operations for Dawning.Agents with conventional commit message
 - **前置**：`csharpier`（格式化后提交）
 - **后续**：`changelog`（提交后更新变更日志，如需要）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} git-workflow — {触发原因}`
-
 ---
 
 ## Standard Flow

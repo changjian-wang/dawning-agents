@@ -19,10 +19,6 @@ description: "Run and manage xUnit tests for Dawning.Agents project using Fluent
 - **前置**：`build-project`（构建通过后跑测试）
 - **后续**：`csharpier`（测试通过后格式化）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} run-tests — {触发原因}`
-
 ---
 
 ## Quick Commands

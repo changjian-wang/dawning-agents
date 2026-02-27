@@ -82,5 +82,4 @@ Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 Ope
 
 ## Skill 使用规则
 
-1. 使用任何 skill 后，写一条 repo memory 记录：`/memories/repo/skill-usage.md`，格式：`- {日期} {skill名} — {触发原因}`
-2. 代码变更的完整流程：code-update → build-project → run-tests → csharpier → git-workflow
+1. 代码变更的完整流程：code-update → build-project → run-tests → csharpier → git-workflow

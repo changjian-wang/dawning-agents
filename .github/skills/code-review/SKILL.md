@@ -27,10 +27,6 @@ description: "Review .NET code for Dawning.Agents project. Checks architecture c
 - **`code-update`**：禁止事项清单（8 条 ❌ 规则）
 - **`csharpier`**：格式化规范
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} code-review — {触发原因}`
-
 ---
 
 ## Review Checklist

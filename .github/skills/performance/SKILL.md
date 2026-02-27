@@ -19,10 +19,6 @@ description: "Performance analysis for Dawning.Agents: BenchmarkDotNet, hot path
 - **前置**：`build-project`（构建通过后）
 - **后续**：`run-tests`（优化后跑测试确认不破坏功能）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} performance — {触发原因}`
-
 ---
 
 ## 基准测试

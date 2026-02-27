@@ -19,10 +19,6 @@ description: "NuGet dependency update strategy for Dawning.Agents: version upgra
 - **前置**：无
 - **后续**：`build-project` → `run-tests` → `git-workflow`
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} dependency-update — {触发原因}`
-
 ---
 
 ## 检查过期依赖

@@ -19,10 +19,6 @@ description: "CHANGELOG management and documentation generation for Dawning.Agen
 - **前置**：`git-workflow`（提交后整理变更日志）
 - **后续**：`nuget-release`（发布前更新版本号）
 
-## Skill 使用日志
-
-使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} changelog — {触发原因}`
-
 ---
 
 ## CHANGELOG.md Format
