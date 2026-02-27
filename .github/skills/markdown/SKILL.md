@@ -2,182 +2,45 @@
 description: "Markdown formatting rules and conventions for Dawning.Agents documentation. Trigger: markdown, 写文档, README, API docs, documentation, XML docs, 文档格式, 注释规范"
 ---
 
-> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} markdown — {触发原因}`
-
 # Markdown Formatting Skill
 
-## What This Skill Does
+## 目标
 
-Defines the Markdown formatting rules for all documentation in this project.
+定义项目中所有 Markdown 文档和 XML 注释的格式化规范。
 
-## When to Use
+## 触发条件
 
-- Writing README.md or CHANGELOG.md
-- Creating API documentation
-- Writing code comments with Markdown
-- Reviewing documentation for formatting
+- **关键词**：markdown, 写文档, README, API docs, documentation, XML docs, 文档格式, 注释规范
+- **文件模式**：`*.md`, `docs/**`
+- **用户意图**：编写文档、格式化 Markdown、编写 XML 注释
+
+## 编排
+
+- **前置**：无
+- **后续**：`changelog`（文档需要记录到变更日志时）
+
+## Skill 使用日志
+
+使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} markdown — {触发原因}`
+
+---
 
 ## Core Rules
 
-### 1. Headings - Blank Lines Before and After
+1. **Headings** — blank lines before and after
+2. **Code Blocks** — always specify language (```csharp, ```bash, ```json)
+3. **Lists** — consistent markers (- or 1.), blank line for nested content
+4. **Tables** — aligned columns
+5. **Links** — descriptive text, not "click here"
+6. **Emphasis** — use sparingly, `code` for inline code references
+7. **Line Length** — wrap at ~100 characters
+8. **Inline Code** — backticks for class/method/variable names
+9. **Blockquotes** — for notes and warnings
+10. **GitHub Alerts** — `> [!NOTE]`, `> [!WARNING]`
 
-```markdown
-<!-- ✅ Correct -->
-Some text here.
-
-## Heading
-
-More text here.
-
-<!-- ❌ Wrong - no blank lines -->
-Some text here.
-## Heading
-More text here.
-```
-
-### 2. Code Blocks - Specify Language
-
-````markdown
-<!-- ✅ Correct - with language -->
-```csharp
-var x = 1;
-```
-
-```bash
-dotnet build
-```
-
-```json
-{ "key": "value" }
-```
-
-<!-- ❌ Wrong - no language -->
-```
-var x = 1;
-```
-````
-
-### 3. Lists - Consistent Markers
-
-```markdown
-<!-- ✅ Correct - consistent markers -->
-- Item 1
-- Item 2
-- Item 3
-
-1. First
-2. Second
-3. Third
-
-<!-- ❌ Wrong - mixed markers -->
-- Item 1
-* Item 2
-+ Item 3
-```
-
-### 4. Lists - Blank Line for Nested Content
-
-```markdown
-<!-- ✅ Correct - blank line before nested code -->
-- Item with code:
-
-  ```csharp
-  var x = 1;
-  ```
-
-- Next item
-
-<!-- ❌ Wrong - no blank line -->
-- Item with code:
-
-  ```csharp
-  var x = 1;
-  ```
-
-```
-
-### 5. Tables - Aligned Columns
-
-```markdown
-<!-- ✅ Correct - aligned -->
-| Name   | Type   | Description       |
-|--------|--------|-------------------|
-| id     | Guid   | Unique identifier |
-| name   | string | Display name      |
-
-<!-- ❌ Wrong - not aligned -->
-| Name | Type | Description |
-|---|---|---|
-| id | Guid | Unique identifier |
-```
-
-### 6. Links - Descriptive Text
-
-```markdown
-<!-- ✅ Correct - descriptive -->
-See the [configuration guide](docs/config.md) for details.
-Check out [Microsoft Docs](https://docs.microsoft.com).
-
-<!-- ❌ Wrong - generic text -->
-Click [here](docs/config.md) for details.
-See [https://docs.microsoft.com](https://docs.microsoft.com).
-```
-
-### 7. Emphasis - Use Sparingly
-
-```markdown
-<!-- ✅ Correct - meaningful emphasis -->
-This is **important** information.
-Use `code` for inline code references.
-
-<!-- ❌ Wrong - overused -->
-This is **very** **important** **information**.
-```
-
-### 8. Line Length - Wrap at ~100 Characters
-
-```markdown
-<!-- ✅ Correct - wrapped -->
-This is a long paragraph that should be wrapped at a reasonable
-length to maintain readability in plain text editors.
-
-<!-- ❌ Wrong - very long line -->
-This is a long paragraph that goes on and on without any line breaks which makes it very hard to read in plain text editors and causes horizontal scrolling.
-```
-
-### 9. Inline Code - For Code References
-
-```markdown
-<!-- ✅ Correct -->
-Use `ILLMProvider` interface.
-Call `RunAsync()` method.
-Set `MaxIterations` property.
-
-<!-- ❌ Wrong - no backticks for code -->
-Use ILLMProvider interface.
-Call RunAsync() method.
-```
-
-### 10. Blockquotes - For Notes and Warnings
-
-```markdown
-<!-- ✅ Correct -->
-> **Note**: This is important information.
-
-> **Warning**: This operation cannot be undone.
-
-<!-- GitHub style alerts -->
-> [!NOTE]
-> Useful information.
-
-> [!WARNING]
-> Critical warning.
-```
-
-## XML Documentation Comments
+## XML Documentation
 
 ```csharp
-// ✅ Correct - complete documentation
 /// <summary>
 /// Gets user by ID.
 /// </summary>
@@ -185,88 +48,20 @@ Call RunAsync() method.
 /// <param name="cancellationToken">Cancellation token.</param>
 /// <returns>The user DTO or null if not found.</returns>
 /// <exception cref="ArgumentException">Thrown when id is empty.</exception>
-public async Task<UserDto?> GetByIdAsync(
-    Guid id,
-    CancellationToken cancellationToken = default
-);
-
-// ❌ Wrong - incomplete or missing
-public async Task<UserDto?> GetByIdAsync(Guid id);
+public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 ```
 
-## README Structure Template
+## Key Documentation Files
 
-```markdown
-# Project Name
+| File | Purpose |
+|------|---------|
+| `README.md` | Project overview, installation, quick start |
+| `CHANGELOG.md` | Detailed change history |
+| `docs/QUICKSTART.md` | 5-minute setup guide |
+| `docs/API_REFERENCE.md` | Full API reference |
 
-Brief description of the project.
+## 验收场景
 
-## Features
-
-- Feature 1
-- Feature 2
-
-## Installation
-
-```bash
-dotnet add package ProjectName
-```
-
-## Quick Start
-
-```csharp
-// Example code
-```
-
-## Configuration
-
-Configuration details...
-
-## API Reference
-
-API documentation...
-
-## Contributing
-
-How to contribute...
-
-## License
-
-MIT License
-
-```
-
-## CHANGELOG Structure
-
-```markdown
-# Changelog
-
-## [Version] - YYYY-MM-DD
-
-### Added
-- New feature
-
-### Changed
-- Modified behavior
-
-### Fixed
-- Bug fix
-
-### Removed
-- Deprecated feature
-```
-
-## Quick Reference
-
-| Element | Rule |
-|---------|------|
-| Headings | Blank lines before/after |
-| Code blocks | Always specify language |
-| Lists | Consistent markers (- or 1.) |
-| Nested content | Blank line + 2-space indent |
-| Tables | Align columns |
-| Links | Descriptive text, not "click here" |
-| Emphasis | Use sparingly |
-| Line length | Wrap at ~100 characters |
-| Inline code | Backticks for code references |
-| XML docs | Complete with summary, params, returns |
+- **输入**："帮我写一段 XML 注释"
+- **预期**：agent 生成包含 summary、param、returns、exception 的完整 XML 注释
+- **上次验证**：2026-02-27

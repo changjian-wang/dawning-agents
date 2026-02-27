@@ -2,13 +2,32 @@
 description: "CHANGELOG management and documentation generation for Dawning.Agents: format, DocFX, release notes, API docs. Trigger: changelog, 变更日志, release notes, DocFX, 文档生成, documentation, 写文档, API docs"
 ---
 
-> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} changelog — {触发原因}`
+# Changelog & Documentation Skill
 
-# Changelog & Documentation
+## 目标
+
+管理 CHANGELOG.md 格式、DocFX 文档生成和 release notes 编写。
+
+## 触发条件
+
+- **关键词**：changelog, 变更日志, release notes, DocFX, 文档生成, API docs
+- **文件模式**：`CHANGELOG.md`, `docs/**`, `docfx.json`
+- **用户意图**：更新变更日志、生成文档、编写发布说明
+
+## 编排
+
+- **前置**：`git-workflow`（提交后整理变更日志）
+- **后续**：`nuget-release`（发布前更新版本号）
+
+## Skill 使用日志
+
+使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} changelog — {触发原因}`
+
+---
 
 ## CHANGELOG.md Format
 
-All entries use Chinese with emoji section headers. Maintain this structure:
+All entries use Chinese with emoji section headers:
 
 ```markdown
 ## [Unreleased] - YYYY-MM-DD
@@ -40,20 +59,11 @@ All entries use Chinese with emoji section headers. Maintain this structure:
 1. Date format: `YYYY-MM-DD`
 2. Use `[Unreleased]` until a version is tagged; then rename to `[x.y.z] - YYYY-MM-DD`
 3. Always include total test count with delta: `**2,046** (1,896 → 2,046)`
-4. Code references in backticks: `` `ClassName` ``, `` `AddMethod()` ``
+4. Code references in backticks
 5. Section emojis: 🏗️ features, 📖 docs, 🧪 tests, 🐛 fixes, 📋 samples
 6. Phase labels end with ✅ when complete
-7. Multiple `[Unreleased]` sections are ok during development (each dated)
 
-### Adding Entries
-
-When completing a task, append to the most recent `[Unreleased]` section. Include:
-- What was added/removed/changed
-- DI registration changes (if any)
-- Test count delta
-- Breaking changes (if any)
-
-## DocFX Documentation (`docs/`)
+## DocFX Documentation
 
 ### Build Docs
 
@@ -62,47 +72,20 @@ dotnet tool restore
 dotnet docfx docs/docfx.json
 ```
 
-Generates static site from:
-- `docs/articles/` — hand-written guides
-- `docs/api/` — auto-generated from XML comments (`<summary>`, `<param>`, `<returns>`)
-- `docs/guides/` — production guides, tutorials
-
-### CI/CD (`.github/workflows/docs.yml`)
-
-Triggered on push to `main` when `docs/**` changes. Builds with DocFX → deploys to GitHub Pages.
-
 ### XML Doc Requirements
 
-All public APIs must have XML documentation:
-
-```csharp
-/// <summary>
-/// Runs the agent with the given input.
-/// </summary>
-/// <param name="input">User input message.</param>
-/// <param name="cancellationToken">Cancellation token.</param>
-/// <returns>Agent response containing the result and metadata.</returns>
-/// <exception cref="BudgetExceededException">Thrown when cost exceeds MaxCostPerRun.</exception>
-public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default);
-```
+All public APIs must have XML documentation (`<summary>`, `<param>`, `<returns>`, `<exception>`).
 
 ## Release Notes
 
 When tagging a release:
 
 1. Move all `[Unreleased]` content to `[x.y.z] - YYYY-MM-DD`
-2. GitHub Actions auto-generates release notes from commits (via `softprops/action-gh-release`)
+2. GitHub Actions auto-generates release notes from commits
 3. Optionally paste curated CHANGELOG excerpt into GitHub Release description
 
-## Key Documentation Files
+## 验收场景
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Project overview, installation, quick start |
-| `CHANGELOG.md` | Detailed change history |
-| `LEARNING_PLAN.md` | 12-week learning curriculum |
-| `docs/QUICKSTART.md` | 5-minute setup guide |
-| `docs/API_REFERENCE.md` | Full API reference |
-| `docs/guides/production-best-practices.md` | Production deployment guide |
-| `docs/guides/security-hardening.md` | Security hardening guide |
-| `docs/guides/performance-tuning.md` | Performance tuning guide |
+- **输入**："帮我更新 CHANGELOG，这次修了 3 个线程安全 bug"
+- **预期**：agent 在 `[Unreleased]` 下追加 🐛 修复条目，包含具体描述
+- **上次验证**：2026-02-27

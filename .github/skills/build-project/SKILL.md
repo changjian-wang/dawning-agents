@@ -2,13 +2,28 @@
 description: "Build and compile Dawning.Agents .NET project. Handles compilation errors and common build issues. Trigger: 构建, 编译, build, compile, dotnet build, restore, 编译错误, build error"
 ---
 
-> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} build-project — {触发原因}`
-
 # Build Project Skill
 
-## What This Skill Does
+## 目标
 
-Builds Dawning.Agents and helps diagnose compile errors.
+构建 Dawning.Agents 解决方案并诊断编译错误。
+
+## 触发条件
+
+- **关键词**：构建, 编译, build, compile, dotnet build, restore, 编译错误, build error
+- **文件模式**：`*.csproj`, `Directory.Build.props`, `*.sln`
+- **用户意图**：构建项目、修复编译错误、恢复 NuGet 包
+
+## 编排
+
+- **前置**：`code-update`（代码变更后）
+- **后续**：`run-tests`（构建通过后）
+
+## Skill 使用日志
+
+使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} build-project — {触发原因}`
+
+---
 
 ## Quick Commands
 
@@ -31,32 +46,21 @@ dotnet build --nologo -v q
 ```bash
 dotnet build src/Dawning.Agents.Core/Dawning.Agents.Core.csproj --nologo
 dotnet build src/Dawning.Agents.MCP/Dawning.Agents.MCP.csproj --nologo
-dotnet build samples/Dawning.Agents.Samples.GettingStarted/Dawning.Agents.Samples.GettingStarted.csproj --nologo
 ```
 
 ## Current `src/` Projects
 
-- `Dawning.Agents.Abstractions`
-- `Dawning.Agents.Core`
-- `Dawning.Agents.OpenAI`
-- `Dawning.Agents.Azure`
-- `Dawning.Agents.MCP`
-- `Dawning.Agents.OpenTelemetry`
-- `Dawning.Agents.Serilog`
-- `Dawning.Agents.Redis`
-- `Dawning.Agents.Chroma`
-- `Dawning.Agents.Pinecone`
-- `Dawning.Agents.Qdrant`
-- `Dawning.Agents.Weaviate`
+Dawning.Agents.Abstractions, Core, OpenAI, Azure, MCP, OpenTelemetry, Serilog, Redis, Chroma, Pinecone, Qdrant, Weaviate
 
 ## Common Build Issues
 
-- Locked output files: stop running samples/services and rebuild
-- Missing types/packages: run `dotnet restore`
-- Stale artifacts: run `dotnet clean`
-- Formatting/analyzer failures: run `~/.dotnet/tools/csharpier format .`
+- **Locked output files**: stop running samples/services and rebuild
+- **Missing types/packages**: run `dotnet restore`
+- **Stale artifacts**: run `dotnet clean`
+- **Formatting/analyzer failures**: run `~/.dotnet/tools/csharpier format .`
 
-## Script Helpers
+## 验收场景
 
-- `./.github/skills/build-project/scripts/build.ps1`
-- `./.github/skills/build-project/scripts/build.sh`
+- **输入**："dotnet build 报错 CS0246 找不到类型"
+- **预期**：agent 检查 using 语句、项目引用、NuGet 包版本
+- **上次验证**：2026-02-27

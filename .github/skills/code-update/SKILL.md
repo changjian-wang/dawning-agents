@@ -2,21 +2,28 @@
 description: "Make code changes in Dawning.Agents with current patterns: DI, logging, cancellation, options, namespaces, templates. Trigger: 写代码, 改代码, implement, add service, add interface, new feature, fix bug, refactor, 实现, 重构, 新增"
 ---
 
-> **Skill 使用日志**：使用本 skill 后，在 `/memories/session/skill-log.md` 追加一行：`- {时间} code-update — {触发原因}`
-
 # Code Update Skill
 
-## What This Skill Does
+## 目标
 
-Implements code changes using Dawning.Agents conventions so new code compiles, aligns with architecture, and passes review.
+按照 Dawning.Agents 编码规范实现代码变更，确保新代码能编译、符合架构、通过审查。
 
-## When to Use
+## 触发条件
 
-- "Modify this code"
-- "Implement feature"
-- "Add service/interface/options"
-- "Fix bug"
-- "Refactor module"
+- **关键词**：写代码, 改代码, implement, add service, add interface, new feature, fix bug, refactor, 实现, 重构, 新增
+- **文件模式**：`*.cs`
+- **用户意图**：实现功能、修复 bug、重构模块、新增服务/接口/Options
+
+## 编排
+
+- **前置**：`architecture`（确认代码放置位置）
+- **后续**：`build-project` → `run-tests` → `csharpier` → `git-workflow`
+
+## Skill 使用日志
+
+使用本 skill 后，在 `/memories/repo/skill-usage.md` 追加一行：`- {日期} code-update — {触发原因}`
+
+---
 
 ## Required Patterns
 
@@ -56,10 +63,8 @@ Implements code changes using Dawning.Agents conventions so new code compiles, a
 - ❌ 同步 I/O（`.Result`、`.Wait()`、`.GetAwaiter().GetResult()`）
 - ❌ 忘记 `CancellationToken` 参数传递（async 链中每一层都要传）
 
-## Common Pitfalls
+## 验收场景
 
-- Wrong namespace root without area suffix
-- Missing options validation
-- Missing cancellation token
-- Registering runtime services in `Abstractions`
-- Forgetting to run build → test → format workflow after changes
+- **输入**："新增一个 INotificationService 接口和实现"
+- **预期**：agent 在 Abstractions 下创建接口，在 Core 下创建实现，包含 DI 扩展方法，通过构建
+- **上次验证**：2026-02-27
