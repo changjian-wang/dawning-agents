@@ -1,7 +1,12 @@
 ---
 description: |
   Use when: Writing new code, implementing features, fixing bugs, refactoring, adding services/interfaces, or applying required DI/logging/cancellation patterns
-  Don't use when: Reviewing code without changes (use code-review); building the solution (use build-project); running tests (use run-tests); formatting code (use csharpier); committing changes (use git-workflow)
+  Don't use when:
+    - Reviewing code without changes (use code-review)
+    - Building the solution (use build-project)
+    - Running tests (use run-tests)
+    - Formatting code (use csharpier)
+    - Committing changes (use git-workflow)
   Inputs: Feature request, bug report, or refactoring goal
   Outputs: Modified or new .cs files following all project patterns and conventions
   Success criteria: Code compiles, follows DI patterns, uses correct namespaces, no forbidden patterns

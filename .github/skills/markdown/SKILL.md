@@ -1,7 +1,11 @@
 ---
 description: |
   Use when: Writing or formatting Markdown documentation, XML doc comments, README files, or API docs
-  Don't use when: Writing C# code (use code-update); generating changelogs (use changelog); writing NuGet release notes (use nuget-release); reviewing code (use code-review)
+  Don't use when:
+    - Writing C# code (use code-update)
+    - Generating changelogs (use changelog)
+    - Writing NuGet release notes (use nuget-release)
+    - Reviewing code (use code-review)
   Inputs: Documentation content to write or format
   Outputs: Well-formatted Markdown or XML documentation following project conventions
   Success criteria: Documentation follows 10 core formatting rules, XML docs have all required tags

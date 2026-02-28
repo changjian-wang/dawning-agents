@@ -1,7 +1,12 @@
 ---
 description: |
   Use when: Creating or modifying Docker configs, K8s manifests, observability stack (Prometheus/Grafana/Loki/Tempo), health checks, or rollback procedures
-  Don't use when: Building the project (use build-project); running tests (use run-tests); writing application code (use code-update); updating dependencies (use dependency-update); writing documentation (use markdown)
+  Don't use when:
+    - Building the project (use build-project)
+    - Running tests (use run-tests)
+    - Writing application code (use code-update)
+    - Updating dependencies (use dependency-update)
+    - Writing documentation (use markdown)
   Inputs: Deployment requirement or infrastructure change request
   Outputs: Docker/K8s/observability configuration files
   Success criteria: Containers build and run, health checks pass, observability stack operational

@@ -1,7 +1,12 @@
 ---
 description: |
   Use when: Building the solution, fixing compilation errors, restoring packages, or checking project references
-  Don't use when: Running tests (use run-tests); formatting code (use csharpier); deploying containers or K8s (use deployment); writing new code (use code-update); diagnosing runtime errors (use troubleshooting)
+  Don't use when:
+    - Running tests (use run-tests)
+    - Formatting code (use csharpier)
+    - Deploying containers or K8s (use deployment)
+    - Writing new code (use code-update)
+    - Diagnosing runtime errors (use troubleshooting)
   Inputs: Build command or compilation error message
   Outputs: Successful build or resolved compilation error with explanation
   Success criteria: `dotnet build` succeeds with 0 errors and 0 warnings

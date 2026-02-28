@@ -1,7 +1,11 @@
 ---
 description: |
   Use when: Running BenchmarkDotNet benchmarks, analyzing hot paths, memory allocation, LINQ optimization, async overhead, or creating new benchmarks
-  Don't use when: Fixing functional bugs (use code-update); full codebase auditing (use deep-audit); security vulnerability analysis (use security-audit); running existing tests (use run-tests)
+  Don't use when:
+    - Fixing functional bugs (use code-update)
+    - Full codebase auditing (use deep-audit)
+    - Security vulnerability analysis (use security-audit)
+    - Running existing tests (use run-tests)
   Inputs: Performance concern, benchmark request, or optimization target
   Outputs: Benchmark results, performance analysis, optimized code
   Success criteria: Benchmarks run successfully, performance improvements measured and documented

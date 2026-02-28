@@ -1,7 +1,11 @@
 ---
 description: |
   Use when: Running xUnit tests, checking coverage, debugging test failures, or running targeted test subsets
-  Don't use when: Writing new test code (use code-update); building the solution (use build-project); formatting code (use csharpier); diagnosing non-test errors (use troubleshooting)
+  Don't use when:
+    - Writing new test code (use code-update)
+    - Building the solution (use build-project)
+    - Formatting code (use csharpier)
+    - Diagnosing non-test errors (use troubleshooting)
   Inputs: Test command or test failure to investigate
   Outputs: Test results with pass/fail counts, coverage report, or failure diagnosis
   Success criteria: All 2225+ tests pass, no regressions introduced

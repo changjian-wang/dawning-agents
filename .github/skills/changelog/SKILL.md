@@ -1,7 +1,11 @@
 ---
 description: |
   Use when: Writing or updating CHANGELOG.md, generating release notes, or managing DocFX documentation
-  Don't use when: Bumping version numbers or publishing NuGet packages (use nuget-release); writing code (use code-update); reviewing code (use code-review); writing general documentation (use markdown)
+  Don't use when:
+    - Bumping version numbers or publishing NuGet packages (use nuget-release)
+    - Writing code (use code-update)
+    - Reviewing code (use code-review)
+    - Writing general documentation (use markdown)
   Inputs: List of changes since last release, or request to update changelog
   Outputs: Updated CHANGELOG.md entry following Keep a Changelog format
   Success criteria: CHANGELOG.md has a properly formatted entry with categorized changes

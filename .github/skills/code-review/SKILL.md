@@ -1,7 +1,11 @@
 ---
 description: |
   Use when: Reviewing code for architecture compliance, naming conventions, DI patterns, forbidden patterns, or best practices
-  Don't use when: Writing new code or fixing bugs directly (use code-update); running tests (use run-tests); performing deep line-by-line audit (use deep-audit); checking for security vulnerabilities specifically (use security-audit)
+  Don't use when:
+    - Writing new code or fixing bugs directly (use code-update)
+    - Running tests (use run-tests)
+    - Performing deep line-by-line audit (use deep-audit)
+    - Checking for security vulnerabilities specifically (use security-audit)
   Inputs: Code files or PR diff to review
   Outputs: Structured review report with findings categorized by severity
   Success criteria: All findings documented with severity, location, and recommended fix
