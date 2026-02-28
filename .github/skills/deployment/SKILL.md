@@ -1,25 +1,8 @@
 ---
-description: "Deployment infrastructure for Dawning.Agents: Docker, K8s, observability, rollback. Trigger: 部署, deploy, docker, k8s, kubernetes, 容器, container, helm, rollback, 回滚, observability, 可观测性, grafana, prometheus"
+description: "Use when: Creating or modifying Docker configs, K8s manifests, observability stack (Prometheus/Grafana/Loki/Tempo), health checks, or rollback procedures\nDon't use when: Building the project (use build-project), running tests (use run-tests)\nInputs: Deployment requirement or infrastructure change request\nOutputs: Docker/K8s/observability configuration files\nSuccess criteria: Containers build and run, health checks pass, observability stack operational"
 ---
 
 # Deployment Skill
-
-## 目标
-
-提供 Docker、Kubernetes 部署和可观测性基础设施的操作指南。
-
-## 触发条件
-
-- **关键词**：部署, deploy, docker, k8s, kubernetes, 容器, container, helm, rollback, 回滚, grafana, prometheus
-- **文件模式**：`Dockerfile`, `docker-compose*.yml`, `deploy/**`, `*.yaml`
-- **用户意图**：部署应用、配置 K8s、设置可观测性、回滚版本
-
-## 编排
-
-- **前置**：`nuget-release`（发布后部署）
-- **后续**：`troubleshooting`（部署出问题时）
-
----
 
 ## Docker
 
@@ -89,8 +72,3 @@ curl http://localhost:8080/health/live
 curl http://localhost:8080/health/ready
 ```
 
-## 验收场景
-
-- **输入**："帮我部署到 K8s"
-- **预期**：agent 指导执行 `deploy.sh`，验证 Pod 状态和健康检查
-- **上次验证**：2026-02-27

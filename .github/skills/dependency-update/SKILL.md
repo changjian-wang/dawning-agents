@@ -1,25 +1,8 @@
 ---
-description: "NuGet dependency update strategy for Dawning.Agents: version upgrades, breaking change assessment, vulnerability patching. Trigger: 依赖更新, dependency update, NuGet update, 升级, upgrade, 版本过期, outdated, 安全补丁, patch, CVE"
+description: "Use when: Checking for outdated NuGet packages, upgrading dependencies, assessing breaking changes, or patching CVE vulnerabilities\nDon't use when: Publishing packages (use nuget-release), fixing compile errors from upgrades (use build-project)\nInputs: Request to check/update dependencies, or CVE advisory\nOutputs: Updated .csproj/Directory.Build.props with new versions, risk assessment\nSuccess criteria: All dependencies updated, solution builds, all tests pass"
 ---
 
 # Dependency Update Skill
-
-## 目标
-
-管理 Dawning.Agents 的 NuGet 依赖升级，评估破坏性变更风险，及时修补安全漏洞。
-
-## 触发条件
-
-- **关键词**：依赖更新, dependency update, NuGet update, 升级, upgrade, 版本过期, outdated, 安全补丁, patch, CVE, Dependabot
-- **文件模式**：`*.csproj`, `Directory.Build.props`, `global.json`, `nuget.config`
-- **用户意图**：更新依赖版本、检查过期包、修复依赖漏洞
-
-## 编排
-
-- **前置**：无
-- **后续**：`build-project` → `run-tests` → `git-workflow`
-
----
 
 ## 检查过期依赖
 
@@ -139,8 +122,3 @@ dotnet --version
 4. 立即升级，不等 minor/major 评估
 5. 提交信息中注明 CVE 编号：`fix(deps): patch CVE-2026-XXXX in PackageName`
 
-## 验收场景
-
-- **输入**："检查一下有没有过期的 NuGet 包"
-- **预期**：agent 运行 `dotnet list package --outdated`，按风险分层列出建议，高危 CVE 立即处理
-- **上次验证**：2026-02-27 ✅

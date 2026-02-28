@@ -1,25 +1,8 @@
 ---
-description: "Make code changes in Dawning.Agents with current patterns: DI, logging, cancellation, options, namespaces, templates. Trigger: 写代码, 改代码, implement, add service, add interface, new feature, fix bug, refactor, 实现, 重构, 新增"
+description: "Use when: Writing new code, implementing features, fixing bugs, refactoring, adding services/interfaces, or applying required DI/logging/cancellation patterns\nDon't use when: Reviewing code without changes (use code-review), building (use build-project), running tests (use run-tests)\nInputs: Feature request, bug report, or refactoring goal\nOutputs: Modified or new .cs files following all project patterns and conventions\nSuccess criteria: Code compiles, follows DI patterns, uses correct namespaces, no forbidden patterns"
 ---
 
 # Code Update Skill
-
-## 目标
-
-按照 Dawning.Agents 编码规范实现代码变更，确保新代码能编译、符合架构、通过审查。
-
-## 触发条件
-
-- **关键词**：写代码, 改代码, implement, add service, add interface, new feature, fix bug, refactor, 实现, 重构, 新增
-- **文件模式**：`*.cs`
-- **用户意图**：实现功能、修复 bug、重构模块、新增服务/接口/Options
-
-## 编排
-
-- **前置**：`architecture`（确认代码放置位置）
-- **后续**：`build-project` → `run-tests` → `csharpier` → `git-workflow`
-
----
 
 ## Required Patterns
 
@@ -59,8 +42,3 @@ description: "Make code changes in Dawning.Agents with current patterns: DI, log
 - ❌ 同步 I/O（`.Result`、`.Wait()`、`.GetAwaiter().GetResult()`）
 - ❌ 忘记 `CancellationToken` 参数传递（async 链中每一层都要传）
 
-## 验收场景
-
-- **输入**："新增一个 INotificationService 接口和实现"
-- **预期**：agent 在 Abstractions 下创建接口，在 Core 下创建实现，包含 DI 扩展方法，通过构建
-- **上次验证**：2026-02-27

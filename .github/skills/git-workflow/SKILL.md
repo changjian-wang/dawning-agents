@@ -1,25 +1,8 @@
 ---
-description: "Git operations for Dawning.Agents with conventional commit messages. Trigger: git, commit, 提交, push, branch, 分支, merge, tag, 标签, pre-commit"
+description: "Use when: Making git commits with conventional format, running pre-commit checks, creating branches or tags\nDon't use when: Writing code (use code-update), building (use build-project), formatting (use csharpier)\nInputs: Changes to commit, or branch/tag to create\nOutputs: Git commit with conventional message format, or branch/tag created\nSuccess criteria: Commit message follows `type(scope): subject` format, pre-commit checks pass"
 ---
 
 # Git Workflow Skill
-
-## 目标
-
-应用 Git 工作流和 Conventional Commits 规范。
-
-## 触发条件
-
-- **关键词**：git, commit, 提交, push, branch, 分支, merge, tag, 标签, pre-commit
-- **文件模式**：`.git/**`, `.gitignore`
-- **用户意图**：提交代码、推送分支、创建标签、查看历史
-
-## 编排
-
-- **前置**：`csharpier`（格式化后提交）
-- **后续**：`changelog`（提交后更新变更日志，如需要）
-
----
 
 ## Standard Flow
 
@@ -66,8 +49,3 @@ dotnet test --nologo
 ~/.dotnet/tools/csharpier format .
 ```
 
-## 验收场景
-
-- **输入**："提交这次修改"
-- **预期**：agent 运行 pre-commit 检查，生成符合规范的 commit message，执行 `git add && git commit`
-- **上次验证**：2026-02-27

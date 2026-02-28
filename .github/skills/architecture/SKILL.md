@@ -1,25 +1,8 @@
 ---
-description: "Dawning.Agents architecture reference: project structure, core interfaces, DI API, module boundaries. Trigger: 架构, 项目结构, project structure, interface, module, DI, namespace, where should I put"
+description: "Use when: Understanding project structure, finding where to place new code, checking module boundaries, reviewing namespace rules, or exploring core interfaces and DI registration API\nDon't use when: Writing or modifying code (use code-update), reviewing existing code quality (use code-review)\nInputs: Question about project structure, namespace, or module placement\nOutputs: Project layout reference, namespace rules, interface definitions, DI API examples\nSuccess criteria: User knows exactly where to place new code and which interfaces to implement"
 ---
 
 # Architecture Skill
-
-## 目标
-
-提供项目结构、核心接口、模块边界和 DI 注册的权威参考。
-
-## 触发条件
-
-- **关键词**：架构, 项目结构, project structure, interface, module, DI, namespace, where should I put
-- **文件模式**：`*.csproj`, `Directory.Build.props`, `Dawning.Agents.sln`
-- **用户意图**：了解项目结构、确定代码放置位置、查询接口定义、DI 注册方式
-
-## 编排
-
-- **前置**：无
-- **后续**：`code-update`（开始编码时）
-
----
 
 ## Project Layout
 
@@ -146,8 +129,3 @@ services.AddToolApprovalHandler();
 
 `read_file`, `write_file`, `edit_file`, `search`, `bash`, `create_tool`
 
-## 验收场景
-
-- **输入**："新增一个 IXxxProvider 接口，应该放哪里？"
-- **预期**：agent 读取此 skill，回答放在 `Abstractions/{Area}/` 下，实现放 provider 项目
-- **上次验证**：2026-02-27

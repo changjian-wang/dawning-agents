@@ -1,25 +1,8 @@
 ---
-description: "Run and manage xUnit tests for Dawning.Agents project using FluentAssertions and Moq. Trigger: 测试, test, xunit, 跑测试, run tests, coverage, 覆盖率, 测试失败, test failure"
+description: "Use when: Running xUnit tests, checking coverage, debugging test failures, or running targeted test subsets\nDon't use when: Writing new test code (use code-update), building (use build-project)\nInputs: Test command or test failure to investigate\nOutputs: Test results with pass/fail counts, coverage report, or failure diagnosis\nSuccess criteria: All 2225+ tests pass, no regressions introduced"
 ---
 
 # Run Tests Skill
-
-## 目标
-
-运行和验证 Dawning.Agents 的 xUnit 测试套件。
-
-## 触发条件
-
-- **关键词**：测试, test, xunit, 跑测试, run tests, coverage, 覆盖率, 测试失败, test failure
-- **文件模式**：`tests/**/*.cs`, `*.Tests.csproj`
-- **用户意图**：运行测试、检查覆盖率、修复测试失败
-
-## 编排
-
-- **前置**：`build-project`（构建通过后跑测试）
-- **后续**：`csharpier`（测试通过后格式化）
-
----
 
 ## Quick Commands
 
@@ -59,8 +42,3 @@ dotnet test --filter "FullyQualifiedName~MethodName" -v detailed
 2. Fix behavior first, assertions second
 3. Re-run focused tests, then full suite
 
-## 验收场景
-
-- **输入**："跑一下测试看看有没有失败"
-- **预期**：agent 执行 `dotnet test --nologo`，报告通过/失败数量
-- **上次验证**：2026-02-27

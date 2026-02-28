@@ -1,25 +1,8 @@
 ---
-description: "Security-focused audit for Dawning.Agents: OWASP Top 10, dependency vulnerabilities, secrets leakage, input validation, injection attacks. Trigger: 安全审计, security audit, security review, OWASP, 漏洞, vulnerability, 注入, injection, 密钥泄露, secrets, CVE"
+description: "Use when: Auditing for OWASP Top 10 vulnerabilities, dependency CVEs, secrets leakage, input validation, or injection attacks\nDon't use when: General code review (use code-review), full codebase audit (use deep-audit)\nInputs: Security audit request, optionally with focus area\nOutputs: Security audit report: findings by severity, dependency vulnerabilities, compliance status\nSuccess criteria: All 8 security dimensions checked, critical/high findings have fixes, no secrets in code"
 ---
 
 # Security Audit Skill
-
-## 目标
-
-对 Dawning.Agents 进行安全专项审计，聚焦 OWASP Top 10、依赖漏洞和安全最佳实践。
-
-## 触发条件
-
-- **关键词**：安全审计, security audit, security review, OWASP, 漏洞, vulnerability, 注入, injection, 密钥泄露, secrets, CVE
-- **文件模式**：`*.cs`, `*.csproj`, `appsettings*.json`, `docker-compose*.yml`
-- **用户意图**：安全审查、漏洞检测、密钥泄露检查、依赖安全评估
-
-## 编排
-
-- **前置**：无
-- **后续**：`code-update` → `build-project` → `run-tests` → `git-workflow`
-
----
 
 ## 审计维度（8 个）
 
@@ -140,8 +123,3 @@ grep -rn "apikey\|api_key\|secret\|password" appsettings*.json samples/ -i
 | 检查项 | 状态 | 备注 |
 ```
 
-## 验收场景
-
-- **输入**："对项目做一次安全审计"
-- **预期**：agent 执行依赖扫描 + 密钥搜索 + 代码审查，输出结构化安全报告
-- **上次验证**：2026-02-27

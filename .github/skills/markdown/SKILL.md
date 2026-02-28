@@ -1,25 +1,8 @@
 ---
-description: "Markdown formatting rules and conventions for Dawning.Agents documentation. Trigger: markdown, 写文档, README, API docs, documentation, XML docs, 文档格式, 注释规范"
+description: "Use when: Writing or formatting Markdown documentation, XML doc comments, README files, or API docs\nDon't use when: Writing C# code (use code-update), generating changelogs (use changelog)\nInputs: Documentation content to write or format\nOutputs: Well-formatted Markdown or XML documentation following project conventions\nSuccess criteria: Documentation follows 10 core formatting rules, XML docs have all required tags"
 ---
 
 # Markdown Formatting Skill
-
-## 目标
-
-定义项目中所有 Markdown 文档和 XML 注释的格式化规范。
-
-## 触发条件
-
-- **关键词**：markdown, 写文档, README, API docs, documentation, XML docs, 文档格式, 注释规范
-- **文件模式**：`*.md`, `docs/**`
-- **用户意图**：编写文档、格式化 Markdown、编写 XML 注释
-
-## 编排
-
-- **前置**：无
-- **后续**：`changelog`（文档需要记录到变更日志时）
-
----
 
 ## Core Rules
 
@@ -56,8 +39,3 @@ public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken cancellation
 | `docs/QUICKSTART.md` | 5-minute setup guide |
 | `docs/API_REFERENCE.md` | Full API reference |
 
-## 验收场景
-
-- **输入**："帮我写一段 XML 注释"
-- **预期**：agent 生成包含 summary、param、returns、exception 的完整 XML 注释
-- **上次验证**：2026-02-27

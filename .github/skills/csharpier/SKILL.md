@@ -1,25 +1,8 @@
 ---
-description: "CSharpier code formatting rules and conventions for Dawning.Agents. Trigger: format, 格式化, csharpier, code style, 代码风格, formatting, 排版"
+description: "Use when: Formatting C# code with CSharpier, checking formatting rules, or fixing style violations\nDon't use when: Reviewing code logic (use code-review), writing new code (use code-update)\nInputs: Request to format code or fix style issues\nOutputs: Formatted code via `dotnet csharpier format .`\nSuccess criteria: CSharpier reports 0 files changed (all code already formatted)"
 ---
 
 # CSharpier Formatting Skill
-
-## 目标
-
-定义 CSharpier 代码格式化规则，所有 C# 代码必须遵循这些规范。
-
-## 触发条件
-
-- **关键词**：format, 格式化, csharpier, code style, 代码风格, formatting, 排版
-- **文件模式**：`*.cs`, `.csharpierrc`, `.editorconfig`
-- **用户意图**：格式化代码、检查代码风格、了解格式化规则
-
-## 编排
-
-- **前置**：`run-tests`（测试通过后格式化）
-- **后续**：`git-workflow`（格式化后提交）
-
----
 
 ## Core Rules
 
@@ -99,8 +82,3 @@ await _llmProvider.ChatAsync(
 dotnet tool install -g csharpier
 ```
 
-## 验收场景
-
-- **输入**："格式化 src/ 目录下的代码"
-- **预期**：agent 运行 `~/.dotnet/tools/csharpier format .`，报告格式化结果
-- **上次验证**：2026-02-27

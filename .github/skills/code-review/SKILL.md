@@ -1,23 +1,8 @@
 ---
-description: "Review .NET code for Dawning.Agents project. Checks architecture compliance, naming, best practices. Trigger: 代码审查, review, 审查, code review, check code, 检查代码, PR review"
+description: "Use when: Reviewing code for architecture compliance, naming conventions, DI patterns, forbidden patterns, or best practices\nDon't use when: Writing new code (use code-update), fixing bugs directly (use code-update), running tests (use run-tests)\nInputs: Code files or PR diff to review\nOutputs: Structured review report with findings categorized by severity\nSuccess criteria: All findings documented with severity, location, and recommended fix"
 ---
 
 # Code Review Skill
-
-## 目标
-
-审查代码变更是否符合架构规范、编码标准和质量门禁。
-
-## 触发条件
-
-- **关键词**：代码审查, review, 审查, code review, check code, 检查代码, PR review
-- **文件模式**：`*.cs`, `*.csproj`
-- **用户意图**：审查代码质量、检查架构合规性、PR 审查
-
-## 编排
-
-- **前置**：`code-update`（代码变更完成后）
-- **后续**：`build-project`（审查通过后构建验证）
 
 ## 交叉检查
 
@@ -89,8 +74,3 @@ description: "Review .NET code for Dawning.Agents project. Checks architecture c
 
 Order findings by severity: correctness > security > performance > maintainability.
 
-## 验收场景
-
-- **输入**："审查这次 PR 的代码变更"
-- **预期**：agent 读取变更文件，按 6 项清单逐项检查，输出结构化报告
-- **上次验证**：2026-02-27

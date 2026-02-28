@@ -1,25 +1,8 @@
 ---
-description: "Troubleshooting and diagnostics for Dawning.Agents: build/test/deploy failures, LLM debugging, performance. Trigger: 排错, 报错, error, debug, 调试, troubleshoot, diagnose, 性能, performance, 失败, failure, crash"
+description: "Use when: Diagnosing build failures, test failures, deployment issues, LLM integration problems, or performance degradation\nDon't use when: Writing new code (use code-update), performing audits (use deep-audit)\nInputs: Error message, stack trace, or problem description\nOutputs: Root cause diagnosis and resolution steps\nSuccess criteria: Problem identified and resolved, or clear next steps provided"
 ---
 
 # Troubleshooting & Diagnostics Skill
-
-## 目标
-
-诊断和解决构建、测试、部署和 LLM 集成中的常见问题。
-
-## 触发条件
-
-- **关键词**：排错, 报错, error, debug, 调试, troubleshoot, diagnose, 性能, performance, 失败, failure, crash
-- **文件模式**：`*.log`, `TestResults/**`
-- **用户意图**：修复报错、调试问题、分析性能、诊断部署故障
-
-## 编排
-
-- **前置**：任意 skill（出错后触发）
-- **后续**：`code-update`（需要修代码时）或 `deployment`（部署问题时）
-
----
 
 ## Build Failures
 
@@ -102,8 +85,3 @@ ollama pull qwen2.5:0.5b
 ./scripts/benchmark.ps1 -Filter "*AgentBenchmark*"
 ```
 
-## 验收场景
-
-- **输入**："构建报错 MA0004，怎么修？"
-- **预期**：agent 解释需要添加 CancellationToken 参数，提供修复代码
-- **上次验证**：2026-02-27

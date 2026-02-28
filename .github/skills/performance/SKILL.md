@@ -1,25 +1,8 @@
 ---
-description: "Performance analysis for Dawning.Agents: BenchmarkDotNet, hot paths, memory allocation, LINQ optimization, async overhead. Trigger: 性能, performance, benchmark, 基准测试, 热路径, hot path, 内存分配, allocation, 优化, optimize"
+description: "Use when: Running BenchmarkDotNet benchmarks, analyzing hot paths, memory allocation, LINQ optimization, async overhead, or creating new benchmarks\nDon't use when: Fixing bugs (use code-update), auditing code (use deep-audit)\nInputs: Performance concern, benchmark request, or optimization target\nOutputs: Benchmark results, performance analysis, optimized code\nSuccess criteria: Benchmarks run successfully, performance improvements measured and documented"
 ---
 
 # Performance Skill
-
-## 目标
-
-分析和优化 Dawning.Agents 的性能，包括基准测试执行、热路径识别、内存分配优化。
-
-## 触发条件
-
-- **关键词**：性能, performance, benchmark, 基准测试, 热路径, hot path, 内存分配, allocation, 优化, optimize, 延迟, latency, throughput, 吞吐量
-- **文件模式**：`benchmarks/**/*.cs`, `src/**/*.cs`
-- **用户意图**：运行基准测试、分析性能瓶颈、优化内存分配、减少 GC 压力
-
-## 编排
-
-- **前置**：`build-project`（构建通过后）
-- **后续**：`run-tests`（优化后跑测试确认不破坏功能）
-
----
 
 ## 基准测试
 
@@ -150,8 +133,3 @@ public class NewFeatureBenchmarks
 4. 重跑 benchmark 对比
 5. 确认测试仍全部通过
 
-## 验收场景
-
-- **输入**："ToolRegistry 查找太慢，帮我分析一下"
-- **预期**：agent 运行 ToolRegistryBenchmarks，检查查找方法的热路径分配，提出优化建议
-- **上次验证**：2026-02-27 ✅
