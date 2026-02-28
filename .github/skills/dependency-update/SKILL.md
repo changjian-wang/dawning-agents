@@ -1,5 +1,10 @@
 ---
-description: "Use when: Checking for outdated NuGet packages, upgrading dependencies, assessing breaking changes, or patching CVE vulnerabilities\nDon't use when: Publishing packages (use nuget-release), fixing compile errors from upgrades (use build-project)\nInputs: Request to check/update dependencies, or CVE advisory\nOutputs: Updated .csproj/Directory.Build.props with new versions, risk assessment\nSuccess criteria: All dependencies updated, solution builds, all tests pass"
+description: |
+  Use when: Checking for outdated NuGet packages, upgrading dependencies, assessing breaking changes, or patching CVE vulnerabilities
+  Don't use when: Publishing packages (use nuget-release), fixing compile errors from upgrades (use build-project)
+  Inputs: Request to check/update dependencies, or CVE advisory
+  Outputs: Updated .csproj/Directory.Build.props with new versions, risk assessment
+  Success criteria: All dependencies updated, solution builds, all tests pass
 ---
 
 # Dependency Update Skill

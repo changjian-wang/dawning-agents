@@ -1,5 +1,10 @@
 ---
-description: "Use when: Performing a comprehensive line-by-line code audit across all 12 projects, finding bugs, security issues, design flaws, and test gaps\nDon't use when: Quick code review (use code-review), security-only audit (use security-audit), fixing issues without auditing first\nInputs: Request for full codebase audit, optionally with focus area\nOutputs: Structured audit report: findings by severity (CRITICAL/HIGH/MEDIUM/LOW), test gaps, comparison with previous audit\nSuccess criteria: Every project audited, all findings documented with location and fix, test coverage gaps identified"
+description: |
+  Use when: Performing a comprehensive line-by-line code audit across all 12 projects, finding bugs, security issues, design flaws, and test gaps
+  Don't use when: Quick code review (use code-review), security-only audit (use security-audit), fixing issues without auditing first
+  Inputs: Request for full codebase audit, optionally with focus area
+  Outputs: Structured audit report: findings by severity (CRITICAL/HIGH/MEDIUM/LOW), test gaps, comparison with previous audit
+  Success criteria: Every project audited, all findings documented with location and fix, test coverage gaps identified
 ---
 
 # Deep Code Audit Skill

@@ -1,5 +1,10 @@
 ---
-description: "Use when: Creating or modifying Docker configs, K8s manifests, observability stack (Prometheus/Grafana/Loki/Tempo), health checks, or rollback procedures\nDon't use when: Building the project (use build-project), running tests (use run-tests)\nInputs: Deployment requirement or infrastructure change request\nOutputs: Docker/K8s/observability configuration files\nSuccess criteria: Containers build and run, health checks pass, observability stack operational"
+description: |
+  Use when: Creating or modifying Docker configs, K8s manifests, observability stack (Prometheus/Grafana/Loki/Tempo), health checks, or rollback procedures
+  Don't use when: Building the project (use build-project), running tests (use run-tests)
+  Inputs: Deployment requirement or infrastructure change request
+  Outputs: Docker/K8s/observability configuration files
+  Success criteria: Containers build and run, health checks pass, observability stack operational
 ---
 
 # Deployment Skill

@@ -1,5 +1,10 @@
 ---
-description: "Use when: Managing package versions, packing NuGet packages, publishing releases, creating git tags, or running release CI/CD\nDon't use when: Writing changelog (use changelog), updating dependencies (use dependency-update)\nInputs: Target version number or release request\nOutputs: Version bumped in Directory.Build.props, packages built and packed, git tag created\nSuccess criteria: Pre-release checklist complete, packages published, tag pushed"
+description: |
+  Use when: Managing package versions, packing NuGet packages, publishing releases, creating git tags, or running release CI/CD
+  Don't use when: Writing changelog (use changelog), updating dependencies (use dependency-update)
+  Inputs: Target version number or release request
+  Outputs: Version bumped in Directory.Build.props, packages built and packed, git tag created
+  Success criteria: Pre-release checklist complete, packages published, tag pushed
 ---
 
 # NuGet Release Skill

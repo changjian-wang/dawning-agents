@@ -1,5 +1,10 @@
 ---
-description: "Use when: Diagnosing build failures, test failures, deployment issues, LLM integration problems, or performance degradation\nDon't use when: Writing new code (use code-update), performing audits (use deep-audit)\nInputs: Error message, stack trace, or problem description\nOutputs: Root cause diagnosis and resolution steps\nSuccess criteria: Problem identified and resolved, or clear next steps provided"
+description: |
+  Use when: Diagnosing build failures, test failures, deployment issues, LLM integration problems, or performance degradation
+  Don't use when: Writing new code (use code-update), performing audits (use deep-audit)
+  Inputs: Error message, stack trace, or problem description
+  Outputs: Root cause diagnosis and resolution steps
+  Success criteria: Problem identified and resolved, or clear next steps provided
 ---
 
 # Troubleshooting & Diagnostics Skill

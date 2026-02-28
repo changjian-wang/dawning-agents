@@ -1,5 +1,10 @@
 ---
-description: "Use when: Running BenchmarkDotNet benchmarks, analyzing hot paths, memory allocation, LINQ optimization, async overhead, or creating new benchmarks\nDon't use when: Fixing bugs (use code-update), auditing code (use deep-audit)\nInputs: Performance concern, benchmark request, or optimization target\nOutputs: Benchmark results, performance analysis, optimized code\nSuccess criteria: Benchmarks run successfully, performance improvements measured and documented"
+description: |
+  Use when: Running BenchmarkDotNet benchmarks, analyzing hot paths, memory allocation, LINQ optimization, async overhead, or creating new benchmarks
+  Don't use when: Fixing bugs (use code-update), auditing code (use deep-audit)
+  Inputs: Performance concern, benchmark request, or optimization target
+  Outputs: Benchmark results, performance analysis, optimized code
+  Success criteria: Benchmarks run successfully, performance improvements measured and documented
 ---
 
 # Performance Skill

@@ -1,5 +1,10 @@
 ---
-description: "Use when: Understanding project structure, finding where to place new code, checking module boundaries, reviewing namespace rules, or exploring core interfaces and DI registration API\nDon't use when: Writing or modifying code (use code-update), reviewing existing code quality (use code-review)\nInputs: Question about project structure, namespace, or module placement\nOutputs: Project layout reference, namespace rules, interface definitions, DI API examples\nSuccess criteria: User knows exactly where to place new code and which interfaces to implement"
+description: |
+  Use when: Understanding project structure, finding where to place new code, checking module boundaries, reviewing namespace rules, or exploring core interfaces and DI registration API
+  Don't use when: Writing or modifying code (use code-update), reviewing existing code quality (use code-review)
+  Inputs: Question about project structure, namespace, or module placement
+  Outputs: Project layout reference, namespace rules, interface definitions, DI API examples
+  Success criteria: User knows exactly where to place new code and which interfaces to implement
 ---
 
 # Architecture Skill

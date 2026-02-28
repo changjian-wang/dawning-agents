@@ -1,5 +1,10 @@
 ---
-description: "Use when: Making git commits with conventional format, running pre-commit checks, creating branches or tags\nDon't use when: Writing code (use code-update), building (use build-project), formatting (use csharpier)\nInputs: Changes to commit, or branch/tag to create\nOutputs: Git commit with conventional message format, or branch/tag created\nSuccess criteria: Commit message follows `type(scope): subject` format, pre-commit checks pass"
+description: |
+  Use when: Making git commits with conventional format, running pre-commit checks, creating branches or tags
+  Don't use when: Writing code (use code-update), building (use build-project), formatting (use csharpier)
+  Inputs: Changes to commit, or branch/tag to create
+  Outputs: Git commit with conventional message format, or branch/tag created
+  Success criteria: Commit message follows `type(scope): subject` format, pre-commit checks pass
 ---
 
 # Git Workflow Skill

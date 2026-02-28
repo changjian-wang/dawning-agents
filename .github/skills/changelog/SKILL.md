@@ -1,5 +1,10 @@
 ---
-description: "Use when: Writing or updating CHANGELOG.md, generating release notes, or managing DocFX documentation\nDon't use when: Bumping version numbers or publishing NuGet packages (use nuget-release)\nInputs: List of changes since last release, or request to update changelog\nOutputs: Updated CHANGELOG.md entry following Keep a Changelog format\nSuccess criteria: CHANGELOG.md has a properly formatted entry with categorized changes"
+description: |
+  Use when: Writing or updating CHANGELOG.md, generating release notes, or managing DocFX documentation
+  Don't use when: Bumping version numbers or publishing NuGet packages (use nuget-release)
+  Inputs: List of changes since last release, or request to update changelog
+  Outputs: Updated CHANGELOG.md entry following Keep a Changelog format
+  Success criteria: CHANGELOG.md has a properly formatted entry with categorized changes
 ---
 
 # Changelog & Documentation Skill

@@ -1,5 +1,10 @@
 ---
-description: "Use when: Writing new code, implementing features, fixing bugs, refactoring, adding services/interfaces, or applying required DI/logging/cancellation patterns\nDon't use when: Reviewing code without changes (use code-review), building (use build-project), running tests (use run-tests)\nInputs: Feature request, bug report, or refactoring goal\nOutputs: Modified or new .cs files following all project patterns and conventions\nSuccess criteria: Code compiles, follows DI patterns, uses correct namespaces, no forbidden patterns"
+description: |
+  Use when: Writing new code, implementing features, fixing bugs, refactoring, adding services/interfaces, or applying required DI/logging/cancellation patterns
+  Don't use when: Reviewing code without changes (use code-review), building (use build-project), running tests (use run-tests)
+  Inputs: Feature request, bug report, or refactoring goal
+  Outputs: Modified or new .cs files following all project patterns and conventions
+  Success criteria: Code compiles, follows DI patterns, uses correct namespaces, no forbidden patterns
 ---
 
 # Code Update Skill

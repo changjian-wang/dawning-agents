@@ -1,5 +1,10 @@
 ---
-description: "Use when: Reviewing code for architecture compliance, naming conventions, DI patterns, forbidden patterns, or best practices\nDon't use when: Writing new code (use code-update), fixing bugs directly (use code-update), running tests (use run-tests)\nInputs: Code files or PR diff to review\nOutputs: Structured review report with findings categorized by severity\nSuccess criteria: All findings documented with severity, location, and recommended fix"
+description: |
+  Use when: Reviewing code for architecture compliance, naming conventions, DI patterns, forbidden patterns, or best practices
+  Don't use when: Writing new code (use code-update), fixing bugs directly (use code-update), running tests (use run-tests)
+  Inputs: Code files or PR diff to review
+  Outputs: Structured review report with findings categorized by severity
+  Success criteria: All findings documented with severity, location, and recommended fix
 ---
 
 # Code Review Skill

@@ -1,5 +1,10 @@
 ---
-description: "Use when: Writing or formatting Markdown documentation, XML doc comments, README files, or API docs\nDon't use when: Writing C# code (use code-update), generating changelogs (use changelog)\nInputs: Documentation content to write or format\nOutputs: Well-formatted Markdown or XML documentation following project conventions\nSuccess criteria: Documentation follows 10 core formatting rules, XML docs have all required tags"
+description: |
+  Use when: Writing or formatting Markdown documentation, XML doc comments, README files, or API docs
+  Don't use when: Writing C# code (use code-update), generating changelogs (use changelog)
+  Inputs: Documentation content to write or format
+  Outputs: Well-formatted Markdown or XML documentation following project conventions
+  Success criteria: Documentation follows 10 core formatting rules, XML docs have all required tags
 ---
 
 # Markdown Formatting Skill

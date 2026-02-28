@@ -1,5 +1,10 @@
 ---
-description: "Use when: Building the solution, fixing compilation errors, restoring packages, or checking project references\nDon't use when: Running tests (use run-tests), formatting code (use csharpier), deploying (use deployment)\nInputs: Build command or compilation error message\nOutputs: Successful build or resolved compilation error with explanation\nSuccess criteria: `dotnet build` succeeds with 0 errors and 0 warnings"
+description: |
+  Use when: Building the solution, fixing compilation errors, restoring packages, or checking project references
+  Don't use when: Running tests (use run-tests), formatting code (use csharpier), deploying (use deployment)
+  Inputs: Build command or compilation error message
+  Outputs: Successful build or resolved compilation error with explanation
+  Success criteria: `dotnet build` succeeds with 0 errors and 0 warnings
 ---
 
 # Build Project Skill

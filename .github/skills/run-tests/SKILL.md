@@ -1,5 +1,10 @@
 ---
-description: "Use when: Running xUnit tests, checking coverage, debugging test failures, or running targeted test subsets\nDon't use when: Writing new test code (use code-update), building (use build-project)\nInputs: Test command or test failure to investigate\nOutputs: Test results with pass/fail counts, coverage report, or failure diagnosis\nSuccess criteria: All 2225+ tests pass, no regressions introduced"
+description: |
+  Use when: Running xUnit tests, checking coverage, debugging test failures, or running targeted test subsets
+  Don't use when: Writing new test code (use code-update), building (use build-project)
+  Inputs: Test command or test failure to investigate
+  Outputs: Test results with pass/fail counts, coverage report, or failure diagnosis
+  Success criteria: All 2225+ tests pass, no regressions introduced
 ---
 
 # Run Tests Skill
