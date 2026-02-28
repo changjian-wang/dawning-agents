@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Diagnosing build failures, test failures, deployment issues, LLM integration problems, or performance degradation
-  Don't use when: Writing new code (use code-update), performing audits (use deep-audit)
+  Don't use when: Writing new features (use code-update); performing code audits (use deep-audit); running tests (use run-tests); fixing build errors (use build-project); security-specific investigation (use security-audit)
   Inputs: Error message, stack trace, or problem description
   Outputs: Root cause diagnosis and resolution steps
   Success criteria: Problem identified and resolved, or clear next steps provided

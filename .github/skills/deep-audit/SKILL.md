@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Performing a comprehensive line-by-line code audit across all 12 projects, finding bugs, security issues, design flaws, and test gaps
-  Don't use when: Quick code review (use code-review), security-only audit (use security-audit), fixing issues without auditing first
+  Don't use when: Quick code review of a few files (use code-review); security-only audit without full scope (use security-audit); fixing issues without auditing first (use code-update); running tests (use run-tests); checking a single performance concern (use performance)
   Inputs: Request for full codebase audit, optionally with focus area
   Outputs: Structured audit report: findings by severity (CRITICAL/HIGH/MEDIUM/LOW), test gaps, comparison with previous audit
   Success criteria: Every project audited, all findings documented with location and fix, test coverage gaps identified

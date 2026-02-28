@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Formatting C# code with CSharpier, checking formatting rules, or fixing style violations
-  Don't use when: Reviewing code logic (use code-review), writing new code (use code-update)
+  Don't use when: Reviewing code logic (use code-review); writing new code (use code-update); fixing compilation errors (use build-project); running tests (use run-tests)
   Inputs: Request to format code or fix style issues
   Outputs: Formatted code via `dotnet csharpier format .`
   Success criteria: CSharpier reports 0 files changed (all code already formatted)

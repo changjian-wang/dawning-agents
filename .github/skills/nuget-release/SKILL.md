@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Managing package versions, packing NuGet packages, publishing releases, creating git tags, or running release CI/CD
-  Don't use when: Writing changelog (use changelog), updating dependencies (use dependency-update)
+  Don't use when: Writing changelog entries (use changelog); updating dependencies (use dependency-update); writing code (use code-update); building without release intent (use build-project); deploying containers (use deployment)
   Inputs: Target version number or release request
   Outputs: Version bumped in Directory.Build.props, packages built and packed, git tag created
   Success criteria: Pre-release checklist complete, packages published, tag pushed

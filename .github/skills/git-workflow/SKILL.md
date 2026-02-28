@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Making git commits with conventional format, running pre-commit checks, creating branches or tags
-  Don't use when: Writing code (use code-update), building (use build-project), formatting (use csharpier)
+  Don't use when: Writing code (use code-update); building the solution (use build-project); formatting code (use csharpier); running tests (use run-tests); writing changelog (use changelog)
   Inputs: Changes to commit, or branch/tag to create
   Outputs: Git commit with conventional message format, or branch/tag created
   Success criteria: Commit message follows `type(scope): subject` format, pre-commit checks pass

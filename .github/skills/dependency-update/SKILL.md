@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Checking for outdated NuGet packages, upgrading dependencies, assessing breaking changes, or patching CVE vulnerabilities
-  Don't use when: Publishing packages (use nuget-release), fixing compile errors from upgrades (use build-project)
+  Don't use when: Publishing packages (use nuget-release); fixing compile errors from upgrades (use build-project); writing changelog entries (use changelog); general code changes unrelated to dependencies (use code-update)
   Inputs: Request to check/update dependencies, or CVE advisory
   Outputs: Updated .csproj/Directory.Build.props with new versions, risk assessment
   Success criteria: All dependencies updated, solution builds, all tests pass

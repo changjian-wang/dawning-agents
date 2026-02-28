@@ -1,7 +1,7 @@
 ---
 description: |
   Use when: Auditing for OWASP Top 10 vulnerabilities, dependency CVEs, secrets leakage, input validation, or injection attacks
-  Don't use when: General code review (use code-review), full codebase audit (use deep-audit)
+  Don't use when: General code review (use code-review); full codebase audit across all dimensions (use deep-audit); writing fixes for found issues (use code-update); checking dependency versions only (use dependency-update)
   Inputs: Security audit request, optionally with focus area
   Outputs: Security audit report: findings by severity, dependency vulnerabilities, compliance status
   Success criteria: All 8 security dimensions checked, critical/high findings have fixes, no secrets in code
