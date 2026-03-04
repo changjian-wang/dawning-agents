@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <RootNamespace>Dawning.Agents.Api</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Dawning.Agents.Core\Dawning.Agents.Core.csproj" />
+        <ProjectReference Include="..\..\src\Dawning.Agents.OpenTelemetry\Dawning.Agents.OpenTelemetry.csproj" />
+    </ItemGroup>
+</Project>

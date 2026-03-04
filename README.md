@@ -6,6 +6,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-1906%20passing-brightgreen)](https://github.com/changjian-wang/dawning-agents)
+[![codecov](https://codecov.io/gh/changjian-wang/dawning-agents/branch/main/graph/badge.svg)](https://codecov.io/gh/changjian-wang/dawning-agents)
 
 ## 🎯 为什么选择 Dawning.Agents？
 
@@ -49,7 +50,7 @@
 ### 核心能力
 - 🎯 **极简 API** - 一行代码完成核心功能注册
 - 🔌 **纯 DI 架构** - 完全基于依赖注入，与 ASP.NET Core 无缝集成
-- 🛠️ **丰富的工具** - 64 个内置工具，支持自定义扩展
+- 🛠️ **核心工具集** - 6 个核心工具 + 动态工具创建（create_tool）
 - 🤖 **多 Agent 协作** - 顺序/并行编排、Handoff 任务转交
 
 ### 智能记忆 (五大上下文策略)
@@ -98,6 +99,15 @@ dotnet add package Dawning.Agents.Azure
 dotnet add package Dawning.Agents.Qdrant
 dotnet add package Dawning.Agents.Pinecone
 dotnet add package Dawning.Agents.Redis
+dotnet add package Dawning.Agents.Chroma
+dotnet add package Dawning.Agents.Weaviate
+
+# 可观测性与日志
+dotnet add package Dawning.Agents.OpenTelemetry
+dotnet add package Dawning.Agents.Serilog
+
+# MCP 协议
+dotnet add package Dawning.Agents.MCP
 ```
 
 ## 🚀 快速开始
@@ -122,8 +132,8 @@ var builder = Host.CreateApplicationBuilder(args);
 // 注册 LLM Provider
 builder.Services.AddLLMProvider(builder.Configuration);
 
-// 注册内置工具
-builder.Services.AddBuiltInTools();
+// 注册核心工具
+builder.Services.AddCoreTools();
 
 // 注册 ReAct Agent
 builder.Services.AddReActAgent(options =>
@@ -149,7 +159,7 @@ dawning-agents/
 │   ├── Dawning.Agents.Abstractions/     # 📦 接口和数据模型（零依赖）
 │   │   ├── Agent/                       # IAgent, AgentContext, AgentResponse, AgentOptions
 │   │   ├── LLM/                         # ILLMProvider, ChatMessage, LLMOptions
-│   │   ├── Tools/                       # ITool, IToolRegistry, IToolSet, IVirtualTool
+│   │   ├── Tools/                       # ITool, IToolRegistry, IToolApprovalHandler
 │   │   ├── Memory/                      # IConversationMemory, ITokenCounter, MemoryOptions
 │   │   ├── RAG/                         # IVectorStore, IEmbeddingProvider, DocumentChunk
 │   │   ├── Cache/                       # ISemanticCache, SemanticCacheOptions
@@ -169,18 +179,16 @@ dawning-agents/
 │   │   │   ├── OllamaProvider.cs        # Ollama 本地模型
 │   │   │   └── HotReloadableLLMProvider.cs
 │   │   ├── Tools/
-│   │   │   ├── BuiltIn/                 # 64 个内置工具
-│   │   │   │   ├── DateTimeTool.cs      # 日期时间 (4 方法)
-│   │   │   │   ├── MathTool.cs          # 数学计算 (8 方法)
-│   │   │   │   ├── JsonTool.cs          # JSON 处理 (4 方法)
-│   │   │   │   ├── UtilityTool.cs       # 实用工具 (5 方法)
-│   │   │   │   ├── FileSystemTool.cs    # 文件操作 (13 方法)
-│   │   │   │   ├── HttpTool.cs          # HTTP 请求 (6 方法)
-│   │   │   │   ├── ProcessTool.cs       # 进程管理 (6 方法)
-│   │   │   │   └── GitTool.cs           # Git 操作 (18 方法)
+│   │   │   ├── Core/                    # 6 个核心工具实现
+│   │   │   │   ├── ReadFileTool.cs      # read_file
+│   │   │   │   ├── WriteFileTool.cs     # write_file
+│   │   │   │   ├── EditFileTool.cs      # edit_file
+│   │   │   │   ├── SearchTool.cs        # search
+│   │   │   │   ├── BashTool.cs          # bash
+│   │   │   │   └── CreateToolTool.cs    # create_tool
 │   │   │   ├── ToolRegistry.cs          # 工具注册中心
-│   │   │   ├── ToolSet.cs               # 工具集分组
-│   │   │   └── VirtualTool.cs           # 虚拟工具（按需展开）
+│   │   │   ├── ToolScanner.cs           # 动态扫描工具
+│   │   │   └── MethodTool.cs            # 方法级工具包装
 │   │   ├── Memory/
 │   │   │   ├── BufferMemory.cs          # 完整存储
 │   │   │   ├── WindowMemory.cs          # 滑动窗口
@@ -238,6 +246,8 @@ dawning-agents/
 │   │   └── OpenAIEmbeddingProvider.cs   # text-embedding-ada-002
 │   │
 │   ├── Dawning.Agents.Azure/            # ☁️ Azure OpenAI Provider
+│   ├── Dawning.Agents.OpenTelemetry/    # 📊 OpenTelemetry 可观测性
+│   ├── Dawning.Agents.Serilog/          # 📝 Serilog 结构化日志
 │   │
 │   ├── Dawning.Agents.Qdrant/           # 🟣 Qdrant 向量存储
 │   ├── Dawning.Agents.Pinecone/         # 🌲 Pinecone 向量存储
@@ -257,7 +267,11 @@ dawning-agents/
 │       └── Integration/                 # 集成测试
 │
 ├── samples/
-│   └── Dawning.Agents.Demo/             # 🎮 交互式演示程序
+│   ├── Dawning.Agents.Samples.GettingStarted/ # 🚀 入门示例
+│   ├── Dawning.Agents.Samples.Memory/         # 🧠 Memory 示例
+│   ├── Dawning.Agents.Samples.RAG/            # 🔍 RAG 示例
+│   ├── Dawning.Agents.Samples.Enterprise/     # 🏢 企业级示例
+│   └── Dawning.Agents.Api/                    # 🌐 Minimal API + SSE 示例
 │
 ├── benchmarks/
 │   └── Dawning.Agents.Benchmarks/       # ⚡ 性能基准测试
@@ -277,9 +291,6 @@ dawning-agents/
 
 ### NuGet 包依赖关系
 
-> ⚠️ **已知问题**: 当前 `Core` 包通过 ProjectReference 依赖了 `OpenAI` 和 `Azure`，导致传递依赖过多。
-> 重构计划见 [ENTERPRISE_ROADMAP.md](docs/ENTERPRISE_ROADMAP.md) Phase 1.1。
-
 ```
 ┌──────────────────────────────────────────┐
 │       Dawning.Agents.Abstractions        │  零依赖，定义所有接口
@@ -291,9 +302,8 @@ dawning-agents/
 │   Core    │  │  OpenAI   │  │   Azure   │  │    MCP    │
 │  (核心)   │  │ (OpenAI)  │  │  (Azure)  │  │  (协议)   │
 └─────┬─────┘  └───────────┘  └───────────┘  └───────────┘
-      │ (当前 Core 反向引用 OpenAI/Azure，待重构)
-      │
-      ├──────────────┬──────────────┬──────────────┐
+    │
+    ├──────────────┬──────────────┬──────────────┬──────────────┐
       ▼              ▼              ▼              ▼
 ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
 │  Qdrant   │  │ Pinecone  │  │   Redis   │  │  Chroma   │
@@ -446,26 +456,20 @@ var abRunner = new ABTestRunner(agentA, agentB, evaluators);
 var comparison = await abRunner.CompareAsync(testCases);
 ```
 
-### 内置工具 (64 个方法)
+### 核心工具 (6 个)
 
-| 类别 | 工具类 | 方法数 |
-|------|--------|--------|
-| DateTime | DateTimeTool | 4 |
-| Math | MathTool | 8 |
-| Json | JsonTool | 4 |
-| Utility | UtilityTool | 5 |
-| FileSystem | FileSystemTool | 13 |
-| Http | HttpTool | 6 |
-| Process | ProcessTool | 6 |
-| Git | GitTool | 18 |
+| 工具名 | 用途 |
+|--------|------|
+| `read_file` | 读取文件内容 |
+| `write_file` | 写入或覆盖文件 |
+| `edit_file` | 局部编辑文件 |
+| `search` | 代码/文本搜索 |
+| `bash` | 执行终端命令 |
+| `create_tool` | 动态创建新工具 |
 
 ```csharp
-// 注册所有内置工具
-builder.Services.AddAllBuiltInTools();
-
-// 或按类别注册
-builder.Services.AddFileSystemTools();
-builder.Services.AddGitTools();
+// 注册核心工具
+builder.Services.AddCoreTools();
 ```
 
 ### 多 Agent 编排
@@ -531,33 +535,28 @@ loadBalancer.RegisterInstance(instance1);
 var selected = loadBalancer.GetLeastLoadedInstance();
 ```
 
-## 🎮 运行 Demo
+## 🎮 运行 API Sample
 
 ```bash
-cd samples/Dawning.Agents.Demo
+cd samples/Dawning.Agents.Api
 dotnet run
 ```
 
-### Demo 选项
+### API 端点
 
-| 选项 | 说明 |
+| 端点 | 说明 |
 |------|------|
-| `--chat` | 简单聊天 |
-| `--agent` | ReAct Agent |
-| `--stream` | 流式输出 |
-| `-i` | 交互式对话 |
-| `-m` | Memory 系统 |
-| `-o` | 多 Agent 编排 |
-| `-hf` | Handoff 协作 |
-| `-hl` | 人机协作 |
-| `-ob` | 可观测性 |
-| `-sc` | 扩展部署 |
+| `POST /api/chat` | 同步聊天 |
+| `POST /api/chat/stream` | SSE 流式聊天 |
+| `POST /api/agent/run` | 执行 Agent |
+| `GET /api/agent/health` | 健康检查 |
 
 ## 📖 文档
 
 ### 入门指南
 - [快速入门](docs/QUICKSTART.md) - 5 分钟运行第一个 Agent
 - [API 参考](docs/API_REFERENCE.md) - 核心接口和类
+- [API Sample](samples/Dawning.Agents.Api/) - Minimal API + SSE 示例
 
 ### 生产部署
 - [性能调优指南](docs/performance-tuning.md) - Token 优化、并发控制、缓存策略
@@ -575,7 +574,7 @@ dotnet run
 
 ### 开发参考
 - [变更日志](CHANGELOG.md) - 版本更新记录
-- [开发指南](.github/copilot-instructions.md) - 代码规范
+- [贡献指南](CONTRIBUTING.md) - 提交流程与代码规范
 
 ## 🧪 测试
 
@@ -676,8 +675,9 @@ builder.Services.AddAgentTelemetry(config);
 ### v0.1.0 (当前版本) - 2026 Q1 ✅
 
 - ✅ 核心 Agent 循环 (ReAct)
+- ✅ Function Calling Agent
 - ✅ 5 种 Memory 策略
-- ✅ 64 个内置工具
+- ✅ Tools Redesign（6 核心工具 + 动态工具）
 - ✅ 5 种向量存储
 - ✅ MCP 协议支持
 - ✅ 多模态 (Vision/Audio)
@@ -685,11 +685,11 @@ builder.Services.AddAgentTelemetry(config);
 
 ### v0.2.0 - 2026 Q2
 
-- 🔲 Streaming Agent 响应
-- 🔲 Function Calling 优化
-- 🔲 更多 Embedding 模型
+- 🔲 A2A 协议支持
+- 🔲 Prompt 模板与版本管理
 - 🔲 持久化 Memory (SQLite/PostgreSQL)
-- 🔲 Agent 模板市场
+- 🔲 Workflow 可视化调试
+- 🔲 Model Router 增强埋点
 
 ### v0.3.0 - 2026 Q3
 
@@ -714,7 +714,7 @@ builder.Services.AddAgentTelemetry(config);
 
 ## 🤝 贡献
 
-欢迎贡献！请查看 [贡献指南](.github/copilot-instructions.md) 了解代码规范。
+欢迎贡献！请查看 [贡献指南](CONTRIBUTING.md) 了解流程与规范。
 
 ## 📄 许可证
 

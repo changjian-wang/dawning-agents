@@ -109,9 +109,9 @@ public class AgentInstrumentationTests
 
         // Assert
         activity.Should().NotBeNull();
-        activity!.DisplayName.Should().Be("agent.request");
-        activity.GetTagItem("agent.name").Should().Be("test-agent");
-        activity.GetTagItem("agent.input.length").Should().Be(11);
+        activity!.DisplayName.Should().Be("gen_ai.agent.run");
+        activity.GetTagItem("gen_ai.agent.name").Should().Be("test-agent");
+        activity.GetTagItem("gen_ai.request.input.length").Should().Be(11);
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public class AgentInstrumentationTests
 
         // Assert
         activity.Should().NotBeNull();
-        activity!.DisplayName.Should().Be("agent.tool.execute");
-        activity.GetTagItem("tool.name").Should().Be("math-tool");
+        activity!.DisplayName.Should().Be("gen_ai.tool.execute");
+        activity.GetTagItem("gen_ai.tool.name").Should().Be("math-tool");
     }
 
     [Fact]
@@ -152,9 +152,9 @@ public class AgentInstrumentationTests
 
         // Assert
         activity.Should().NotBeNull();
-        activity!.DisplayName.Should().Be("llm.call");
-        activity.GetTagItem("llm.provider").Should().Be("openai");
-        activity.GetTagItem("llm.model").Should().Be("gpt-4");
+        activity!.DisplayName.Should().Be("gen_ai.chat");
+        activity.GetTagItem("gen_ai.system").Should().Be("openai");
+        activity.GetTagItem("gen_ai.request.model").Should().Be("gpt-4");
     }
 
     [Fact]

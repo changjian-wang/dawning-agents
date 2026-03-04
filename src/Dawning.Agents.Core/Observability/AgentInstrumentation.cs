@@ -18,54 +18,54 @@ public static class AgentInstrumentation
     // 指标源
     public static readonly Meter Meter = new(ServiceName, ServiceVersion);
 
-    // 计数器
+    // Counters — gen_ai.* semantic conventions (experimental, v0.29.0+)
     public static readonly Counter<long> RequestsTotal = Meter.CreateCounter<long>(
-        "agent_requests_total",
-        description: "Total number of agent requests"
+        "gen_ai.agent.invocations",
+        description: "Total number of agent invocations"
     );
 
     public static readonly Counter<long> RequestsSuccessTotal = Meter.CreateCounter<long>(
-        "agent_requests_success_total",
-        description: "Total number of successful agent requests"
+        "gen_ai.agent.invocations.success",
+        description: "Total number of successful agent invocations"
     );
 
     public static readonly Counter<long> RequestsFailedTotal = Meter.CreateCounter<long>(
-        "agent_requests_failed_total",
-        description: "Total number of failed agent requests"
+        "gen_ai.agent.invocations.error",
+        description: "Total number of failed agent invocations"
     );
 
     public static readonly Counter<long> ToolExecutionsTotal = Meter.CreateCounter<long>(
-        "agent_tool_executions_total",
-        description: "Total number of tool executions"
+        "gen_ai.tool.invocations",
+        description: "Total number of tool invocations"
     );
 
     public static readonly Counter<long> LLMCallsTotal = Meter.CreateCounter<long>(
-        "llm_calls_total",
-        description: "Total number of LLM API calls"
+        "gen_ai.client.operation.duration.count",
+        description: "Total number of GenAI client operations"
     );
 
     public static readonly Counter<long> LLMTokensUsedTotal = Meter.CreateCounter<long>(
-        "llm_tokens_used_total",
-        description: "Total number of LLM tokens used"
+        "gen_ai.client.token.usage",
+        description: "Total number of GenAI tokens used"
     );
 
-    // 直方图
+    // Histograms — gen_ai.* semantic conventions (experimental, v0.29.0+)
     public static readonly Histogram<double> RequestDuration = Meter.CreateHistogram<double>(
-        "agent_request_duration_seconds",
+        "gen_ai.agent.duration",
         unit: "s",
-        description: "Duration of agent requests in seconds"
+        description: "Duration of agent invocations in seconds"
     );
 
     public static readonly Histogram<double> ToolExecutionDuration = Meter.CreateHistogram<double>(
-        "agent_tool_execution_duration_seconds",
+        "gen_ai.tool.duration",
         unit: "s",
         description: "Duration of tool executions in seconds"
     );
 
     public static readonly Histogram<double> LLMCallDuration = Meter.CreateHistogram<double>(
-        "llm_call_duration_seconds",
+        "gen_ai.client.operation.duration",
         unit: "s",
-        description: "Duration of LLM API calls in seconds"
+        description: "Duration of GenAI client operations in seconds"
     );
 
     // 仪表盘
@@ -113,9 +113,9 @@ public static class AgentInstrumentation
     /// </summary>
     public static Activity? StartAgentRequest(string agentName, string input)
     {
-        var activity = ActivitySource.StartActivity("agent.request", ActivityKind.Server);
-        activity?.SetTag("agent.name", agentName);
-        activity?.SetTag("agent.input.length", input.Length);
+        var activity = ActivitySource.StartActivity("gen_ai.agent.run", ActivityKind.Server);
+        activity?.SetTag("gen_ai.agent.name", agentName);
+        activity?.SetTag("gen_ai.request.input.length", input.Length);
         return activity;
     }
 
@@ -124,19 +124,32 @@ public static class AgentInstrumentation
     /// </summary>
     public static Activity? StartToolExecution(string toolName)
     {
-        var activity = ActivitySource.StartActivity("agent.tool.execute", ActivityKind.Internal);
-        activity?.SetTag("tool.name", toolName);
+        var activity = ActivitySource.StartActivity("gen_ai.tool.execute", ActivityKind.Internal);
+        activity?.SetTag("gen_ai.tool.name", toolName);
         return activity;
     }
 
     /// <summary>
     /// 开始 LLM 调用追踪
     /// </summary>
-    public static Activity? StartLLMCall(string provider, string model)
+    public static Activity? StartLLMCall(
+        string provider,
+        string model,
+        int? maxTokens = null,
+        double? temperature = null
+    )
     {
-        var activity = ActivitySource.StartActivity("llm.call", ActivityKind.Client);
-        activity?.SetTag("llm.provider", provider);
-        activity?.SetTag("llm.model", model);
+        var activity = ActivitySource.StartActivity("gen_ai.chat", ActivityKind.Client);
+        activity?.SetTag("gen_ai.system", provider);
+        activity?.SetTag("gen_ai.request.model", model);
+        if (maxTokens.HasValue)
+        {
+            activity?.SetTag("gen_ai.request.max_tokens", maxTokens.Value);
+        }
+        if (temperature.HasValue)
+        {
+            activity?.SetTag("gen_ai.request.temperature", temperature.Value);
+        }
         return activity;
     }
 
