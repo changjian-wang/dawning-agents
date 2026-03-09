@@ -30,7 +30,7 @@ public class RedisHealthCheck : IHealthCheck
         try
         {
             var db = _redis.GetDatabase();
-            var pong = await db.PingAsync();
+            var pong = await db.PingAsync().ConfigureAwait(false);
             _logger.LogDebug("RedisHealthCheck: Ping={PingMs}ms", pong.TotalMilliseconds);
             return HealthCheckResult.Healthy($"Redis 正常, Ping={pong.TotalMilliseconds}ms");
         }

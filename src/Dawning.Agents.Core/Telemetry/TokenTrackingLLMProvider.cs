@@ -73,7 +73,9 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
         CancellationToken cancellationToken = default
     )
     {
-        var response = await _innerProvider.ChatAsync(messages, options, cancellationToken);
+        var response = await _innerProvider
+            .ChatAsync(messages, options, cancellationToken)
+            .ConfigureAwait(false);
 
         // 记录 Token 使用
         _tracker.Record(

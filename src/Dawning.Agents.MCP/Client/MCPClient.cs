@@ -107,14 +107,14 @@ public sealed class MCPClient : IAsyncDisposable
             Microsoft.Extensions.Logging.Abstractions.NullLogger<StdioTransport>.Instance
         );
 
-        await _transport.StartAsync(cancellationToken);
+        await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
 
         // 启动响应监听
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
-        await InitializeAsync(cancellationToken);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
             "Connected to MCP Server: {Name} v{Version}",
@@ -132,14 +132,14 @@ public sealed class MCPClient : IAsyncDisposable
     )
     {
         _transport = transport;
-        await _transport.StartAsync(cancellationToken);
+        await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
 
         // 启动响应监听
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
-        await InitializeAsync(cancellationToken);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -158,18 +158,20 @@ public sealed class MCPClient : IAsyncDisposable
         };
 
         var response = await SendRequestAsync<InitializeResult>(
-            MCPMethods.Initialize,
-            initParams,
-            TimeSpan.FromSeconds(_options.ConnectionTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.Initialize,
+                initParams,
+                TimeSpan.FromSeconds(_options.ConnectionTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         _serverInfo = response.ServerInfo;
         _serverCapabilities = response.Capabilities;
         _initialized = true;
 
         // 发送 initialized 通知
-        await SendNotificationAsync(MCPMethods.Initialized, null, cancellationToken);
+        await SendNotificationAsync(MCPMethods.Initialized, null, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -182,11 +184,12 @@ public sealed class MCPClient : IAsyncDisposable
         EnsureInitialized();
 
         var result = await SendRequestAsync<ListToolsResult>(
-            MCPMethods.ToolsList,
-            new ListToolsParams(),
-            TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.ToolsList,
+                new ListToolsParams(),
+                TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         return result.Tools;
     }
@@ -205,11 +208,12 @@ public sealed class MCPClient : IAsyncDisposable
         var callParams = new CallToolParams { Name = toolName, Arguments = arguments };
 
         return await SendRequestAsync<CallToolResult>(
-            MCPMethods.ToolsCall,
-            callParams,
-            TimeSpan.FromSeconds(_options.ToolCallTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.ToolsCall,
+                callParams,
+                TimeSpan.FromSeconds(_options.ToolCallTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -222,11 +226,12 @@ public sealed class MCPClient : IAsyncDisposable
         EnsureInitialized();
 
         var result = await SendRequestAsync<ListResourcesResult>(
-            MCPMethods.ResourcesList,
-            new ListResourcesParams(),
-            TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.ResourcesList,
+                new ListResourcesParams(),
+                TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         return result.Resources;
     }
@@ -244,11 +249,12 @@ public sealed class MCPClient : IAsyncDisposable
         var readParams = new ReadResourceParams { Uri = uri };
 
         return await SendRequestAsync<ReadResourceResult>(
-            MCPMethods.ResourcesRead,
-            readParams,
-            TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.ResourcesRead,
+                readParams,
+                TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -261,11 +267,12 @@ public sealed class MCPClient : IAsyncDisposable
         EnsureInitialized();
 
         var result = await SendRequestAsync<ListPromptsResult>(
-            MCPMethods.PromptsList,
-            new ListPromptsParams(),
-            TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.PromptsList,
+                new ListPromptsParams(),
+                TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         return result.Prompts;
     }
@@ -284,11 +291,12 @@ public sealed class MCPClient : IAsyncDisposable
         var getParams = new GetPromptParams { Name = name, Arguments = arguments };
 
         return await SendRequestAsync<GetPromptResult>(
-            MCPMethods.PromptsGet,
-            getParams,
-            TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
-            cancellationToken
-        );
+                MCPMethods.PromptsGet,
+                getParams,
+                TimeSpan.FromSeconds(_options.RequestTimeoutSeconds),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -323,12 +331,12 @@ public sealed class MCPClient : IAsyncDisposable
         try
         {
             var json = JsonSerializer.Serialize(request);
-            await _transport!.SendAsync(json, cancellationToken);
+            await _transport!.SendAsync(json, cancellationToken).ConfigureAwait(false);
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(timeout);
 
-            var response = await tcs.Task.WaitAsync(cts.Token);
+            var response = await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
 
             if (response.Error != null)
             {
@@ -365,7 +373,7 @@ public sealed class MCPClient : IAsyncDisposable
         var notification = new MCPNotification { Method = method, Params = @params };
 
         var json = JsonSerializer.Serialize(notification);
-        await _transport!.SendAsync(json, cancellationToken);
+        await _transport!.SendAsync(json, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -383,7 +391,7 @@ public sealed class MCPClient : IAsyncDisposable
                     break;
                 }
 
-                var message = await transport.ReceiveAsync(cancellationToken);
+                var message = await transport.ReceiveAsync(cancellationToken).ConfigureAwait(false);
                 if (message == null)
                 {
                     continue;
@@ -437,14 +445,14 @@ public sealed class MCPClient : IAsyncDisposable
     {
         if (_listenerCts != null)
         {
-            await _listenerCts.CancelAsync();
+            await _listenerCts.CancelAsync().ConfigureAwait(false);
         }
 
         if (_listenerTask != null)
         {
             try
             {
-                await _listenerTask;
+                await _listenerTask.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -454,7 +462,7 @@ public sealed class MCPClient : IAsyncDisposable
 
         if (_transport != null)
         {
-            await _transport.DisposeAsync();
+            await _transport.DisposeAsync().ConfigureAwait(false);
         }
 
         if (_serverProcess != null)

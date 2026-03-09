@@ -74,7 +74,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
 
                 try
                 {
-                    return await tcs.Task.WaitAsync(cts.Token);
+                    return await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
@@ -88,7 +88,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
                 }
             }
 
-            return await tcs.Task.WaitAsync(cancellationToken);
+            return await tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -114,7 +114,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
 
         try
         {
-            return await tcs.Task.WaitAsync(cancellationToken);
+            return await tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -150,7 +150,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
 
         try
         {
-            return await tcs.Task.WaitAsync(cancellationToken);
+            return await tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {

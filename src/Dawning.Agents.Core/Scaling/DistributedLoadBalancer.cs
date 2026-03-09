@@ -119,7 +119,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
             return;
         }
 
-        var instances = await _serviceRegistry.GetInstancesAsync(serviceName, cancellationToken);
+        var instances = await _serviceRegistry
+            .GetInstancesAsync(serviceName, cancellationToken)
+            .ConfigureAwait(false);
         _lock.EnterWriteLock();
         try
         {
@@ -364,7 +366,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
             try
             {
-                return await action(instance);
+                return await action(instance).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

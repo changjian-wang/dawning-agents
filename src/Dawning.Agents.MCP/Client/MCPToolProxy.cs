@@ -48,11 +48,9 @@ public sealed class MCPToolProxy : ITool
                 arguments = JsonSerializer.Deserialize<Dictionary<string, object?>>(input);
             }
 
-            var result = await _client.CallToolAsync(
-                _definition.Name,
-                arguments,
-                cancellationToken
-            );
+            var result = await _client
+                .CallToolAsync(_definition.Name, arguments, cancellationToken)
+                .ConfigureAwait(false);
 
             // 提取文本内容
             var output = string.Join(
@@ -87,7 +85,7 @@ public static class MCPToolRegistryExtensions
         CancellationToken cancellationToken = default
     )
     {
-        var tools = await client.ListToolsAsync(cancellationToken);
+        var tools = await client.ListToolsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var tool in tools)
         {

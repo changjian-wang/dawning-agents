@@ -93,7 +93,9 @@ public class FunctionCallingAgent : AgentBase
             // 从 Memory 加载历史
             if (Memory != null)
             {
-                var history = await Memory.GetContextAsync(cancellationToken: cancellationToken);
+                var history = await Memory
+                    .GetContextAsync(cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
                 messages.AddRange(history);
             }
 
@@ -143,11 +145,9 @@ public class FunctionCallingAgent : AgentBase
                     ToolChoice = toolDefinitions.Count > 0 ? ToolChoiceMode.Auto : null,
                 };
 
-                var response = await LLMProvider.ChatAsync(
-                    messages,
-                    completionOptions,
-                    cancellationToken
-                );
+                var response = await LLMProvider
+                    .ChatAsync(messages, completionOptions, cancellationToken)
+                    .ConfigureAwait(false);
 
                 var stepCost = EstimateStepCost(response);
                 costTracker?.Add(stepCost);
@@ -166,7 +166,8 @@ public class FunctionCallingAgent : AgentBase
                     var toolResultSummary = new StringBuilder();
                     foreach (var toolCall in response.ToolCalls!)
                     {
-                        var toolResult = await ExecuteToolCallAsync(toolCall, cancellationToken);
+                        var toolResult = await ExecuteToolCallAsync(toolCall, cancellationToken)
+                            .ConfigureAwait(false);
 
                         // 添加 tool result 消息
                         messages.Add(ChatMessage.ToolResult(toolCall.Id, toolResult));
@@ -220,7 +221,8 @@ public class FunctionCallingAgent : AgentBase
                     );
 
                     // 保存到 Memory
-                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken);
+                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken)
+                        .ConfigureAwait(false);
 
                     return AgentResponse.Successful(finalAnswer, context.Steps, stopwatch.Elapsed);
                 }
@@ -288,7 +290,8 @@ public class FunctionCallingAgent : AgentBase
 
         try
         {
-            var result = await tool.ExecuteAsync(toolCall.Arguments ?? "{}", cancellationToken);
+            var result = await tool.ExecuteAsync(toolCall.Arguments ?? "{}", cancellationToken)
+                .ConfigureAwait(false);
 
             return result.Success ? result.Output : $"Tool error: {result.Error}";
         }

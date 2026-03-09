@@ -88,11 +88,9 @@ public partial class ReActAgent : AgentBase
             new("user", prompt),
         };
 
-        var response = await LLMProvider.ChatAsync(
-            messages,
-            new ChatCompletionOptions { MaxTokens = 1024 },
-            cancellationToken
-        );
+        var response = await LLMProvider
+            .ChatAsync(messages, new ChatCompletionOptions { MaxTokens = 1024 }, cancellationToken)
+            .ConfigureAwait(false);
         var llmOutput = response.Content ?? string.Empty;
 
         Logger.LogDebug("LLM 输出:\n{Output}", llmOutput);
@@ -106,7 +104,8 @@ public partial class ReActAgent : AgentBase
         string? observation = null;
         if (!string.IsNullOrEmpty(action))
         {
-            observation = await ExecuteActionAsync(action, actionInput, cancellationToken);
+            observation = await ExecuteActionAsync(action, actionInput, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return new AgentStep
@@ -288,10 +287,8 @@ public partial class ReActAgent : AgentBase
             if (tool != null)
             {
                 Logger.LogDebug("使用注册的工具: {ToolName}", tool.Name);
-                var result = await tool.ExecuteAsync(
-                    actionInput ?? string.Empty,
-                    cancellationToken
-                );
+                var result = await tool.ExecuteAsync(actionInput ?? string.Empty, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (result.Success)
                 {

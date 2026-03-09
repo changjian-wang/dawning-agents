@@ -59,11 +59,9 @@ public abstract class OpenAIProviderBase : ILLMProvider
 
         try
         {
-            var response = await _chatClient.CompleteChatAsync(
-                chatMessages,
-                requestOptions,
-                cancellationToken
-            );
+            var response = await _chatClient
+                .CompleteChatAsync(chatMessages, requestOptions, cancellationToken)
+                .ConfigureAwait(false);
 
             var completion = response.Value;
 

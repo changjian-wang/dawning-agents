@@ -78,8 +78,8 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task AddAsync(DocumentChunk chunk, CancellationToken cancellationToken = default)
     {
-        await EnsureCollectionAsync(cancellationToken);
-        await AddBatchAsync([chunk], cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
+        await AddBatchAsync([chunk], cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -88,7 +88,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var chunkList = chunks.ToList();
         if (chunkList.Count == 0)
@@ -135,16 +135,20 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             metadatas,
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"/api/v1/collections/{_collectionId}/add",
-            request,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync(
+                $"/api/v1/collections/{_collectionId}/add",
+                request,
+                _jsonOptions,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             throw new InvalidOperationException(
                 $"Chroma add failed: {response.StatusCode} - {error}"
             );
@@ -167,7 +171,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var request = new
         {
@@ -176,25 +180,28 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             include = new[] { "embeddings", "documents", "metadatas", "distances" },
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"/api/v1/collections/{_collectionId}/query",
-            request,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync(
+                $"/api/v1/collections/{_collectionId}/query",
+                request,
+                _jsonOptions,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             throw new InvalidOperationException(
                 $"Chroma query failed: {response.StatusCode} - {error}"
             );
         }
 
-        var result = await response.Content.ReadFromJsonAsync<ChromaQueryResponse>(
-            _jsonOptions,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<ChromaQueryResponse>(_jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (
             result == null
@@ -272,16 +279,18 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var request = new { ids = new[] { id } };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"/api/v1/collections/{_collectionId}/delete",
-            request,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync(
+                $"/api/v1/collections/{_collectionId}/delete",
+                request,
+                _jsonOptions,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -303,7 +312,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var request = new
         {
@@ -311,22 +320,23 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             include = new[] { "embeddings", "documents", "metadatas" },
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"/api/v1/collections/{_collectionId}/get",
-            request,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync(
+                $"/api/v1/collections/{_collectionId}/get",
+                request,
+                _jsonOptions,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        var result = await response.Content.ReadFromJsonAsync<ChromaGetResponse>(
-            _jsonOptions,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<ChromaGetResponse>(_jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (result?.Ids == null || result.Ids.Count == 0)
         {
@@ -377,19 +387,21 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var request = new
         {
             where = new Dictionary<string, object> { ["document_id"] = documentId },
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"/api/v1/collections/{_collectionId}/delete",
-            request,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync(
+                $"/api/v1/collections/{_collectionId}/delete",
+                request,
+                _jsonOptions,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -415,15 +427,14 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         }
 
         // 删除并重新创建集合
-        var deleteResponse = await _httpClient.DeleteAsync(
-            $"/api/v1/collections/{_collectionId}",
-            cancellationToken
-        );
+        using var deleteResponse = await _httpClient
+            .DeleteAsync($"/api/v1/collections/{_collectionId}", cancellationToken)
+            .ConfigureAwait(false);
 
         _collectionId = null;
         Interlocked.Exchange(ref _count, 0);
 
-        await EnsureCollectionAsync(cancellationToken);
+        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("Cleared Chroma collection {Collection}", _options.CollectionName);
     }
@@ -439,17 +450,15 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         }
 
         // 尝试获取现有集合
-        var getResponse = await _httpClient.GetAsync(
-            $"/api/v1/collections/{_options.CollectionName}",
-            cancellationToken
-        );
+        using var getResponse = await _httpClient
+            .GetAsync($"/api/v1/collections/{_options.CollectionName}", cancellationToken)
+            .ConfigureAwait(false);
 
         if (getResponse.IsSuccessStatusCode)
         {
-            var collection = await getResponse.Content.ReadFromJsonAsync<ChromaCollection>(
-                _jsonOptions,
-                cancellationToken
-            );
+            var collection = await getResponse
+                .Content.ReadFromJsonAsync<ChromaCollection>(_jsonOptions, cancellationToken)
+                .ConfigureAwait(false);
 
             if (collection != null)
             {
@@ -473,25 +482,23 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        var createResponse = await _httpClient.PostAsJsonAsync(
-            "/api/v1/collections",
-            createRequest,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var createResponse = await _httpClient
+            .PostAsJsonAsync("/api/v1/collections", createRequest, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (!createResponse.IsSuccessStatusCode)
         {
-            var error = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+            var error = await createResponse
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             throw new InvalidOperationException(
                 $"Failed to create Chroma collection: {createResponse.StatusCode} - {error}"
             );
         }
 
-        var newCollection = await createResponse.Content.ReadFromJsonAsync<ChromaCollection>(
-            _jsonOptions,
-            cancellationToken
-        );
+        var newCollection = await createResponse
+            .Content.ReadFromJsonAsync<ChromaCollection>(_jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         _collectionId =
             newCollection?.Id

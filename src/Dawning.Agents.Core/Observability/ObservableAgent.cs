@@ -51,7 +51,7 @@ public sealed class ObservableAgent : IAgent
     )
     {
         var context = new AgentContext { UserInput = input };
-        return await RunAsync(context, cancellationToken);
+        return await RunAsync(context, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -82,7 +82,9 @@ public sealed class ObservableAgent : IAgent
 
         try
         {
-            var response = await _innerAgent.RunAsync(context, cancellationToken);
+            var response = await _innerAgent
+                .RunAsync(context, cancellationToken)
+                .ConfigureAwait(false);
             var duration = DateTime.UtcNow - startTime;
 
             // 记录成功指标

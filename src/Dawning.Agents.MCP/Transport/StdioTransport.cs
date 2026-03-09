@@ -59,16 +59,16 @@ public sealed class StdioTransport : IMCPTransport
             throw new InvalidOperationException("Transport not connected");
         }
 
-        await _writeLock.WaitAsync(cancellationToken);
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var bytes = Encoding.UTF8.GetBytes(message);
             var header = $"Content-Length: {bytes.Length}\r\n\r\n";
             var headerBytes = Encoding.UTF8.GetBytes(header);
 
-            await _outputStream.WriteAsync(headerBytes, cancellationToken);
-            await _outputStream.WriteAsync(bytes, cancellationToken);
-            await _outputStream.FlushAsync(cancellationToken);
+            await _outputStream.WriteAsync(headerBytes, cancellationToken).ConfigureAwait(false);
+            await _outputStream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
+            await _outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             _logger.LogTrace("Sent message: {Length} bytes", bytes.Length);
         }
@@ -87,7 +87,7 @@ public sealed class StdioTransport : IMCPTransport
 
         try
         {
-            var result = await _pipe.Reader.ReadAsync(cancellationToken);
+            var result = await _pipe.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
             var buffer = result.Buffer;
 
             if (TryParseMessage(ref buffer, out var message))
@@ -124,7 +124,9 @@ public sealed class StdioTransport : IMCPTransport
             while (!cancellationToken.IsCancellationRequested)
             {
                 var memory = writer.GetMemory(4096);
-                var bytesRead = await _inputStream.ReadAsync(memory, cancellationToken);
+                var bytesRead = await _inputStream
+                    .ReadAsync(memory, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (bytesRead == 0)
                 {
@@ -132,7 +134,7 @@ public sealed class StdioTransport : IMCPTransport
                 }
 
                 writer.Advance(bytesRead);
-                await writer.FlushAsync(cancellationToken);
+                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -145,7 +147,7 @@ public sealed class StdioTransport : IMCPTransport
         }
         finally
         {
-            await writer.CompleteAsync();
+            await writer.CompleteAsync().ConfigureAwait(false);
             _isConnected = false;
         }
     }
@@ -243,14 +245,14 @@ public sealed class StdioTransport : IMCPTransport
 
         if (_readCts != null)
         {
-            await _readCts.CancelAsync();
+            await _readCts.CancelAsync().ConfigureAwait(false);
         }
 
         if (_readTask != null)
         {
             try
             {
-                await _readTask;
+                await _readTask.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -260,7 +262,7 @@ public sealed class StdioTransport : IMCPTransport
 
         _readCts?.Dispose();
         _writeLock.Dispose();
-        await _pipe.Reader.CompleteAsync();
-        await _pipe.Writer.CompleteAsync();
+        await _pipe.Reader.CompleteAsync().ConfigureAwait(false);
+        await _pipe.Writer.CompleteAsync().ConfigureAwait(false);
     }
 }

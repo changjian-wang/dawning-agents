@@ -70,7 +70,8 @@ public class OpenAIVisionProvider : IVisionProvider
             MultimodalMessage.User(TextContent.Create(prompt), image),
         };
 
-        var response = await ChatWithVisionAsync(messages, options, cancellationToken);
+        var response = await ChatWithVisionAsync(messages, options, cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.Success)
         {
@@ -134,8 +135,12 @@ public class OpenAIVisionProvider : IVisionProvider
 
         try
         {
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            using var response = await _httpClient
+                .SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            var responseJson = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -213,24 +218,26 @@ public class OpenAIVisionProvider : IVisionProvider
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
         request.Content = JsonContent.Create(requestBody, options: s_jsonOptions);
 
-        using var response = await _httpClient.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             throw new InvalidOperationException($"API 错误: {response.StatusCode} - {error}");
         }
 
-        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var stream = await response
+            .Content.ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
         using var reader = new StreamReader(stream);
 
         string? line;
         while (
-            (line = await reader.ReadLineAsync(cancellationToken)) != null
+            (line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) != null
             && !cancellationToken.IsCancellationRequested
         )
         {

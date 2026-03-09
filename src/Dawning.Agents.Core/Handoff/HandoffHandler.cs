@@ -85,12 +85,13 @@ public class HandoffHandler : IHandoffHandler
         );
 
         var result = await ExecuteHandoffChainAsync(
-            request.TargetAgentName,
-            request.Input,
-            chain,
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-            cancellationToken
-        );
+                request.TargetAgentName,
+                request.Input,
+                chain,
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         stopwatch.Stop();
 
@@ -108,7 +109,7 @@ public class HandoffHandler : IHandoffHandler
     )
     {
         var request = HandoffRequest.To(entryAgentName, input);
-        return await ExecuteHandoffAsync(request, cancellationToken);
+        return await ExecuteHandoffAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -186,7 +187,7 @@ public class HandoffHandler : IHandoffHandler
             );
 
             // 执行 Agent
-            var response = await agent.RunAsync(input, linkedCts.Token);
+            var response = await agent.RunAsync(input, linkedCts.Token).ConfigureAwait(false);
 
             // 检查是否需要继续 Handoff
             if (response.IsHandoffRequest())
@@ -240,12 +241,13 @@ public class HandoffHandler : IHandoffHandler
 
                     // 递归执行下一个 Agent
                     return await ExecuteHandoffChainAsync(
-                        handoffRequest.TargetAgentName,
-                        handoffRequest.Input,
-                        chain,
-                        visitedAgents,
-                        cancellationToken
-                    );
+                            handoffRequest.TargetAgentName,
+                            handoffRequest.Input,
+                            chain,
+                            visitedAgents,
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
                 }
             }
 

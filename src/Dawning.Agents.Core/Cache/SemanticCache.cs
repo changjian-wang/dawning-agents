@@ -71,15 +71,19 @@ public class SemanticCache : ISemanticCache
         try
         {
             // 生成查询嵌入
-            var queryEmbedding = await _embeddingProvider.EmbedAsync(query, cancellationToken);
+            var queryEmbedding = await _embeddingProvider
+                .EmbedAsync(query, cancellationToken)
+                .ConfigureAwait(false);
 
             // 搜索相似的缓存条目
-            var results = await _vectorStore.SearchAsync(
-                queryEmbedding,
-                topK: 1,
-                minScore: _options.SimilarityThreshold,
-                cancellationToken
-            );
+            var results = await _vectorStore
+                .SearchAsync(
+                    queryEmbedding,
+                    topK: 1,
+                    minScore: _options.SimilarityThreshold,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (results.Count == 0)
             {
@@ -94,7 +98,7 @@ public class SemanticCache : ISemanticCache
             if (IsExpired(chunk))
             {
                 _logger.LogDebug("缓存已过期: {Id}", chunk.Id);
-                await _vectorStore.DeleteAsync(chunk.Id, cancellationToken);
+                await _vectorStore.DeleteAsync(chunk.Id, cancellationToken).ConfigureAwait(false);
                 return null;
             }
 
@@ -160,7 +164,9 @@ public class SemanticCache : ISemanticCache
             }
 
             // 生成查询嵌入
-            var queryEmbedding = await _embeddingProvider.EmbedAsync(query, cancellationToken);
+            var queryEmbedding = await _embeddingProvider
+                .EmbedAsync(query, cancellationToken)
+                .ConfigureAwait(false);
 
             // 构建元数据
             var chunkMetadata = new Dictionary<string, string>
@@ -191,7 +197,7 @@ public class SemanticCache : ISemanticCache
                 Metadata = chunkMetadata,
             };
 
-            await _vectorStore.AddAsync(chunk, cancellationToken);
+            await _vectorStore.AddAsync(chunk, cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug(
                 "缓存已添加: {Id}, 查询长度={QueryLen}, 响应长度={ResponseLen}",
@@ -213,7 +219,9 @@ public class SemanticCache : ISemanticCache
     {
         try
         {
-            await _vectorStore.DeleteByDocumentIdAsync(_namespace, cancellationToken);
+            await _vectorStore
+                .DeleteByDocumentIdAsync(_namespace, cancellationToken)
+                .ConfigureAwait(false);
             _logger.LogInformation("语义缓存已清除，命名空间: {Namespace}", _namespace);
         }
         catch (Exception ex)

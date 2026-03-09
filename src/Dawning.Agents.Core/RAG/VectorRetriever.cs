@@ -52,15 +52,14 @@ public sealed class VectorRetriever : IRetriever
         _logger.LogDebug("Retrieving for query: {Query}", query);
 
         // 生成查询向量
-        var queryEmbedding = await _embeddingProvider.EmbedAsync(query, cancellationToken);
+        var queryEmbedding = await _embeddingProvider
+            .EmbedAsync(query, cancellationToken)
+            .ConfigureAwait(false);
 
         // 向量搜索
-        var results = await _vectorStore.SearchAsync(
-            queryEmbedding,
-            topK,
-            minScore,
-            cancellationToken
-        );
+        var results = await _vectorStore
+            .SearchAsync(queryEmbedding, topK, minScore, cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogDebug("Retrieved {Count} results for query", results.Count);
 
@@ -74,7 +73,8 @@ public sealed class VectorRetriever : IRetriever
         CancellationToken cancellationToken = default
     )
     {
-        var results = await RetrieveAsync(query, topK, _options.MinScore, cancellationToken);
+        var results = await RetrieveAsync(query, topK, _options.MinScore, cancellationToken)
+            .ConfigureAwait(false);
 
         if (results.Count == 0)
         {

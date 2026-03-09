@@ -40,11 +40,13 @@ public class LLMProviderHealthCheck : IHealthCheck
             // 发送一个简单的测试请求来验证 LLM 可用性
             var testMessages = new[] { new ChatMessage("user", "ping") };
 
-            var response = await _llmProvider.ChatAsync(
-                testMessages,
-                new ChatCompletionOptions { MaxTokens = 1 },
-                cancellationToken
-            );
+            var response = await _llmProvider
+                .ChatAsync(
+                    testMessages,
+                    new ChatCompletionOptions { MaxTokens = 1 },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(response.Content))
             {

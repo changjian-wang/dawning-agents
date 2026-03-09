@@ -73,7 +73,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
 
         try
         {
-            var result = await action();
+            var result = await action().ConfigureAwait(false);
             OnSuccess();
             return result;
         }
@@ -93,13 +93,14 @@ public sealed class CircuitBreaker : ICircuitBreaker
     public async Task ExecuteAsync(Func<Task> action, CancellationToken cancellationToken = default)
     {
         await ExecuteAsync(
-            async () =>
-            {
-                await action();
-                return true;
-            },
-            cancellationToken
-        );
+                async () =>
+                {
+                    await action().ConfigureAwait(false);
+                    return true;
+                },
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />

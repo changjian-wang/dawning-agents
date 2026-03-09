@@ -69,10 +69,11 @@ public sealed class ParallelOrchestrator : OrchestratorBase
             .Select(
                 async (agent, index) =>
                 {
-                    await semaphore.WaitAsync(cancellationToken);
+                    await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
-                        return await ExecuteAgentAsync(agent, input, index, cancellationToken);
+                        return await ExecuteAgentAsync(agent, input, index, cancellationToken)
+                            .ConfigureAwait(false);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
@@ -100,7 +101,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
 
         try
         {
-            results = await Task.WhenAll(tasks);
+            results = await Task.WhenAll(tasks).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {

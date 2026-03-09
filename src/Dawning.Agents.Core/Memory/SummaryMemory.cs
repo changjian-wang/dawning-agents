@@ -135,10 +135,11 @@ public class SummaryMemory : IConversationMemory
         // 使用信号量串行化摘要操作，防止并发摘要覆盖
         if (messagesToSummarize != null)
         {
-            await _summarySemaphore.WaitAsync(cancellationToken);
+            await _summarySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await SummarizeMessagesAsync(messagesToSummarize, cancellationToken);
+                await SummarizeMessagesAsync(messagesToSummarize, cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -181,10 +182,11 @@ public class SummaryMemory : IConversationMemory
         try
         {
             var response = await _llm.ChatAsync(
-                [new ChatMessage("user", prompt)],
-                new ChatCompletionOptions { Temperature = 0.3f, MaxTokens = 500 },
-                cancellationToken
-            );
+                    [new ChatMessage("user", prompt)],
+                    new ChatCompletionOptions { Temperature = 0.3f, MaxTokens = 500 },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             lock (_lock)
             {
@@ -241,7 +243,7 @@ public class SummaryMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
-        var messages = await GetMessagesAsync(cancellationToken);
+        var messages = await GetMessagesAsync(cancellationToken).ConfigureAwait(false);
         return messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
     }
 

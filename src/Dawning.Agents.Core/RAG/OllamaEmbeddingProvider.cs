@@ -104,13 +104,14 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
 
         _logger.LogDebug("发送嵌入请求到 Ollama，模型: {Model}", _model);
 
-        var response = await _httpClient.PostAsync("/api/embed", content, cancellationToken);
+        var response = await _httpClient
+            .PostAsync("/api/embed", content, cancellationToken)
+            .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<OllamaEmbedResponse>(
-            JsonOptions.Default,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<OllamaEmbedResponse>(JsonOptions.Default, cancellationToken)
+            .ConfigureAwait(false);
 
         if (result?.Embeddings is null || result.Embeddings.Count == 0)
         {
@@ -162,13 +163,14 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             validTexts.Count
         );
 
-        var response = await _httpClient.PostAsync("/api/embed", content, cancellationToken);
+        var response = await _httpClient
+            .PostAsync("/api/embed", content, cancellationToken)
+            .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<OllamaEmbedResponse>(
-            JsonOptions.Default,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<OllamaEmbedResponse>(JsonOptions.Default, cancellationToken)
+            .ConfigureAwait(false);
 
         // 构建结果数组
         var embeddings = new float[textList.Count][];

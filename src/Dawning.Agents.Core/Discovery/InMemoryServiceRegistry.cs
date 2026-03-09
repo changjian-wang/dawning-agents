@@ -113,7 +113,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         try
         {
             // 立即返回当前状态
-            var current = await GetInstancesAsync(serviceName, cancellationToken);
+            var current = await GetInstancesAsync(serviceName, cancellationToken)
+                .ConfigureAwait(false);
             yield return current.ToArray();
 
             await foreach (var instances in channel.Reader.ReadAllAsync(cancellationToken))

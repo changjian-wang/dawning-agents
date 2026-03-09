@@ -155,7 +155,7 @@ public class VectorMemory : IConversationMemory
         // 在锁外进行向量存储操作
         if (messageToArchive != null)
         {
-            await ArchiveMessageAsync(messageToArchive, cancellationToken);
+            await ArchiveMessageAsync(messageToArchive, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -170,7 +170,9 @@ public class VectorMemory : IConversationMemory
         try
         {
             // 生成嵌入向量
-            var embedding = await _embeddingProvider.EmbedAsync(message.Content, cancellationToken);
+            var embedding = await _embeddingProvider
+                .EmbedAsync(message.Content, cancellationToken)
+                .ConfigureAwait(false);
 
             // 创建文档块
             var chunk = new DocumentChunk
@@ -188,7 +190,7 @@ public class VectorMemory : IConversationMemory
                 },
             };
 
-            await _vectorStore.AddAsync(chunk, cancellationToken);
+            await _vectorStore.AddAsync(chunk, cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug(
                 "消息已归档到向量存储: {MessageId}, 角色: {Role}",
@@ -245,7 +247,8 @@ public class VectorMemory : IConversationMemory
         var query = BuildQueryFromRecentMessages(recentMessages);
 
         // 检索相关历史
-        var relevantHistory = await RetrieveRelevantHistoryAsync(query, cancellationToken);
+        var relevantHistory = await RetrieveRelevantHistoryAsync(query, cancellationToken)
+            .ConfigureAwait(false);
 
         // 合并上下文
         var context = MergeContext(relevantHistory, recentMessages, maxTokens);
@@ -287,15 +290,14 @@ public class VectorMemory : IConversationMemory
         try
         {
             // 生成查询嵌入
-            var queryEmbedding = await _embeddingProvider.EmbedAsync(query, cancellationToken);
+            var queryEmbedding = await _embeddingProvider
+                .EmbedAsync(query, cancellationToken)
+                .ConfigureAwait(false);
 
             // 搜索相关文档
-            var results = await _vectorStore.SearchAsync(
-                queryEmbedding,
-                _retrieveTopK,
-                _minRelevanceScore,
-                cancellationToken
-            );
+            var results = await _vectorStore
+                .SearchAsync(queryEmbedding, _retrieveTopK, _minRelevanceScore, cancellationToken)
+                .ConfigureAwait(false);
 
             // 转换为 ConversationMessage 并按时间排序
             var relevantMessages = results
@@ -412,7 +414,9 @@ public class VectorMemory : IConversationMemory
         try
         {
             // 只清除当前会话的数据
-            await _vectorStore.DeleteByDocumentIdAsync(_sessionId, cancellationToken);
+            await _vectorStore
+                .DeleteByDocumentIdAsync(_sessionId, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {

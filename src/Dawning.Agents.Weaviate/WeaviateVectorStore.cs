@@ -81,8 +81,8 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task AddAsync(DocumentChunk chunk, CancellationToken cancellationToken = default)
     {
-        await EnsureClassExistsOnceAsync(cancellationToken);
-        await AddBatchAsync([chunk], cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
+        await AddBatchAsync([chunk], cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -91,7 +91,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureClassExistsOnceAsync(cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
 
         var chunkList = chunks.ToList();
         if (chunkList.Count == 0)
@@ -120,12 +120,9 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 
         var batchRequest = new WeaviateBatchRequest { Objects = objects };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            "/v1/batch/objects",
-            batchRequest,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync("/v1/batch/objects", batchRequest, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -134,7 +131,9 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         }
         else
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             _logger.LogError("Failed to add chunks to Weaviate: {Error}", error);
             throw new InvalidOperationException($"Failed to add chunks to Weaviate: {error}");
         }
@@ -154,7 +153,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             minScore
         );
 
-        await EnsureClassExistsOnceAsync(cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
 
         // ClassName is validated in constructor via regex — safe for GraphQL interpolation
         // Embedding vector is serialized via JSON to prevent format injection
@@ -185,24 +184,22 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                 """,
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            "/v1/graphql",
-            graphqlQuery,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .PostAsJsonAsync("/v1/graphql", graphqlQuery, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             _logger.LogError("Failed to search Weaviate: {Error}", error);
             return [];
         }
 
-        var result = await response.Content.ReadFromJsonAsync<WeaviateGraphQLResponse>(
-            _jsonOptions,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<WeaviateGraphQLResponse>(_jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (result?.Data?.Get == null)
         {
@@ -282,23 +279,21 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureClassExistsOnceAsync(cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
         _logger.LogDebug("Getting chunk {Id} from Weaviate", id);
 
-        var response = await _httpClient.GetAsync(
-            $"/v1/objects/{_options.ClassName}/{id}",
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .GetAsync($"/v1/objects/{_options.ClassName}/{id}", cancellationToken)
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        var result = await response.Content.ReadFromJsonAsync<WeaviateObject>(
-            _jsonOptions,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<WeaviateObject>(_jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (result?.Properties == null)
         {
@@ -342,13 +337,12 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        await EnsureClassExistsOnceAsync(cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
         _logger.LogDebug("Deleting chunk {Id} from Weaviate", id);
 
-        var response = await _httpClient.DeleteAsync(
-            $"/v1/objects/{_options.ClassName}/{id}",
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .DeleteAsync($"/v1/objects/{_options.ClassName}/{id}", cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -365,7 +359,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureClassExistsOnceAsync(cancellationToken);
+        await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
         _logger.LogDebug("Deleting chunks by documentId {DocumentId} from Weaviate", documentId);
 
         // 使用批量删除 API
@@ -388,14 +382,18 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             Content = JsonContent.Create(deleteRequest, options: _jsonOptions),
         };
 
-        var response = await _httpClient.SendAsync(request, cancellationToken);
+        using var response = await _httpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<WeaviateBatchDeleteResponse>(
-                _jsonOptions,
-                cancellationToken
-            );
+            var result = await response
+                .Content.ReadFromJsonAsync<WeaviateBatchDeleteResponse>(
+                    _jsonOptions,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
             if (result?.Results?.Successful > 0)
             {
                 var deleted = (int)result.Results.Successful;
@@ -413,9 +411,11 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         _logger.LogDebug("Clearing all chunks from Weaviate class {ClassName}", _options.ClassName);
 
         // 删除并重建 Schema 类
-        await _httpClient.DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken);
+        using var deleteResponse = await _httpClient
+            .DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
+            .ConfigureAwait(false);
 
-        await EnsureClassExistsAsync(cancellationToken);
+        await EnsureClassExistsAsync(cancellationToken).ConfigureAwait(false);
 
         Interlocked.Exchange(ref _count, 0);
     }
@@ -437,7 +437,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        await _initLock.WaitAsync(cancellationToken);
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (_classEnsured)
@@ -445,7 +445,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                 return;
             }
 
-            await EnsureClassExistsAsync(cancellationToken);
+            await EnsureClassExistsAsync(cancellationToken).ConfigureAwait(false);
             _classEnsured = true;
         }
         finally
@@ -460,10 +460,9 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     private async Task EnsureClassExistsAsync(CancellationToken cancellationToken = default)
     {
         // 检查类是否存在
-        var response = await _httpClient.GetAsync(
-            $"/v1/schema/{_options.ClassName}",
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .GetAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -510,12 +509,9 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             ],
         };
 
-        var createResponse = await _httpClient.PostAsJsonAsync(
-            "/v1/schema",
-            classSchema,
-            _jsonOptions,
-            cancellationToken
-        );
+        using var createResponse = await _httpClient
+            .PostAsJsonAsync("/v1/schema", classSchema, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         if (createResponse.IsSuccessStatusCode)
         {
@@ -523,7 +519,9 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         }
         else
         {
-            var error = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+            var error = await createResponse
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             _logger.LogWarning(
                 "Failed to create Weaviate class {ClassName}: {Error}",
                 _options.ClassName,

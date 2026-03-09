@@ -61,25 +61,26 @@ public sealed class SafeAgent : IAgent
             // 1. 审计日志 - 开始
             if (_auditLogger != null)
             {
-                await _auditLogger.LogAsync(
-                    new AuditEntry
-                    {
-                        EventType = AuditEventType.AgentRunStart,
-                        AgentName = Name,
-                        SessionId = rateLimitKey,
-                        Input = input,
-                    },
-                    cancellationToken
-                );
+                await _auditLogger
+                    .LogAsync(
+                        new AuditEntry
+                        {
+                            EventType = AuditEventType.AgentRunStart,
+                            AgentName = Name,
+                            SessionId = rateLimitKey,
+                            Input = input,
+                        },
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
             }
 
             // 2. 速率限制检查
             if (_rateLimiter != null)
             {
-                var rateLimitResult = await _rateLimiter.TryAcquireAsync(
-                    rateLimitKey,
-                    cancellationToken
-                );
+                var rateLimitResult = await _rateLimiter
+                    .TryAcquireAsync(rateLimitKey, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (!rateLimitResult.IsAllowed)
                 {
@@ -90,11 +91,12 @@ public sealed class SafeAgent : IAgent
                     );
 
                     await LogAuditAsync(
-                        AuditEventType.RateLimited,
-                        rateLimitKey,
-                        AuditResultStatus.RateLimited,
-                        cancellationToken
-                    );
+                            AuditEventType.RateLimited,
+                            rateLimitKey,
+                            AuditResultStatus.RateLimited,
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
 
                     return AgentResponse.Failed(
                         $"速率限制：请在 {rateLimitResult.RetryAfter?.TotalSeconds:F0} 秒后重试",
@@ -108,10 +110,9 @@ public sealed class SafeAgent : IAgent
             var processedInput = input;
             if (_guardrailPipeline != null)
             {
-                var inputCheckResult = await _guardrailPipeline.CheckInputAsync(
-                    input,
-                    cancellationToken
-                );
+                var inputCheckResult = await _guardrailPipeline
+                    .CheckInputAsync(input, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (!inputCheckResult.Passed)
                 {
@@ -125,23 +126,25 @@ public sealed class SafeAgent : IAgent
 
                     if (_auditLogger != null)
                     {
-                        await _auditLogger.LogAsync(
-                            new AuditEntry
-                            {
-                                EventType = AuditEventType.GuardrailTriggered,
-                                AgentName = Name,
-                                Input = input,
-                                ErrorMessage =
-                                    inputCheckResult.Issues.FirstOrDefault()?.Description
-                                    ?? inputCheckResult.Message,
-                                TriggeredGuardrails =
-                                [
-                                    inputCheckResult.TriggeredBy ?? "InputGuardrail",
-                                ],
-                                Status = AuditResultStatus.Blocked,
-                            },
-                            cancellationToken
-                        );
+                        await _auditLogger
+                            .LogAsync(
+                                new AuditEntry
+                                {
+                                    EventType = AuditEventType.GuardrailTriggered,
+                                    AgentName = Name,
+                                    Input = input,
+                                    ErrorMessage =
+                                        inputCheckResult.Issues.FirstOrDefault()?.Description
+                                        ?? inputCheckResult.Message,
+                                    TriggeredGuardrails =
+                                    [
+                                        inputCheckResult.TriggeredBy ?? "InputGuardrail",
+                                    ],
+                                    Status = AuditResultStatus.Blocked,
+                                },
+                                cancellationToken
+                            )
+                            .ConfigureAwait(false);
                     }
 
                     return AgentResponse.Failed(
@@ -156,17 +159,20 @@ public sealed class SafeAgent : IAgent
 
             // 4. 执行内部 Agent
             var context = new AgentContext { UserInput = processedInput };
-            var response = await _innerAgent.RunAsync(context, cancellationToken);
+            var response = await _innerAgent
+                .RunAsync(context, cancellationToken)
+                .ConfigureAwait(false);
 
             if (!response.Success)
             {
                 await LogAgentEndAsync(
-                    response.FinalAnswer,
-                    stopwatch.Elapsed,
-                    AuditResultStatus.Failed,
-                    response.Error,
-                    cancellationToken
-                );
+                        response.FinalAnswer,
+                        stopwatch.Elapsed,
+                        AuditResultStatus.Failed,
+                        response.Error,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
                 return response;
             }
 
@@ -174,10 +180,9 @@ public sealed class SafeAgent : IAgent
             var finalOutput = response.FinalAnswer;
             if (_guardrailPipeline != null && !string.IsNullOrEmpty(finalOutput))
             {
-                var outputCheckResult = await _guardrailPipeline.CheckOutputAsync(
-                    finalOutput,
-                    cancellationToken
-                );
+                var outputCheckResult = await _guardrailPipeline
+                    .CheckOutputAsync(finalOutput, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (!outputCheckResult.Passed)
                 {
@@ -191,23 +196,25 @@ public sealed class SafeAgent : IAgent
 
                     if (_auditLogger != null)
                     {
-                        await _auditLogger.LogAsync(
-                            new AuditEntry
-                            {
-                                EventType = AuditEventType.GuardrailTriggered,
-                                AgentName = Name,
-                                Output = finalOutput,
-                                ErrorMessage =
-                                    outputCheckResult.Issues.FirstOrDefault()?.Description
-                                    ?? outputCheckResult.Message,
-                                TriggeredGuardrails =
-                                [
-                                    outputCheckResult.TriggeredBy ?? "OutputGuardrail",
-                                ],
-                                Status = AuditResultStatus.Blocked,
-                            },
-                            cancellationToken
-                        );
+                        await _auditLogger
+                            .LogAsync(
+                                new AuditEntry
+                                {
+                                    EventType = AuditEventType.GuardrailTriggered,
+                                    AgentName = Name,
+                                    Output = finalOutput,
+                                    ErrorMessage =
+                                        outputCheckResult.Issues.FirstOrDefault()?.Description
+                                        ?? outputCheckResult.Message,
+                                    TriggeredGuardrails =
+                                    [
+                                        outputCheckResult.TriggeredBy ?? "OutputGuardrail",
+                                    ],
+                                    Status = AuditResultStatus.Blocked,
+                                },
+                                cancellationToken
+                            )
+                            .ConfigureAwait(false);
                     }
 
                     return AgentResponse.Failed(
@@ -226,12 +233,13 @@ public sealed class SafeAgent : IAgent
 
             // 6. 审计日志 - 结束
             await LogAgentEndAsync(
-                finalOutput,
-                stopwatch.Elapsed,
-                AuditResultStatus.Success,
-                null,
-                cancellationToken
-            );
+                    finalOutput,
+                    stopwatch.Elapsed,
+                    AuditResultStatus.Success,
+                    null,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             // 如果输出被修改，创建新的响应
             if (finalOutput != response.FinalAnswer)
@@ -251,16 +259,18 @@ public sealed class SafeAgent : IAgent
 
             if (_auditLogger != null)
             {
-                await _auditLogger.LogAsync(
-                    new AuditEntry
-                    {
-                        EventType = AuditEventType.Error,
-                        AgentName = Name,
-                        ErrorMessage = ex.Message,
-                        Status = AuditResultStatus.Failed,
-                    },
-                    cancellationToken
-                );
+                await _auditLogger
+                    .LogAsync(
+                        new AuditEntry
+                        {
+                            EventType = AuditEventType.Error,
+                            AgentName = Name,
+                            ErrorMessage = ex.Message,
+                            Status = AuditResultStatus.Failed,
+                        },
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
             }
 
             return AgentResponse.Failed(
@@ -293,16 +303,18 @@ public sealed class SafeAgent : IAgent
             return;
         }
 
-        await _auditLogger.LogAsync(
-            new AuditEntry
-            {
-                EventType = eventType,
-                AgentName = Name,
-                SessionId = sessionId,
-                Status = status,
-            },
-            ct
-        );
+        await _auditLogger
+            .LogAsync(
+                new AuditEntry
+                {
+                    EventType = eventType,
+                    AgentName = Name,
+                    SessionId = sessionId,
+                    Status = status,
+                },
+                ct
+            )
+            .ConfigureAwait(false);
     }
 
     private async Task LogAgentEndAsync(
@@ -318,17 +330,19 @@ public sealed class SafeAgent : IAgent
             return;
         }
 
-        await _auditLogger.LogAsync(
-            new AuditEntry
-            {
-                EventType = AuditEventType.AgentRunEnd,
-                AgentName = Name,
-                Output = output,
-                DurationMs = (long)duration.TotalMilliseconds,
-                Status = status,
-                ErrorMessage = errorMessage,
-            },
-            ct
-        );
+        await _auditLogger
+            .LogAsync(
+                new AuditEntry
+                {
+                    EventType = AuditEventType.AgentRunEnd,
+                    AgentName = Name,
+                    Output = output,
+                    DurationMs = (long)duration.TotalMilliseconds,
+                    Status = status,
+                    ErrorMessage = errorMessage,
+                },
+                ct
+            )
+            .ConfigureAwait(false);
     }
 }

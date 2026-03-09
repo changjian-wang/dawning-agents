@@ -62,7 +62,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             cts.CancelAfter(TimeSpan.FromSeconds(_options.TestTimeoutSeconds));
 
             // 执行 Agent
-            var response = await _agent.RunAsync(testCase.Input, cts.Token);
+            var response = await _agent.RunAsync(testCase.Input, cts.Token).ConfigureAwait(false);
 
             stopwatch.Stop();
 
@@ -89,7 +89,9 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
             foreach (var evaluator in _metricEvaluators)
             {
-                var score = await evaluator.EvaluateAsync(context, cancellationToken);
+                var score = await evaluator
+                    .EvaluateAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
                 metricScores[evaluator.MetricName] = score;
                 _logger.LogTrace("Metric {Metric}: {Score}", evaluator.MetricName, score);
             }
@@ -145,10 +147,10 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         using var semaphore = new SemaphoreSlim(_options.MaxConcurrency);
         var tasks = testCaseList.Select(async testCase =>
         {
-            await semaphore.WaitAsync(cancellationToken);
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return await EvaluateAsync(testCase, cancellationToken);
+                return await EvaluateAsync(testCase, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -158,14 +160,14 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
         if (_options.ContinueOnFailure)
         {
-            var completedTasks = await Task.WhenAll(tasks);
+            var completedTasks = await Task.WhenAll(tasks).ConfigureAwait(false);
             results.AddRange(completedTasks);
         }
         else
         {
             foreach (var task in tasks)
             {
-                var result = await task;
+                var result = await task.ConfigureAwait(false);
                 results.Add(result);
 
                 if (!result.Passed)

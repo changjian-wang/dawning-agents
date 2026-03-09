@@ -110,7 +110,8 @@ public abstract class AgentBase : IAgent
                 Logger.LogDebug("执行步骤 {StepNumber}/{MaxSteps}", stepNumber, context.MaxSteps);
 
                 // 执行单步
-                var step = await ExecuteStepAsync(context, stepNumber, cancellationToken);
+                var step = await ExecuteStepAsync(context, stepNumber, cancellationToken)
+                    .ConfigureAwait(false);
                 context.AddStep(step);
 
                 // 累加成本并检查预算
@@ -128,7 +129,8 @@ public abstract class AgentBase : IAgent
                     );
 
                     // 保存对话到记忆
-                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken);
+                    await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken)
+                        .ConfigureAwait(false);
 
                     return AgentResponse.Successful(finalAnswer, context.Steps, stopwatch.Elapsed);
                 }
@@ -230,14 +232,18 @@ public abstract class AgentBase : IAgent
 
         try
         {
-            await Memory.AddMessageAsync(
-                new ConversationMessage { Role = "user", Content = userInput },
-                cancellationToken
-            );
-            await Memory.AddMessageAsync(
-                new ConversationMessage { Role = "assistant", Content = assistantResponse },
-                cancellationToken
-            );
+            await Memory
+                .AddMessageAsync(
+                    new ConversationMessage { Role = "user", Content = userInput },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+            await Memory
+                .AddMessageAsync(
+                    new ConversationMessage { Role = "assistant", Content = assistantResponse },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
             Logger.LogDebug("对话已保存到记忆，当前消息数: {Count}", Memory.MessageCount);
         }
         catch (Exception ex)

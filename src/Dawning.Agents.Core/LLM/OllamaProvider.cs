@@ -51,13 +51,14 @@ public class OllamaProvider : ILLMProvider
 
         _logger.LogDebug("发送聊天请求到 Ollama，模型: {Model}", _model);
 
-        var response = await _httpClient.PostAsync("/api/chat", content, cancellationToken);
+        var response = await _httpClient
+            .PostAsync("/api/chat", content, cancellationToken)
+            .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(
-            JsonOptions.Default,
-            cancellationToken
-        );
+        var result = await response
+            .Content.ReadFromJsonAsync<OllamaChatResponse>(JsonOptions.Default, cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogDebug(
             "Ollama 响应完成，Token: {Prompt}/{Completion}",
@@ -114,11 +115,9 @@ public class OllamaProvider : ILLMProvider
             Content = content,
         };
 
-        var response = await _httpClient.SendAsync(
-            requestMessage,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken
-        );
+        var response = await _httpClient
+            .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
 
@@ -127,7 +126,7 @@ public class OllamaProvider : ILLMProvider
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(cancellationToken);
+            var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
             if (line is null)
             {
                 break; // End of stream
@@ -163,11 +162,9 @@ public class OllamaProvider : ILLMProvider
             Content = content,
         };
 
-        var response = await _httpClient.SendAsync(
-            requestMessage,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken
-        );
+        var response = await _httpClient
+            .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
 
@@ -180,7 +177,7 @@ public class OllamaProvider : ILLMProvider
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(cancellationToken);
+            var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
             if (line is null)
             {
                 break;

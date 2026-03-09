@@ -50,7 +50,8 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
         CancellationToken cancellationToken = default
     )
     {
-        return await CheckAsync(input, _inputGuardrails, "输入", cancellationToken);
+        return await CheckAsync(input, _inputGuardrails, "输入", cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -59,7 +60,8 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
         CancellationToken cancellationToken = default
     )
     {
-        return await CheckAsync(output, _outputGuardrails, "输出", cancellationToken);
+        return await CheckAsync(output, _outputGuardrails, "输出", cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private async Task<GuardrailResult> CheckAsync<T>(
@@ -89,7 +91,9 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
 
             _logger.LogDebug("{Phase}护栏检查: {GuardrailName}", phase, guardrail.Name);
 
-            var result = await guardrail.CheckAsync(currentContent, cancellationToken);
+            var result = await guardrail
+                .CheckAsync(currentContent, cancellationToken)
+                .ConfigureAwait(false);
 
             if (!result.Passed)
             {

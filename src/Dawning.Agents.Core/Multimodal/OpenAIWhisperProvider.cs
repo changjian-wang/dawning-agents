@@ -93,7 +93,9 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
             // 从 URL 下载
             try
             {
-                audioData = await _httpClient.GetByteArrayAsync(audio.Url, cancellationToken);
+                audioData = await _httpClient
+                    .GetByteArrayAsync(audio.Url, cancellationToken)
+                    .ConfigureAwait(false);
                 fileName = Path.GetFileName(new Uri(audio.Url!).LocalPath);
                 if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
                 {
@@ -108,7 +110,8 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
 
         using var stream = new MemoryStream(audioData);
-        return await TranscribeStreamAsync(stream, fileName, options, cancellationToken);
+        return await TranscribeStreamAsync(stream, fileName, options, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -141,11 +144,12 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
 
         await using var stream = File.OpenRead(filePath);
         return await TranscribeStreamAsync(
-            stream,
-            Path.GetFileName(filePath),
-            options,
-            cancellationToken
-        );
+                stream,
+                Path.GetFileName(filePath),
+                options,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -222,8 +226,12 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
 
         try
         {
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-            var responseText = await response.Content.ReadAsStringAsync(cancellationToken);
+            using var response = await _httpClient
+                .SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+            var responseText = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {

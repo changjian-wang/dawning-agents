@@ -58,7 +58,9 @@ public class RoutingLLMProvider : ILLMProvider
             ILLMProvider provider;
             try
             {
-                provider = await _router.SelectProviderAsync(context, cancellationToken);
+                provider = await _router
+                    .SelectProviderAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (InvalidOperationException) when (attempt < maxRetries)
             {
@@ -77,7 +79,9 @@ public class RoutingLLMProvider : ILLMProvider
                     provider.Name
                 );
 
-                var response = await provider.ChatAsync(messageList, options, cancellationToken);
+                var response = await provider
+                    .ChatAsync(messageList, options, cancellationToken)
+                    .ConfigureAwait(false);
                 sw.Stop();
 
                 // 报告成功
@@ -136,7 +140,9 @@ public class RoutingLLMProvider : ILLMProvider
             ILLMProvider provider;
             try
             {
-                provider = await _router.SelectProviderAsync(context, cancellationToken);
+                provider = await _router
+                    .SelectProviderAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (InvalidOperationException) when (attempt < maxRetries)
             {
@@ -154,11 +160,12 @@ public class RoutingLLMProvider : ILLMProvider
 
             // 尝试获取流
             var (stream, error) = await TryGetStreamAsync(
-                provider,
-                messageList,
-                options,
-                cancellationToken
-            );
+                    provider,
+                    messageList,
+                    options,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (stream != null)
             {

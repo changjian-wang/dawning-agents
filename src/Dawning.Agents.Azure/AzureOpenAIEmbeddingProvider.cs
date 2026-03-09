@@ -99,10 +99,9 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
             return new float[_dimensions];
         }
 
-        var result = await _embeddingClient.GenerateEmbeddingAsync(
-            text,
-            cancellationToken: cancellationToken
-        );
+        var result = await _embeddingClient
+            .GenerateEmbeddingAsync(text, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         return result.Value.ToFloats().ToArray();
     }
@@ -135,10 +134,12 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
         }
 
         // 批量调用 API
-        var result = await _embeddingClient.GenerateEmbeddingsAsync(
-            validTexts.Select(v => v.Text).ToList(),
-            cancellationToken: cancellationToken
-        );
+        var result = await _embeddingClient
+            .GenerateEmbeddingsAsync(
+                validTexts.Select(v => v.Text).ToList(),
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
 
         // 构建结果数组
         var embeddings = new float[textList.Count][];

@@ -57,15 +57,17 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
 
             var messages = new List<ChatMessage> { new("user", prompt) };
 
-            var response = await _llmProvider.ChatAsync(
-                messages,
-                new ChatCompletionOptions
-                {
-                    Temperature = 0, // 确定性输出
-                    MaxTokens = 200, // 审核响应不需要很长
-                },
-                cancellationToken
-            );
+            var response = await _llmProvider
+                .ChatAsync(
+                    messages,
+                    new ChatCompletionOptions
+                    {
+                        Temperature = 0, // 确定性输出
+                        MaxTokens = 200, // 审核响应不需要很长
+                    },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             var result = ParseModerationResponse(response.Content ?? "");
 

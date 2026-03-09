@@ -82,7 +82,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("DocumentChunk must have an embedding", nameof(chunk));
         }
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
         var metadata = BuildMetadata(chunk);
         var vector = new Vector
@@ -92,7 +92,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             Metadata = metadata,
         };
 
-        await index.Upsert(new[] { vector }, _options.Namespace);
+        await index.Upsert(new[] { vector }, _options.Namespace).ConfigureAwait(false);
 
         Interlocked.Increment(ref _count);
         _logger.LogDebug(
@@ -115,7 +115,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
         var vectors = chunkList
             .Select(chunk => new Vector
@@ -131,7 +131,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         for (var i = 0; i < vectors.Count; i += batchSize)
         {
             var batch = vectors.Skip(i).Take(batchSize).ToList();
-            await index.Upsert(batch, _options.Namespace);
+            await index.Upsert(batch, _options.Namespace).ConfigureAwait(false);
         }
 
         Interlocked.Add(ref _count, chunkList.Count);
@@ -156,15 +156,17 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("Query embedding cannot be empty", nameof(queryEmbedding));
         }
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
-        var queryResponse = await index.Query(
-            queryEmbedding,
-            (uint)topK,
-            indexNamespace: _options.Namespace,
-            includeMetadata: true,
-            includeValues: true
-        );
+        var queryResponse = await index
+            .Query(
+                queryEmbedding,
+                (uint)topK,
+                indexNamespace: _options.Namespace,
+                includeMetadata: true,
+                includeValues: true
+            )
+            .ConfigureAwait(false);
 
         var results = new List<SearchResult>();
         if (queryResponse != null)
@@ -198,9 +200,9 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
-        await index.Delete(new[] { id }, _options.Namespace);
+        await index.Delete(new[] { id }, _options.Namespace).ConfigureAwait(false);
 
         Interlocked.Decrement(ref _count);
         _logger.LogDebug("Deleted chunk {ChunkId} from Pinecone", id);
@@ -214,12 +216,12 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
         // Pinecone 支持按 metadata 过滤删除
         var filter = new MetadataMap { ["document_id"] = documentId };
 
-        await index.Delete(filter, _options.Namespace);
+        await index.Delete(filter, _options.Namespace).ConfigureAwait(false);
 
         // Pinecone 删除不返回数量，估计为 1
         Interlocked.Decrement(ref _count);
@@ -229,10 +231,10 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
         // 删除命名空间中的所有向量
-        await index.DeleteAll(_options.Namespace);
+        await index.DeleteAll(_options.Namespace).ConfigureAwait(false);
 
         _count = 0;
         _logger.LogDebug(
@@ -248,10 +250,11 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        var index = await GetIndexAsync(cancellationToken);
+        var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
         var response =
-            await index.Fetch(new[] { id }, _options.Namespace) as IDictionary<string, Vector>;
+            (await index.Fetch(new[] { id }, _options.Namespace).ConfigureAwait(false))
+            as IDictionary<string, Vector>;
 
         if (response == null || !response.TryGetValue(id, out Vector? vector) || vector == null)
         {
@@ -294,7 +297,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             return _index;
         }
 
-        await _initLock.WaitAsync(cancellationToken);
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (_initialized && _index != null)
@@ -302,7 +305,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 return _index;
             }
 
-            return await InitializeIndexAsync();
+            return await InitializeIndexAsync().ConfigureAwait(false);
         }
         finally
         {
@@ -313,7 +316,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     private async Task<dynamic> InitializeIndexAsync()
     {
         // 检查索引是否存在
-        var indexes = await _client.ListIndexes();
+        var indexes = await _client.ListIndexes().ConfigureAwait(false);
         var indexExists = indexes.Any(i => i.Name == _options.IndexName);
 
         if (!indexExists)
@@ -321,13 +324,15 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             if (_options.AutoCreateIndex)
             {
                 // 创建 Serverless 索引
-                await _client.CreateServerlessIndex(
-                    _options.IndexName,
-                    (uint)_options.VectorSize,
-                    ParseMetric(_options.Metric),
-                    _options.Cloud,
-                    _options.Region
-                );
+                await _client
+                    .CreateServerlessIndex(
+                        _options.IndexName,
+                        (uint)_options.VectorSize,
+                        ParseMetric(_options.Metric),
+                        _options.Cloud,
+                        _options.Region
+                    )
+                    .ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "Created Pinecone Serverless index {Index} with {VectorSize} dimensions",
@@ -336,7 +341,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 );
 
                 // 等待索引就绪
-                await WaitForIndexReadyAsync();
+                await WaitForIndexReadyAsync().ConfigureAwait(false);
             }
             else
             {
@@ -347,10 +352,10 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             }
         }
 
-        _index = await _client.GetIndex(_options.IndexName);
+        _index = await _client.GetIndex(_options.IndexName).ConfigureAwait(false);
 
         // 获取当前向量数量
-        var stats = await ((dynamic)_index).DescribeStats();
+        var stats = await ((dynamic)_index).DescribeStats().ConfigureAwait(false);
         _count = (int)(stats.TotalVectorCount ?? 0);
 
         _initialized = true;
@@ -364,14 +369,14 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         for (var i = 0; i < maxAttempts; i++)
         {
-            var indexes = await _client.ListIndexes();
+            var indexes = await _client.ListIndexes().ConfigureAwait(false);
             var indexInfo = indexes.FirstOrDefault(idx => idx.Name == _options.IndexName);
             if (indexInfo?.Status?.State == IndexState.Ready)
             {
                 return;
             }
 
-            await Task.Delay(delayMs);
+            await Task.Delay(delayMs).ConfigureAwait(false);
         }
 
         throw new TimeoutException(

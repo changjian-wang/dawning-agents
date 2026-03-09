@@ -31,7 +31,9 @@ public sealed class AgentHealthCheck
         {
             try
             {
-                var health = await provider.CheckHealthAsync(cancellationToken);
+                var health = await provider
+                    .CheckHealthAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 results.Add(health);
                 if (health.Status != HealthStatus.Healthy)
                 {

@@ -163,11 +163,15 @@ public class OpenAITTSProvider : ITextToSpeechProvider
 
         try
         {
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var response = await _httpClient
+                .SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                var errorText = await response
+                    .Content.ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 _logger.LogWarning(
                     "TTS API 返回错误: {StatusCode} - {Response}",
                     response.StatusCode,
@@ -176,7 +180,9 @@ public class OpenAITTSProvider : ITextToSpeechProvider
                 return SpeechResult.Failed($"API 错误: {response.StatusCode} - {errorText}");
             }
 
-            var audioData = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            var audioData = await response
+                .Content.ReadAsByteArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             _logger.LogDebug("语音合成成功，音频大小: {Size} 字节", audioData.Length);
 
@@ -205,7 +211,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         CancellationToken cancellationToken = default
     )
     {
-        var result = await SynthesizeAsync(text, options, cancellationToken);
+        var result = await SynthesizeAsync(text, options, cancellationToken).ConfigureAwait(false);
 
         if (!result.Success || result.AudioData == null)
         {
@@ -220,7 +226,8 @@ public class OpenAITTSProvider : ITextToSpeechProvider
                 Directory.CreateDirectory(directory);
             }
 
-            await File.WriteAllBytesAsync(outputPath, result.AudioData, cancellationToken);
+            await File.WriteAllBytesAsync(outputPath, result.AudioData, cancellationToken)
+                .ConfigureAwait(false);
 
             _logger.LogDebug("音频已保存到: {OutputPath}", outputPath);
 
@@ -270,25 +277,28 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
         request.Content = JsonContent.Create(requestBody, options: _jsonOptions);
 
-        using var response = await _httpClient.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken
-        );
+        using var response = await _httpClient
+            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            var error = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
             throw new InvalidOperationException($"API 错误: {response.StatusCode} - {error}");
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var stream = await response
+            .Content.ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         var buffer = new byte[8192];
         int bytesRead;
 
         while (
-            (bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0
+            (bytesRead = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false))
+                > 0
             && !cancellationToken.IsCancellationRequested
         )
         {

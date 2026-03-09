@@ -85,7 +85,9 @@ public sealed class KnowledgeBase
 
         // 2. 批量生成嵌入
         var texts = chunks.Select(c => c.Content).ToList();
-        var embeddings = await _embeddingProvider.EmbedBatchAsync(texts, cancellationToken);
+        var embeddings = await _embeddingProvider
+            .EmbedBatchAsync(texts, cancellationToken)
+            .ConfigureAwait(false);
 
         // 3. 添加嵌入向量到块
         var chunksWithEmbeddings = chunks
@@ -93,7 +95,9 @@ public sealed class KnowledgeBase
             .ToList();
 
         // 4. 存储到向量数据库
-        await _vectorStore.AddBatchAsync(chunksWithEmbeddings, cancellationToken);
+        await _vectorStore
+            .AddBatchAsync(chunksWithEmbeddings, cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogInformation(
             "Added document {DocumentId} with {ChunkCount} chunks to knowledge base",
@@ -117,7 +121,8 @@ public sealed class KnowledgeBase
             throw new FileNotFoundException("File not found", filePath);
         }
 
-        var content = await File.ReadAllTextAsync(filePath, cancellationToken);
+        var content = await File.ReadAllTextAsync(filePath, cancellationToken)
+            .ConfigureAwait(false);
         var documentId = Path.GetFileName(filePath);
         var metadata = new Dictionary<string, string>
         {
@@ -126,7 +131,8 @@ public sealed class KnowledgeBase
             ["extension"] = Path.GetExtension(filePath),
         };
 
-        return await AddDocumentAsync(content, documentId, metadata, cancellationToken);
+        return await AddDocumentAsync(content, documentId, metadata, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -150,15 +156,14 @@ public sealed class KnowledgeBase
         _logger.LogDebug("Querying knowledge base: {Query}", query);
 
         // 生成查询向量
-        var queryEmbedding = await _embeddingProvider.EmbedAsync(query, cancellationToken);
+        var queryEmbedding = await _embeddingProvider
+            .EmbedAsync(query, cancellationToken)
+            .ConfigureAwait(false);
 
         // 向量搜索
-        var results = await _vectorStore.SearchAsync(
-            queryEmbedding,
-            topK,
-            _options.MinScore,
-            cancellationToken
-        );
+        var results = await _vectorStore
+            .SearchAsync(queryEmbedding, topK, _options.MinScore, cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogDebug("Query returned {Count} results", results.Count);
 
@@ -174,7 +179,7 @@ public sealed class KnowledgeBase
         CancellationToken cancellationToken = default
     )
     {
-        var results = await QueryAsync(query, topK, cancellationToken);
+        var results = await QueryAsync(query, topK, cancellationToken).ConfigureAwait(false);
 
         if (results.Count == 0)
         {

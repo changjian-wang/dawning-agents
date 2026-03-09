@@ -74,7 +74,7 @@ public class HumanInLoopAgent : IAgent
     )
     {
         var context = new AgentContext { UserInput = input };
-        return await RunAsync(context, cancellationToken);
+        return await RunAsync(context, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -90,12 +90,14 @@ public class HumanInLoopAgent : IAgent
             // 执行前确认（如果配置）
             if (_options.ConfirmBeforeExecution)
             {
-                var approval = await _workflow.RequestApprovalAsync(
-                    "执行 Agent 任务",
-                    $"Agent '{_innerAgent.Name}' 将处理：{context.UserInput}",
-                    new Dictionary<string, object> { ["sessionId"] = context.SessionId },
-                    cancellationToken
-                );
+                var approval = await _workflow
+                    .RequestApprovalAsync(
+                        "执行 Agent 任务",
+                        $"Agent '{_innerAgent.Name}' 将处理：{context.UserInput}",
+                        new Dictionary<string, object> { ["sessionId"] = context.SessionId },
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
 
                 if (!approval.IsApproved)
                 {
@@ -111,16 +113,14 @@ public class HumanInLoopAgent : IAgent
             }
 
             // 带升级处理的执行
-            var response = await ExecuteWithEscalationAsync(context, cancellationToken);
+            var response = await ExecuteWithEscalationAsync(context, cancellationToken)
+                .ConfigureAwait(false);
 
             // 返回前审查（如果配置）
             if (_options.ReviewBeforeReturn && response.Success)
             {
-                response = await ReviewResponseAsync(
-                    response,
-                    stopwatch.Elapsed,
-                    cancellationToken
-                );
+                response = await ReviewResponseAsync(response, stopwatch.Elapsed, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             return response;
@@ -129,19 +129,21 @@ public class HumanInLoopAgent : IAgent
         {
             _logger.LogWarning("Agent 升级：{Reason}", ex.Reason);
 
-            var escalation = await _handler.EscalateAsync(
-                new EscalationRequest
-                {
-                    Reason = ex.Reason,
-                    Description = ex.Description,
-                    Severity = EscalationSeverity.High,
-                    AgentName = _innerAgent.Name,
-                    TaskId = context.SessionId,
-                    Context = ex.Context,
-                    AttemptedSolutions = ex.AttemptedSolutions,
-                },
-                cancellationToken
-            );
+            var escalation = await _handler
+                .EscalateAsync(
+                    new EscalationRequest
+                    {
+                        Reason = ex.Reason,
+                        Description = ex.Description,
+                        Severity = EscalationSeverity.High,
+                        AgentName = _innerAgent.Name,
+                        TaskId = context.SessionId,
+                        Context = ex.Context,
+                        AttemptedSolutions = ex.AttemptedSolutions,
+                    },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             return HandleEscalationResult(escalation, stopwatch.Elapsed);
         }
@@ -173,7 +175,7 @@ public class HumanInLoopAgent : IAgent
             try
             {
                 _logger.LogDebug("执行第 {Attempt} 次尝试", attempt + 1);
-                return await _innerAgent.RunAsync(context, cancellationToken);
+                return await _innerAgent.RunAsync(context, cancellationToken).ConfigureAwait(false);
             }
             catch (AgentEscalationException)
             {
@@ -191,10 +193,12 @@ public class HumanInLoopAgent : IAgent
                 attemptedSolutions.Add($"第 {attempt + 1} 次尝试失败：{ex.Message}");
                 _logger.LogWarning(ex, "第 {Attempt} 次尝试失败，请求指导", attempt + 1);
 
-                var input = await _handler.RequestInputAsync(
-                    $"Agent 遇到错误：{ex.Message}\n请提供指导或输入 'abort' 停止：",
-                    cancellationToken: cancellationToken
-                );
+                var input = await _handler
+                    .RequestInputAsync(
+                        $"Agent 遇到错误：{ex.Message}\n请提供指导或输入 'abort' 停止：",
+                        cancellationToken: cancellationToken
+                    )
+                    .ConfigureAwait(false);
 
                 if (input.Equals("abort", StringComparison.OrdinalIgnoreCase))
                 {
@@ -202,7 +206,8 @@ public class HumanInLoopAgent : IAgent
                     throw new OperationCanceledException("用户中止");
                 }
 
-                // 带指导重试 - 创建新的上下文
+                // 带指导重试 - 保存旧元数据后创建新的上下文
+                var oldMetadata = context.Metadata;
                 context = new AgentContext
                 {
                     SessionId = context.SessionId,
@@ -211,7 +216,7 @@ public class HumanInLoopAgent : IAgent
                 };
 
                 // 复制元数据
-                foreach (var kvp in context.Metadata)
+                foreach (var kvp in oldMetadata)
                 {
                     context.SetMetadata(kvp.Key, kvp.Value);
                 }
@@ -253,27 +258,29 @@ public class HumanInLoopAgent : IAgent
         CancellationToken cancellationToken
     )
     {
-        var review = await _handler.RequestConfirmationAsync(
-            new ConfirmationRequest
-            {
-                Type = ConfirmationType.Review,
-                Action = "审查响应",
-                Description = $"Agent 响应：\n\n{response.FinalAnswer}",
-                RiskLevel = RiskLevel.Low,
-                Options =
-                [
-                    new ConfirmationOption
-                    {
-                        Id = "approve",
-                        Label = "批准",
-                        IsDefault = true,
-                    },
-                    new ConfirmationOption { Id = "edit", Label = "编辑响应" },
-                    new ConfirmationOption { Id = "reject", Label = "拒绝" },
-                ],
-            },
-            cancellationToken
-        );
+        var review = await _handler
+            .RequestConfirmationAsync(
+                new ConfirmationRequest
+                {
+                    Type = ConfirmationType.Review,
+                    Action = "审查响应",
+                    Description = $"Agent 响应：\n\n{response.FinalAnswer}",
+                    RiskLevel = RiskLevel.Low,
+                    Options =
+                    [
+                        new ConfirmationOption
+                        {
+                            Id = "approve",
+                            Label = "批准",
+                            IsDefault = true,
+                        },
+                        new ConfirmationOption { Id = "edit", Label = "编辑响应" },
+                        new ConfirmationOption { Id = "reject", Label = "拒绝" },
+                    ],
+                },
+                cancellationToken
+            )
+            .ConfigureAwait(false);
 
         return review.SelectedOption switch
         {

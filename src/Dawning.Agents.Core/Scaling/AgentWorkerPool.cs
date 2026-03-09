@@ -78,11 +78,13 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         }
 
         _logger.LogInformation("正在停止工作池...");
-        await _cts.CancelAsync();
+        await _cts.CancelAsync().ConfigureAwait(false);
 
         try
         {
-            await Task.WhenAll(snapshot).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            await Task.WhenAll(snapshot)
+                .WaitAsync(TimeSpan.FromSeconds(30), cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
@@ -109,7 +111,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         {
             try
             {
-                var item = await _queue.DequeueAsync(cancellationToken);
+                var item = await _queue.DequeueAsync(cancellationToken).ConfigureAwait(false);
                 if (item == null)
                 {
                     continue;
@@ -122,7 +124,9 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
                 try
                 {
-                    var response = await _agent.RunAsync(item.Input, linkedCts.Token);
+                    var response = await _agent
+                        .RunAsync(item.Input, linkedCts.Token)
+                        .ConfigureAwait(false);
                     item.CompletionSource.TrySetResult(response);
                 }
                 catch (OperationCanceledException)
@@ -147,7 +151,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             catch (Exception ex)
             {
                 _logger.LogError(ex, "工作线程 {WorkerId} 遇到意外错误", workerId);
-                await Task.Delay(1000, cancellationToken);
+                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
             }
         }
 

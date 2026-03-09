@@ -76,7 +76,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             return;
         }
 
-        await _initLock.WaitAsync();
+        await _initLock.WaitAsync().ConfigureAwait(false);
         try
         {
             if (_initialized)

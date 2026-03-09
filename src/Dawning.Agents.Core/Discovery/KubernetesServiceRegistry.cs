@@ -67,7 +67,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         {
             var url =
                 $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/endpoints/{serviceName}";
-            var response = await _httpClient.GetAsync(url, cancellationToken);
+            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -75,9 +75,11 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
                 return Array.Empty<ServiceInstance>();
             }
 
-            var endpoints = await response.Content.ReadFromJsonAsync<KubernetesEndpoints>(
-                cancellationToken: cancellationToken
-            );
+            var endpoints = await response
+                .Content.ReadFromJsonAsync<KubernetesEndpoints>(
+                    cancellationToken: cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (endpoints?.Subsets == null)
             {
@@ -125,16 +127,18 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         try
         {
             var url = $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/services";
-            var response = await _httpClient.GetAsync(url, cancellationToken);
+            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 return Array.Empty<string>();
             }
 
-            var services = await response.Content.ReadFromJsonAsync<KubernetesServiceList>(
-                cancellationToken: cancellationToken
-            );
+            var services = await response
+                .Content.ReadFromJsonAsync<KubernetesServiceList>(
+                    cancellationToken: cancellationToken
+                )
+                .ConfigureAwait(false);
 
             return services
                     ?.Items?.Select(s => s.Metadata?.Name ?? "")
@@ -157,12 +161,11 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         // 简化实现: 轮询模式
         while (!cancellationToken.IsCancellationRequested)
         {
-            var instances = await GetInstancesAsync(serviceName, cancellationToken);
+            var instances = await GetInstancesAsync(serviceName, cancellationToken)
+                .ConfigureAwait(false);
             yield return instances.ToArray();
-            await Task.Delay(
-                TimeSpan.FromSeconds(_options.WatchIntervalSeconds),
-                cancellationToken
-            );
+            await Task.Delay(TimeSpan.FromSeconds(_options.WatchIntervalSeconds), cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 

@@ -90,7 +90,8 @@ public class WorkflowEngine : IWorkflowEngine
                 );
 
                 // 执行节点
-                var result = await ExecuteNodeAsync(nodeDefinition, context, cancellationToken);
+                var result = await ExecuteNodeAsync(nodeDefinition, context, cancellationToken)
+                    .ConfigureAwait(false);
                 context.AddNodeResult(nodeDefinition.Id, result);
 
                 // 更新执行步骤
@@ -265,30 +266,35 @@ public class WorkflowEngine : IWorkflowEngine
                     context.GetLastResult()?.Output
                 ),
                 WorkflowNodeType.Agent => await ExecuteAgentNodeAsync(
-                    nodeDefinition,
-                    context,
-                    cancellationToken
-                ),
+                        nodeDefinition,
+                        context,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false),
                 WorkflowNodeType.Tool => await ExecuteToolNodeAsync(
-                    nodeDefinition,
-                    context,
-                    cancellationToken
-                ),
+                        nodeDefinition,
+                        context,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false),
                 WorkflowNodeType.Condition => ExecuteConditionNode(nodeDefinition, context),
                 WorkflowNodeType.Delay => await ExecuteDelayNodeAsync(
-                    nodeDefinition,
-                    cancellationToken
-                ),
+                        nodeDefinition,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false),
                 WorkflowNodeType.Parallel => await ExecuteParallelNodeAsync(
-                    nodeDefinition,
-                    context,
-                    cancellationToken
-                ),
+                        nodeDefinition,
+                        context,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false),
                 WorkflowNodeType.Loop => await ExecuteLoopNodeAsync(
-                    nodeDefinition,
-                    context,
-                    cancellationToken
-                ),
+                        nodeDefinition,
+                        context,
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false),
                 _ => NodeExecutionResult.Fail(
                     nodeDefinition.Id,
                     $"不支持的节点类型: {nodeDefinition.Type}"
@@ -344,7 +350,7 @@ public class WorkflowEngine : IWorkflowEngine
         }
 
         // 执行 Agent
-        var response = await agent.RunAsync(input, cancellationToken);
+        var response = await agent.RunAsync(input, cancellationToken).ConfigureAwait(false);
         return NodeExecutionResult.Ok(nodeDefinition.Id, response.FinalAnswer);
     }
 
@@ -388,7 +394,7 @@ public class WorkflowEngine : IWorkflowEngine
         }
 
         // 执行工具
-        var toolResult = await tool.ExecuteAsync(input, cancellationToken);
+        var toolResult = await tool.ExecuteAsync(input, cancellationToken).ConfigureAwait(false);
         if (toolResult.Success)
         {
             return NodeExecutionResult.Ok(nodeDefinition.Id, toolResult.Output);
@@ -472,7 +478,7 @@ public class WorkflowEngine : IWorkflowEngine
             delayMs = Convert.ToInt32(delayObj);
         }
 
-        await Task.Delay(delayMs, cancellationToken);
+        await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
         return NodeExecutionResult.Ok(nodeDefinition.Id);
     }
 
@@ -483,7 +489,7 @@ public class WorkflowEngine : IWorkflowEngine
     )
     {
         // 并行执行简化实现 - 返回成功
-        await Task.CompletedTask;
+        await Task.CompletedTask.ConfigureAwait(false);
         return NodeExecutionResult.Ok(nodeDefinition.Id, "并行节点执行完成");
     }
 
@@ -503,7 +509,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 简化实现 - 只是标记循环次数
         context.SetState($"{nodeDefinition.Id}_iterations", maxIterations);
-        await Task.CompletedTask;
+        await Task.CompletedTask.ConfigureAwait(false);
         return NodeExecutionResult.Ok(
             nodeDefinition.Id,
             $"循环节点完成，最大迭代 {maxIterations} 次"

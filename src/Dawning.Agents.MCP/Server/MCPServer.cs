@@ -86,21 +86,21 @@ public sealed class MCPServer : IAsyncDisposable
             _options.Version
         );
 
-        await _transport.StartAsync(linkedCts.Token);
+        await _transport.StartAsync(linkedCts.Token).ConfigureAwait(false);
 
         // 主消息循环
         while (!linkedCts.Token.IsCancellationRequested)
         {
             try
             {
-                var message = await _transport.ReceiveAsync(linkedCts.Token);
+                var message = await _transport.ReceiveAsync(linkedCts.Token).ConfigureAwait(false);
                 if (message == null)
                 {
                     continue;
                 }
 
                 // 限制并发请求
-                await _requestSemaphore.WaitAsync(linkedCts.Token);
+                await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
                 _ = ProcessMessageAsync(message, linkedCts.Token)
                     .ContinueWith(_ => _requestSemaphore.Release(), TaskScheduler.Default);
             }
@@ -128,31 +128,35 @@ public sealed class MCPServer : IAsyncDisposable
             if (request == null)
             {
                 await SendErrorAsync(
-                    null,
-                    MCPErrorCodes.ParseError,
-                    "Invalid JSON",
-                    cancellationToken
-                );
+                        null,
+                        MCPErrorCodes.ParseError,
+                        "Invalid JSON",
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
                 return;
             }
 
             _logger.LogDebug("Processing request: {Method}", request.Method);
 
-            var response = await HandleRequestAsync(request, cancellationToken);
+            var response = await HandleRequestAsync(request, cancellationToken)
+                .ConfigureAwait(false);
             if (response != null)
             {
-                await SendResponseAsync(response, cancellationToken);
+                await SendResponseAsync(response, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (JsonException ex)
         {
             _logger.LogWarning(ex, "JSON parse error");
-            await SendErrorAsync(null, MCPErrorCodes.ParseError, ex.Message, cancellationToken);
+            await SendErrorAsync(null, MCPErrorCodes.ParseError, ex.Message, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing message");
-            await SendErrorAsync(null, MCPErrorCodes.InternalError, ex.Message, cancellationToken);
+            await SendErrorAsync(null, MCPErrorCodes.InternalError, ex.Message, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
@@ -166,14 +170,18 @@ public sealed class MCPServer : IAsyncDisposable
     {
         return request.Method switch
         {
-            MCPMethods.Initialize => await HandleInitializeAsync(request, cancellationToken),
+            MCPMethods.Initialize => await HandleInitializeAsync(request, cancellationToken)
+                .ConfigureAwait(false),
             MCPMethods.Shutdown => HandleShutdown(request),
             MCPMethods.ToolsList => HandleToolsList(request),
-            MCPMethods.ToolsCall => await HandleToolsCallAsync(request, cancellationToken),
+            MCPMethods.ToolsCall => await HandleToolsCallAsync(request, cancellationToken)
+                .ConfigureAwait(false),
             MCPMethods.ResourcesList => HandleResourcesList(request),
-            MCPMethods.ResourcesRead => await HandleResourcesReadAsync(request, cancellationToken),
+            MCPMethods.ResourcesRead => await HandleResourcesReadAsync(request, cancellationToken)
+                .ConfigureAwait(false),
             MCPMethods.PromptsList => HandlePromptsList(request),
-            MCPMethods.PromptsGet => await HandlePromptsGetAsync(request, cancellationToken),
+            MCPMethods.PromptsGet => await HandlePromptsGetAsync(request, cancellationToken)
+                .ConfigureAwait(false),
 
             // 通知方法不需要响应
             MCPMethods.Initialized => null,
@@ -314,7 +322,7 @@ public sealed class MCPServer : IAsyncDisposable
                     ? JsonSerializer.Serialize(callParams.Arguments)
                     : "{}";
 
-            var result = await tool.ExecuteAsync(inputJson, linkedCts.Token);
+            var result = await tool.ExecuteAsync(inputJson, linkedCts.Token).ConfigureAwait(false);
 
             var callResult = new CallToolResult
             {
@@ -385,7 +393,9 @@ public sealed class MCPServer : IAsyncDisposable
 
         foreach (var provider in _resourceProviders)
         {
-            var content = await provider.ReadResourceAsync(readParams.Uri, cancellationToken);
+            var content = await provider
+                .ReadResourceAsync(readParams.Uri, cancellationToken)
+                .ConfigureAwait(false);
             if (content != null)
             {
                 return MCPResponse.Success(
@@ -448,11 +458,9 @@ public sealed class MCPServer : IAsyncDisposable
 
         foreach (var provider in _promptProviders)
         {
-            var result = await provider.GetPromptAsync(
-                getParams.Name,
-                getParams.Arguments,
-                cancellationToken
-            );
+            var result = await provider
+                .GetPromptAsync(getParams.Name, getParams.Arguments, cancellationToken)
+                .ConfigureAwait(false);
 
             if (result != null)
             {
@@ -504,7 +512,7 @@ public sealed class MCPServer : IAsyncDisposable
     private async Task SendResponseAsync(MCPResponse response, CancellationToken cancellationToken)
     {
         var json = JsonSerializer.Serialize(response);
-        await _transport.SendAsync(json, cancellationToken);
+        await _transport.SendAsync(json, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -518,7 +526,7 @@ public sealed class MCPServer : IAsyncDisposable
     )
     {
         var response = MCPResponse.Failure(id, code, message);
-        await SendResponseAsync(response, cancellationToken);
+        await SendResponseAsync(response, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -532,7 +540,7 @@ public sealed class MCPServer : IAsyncDisposable
     {
         var notification = new MCPNotification { Method = method, Params = @params };
         var json = JsonSerializer.Serialize(notification);
-        await _transport.SendAsync(json, cancellationToken);
+        await _transport.SendAsync(json, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
@@ -540,6 +548,6 @@ public sealed class MCPServer : IAsyncDisposable
         _cts.Cancel();
         _requestSemaphore.Dispose();
         _cts.Dispose();
-        await _transport.DisposeAsync();
+        await _transport.DisposeAsync().ConfigureAwait(false);
     }
 }

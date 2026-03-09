@@ -84,14 +84,16 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("DocumentChunk must have an embedding", nameof(chunk));
         }
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         var point = CreatePoint(chunk);
-        await _client.UpsertAsync(
-            _options.CollectionName,
-            new[] { point },
-            cancellationToken: cancellationToken
-        );
+        await _client
+            .UpsertAsync(
+                _options.CollectionName,
+                new[] { point },
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
 
         Interlocked.Increment(ref _count);
         _logger.LogDebug(
@@ -114,14 +116,12 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         var points = chunkList.Select(CreatePoint).ToList();
-        await _client.UpsertAsync(
-            _options.CollectionName,
-            points,
-            cancellationToken: cancellationToken
-        );
+        await _client
+            .UpsertAsync(_options.CollectionName, points, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         Interlocked.Add(ref _count, chunkList.Count);
         _logger.LogDebug(
@@ -145,15 +145,17 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("Query embedding cannot be empty", nameof(queryEmbedding));
         }
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
-        var searchResults = await _client.SearchAsync(
-            _options.CollectionName,
-            queryEmbedding,
-            limit: (ulong)topK,
-            scoreThreshold: minScore,
-            cancellationToken: cancellationToken
-        );
+        var searchResults = await _client
+            .SearchAsync(
+                _options.CollectionName,
+                queryEmbedding,
+                limit: (ulong)topK,
+                scoreThreshold: minScore,
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
 
         var results = new List<SearchResult>();
         foreach (var result in searchResults)
@@ -179,7 +181,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         // 使用过滤器删除
         var filter = new Filter
@@ -197,11 +199,9 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        var updateResult = await _client.DeleteAsync(
-            _options.CollectionName,
-            filter,
-            cancellationToken: cancellationToken
-        );
+        var updateResult = await _client
+            .DeleteAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         if (updateResult.Status == UpdateStatus.Completed)
         {
@@ -220,7 +220,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         // 使用过滤条件删除
         var filter = new Filter
@@ -239,22 +239,22 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         };
 
         // 先搜索获取数量
-        var scrollResult = await _client.ScrollAsync(
-            _options.CollectionName,
-            filter: filter,
-            limit: 10000,
-            cancellationToken: cancellationToken
-        );
+        var scrollResult = await _client
+            .ScrollAsync(
+                _options.CollectionName,
+                filter: filter,
+                limit: 10000,
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
 
         var count = scrollResult.Result.Count;
 
         if (count > 0)
         {
-            await _client.DeleteAsync(
-                _options.CollectionName,
-                filter,
-                cancellationToken: cancellationToken
-            );
+            await _client
+                .DeleteAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
             Interlocked.Add(ref _count, -count);
             _logger.LogDebug("Deleted {Count} chunks for document {DocumentId}", count, documentId);
@@ -268,7 +268,9 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         // 删除并重新创建集合
         try
         {
-            await _client.DeleteCollectionAsync(_options.CollectionName, null, cancellationToken);
+            await _client
+                .DeleteCollectionAsync(_options.CollectionName, null, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch
         {
@@ -278,7 +280,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         _collectionInitialized = false;
         _count = 0;
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogDebug("Cleared Qdrant collection {Collection}", _options.CollectionName);
     }
@@ -290,7 +292,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        await EnsureCollectionExistsAsync(cancellationToken);
+        await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
         // 使用过滤器搜索
         var filter = new Filter
@@ -308,14 +310,16 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        var scrollResult = await _client.ScrollAsync(
-            _options.CollectionName,
-            filter: filter,
-            limit: 1,
-            payloadSelector: true,
-            vectorsSelector: true,
-            cancellationToken: cancellationToken
-        );
+        var scrollResult = await _client
+            .ScrollAsync(
+                _options.CollectionName,
+                filter: filter,
+                limit: 1,
+                payloadSelector: true,
+                vectorsSelector: true,
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
 
         var point = scrollResult.Result.FirstOrDefault();
         return point != null ? RetrievedPointToChunk(point) : null;
@@ -352,7 +356,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        await _initLock.WaitAsync(cancellationToken);
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (_collectionInitialized)
@@ -360,21 +364,22 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                 return;
             }
 
-            var exists = await _client.CollectionExistsAsync(
-                _options.CollectionName,
-                cancellationToken
-            );
+            var exists = await _client
+                .CollectionExistsAsync(_options.CollectionName, cancellationToken)
+                .ConfigureAwait(false);
             if (!exists)
             {
-                await _client.CreateCollectionAsync(
-                    _options.CollectionName,
-                    new VectorParams
-                    {
-                        Size = (ulong)_options.VectorSize,
-                        Distance = Distance.Cosine,
-                    },
-                    cancellationToken: cancellationToken
-                );
+                await _client
+                    .CreateCollectionAsync(
+                        _options.CollectionName,
+                        new VectorParams
+                        {
+                            Size = (ulong)_options.VectorSize,
+                            Distance = Distance.Cosine,
+                        },
+                        cancellationToken: cancellationToken
+                    )
+                    .ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "Created Qdrant collection {Collection} with vector size {VectorSize}",
@@ -385,10 +390,9 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             else
             {
                 // 获取当前数量
-                var info = await _client.GetCollectionInfoAsync(
-                    _options.CollectionName,
-                    cancellationToken
-                );
+                var info = await _client
+                    .GetCollectionInfoAsync(_options.CollectionName, cancellationToken)
+                    .ConfigureAwait(false);
                 _count = (int)info.PointsCount;
             }
 

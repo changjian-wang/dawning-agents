@@ -44,10 +44,9 @@ public class PollyResilienceProvider : IResilienceProvider
         CancellationToken cancellationToken = default
     )
     {
-        return await _pipeline.ExecuteAsync(
-            async token => await operation(token),
-            cancellationToken
-        );
+        return await _pipeline
+            .ExecuteAsync(async token => await operation(token), cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task ExecuteAsync(
@@ -55,13 +54,15 @@ public class PollyResilienceProvider : IResilienceProvider
         CancellationToken cancellationToken = default
     )
     {
-        await _pipeline.ExecuteAsync(
-            async token =>
-            {
-                await operation(token);
-            },
-            cancellationToken
-        );
+        await _pipeline
+            .ExecuteAsync(
+                async token =>
+                {
+                    await operation(token).ConfigureAwait(false);
+                },
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     private ResiliencePipeline BuildPipeline(ResilienceOptions options)

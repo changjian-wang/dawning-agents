@@ -181,7 +181,7 @@ public class CompositeSecretsManager : ISecretsManager
     {
         foreach (var manager in _managers)
         {
-            var value = await manager.GetSecretAsync(name, cancellationToken);
+            var value = await manager.GetSecretAsync(name, cancellationToken).ConfigureAwait(false);
             if (value != null)
             {
                 _logger.LogDebug(
@@ -216,7 +216,7 @@ public class CompositeSecretsManager : ISecretsManager
         // 从所有管理器删除
         foreach (var manager in _managers)
         {
-            await manager.DeleteSecretAsync(name, cancellationToken);
+            await manager.DeleteSecretAsync(name, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -225,7 +225,7 @@ public class CompositeSecretsManager : ISecretsManager
     {
         foreach (var manager in _managers)
         {
-            if (await manager.ExistsAsync(name, cancellationToken))
+            if (await manager.ExistsAsync(name, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }

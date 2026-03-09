@@ -38,10 +38,10 @@ public sealed class ABTestRunner
         var taskA = evaluatorA.EvaluateBatchAsync(testCaseList, cancellationToken);
         var taskB = evaluatorB.EvaluateBatchAsync(testCaseList, cancellationToken);
 
-        await Task.WhenAll(taskA, taskB);
+        await Task.WhenAll(taskA, taskB).ConfigureAwait(false);
 
-        var reportA = await taskA;
-        var reportB = await taskB;
+        var reportA = await taskA.ConfigureAwait(false);
+        var reportB = await taskB.ConfigureAwait(false);
 
         var result = new ABTestResult
         {
@@ -266,12 +266,14 @@ public sealed class EvaluationReportGenerator
 
         // 保存 JSON
         var jsonPath = Path.Combine(directory, $"{baseName}.json");
-        await File.WriteAllTextAsync(jsonPath, GenerateJson(report), cancellationToken);
+        await File.WriteAllTextAsync(jsonPath, GenerateJson(report), cancellationToken)
+            .ConfigureAwait(false);
         _logger.LogInformation("Saved JSON report to {Path}", jsonPath);
 
         // 保存 Markdown
         var mdPath = Path.Combine(directory, $"{baseName}.md");
-        await File.WriteAllTextAsync(mdPath, GenerateMarkdown(report), cancellationToken);
+        await File.WriteAllTextAsync(mdPath, GenerateMarkdown(report), cancellationToken)
+            .ConfigureAwait(false);
         _logger.LogInformation("Saved Markdown report to {Path}", mdPath);
     }
 }

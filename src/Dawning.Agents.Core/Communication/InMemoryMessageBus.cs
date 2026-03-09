@@ -220,7 +220,8 @@ public sealed class InMemoryMessageBus : IMessageBus
         try
         {
             // 发送请求
-            await SendAsync(request with { CorrelationId = correlationId }, cancellationToken);
+            await SendAsync(request with { CorrelationId = correlationId }, cancellationToken)
+                .ConfigureAwait(false);
 
             // 等待响应或超时
             try

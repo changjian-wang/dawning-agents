@@ -107,7 +107,8 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
 
         try
         {
-            var content = await File.ReadAllTextAsync(fullPath, cancellationToken);
+            var content = await File.ReadAllTextAsync(fullPath, cancellationToken)
+                .ConfigureAwait(false);
             var ext = Path.GetExtension(fullPath).ToLowerInvariant();
 
             return new ResourceContent

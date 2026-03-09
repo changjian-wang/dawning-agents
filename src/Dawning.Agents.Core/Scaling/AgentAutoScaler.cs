@@ -73,7 +73,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     /// <inheritdoc />
     public async Task<ScalingDecision> EvaluateAsync(CancellationToken cancellationToken = default)
     {
-        var metrics = await _metricsProvider();
+        var metrics = await _metricsProvider().ConfigureAwait(false);
 
         int currentSnapshot;
         int newCount;
@@ -106,7 +106,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
             }
         }
 
-        await ApplyScalingAsync(newCount, decision, cancellationToken);
+        await ApplyScalingAsync(newCount, decision, cancellationToken).ConfigureAwait(false);
 
         return decision;
     }
@@ -188,7 +188,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
 
         try
         {
-            await _scaleAction(newCount);
+            await _scaleAction(newCount).ConfigureAwait(false);
 
             lock (_lock)
             {

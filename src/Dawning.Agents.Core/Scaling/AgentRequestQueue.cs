@@ -32,7 +32,7 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         CancellationToken cancellationToken = default
     )
     {
-        await _channel.Writer.WriteAsync(item, cancellationToken);
+        await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
         _logger.LogDebug("工作项 {WorkItemId} 已入队", item.Id);
     }
 
@@ -43,7 +43,7 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
     {
         try
         {
-            var item = await _channel.Reader.ReadAsync(cancellationToken);
+            var item = await _channel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
             _logger.LogDebug("工作项 {WorkItemId} 已出队", item.Id);
             return item;
         }

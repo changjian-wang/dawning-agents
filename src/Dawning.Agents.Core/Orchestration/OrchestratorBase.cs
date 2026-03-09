@@ -81,7 +81,7 @@ public abstract class OrchestratorBase : IOrchestrator
     {
         var context = new OrchestrationContext { UserInput = input, CurrentInput = input };
 
-        return await RunAsync(context, cancellationToken);
+        return await RunAsync(context, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -115,7 +115,8 @@ public abstract class OrchestratorBase : IOrchestrator
                 _agents.Count
             );
 
-            var result = await ExecuteOrchestratedAsync(context, linkedCts.Token);
+            var result = await ExecuteOrchestratedAsync(context, linkedCts.Token)
+                .ConfigureAwait(false);
 
             stopwatch.Stop();
 
@@ -188,7 +189,7 @@ public abstract class OrchestratorBase : IOrchestrator
         AgentResponse response;
         try
         {
-            response = await agent.RunAsync(input, linkedCts.Token);
+            response = await agent.RunAsync(input, linkedCts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (agentCts.IsCancellationRequested)
         {

@@ -84,7 +84,9 @@ public class ApprovalWorkflow
             DefaultOnTimeout = _config.DefaultOnTimeout,
         };
 
-        var response = await _handler.RequestConfirmationAsync(request, cancellationToken);
+        var response = await _handler
+            .RequestConfirmationAsync(request, cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogDebug("收到审批响应：{SelectedOption}", response.SelectedOption);
 
@@ -133,11 +135,12 @@ public class ApprovalWorkflow
         for (int i = 0; i < requiredApprovals; i++)
         {
             var result = await RequestApprovalAsync(
-                $"{action}（审批 {i + 1}/{requiredApprovals}）",
-                description,
-                context,
-                cancellationToken
-            );
+                    $"{action}（审批 {i + 1}/{requiredApprovals}）",
+                    description,
+                    context,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (result.IsApproved)
             {

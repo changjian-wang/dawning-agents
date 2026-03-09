@@ -42,10 +42,13 @@ public class ResilientLLMProvider : ILLMProvider
     {
         _logger.LogDebug("通过弹性策略执行 ChatAsync");
 
-        return await _resilienceProvider.ExecuteAsync(
-            async ct => await _innerProvider.ChatAsync(messages, options, ct),
-            cancellationToken
-        );
+        return await _resilienceProvider
+            .ExecuteAsync(
+                async ct =>
+                    await _innerProvider.ChatAsync(messages, options, ct).ConfigureAwait(false),
+                cancellationToken
+            )
+            .ConfigureAwait(false);
     }
 
     public async IAsyncEnumerable<string> ChatStreamAsync(
@@ -63,14 +66,16 @@ public class ResilientLLMProvider : ILLMProvider
         try
         {
             // 初始化流（可能失败）
-            await _resilienceProvider.ExecuteAsync(
-                async ct =>
-                {
-                    var stream = _innerProvider.ChatStreamAsync(messages, options, ct);
-                    enumerator = stream.GetAsyncEnumerator(ct);
-                },
-                cancellationToken
-            );
+            await _resilienceProvider
+                .ExecuteAsync(
+                    async ct =>
+                    {
+                        var stream = _innerProvider.ChatStreamAsync(messages, options, ct);
+                        enumerator = stream.GetAsyncEnumerator(ct);
+                    },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (enumerator is null)
             {
@@ -80,7 +85,7 @@ public class ResilientLLMProvider : ILLMProvider
             }
 
             // 流式返回内容
-            while (await enumerator.MoveNextAsync())
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 yield return enumerator.Current;
             }
@@ -89,7 +94,7 @@ public class ResilientLLMProvider : ILLMProvider
         {
             if (enumerator is not null)
             {
-                await enumerator.DisposeAsync();
+                await enumerator.DisposeAsync().ConfigureAwait(false);
             }
         }
     }
@@ -106,14 +111,16 @@ public class ResilientLLMProvider : ILLMProvider
 
         try
         {
-            await _resilienceProvider.ExecuteAsync(
-                async ct =>
-                {
-                    var stream = _innerProvider.ChatStreamEventsAsync(messages, options, ct);
-                    enumerator = stream.GetAsyncEnumerator(ct);
-                },
-                cancellationToken
-            );
+            await _resilienceProvider
+                .ExecuteAsync(
+                    async ct =>
+                    {
+                        var stream = _innerProvider.ChatStreamEventsAsync(messages, options, ct);
+                        enumerator = stream.GetAsyncEnumerator(ct);
+                    },
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (enumerator is null)
             {
@@ -122,7 +129,7 @@ public class ResilientLLMProvider : ILLMProvider
                 );
             }
 
-            while (await enumerator.MoveNextAsync())
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 yield return enumerator.Current;
             }
@@ -131,7 +138,7 @@ public class ResilientLLMProvider : ILLMProvider
         {
             if (enumerator is not null)
             {
-                await enumerator.DisposeAsync();
+                await enumerator.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

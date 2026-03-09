@@ -101,16 +101,18 @@ public class AdaptiveMemory : IConversationMemory
     )
     {
         var currentMemory = _currentMemory;
-        await currentMemory.AddMessageAsync(message, cancellationToken);
+        await currentMemory.AddMessageAsync(message, cancellationToken).ConfigureAwait(false);
 
         // 检查是否需要降级
         if (!Volatile.Read(ref _hasDowngraded))
         {
-            var totalTokens = await currentMemory.GetTokenCountAsync(cancellationToken);
+            var totalTokens = await currentMemory
+                .GetTokenCountAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (totalTokens >= _downgradeThreshold)
             {
-                await DowngradeToSummaryMemoryAsync(cancellationToken);
+                await DowngradeToSummaryMemoryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -134,11 +136,13 @@ public class AdaptiveMemory : IConversationMemory
 
         _logger.LogInformation(
             "触发自动降级：从 BufferMemory 切换到 SummaryMemory（当前 token: {Tokens}）",
-            await _currentMemory.GetTokenCountAsync(cancellationToken)
+            await _currentMemory.GetTokenCountAsync(cancellationToken).ConfigureAwait(false)
         );
 
         // 获取现有消息
-        existingMessages = await _currentMemory.GetMessagesAsync(cancellationToken);
+        existingMessages = await _currentMemory
+            .GetMessagesAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         // 创建 SummaryMemory
         var summaryMemory = new SummaryMemory(
@@ -152,7 +156,7 @@ public class AdaptiveMemory : IConversationMemory
         // 迁移消息到 SummaryMemory（这会自动触发摘要）
         foreach (var msg in existingMessages)
         {
-            await summaryMemory.AddMessageAsync(msg, cancellationToken);
+            await summaryMemory.AddMessageAsync(msg, cancellationToken).ConfigureAwait(false);
         }
 
         // 切换到 SummaryMemory
@@ -163,7 +167,7 @@ public class AdaptiveMemory : IConversationMemory
 
         _logger.LogInformation(
             "降级完成，新 token 数: {NewTokens}",
-            await summaryMemory.GetTokenCountAsync(cancellationToken)
+            await summaryMemory.GetTokenCountAsync(cancellationToken).ConfigureAwait(false)
         );
     }
 
@@ -193,7 +197,7 @@ public class AdaptiveMemory : IConversationMemory
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        await _currentMemory.ClearAsync(cancellationToken);
+        await _currentMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
 
         lock (_lock)
         {
