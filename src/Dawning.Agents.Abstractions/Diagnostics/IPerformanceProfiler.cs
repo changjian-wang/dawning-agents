@@ -24,7 +24,7 @@ public interface IPerformanceProfiler
         string operationName,
         TimeSpan duration,
         string? category = null,
-        IDictionary<string, object>? metadata = null
+        IReadOnlyDictionary<string, object>? metadata = null
     );
 
     /// <summary>
@@ -89,7 +89,7 @@ public class OperationTrace
     /// <summary>
     /// 附加元数据
     /// </summary>
-    public IDictionary<string, object>? Metadata { get; set; }
+    public IReadOnlyDictionary<string, object>? Metadata { get; set; }
 }
 
 /// <summary>

@@ -28,7 +28,8 @@ public abstract record AgentMessage
     /// <summary>
     /// 消息元数据
     /// </summary>
-    public IDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
+    public IReadOnlyDictionary<string, object> Metadata { get; init; } =
+        new Dictionary<string, object>();
 }
 
 /// <summary>

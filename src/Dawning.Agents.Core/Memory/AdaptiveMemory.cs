@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Memory;
 /// <para>切换时会将已有消息迁移到 SummaryMemory 并触发摘要</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class AdaptiveMemory : IConversationMemory
+public class AdaptiveMemory : IConversationMemory, IDisposable
 {
     private IConversationMemory _currentMemory;
     private readonly ILLMProvider _llm;
@@ -25,6 +25,7 @@ public class AdaptiveMemory : IConversationMemory
     private readonly ILogger<AdaptiveMemory> _logger;
     private readonly SemaphoreSlim _downgradeLock = new(1, 1);
     private bool _hasDowngraded;
+    private bool _disposed;
 
     /// <summary>
     /// 获取当前存储的消息数量
@@ -91,6 +92,8 @@ public class AdaptiveMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         await _downgradeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -215,5 +218,20 @@ public class AdaptiveMemory : IConversationMemory
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
         return _currentMemory.GetTokenCountAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 释放信号量和内部记忆资源
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _downgradeLock.Dispose();
+        (_currentMemory as IDisposable)?.Dispose();
+        _disposed = true;
     }
 }

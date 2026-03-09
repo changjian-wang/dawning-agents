@@ -91,7 +91,8 @@ public record AgentInstance
     /// <summary>
     /// 标签
     /// </summary>
-    public Dictionary<string, string> Tags { get; init; } = [];
+    public IReadOnlyDictionary<string, string> Tags { get; init; } =
+        new Dictionary<string, string>();
 }
 
 /// <summary>

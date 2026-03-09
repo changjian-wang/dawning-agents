@@ -39,7 +39,7 @@ public class PerformanceProfiler : IPerformanceProfiler
         string operationName,
         TimeSpan duration,
         string? category = null,
-        IDictionary<string, object>? metadata = null
+        IReadOnlyDictionary<string, object>? metadata = null
     )
     {
         RecordOperationInternal(
@@ -58,7 +58,7 @@ public class PerformanceProfiler : IPerformanceProfiler
         string? category,
         bool isSuccess,
         string? errorMessage,
-        IDictionary<string, object>? metadata
+        IReadOnlyDictionary<string, object>? metadata
     )
     {
         var trace = new OperationTrace

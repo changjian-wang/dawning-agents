@@ -42,7 +42,7 @@ public class ToolSandboxOptions
     /// <summary>
     /// 环境变量
     /// </summary>
-    public Dictionary<string, string> Environment { get; set; } = [];
+    public IDictionary<string, string> Environment { get; set; } = new Dictionary<string, string>();
 }
 
 /// <summary>

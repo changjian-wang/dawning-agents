@@ -42,7 +42,7 @@ public class ApprovalWorkflow
     public async Task<ApprovalResult> RequestApprovalAsync(
         string action,
         string description,
-        IDictionary<string, object>? context = null,
+        IReadOnlyDictionary<string, object>? context = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -119,7 +119,7 @@ public class ApprovalWorkflow
         string action,
         string description,
         int requiredApprovals,
-        IDictionary<string, object>? context = null,
+        IReadOnlyDictionary<string, object>? context = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -185,7 +185,7 @@ public class ApprovalWorkflow
     /// <param name="action">操作名称</param>
     /// <param name="context">上下文数据</param>
     /// <returns>风险级别</returns>
-    public RiskLevel AssessRiskLevel(string action, IDictionary<string, object>? context)
+    public RiskLevel AssessRiskLevel(string action, IReadOnlyDictionary<string, object>? context)
     {
         var lowerAction = action.ToLower();
 

@@ -28,7 +28,7 @@ public class EphemeralToolDefinition
     /// <summary>
     /// 工具参数列表
     /// </summary>
-    public List<ScriptParameter> Parameters { get; set; } = [];
+    public IList<ScriptParameter> Parameters { get; set; } = new List<ScriptParameter>();
 
     /// <summary>
     /// 持久化范围
@@ -90,7 +90,7 @@ public class EphemeralToolMetadata
     /// <summary>
     /// 标签
     /// </summary>
-    public List<string> Tags { get; set; } = [];
+    public IList<string> Tags { get; set; } = new List<string>();
 }
 
 /// <summary>

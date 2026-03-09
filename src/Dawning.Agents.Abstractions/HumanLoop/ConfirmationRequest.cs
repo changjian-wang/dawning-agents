@@ -38,7 +38,8 @@ public record ConfirmationRequest
     /// <summary>
     /// 用于决策的上下文数据
     /// </summary>
-    public IDictionary<string, object> Context { get; init; } = new Dictionary<string, object>();
+    public IReadOnlyDictionary<string, object> Context { get; init; } =
+        new Dictionary<string, object>();
 
     /// <summary>
     /// 请求创建时间

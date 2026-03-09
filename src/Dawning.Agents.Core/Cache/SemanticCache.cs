@@ -137,7 +137,7 @@ public class SemanticCache : ISemanticCache
     public async Task SetAsync(
         string query,
         string response,
-        Dictionary<string, string>? metadata = null,
+        IReadOnlyDictionary<string, string>? metadata = null,
         CancellationToken cancellationToken = default
     )
     {

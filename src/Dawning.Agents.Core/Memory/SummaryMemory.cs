@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Memory;
 /// <para>需要 LLM 提供者来生成摘要</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class SummaryMemory : IConversationMemory
+public class SummaryMemory : IConversationMemory, IDisposable
 {
     private readonly List<ConversationMessage> _recentMessages = [];
     private string _summary = string.Empty;
@@ -25,6 +25,7 @@ public class SummaryMemory : IConversationMemory
     private readonly Lock _lock = new();
     private readonly SemaphoreSlim _summarySemaphore = new(1, 1);
     private readonly ILogger<SummaryMemory> _logger;
+    private bool _disposed;
 
     /// <summary>
     /// 获取消息数量（包括摘要系统消息和最近消息）
@@ -99,6 +100,8 @@ public class SummaryMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         ConversationMessage messageWithTokens;
         List<ConversationMessage>? messagesToSummarize = null;
 
@@ -274,5 +277,19 @@ public class SummaryMemory : IConversationMemory
                 : _tokenCounter.CountTokens(_summary);
             return Task.FromResult(recentTokens + summaryTokens);
         }
+    }
+
+    /// <summary>
+    /// 释放信号量资源
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _summarySemaphore.Dispose();
+        _disposed = true;
     }
 }

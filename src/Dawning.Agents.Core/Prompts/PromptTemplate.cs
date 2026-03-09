@@ -32,7 +32,7 @@ public partial class PromptTemplate : IPromptTemplate
     /// </summary>
     /// <param name="variables">变量字典，键为占位符名称，值为替换内容</param>
     /// <returns>格式化后的字符串</returns>
-    public string Format(IDictionary<string, object> variables)
+    public string Format(IReadOnlyDictionary<string, object> variables)
     {
         if (variables == null || variables.Count == 0)
         {

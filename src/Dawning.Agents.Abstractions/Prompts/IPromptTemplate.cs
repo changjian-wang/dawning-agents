@@ -20,5 +20,5 @@ public interface IPromptTemplate
     /// </summary>
     /// <param name="variables">变量字典</param>
     /// <returns>格式化后的字符串</returns>
-    string Format(IDictionary<string, object> variables);
+    string Format(IReadOnlyDictionary<string, object> variables);
 }

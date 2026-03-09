@@ -55,12 +55,12 @@ public record EvaluationTestCase
     /// <summary>
     /// 期望包含的关键词
     /// </summary>
-    public List<string>? ExpectedKeywords { get; init; }
+    public IReadOnlyList<string>? ExpectedKeywords { get; init; }
 
     /// <summary>
     /// 期望调用的工具
     /// </summary>
-    public List<string>? ExpectedTools { get; init; }
+    public IReadOnlyList<string>? ExpectedTools { get; init; }
 
     /// <summary>
     /// 评估标准描述（用于 LLM-as-Judge）
@@ -80,12 +80,12 @@ public record EvaluationTestCase
     /// <summary>
     /// 标签
     /// </summary>
-    public List<string>? Tags { get; init; }
+    public IReadOnlyList<string>? Tags { get; init; }
 
     /// <summary>
     /// 元数据
     /// </summary>
-    public Dictionary<string, object>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
 /// <summary>
@@ -126,7 +126,7 @@ public record EvaluationResult
     /// <summary>
     /// 调用的工具
     /// </summary>
-    public List<string>? ToolsCalled { get; init; }
+    public IReadOnlyList<string>? ToolsCalled { get; init; }
 
     /// <summary>
     /// 执行步骤数
@@ -136,7 +136,7 @@ public record EvaluationResult
     /// <summary>
     /// 各项指标得分
     /// </summary>
-    public Dictionary<string, double>? MetricScores { get; init; }
+    public IReadOnlyDictionary<string, double>? MetricScores { get; init; }
 
     /// <summary>
     /// 失败原因
@@ -151,7 +151,7 @@ public record EvaluationResult
     /// <summary>
     /// 元数据
     /// </summary>
-    public Dictionary<string, object>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
 /// <summary>
@@ -277,7 +277,7 @@ public record EvaluationReport
     /// <summary>
     /// 元数据
     /// </summary>
-    public Dictionary<string, object>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 
     private static double CalculatePercentile(IEnumerable<double> values, int percentile)
     {

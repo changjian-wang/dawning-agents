@@ -28,7 +28,7 @@ public record ConversationMessage
     /// <summary>
     /// 可选的元数据（例如工具调用、token 数量）
     /// </summary>
-    public IDictionary<string, object>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 
     /// <summary>
     /// 此消息的估计 token 数量
