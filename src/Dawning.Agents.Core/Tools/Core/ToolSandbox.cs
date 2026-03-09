@@ -110,6 +110,16 @@ public sealed class ToolSandbox : IToolSandbox
                 sw.Stop();
                 TryKillProcess(process);
 
+                // Await orphan stream tasks to prevent unobserved exceptions
+                try
+                {
+                    await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Streams may throw after process kill — safe to ignore
+                }
+
                 _logger.LogWarning(
                     "Command timed out after {Timeout}s: {Command}",
                     options.Timeout.TotalSeconds,

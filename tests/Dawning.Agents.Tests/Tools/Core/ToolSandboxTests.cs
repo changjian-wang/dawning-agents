@@ -22,9 +22,16 @@ public class ToolSandboxTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_tempDir))
+        try
         {
-            Directory.Delete(_tempDir, recursive: true);
+            if (Directory.Exists(_tempDir))
+            {
+                Directory.Delete(_tempDir, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+            // Killed processes may hold directory locks briefly on Windows — temp dir will be cleaned by OS
         }
     }
 

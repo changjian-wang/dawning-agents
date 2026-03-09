@@ -223,20 +223,16 @@ public sealed class InMemoryMessageBus : IMessageBus
             await SendAsync(request with { CorrelationId = correlationId }, cancellationToken);
 
             // 等待响应或超时
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(timeout);
-
-            var completedTask = await Task.WhenAny(
-                tcs.Task,
-                Task.Delay(Timeout.Infinite, cts.Token)
-            );
-
-            if (completedTask == tcs.Task)
+            try
             {
-                return await tcs.Task;
+                return await tcs.Task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
             }
-
-            throw new TimeoutException($"请求 {correlationId} 在 {timeout.TotalSeconds} 秒后超时");
+            catch (TimeoutException)
+            {
+                throw new TimeoutException(
+                    $"请求 {correlationId} 在 {timeout.TotalSeconds} 秒后超时"
+                );
+            }
         }
         finally
         {

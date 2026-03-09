@@ -261,9 +261,22 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         return VectorToChunk(vector);
     }
 
+    private bool _disposed;
+
     public ValueTask DisposeAsync()
     {
-        _initLock.Dispose();
+        if (_disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+        _disposed = true;
+
+        try
+        {
+            _initLock.Dispose();
+        }
+        catch (ObjectDisposedException) { }
+
         if (_index is IDisposable disposable)
         {
             disposable.Dispose();

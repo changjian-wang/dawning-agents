@@ -150,7 +150,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             );
         }
 
-        _count += chunkList.Count;
+        Interlocked.Add(ref _count, chunkList.Count);
 
         _logger.LogDebug(
             "Added {Count} chunks to Chroma collection {Collection}",
@@ -285,7 +285,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
         if (response.IsSuccessStatusCode)
         {
-            _count = Math.Max(0, _count - 1);
+            Interlocked.Decrement(ref _count);
             _logger.LogDebug(
                 "Deleted chunk {Id} from Chroma collection {Collection}",
                 id,
@@ -421,7 +421,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         );
 
         _collectionId = null;
-        _count = 0;
+        Interlocked.Exchange(ref _count, 0);
 
         await EnsureCollectionAsync(cancellationToken);
 
