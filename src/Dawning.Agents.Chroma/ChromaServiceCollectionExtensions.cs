@@ -2,6 +2,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Chroma;
 
@@ -23,7 +24,23 @@ public static class ChromaServiceCollectionExtensions
     {
         services.Configure<ChromaOptions>(configuration.GetSection(ChromaOptions.SectionName));
 
-        services.AddHttpClient<ChromaVectorStore>();
+        services
+            .AddHttpClient<ChromaVectorStore>()
+            .ConfigureHttpClient(
+                (sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<ChromaOptions>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    {
+                        client.DefaultRequestHeaders.Add(
+                            "Authorization",
+                            $"Bearer {options.ApiKey}"
+                        );
+                    }
+                }
+            );
 
         services.TryAddSingleton<IVectorStore, ChromaVectorStore>();
 
@@ -43,7 +60,23 @@ public static class ChromaServiceCollectionExtensions
     {
         services.Configure(configureOptions);
 
-        services.AddHttpClient<ChromaVectorStore>();
+        services
+            .AddHttpClient<ChromaVectorStore>()
+            .ConfigureHttpClient(
+                (sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<ChromaOptions>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    {
+                        client.DefaultRequestHeaders.Add(
+                            "Authorization",
+                            $"Bearer {options.ApiKey}"
+                        );
+                    }
+                }
+            );
 
         services.TryAddSingleton<IVectorStore, ChromaVectorStore>();
 

@@ -42,6 +42,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public byte[]? Get(string key)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);
@@ -60,6 +61,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);
@@ -78,6 +80,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(options);
@@ -105,6 +108,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         CancellationToken token = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(options);
@@ -127,6 +131,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public void Refresh(string key)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);
@@ -149,6 +154,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public async Task RefreshAsync(string key, CancellationToken token = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);
@@ -170,6 +176,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public void Remove(string key)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);
@@ -188,6 +195,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// <inheritdoc />
     public async Task RemoveAsync(string key, CancellationToken token = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var fullKey = GetFullKey(key);

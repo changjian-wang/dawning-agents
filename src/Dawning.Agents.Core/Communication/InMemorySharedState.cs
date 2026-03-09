@@ -22,6 +22,7 @@ public partial class InMemorySharedState : ISharedState
 {
     private readonly ConcurrentDictionary<string, string> _store = new();
     private readonly ConcurrentDictionary<string, List<Action<string, object?>>> _watchers = new();
+    private static readonly ConcurrentDictionary<string, Regex> _regexCache = new();
     private readonly ILogger<InMemorySharedState> _logger;
     private readonly object _watcherLock = new();
 
@@ -173,8 +174,14 @@ public partial class InMemorySharedState : ISharedState
     /// </summary>
     private static Regex PatternToRegex(string pattern)
     {
-        var regexPattern = "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$";
-        return new Regex(regexPattern, RegexOptions.IgnoreCase);
+        return _regexCache.GetOrAdd(
+            pattern,
+            p =>
+            {
+                var regexPattern = "^" + Regex.Escape(p).Replace("\\*", ".*") + "$";
+                return new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            }
+        );
     }
 
     /// <summary>

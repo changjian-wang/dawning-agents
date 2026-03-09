@@ -63,6 +63,8 @@ public sealed class RedisDistributedLock : IDistributedLock
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         if (IsAcquired)
         {
             return true;
@@ -114,6 +116,8 @@ public sealed class RedisDistributedLock : IDistributedLock
     /// <inheritdoc />
     public async Task ReleaseAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         if (!IsAcquired)
         {
             return;
@@ -172,6 +176,8 @@ public sealed class RedisDistributedLock : IDistributedLock
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         if (!IsAcquired)
         {
             return false;

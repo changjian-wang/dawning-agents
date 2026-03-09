@@ -28,6 +28,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private int _count;
     private volatile bool _classEnsured;
+    private bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
@@ -67,14 +68,6 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                 $"Invalid Weaviate ClassName '{_options.ClassName}'. Must match ^[a-zA-Z][a-zA-Z0-9_]*$",
                 nameof(options)
             );
-        }
-
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
-
-        if (!string.IsNullOrEmpty(_options.ApiKey))
-        {
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ApiKey}");
         }
     }
 
@@ -433,7 +426,22 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
-        _initLock.Dispose();
+        if (_disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _disposed = true;
+
+        try
+        {
+            _initLock.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already disposed
+        }
+
         return ValueTask.CompletedTask;
     }
 

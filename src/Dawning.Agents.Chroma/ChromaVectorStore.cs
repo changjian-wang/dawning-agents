@@ -33,6 +33,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private string? _collectionId;
     private int _count;
+    private bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Chroma";
@@ -60,14 +61,6 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
-
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
-
-        if (!string.IsNullOrEmpty(_options.ApiKey))
-        {
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ApiKey}");
-        }
 
         _logger.LogDebug(
             "ChromaVectorStore initialized: {BaseUrl}, Collection={Collection}",
@@ -549,7 +542,22 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        _initLock.Dispose();
+        if (_disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _disposed = true;
+
+        try
+        {
+            _initLock.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already disposed
+        }
+
         return ValueTask.CompletedTask;
     }
 }

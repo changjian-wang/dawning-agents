@@ -18,6 +18,7 @@ public sealed class ToolRegistry : IToolRegistry
     // 缓存，注册/移除工具时失效
     private volatile IReadOnlyList<ITool>? _cachedAllTools;
     private volatile IReadOnlyList<string>? _cachedCategories;
+    private readonly object _cacheLock = new();
 
     public ToolRegistry(ILogger<ToolRegistry>? logger = null)
     {
@@ -58,7 +59,16 @@ public sealed class ToolRegistry : IToolRegistry
     /// </summary>
     public IReadOnlyList<ITool> GetAllTools()
     {
-        return _cachedAllTools ??= _tools.Values.ToList().AsReadOnly();
+        var cached = _cachedAllTools;
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        lock (_cacheLock)
+        {
+            return _cachedAllTools ??= _tools.Values.ToList().AsReadOnly();
+        }
     }
 
     /// <summary>
@@ -98,12 +108,21 @@ public sealed class ToolRegistry : IToolRegistry
     /// <returns>分类名称列表</returns>
     public IReadOnlyList<string> GetCategories()
     {
-        return _cachedCategories ??= _tools
-            .Values.Where(t => !string.IsNullOrWhiteSpace(t.Category))
-            .Select(t => t.Category!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList()
-            .AsReadOnly();
+        var cached = _cachedCategories;
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        lock (_cacheLock)
+        {
+            return _cachedCategories ??= _tools
+                .Values.Where(t => !string.IsNullOrWhiteSpace(t.Category))
+                .Select(t => t.Category!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList()
+                .AsReadOnly();
+        }
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Weaviate;
 
@@ -23,7 +24,23 @@ public static class WeaviateServiceCollectionExtensions
     {
         services.Configure<WeaviateOptions>(configuration.GetSection(WeaviateOptions.SectionName));
 
-        services.AddHttpClient<WeaviateVectorStore>();
+        services
+            .AddHttpClient<WeaviateVectorStore>()
+            .ConfigureHttpClient(
+                (sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<WeaviateOptions>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    {
+                        client.DefaultRequestHeaders.Add(
+                            "Authorization",
+                            $"Bearer {options.ApiKey}"
+                        );
+                    }
+                }
+            );
         services.TryAddSingleton<IVectorStore, WeaviateVectorStore>();
 
         return services;
@@ -42,7 +59,23 @@ public static class WeaviateServiceCollectionExtensions
     {
         services.Configure(configure);
 
-        services.AddHttpClient<WeaviateVectorStore>();
+        services
+            .AddHttpClient<WeaviateVectorStore>()
+            .ConfigureHttpClient(
+                (sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<WeaviateOptions>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    {
+                        client.DefaultRequestHeaders.Add(
+                            "Authorization",
+                            $"Bearer {options.ApiKey}"
+                        );
+                    }
+                }
+            );
         services.TryAddSingleton<IVectorStore, WeaviateVectorStore>();
 
         return services;
