@@ -1,12 +1,14 @@
 namespace Dawning.Agents.Abstractions.Orchestration;
 
 /// <summary>
-/// 编排执行上下文
+/// 编排执行上下文（线程安全）
 /// </summary>
 public class OrchestrationContext
 {
     private readonly List<AgentExecutionRecord> _executionHistory = [];
     private readonly Dictionary<string, object> _metadata = [];
+    private readonly Lock _lock = new();
+    private string _currentInput = string.Empty;
 
     /// <summary>
     /// 会话 ID
@@ -21,24 +23,61 @@ public class OrchestrationContext
     /// <summary>
     /// 当前输入（可能被前一个 Agent 修改）
     /// </summary>
-    public string CurrentInput { get; set; } = string.Empty;
+    public string CurrentInput
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _currentInput;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _currentInput = value ?? string.Empty;
+            }
+        }
+    }
 
     /// <summary>
-    /// 已执行的 Agent 记录（只读视图）
+    /// 已执行的 Agent 记录（只读快照）
     /// </summary>
-    public IReadOnlyList<AgentExecutionRecord> ExecutionHistory => _executionHistory;
+    public IReadOnlyList<AgentExecutionRecord> ExecutionHistory
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _executionHistory.ToList();
+            }
+        }
+    }
 
     /// <summary>
-    /// 自定义元数据，可在 Agent 之间传递（只读视图）
+    /// 自定义元数据，可在 Agent 之间传递（只读快照）
     /// </summary>
-    public IReadOnlyDictionary<string, object> Metadata => _metadata;
+    public IReadOnlyDictionary<string, object> Metadata
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, object>(_metadata);
+            }
+        }
+    }
 
     /// <summary>
     /// 添加执行记录
     /// </summary>
     public void AddExecutionRecord(AgentExecutionRecord record)
     {
-        _executionHistory.Add(record);
+        lock (_lock)
+        {
+            _executionHistory.Add(record);
+        }
     }
 
     /// <summary>
@@ -46,7 +85,10 @@ public class OrchestrationContext
     /// </summary>
     public void SetMetadata(string key, object value)
     {
-        _metadata[key] = value;
+        lock (_lock)
+        {
+            _metadata[key] = value;
+        }
     }
 
     /// <summary>

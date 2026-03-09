@@ -128,7 +128,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试覆盖或忽略系统指令",
                 new Regex(
                     @"(ignore|disregard|forget|override|bypass)\s+(all\s+)?(your\s+)?(previous|prior|above|earlier|original|system)\s+(instructions?|prompts?|rules?|guidelines?|directives?|constraints?)",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Error
             )
@@ -141,7 +142,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试改变 AI 角色或行为",
                 new Regex(
                     @"(you\s+are\s+now|from\s+now\s+on\s+you\s+are|act\s+as\s+if\s+you\s+are|pretend\s+(to\s+be|you\s+are)|you\s+must\s+now\s+act\s+as)",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Error
             )
@@ -154,7 +156,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试提取系统提示内容",
                 new Regex(
                     @"(show|reveal|display|print|output|repeat|tell\s+me|what\s+is)\s+(me\s+)?(your|the)\s+(system\s+prompt|instructions?|initial\s+prompt|original\s+prompt|hidden\s+prompt|secret\s+instructions?)",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Error
             )
@@ -167,7 +170,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试越狱或绕过安全限制",
                 new Regex(
                     @"\b(DAN\s+mode|do\s+anything\s+now|jailbreak|developer\s+mode\s+(enabled|on|activated)|evil\s+mode|opposite\s+mode)\b",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Critical
             )
@@ -180,7 +184,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试注入消息边界分隔符",
                 new Regex(
                     @"(\[SYSTEM\]|\[INST\]|<<SYS>>|<\|im_start\|>|<\|system\|>|###\s*(system|user|assistant)\s*:)",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Error
             )
@@ -193,7 +198,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 "尝试使用编码或变形绕过检测",
                 new Regex(
                     @"(base64|rot13|hex|unicode|url)\s*(decode|encode)\s+(the\s+following|this)",
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
                 ),
                 IssueSeverity.Warning
             )
@@ -212,7 +218,8 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                             custom.Description ?? "自定义检测模式",
                             new Regex(
                                 custom.Pattern,
-                                RegexOptions.IgnoreCase | RegexOptions.Compiled
+                                RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                                TimeSpan.FromSeconds(1)
                             ),
                             custom.Severity
                         )

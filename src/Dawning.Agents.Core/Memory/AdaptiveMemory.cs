@@ -100,12 +100,13 @@ public class AdaptiveMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
-        await _currentMemory.AddMessageAsync(message, cancellationToken);
+        var currentMemory = _currentMemory;
+        await currentMemory.AddMessageAsync(message, cancellationToken);
 
         // 检查是否需要降级
-        if (!_hasDowngraded)
+        if (!Volatile.Read(ref _hasDowngraded))
         {
-            var totalTokens = await _currentMemory.GetTokenCountAsync(cancellationToken);
+            var totalTokens = await currentMemory.GetTokenCountAsync(cancellationToken);
 
             if (totalTokens >= _downgradeThreshold)
             {

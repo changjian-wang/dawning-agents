@@ -86,6 +86,15 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         return GetProvider().ChatStreamAsync(messages, options, cancellationToken);
     }
 
+    public IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return GetProvider().ChatStreamEventsAsync(messages, options, cancellationToken);
+    }
+
     private ILLMProvider GetProvider()
     {
         if (_disposed)

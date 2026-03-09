@@ -101,9 +101,33 @@ public class FunctionCallingAgent : AgentBase
 
             // Function Calling 循环
             var step = 0;
+            // 消息数量上限：每步添加 1 个 assistant + N 个 tool result，限制总消息数防止 OOM
+            var maxMessages = context.MaxSteps * 10 + messages.Count;
             while (step < context.MaxSteps)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (messages.Count > maxMessages)
+                {
+                    Logger.LogWarning(
+                        "FunctionCallingAgent {AgentName} 消息数量超限 {Count}/{Max}",
+                        Name,
+                        messages.Count,
+                        maxMessages
+                    );
+
+                    context.AddStep(
+                        new AgentStep
+                        {
+                            StepNumber = step + 1,
+                            Thought = "消息数量超限，终止循环",
+                            Action = "Overflow",
+                            Observation = $"消息数量 {messages.Count} 超过上限 {maxMessages}",
+                        }
+                    );
+                    break;
+                }
+
                 step++;
 
                 // Rebuild tool definitions each iteration — session tools may have changed

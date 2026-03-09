@@ -43,20 +43,19 @@ public class SlidingWindowRateLimiter : IRateLimiter
         var now = _timeProvider.GetUtcNow();
         var bucket = _buckets.GetOrAdd(key, _ => new RateLimitBucket(_options.WindowSize));
 
-        // 清理过期的请求记录
-        bucket.CleanupExpired(now);
-
         var resetTime = now.Add(_options.WindowSize);
 
-        if (bucket.Count >= _options.MaxRequestsPerWindow)
+        // 原子操作：清理 + 检查 + 添加 在同一个锁内完成
+        var result = bucket.TryAcquire(now, _options.MaxRequestsPerWindow);
+
+        if (!result.Allowed)
         {
-            var oldestRequest = bucket.GetOldestTimestamp();
-            var retryAfter = oldestRequest.Add(_options.WindowSize) - now;
+            var retryAfter = result.OldestTimestamp.Add(_options.WindowSize) - now;
 
             _logger.LogWarning(
                 "速率限制触发: Key={Key}, Count={Count}, MaxRequests={MaxRequests}",
                 key,
-                bucket.Count,
+                result.Count,
                 _options.MaxRequestsPerWindow
             );
 
@@ -68,9 +67,7 @@ public class SlidingWindowRateLimiter : IRateLimiter
             );
         }
 
-        bucket.Add(now);
-
-        var remaining = _options.MaxRequestsPerWindow - bucket.Count;
+        var remaining = _options.MaxRequestsPerWindow - result.Count;
 
         _logger.LogDebug(
             "速率限制通过: Key={Key}, Remaining={Remaining}/{MaxRequests}",
@@ -139,11 +136,27 @@ public class SlidingWindowRateLimiter : IRateLimiter
             }
         }
 
-        public void Add(DateTimeOffset timestamp)
+        /// <summary>
+        /// 原子操作：清理过期 + 检查限额 + 添加记录
+        /// </summary>
+        public (bool Allowed, int Count, DateTimeOffset OldestTimestamp) TryAcquire(
+            DateTimeOffset now,
+            int maxRequests
+        )
         {
             lock (_lock)
             {
-                _timestamps.Add(timestamp);
+                var cutoff = now - _windowSize;
+                _timestamps.RemoveAll(t => t < cutoff);
+
+                if (_timestamps.Count >= maxRequests)
+                {
+                    var oldest = _timestamps.Count > 0 ? _timestamps[0] : DateTimeOffset.MinValue;
+                    return (false, _timestamps.Count, oldest);
+                }
+
+                _timestamps.Add(now);
+                return (true, _timestamps.Count, DateTimeOffset.MinValue);
             }
         }
 
@@ -209,8 +222,8 @@ public class TokenRateLimiter
 
         var bucket = _buckets.GetOrAdd(sessionId, _ => new TokenUsageBucket());
 
-        // 检查会话总量限制
-        if (bucket.TotalTokens + tokenCount > _options.MaxTokensPerSession)
+        // 原子检查并添加
+        if (!bucket.TryAddTokens(tokenCount, _options.MaxTokensPerSession))
         {
             _logger.LogWarning(
                 "会话 Token 超限: SessionId={SessionId}, Current={Current}, Requested={Requested}, Max={Max}",
@@ -221,8 +234,6 @@ public class TokenRateLimiter
             );
             return false;
         }
-
-        bucket.AddTokens(tokenCount);
 
         _logger.LogDebug(
             "Token 使用: SessionId={SessionId}, Used={Used}, Total={Total}/{Max}",
@@ -255,11 +266,26 @@ public class TokenRateLimiter
     {
         private int _totalTokens;
 
-        public int TotalTokens => _totalTokens;
+        public int TotalTokens => Volatile.Read(ref _totalTokens);
 
-        public void AddTokens(int count)
+        public bool TryAddTokens(int count, int maxTokens)
         {
-            Interlocked.Add(ref _totalTokens, count);
+            while (true)
+            {
+                var current = Volatile.Read(ref _totalTokens);
+                if (current + count > maxTokens)
+                {
+                    return false;
+                }
+
+                if (
+                    Interlocked.CompareExchange(ref _totalTokens, current + count, current)
+                    == current
+                )
+                {
+                    return true;
+                }
+            }
         }
     }
 }

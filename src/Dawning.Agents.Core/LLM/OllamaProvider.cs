@@ -109,7 +109,7 @@ public class OllamaProvider : ILLMProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
         {
             Content = content,
         };
@@ -158,7 +158,7 @@ public class OllamaProvider : ILLMProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/chat")
         {
             Content = content,
         };

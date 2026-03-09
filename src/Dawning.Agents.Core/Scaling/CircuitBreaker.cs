@@ -69,6 +69,8 @@ public sealed class CircuitBreaker : ICircuitBreaker
             throw new CircuitBreakerOpenException("熔断器处于打开状态");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
             var result = await action();

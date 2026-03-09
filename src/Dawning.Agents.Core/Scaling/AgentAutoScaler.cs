@@ -74,7 +74,14 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     public async Task<ScalingDecision> EvaluateAsync(CancellationToken cancellationToken = default)
     {
         var metrics = await _metricsProvider();
-        var decision = MakeScalingDecision(metrics);
+
+        int currentSnapshot;
+        lock (_lock)
+        {
+            currentSnapshot = _currentInstances;
+        }
+
+        var decision = MakeScalingDecision(metrics, currentSnapshot);
 
         if (decision.Action == ScalingAction.None)
         {
@@ -94,27 +101,29 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
                 decision.Action == ScalingAction.ScaleUp
                     ? Math.Min(_currentInstances + decision.Delta, _options.MaxInstances)
                     : Math.Max(_currentInstances - decision.Delta, _options.MinInstances);
+
+            if (newCount == _currentInstances)
+            {
+                return decision;
+            }
         }
 
-        if (newCount != _currentInstances)
-        {
-            await ApplyScalingAsync(newCount, decision, cancellationToken);
-        }
+        await ApplyScalingAsync(newCount, decision, cancellationToken);
 
         return decision;
     }
 
-    private ScalingDecision MakeScalingDecision(ScalingMetrics metrics)
+    private ScalingDecision MakeScalingDecision(ScalingMetrics metrics, int currentInstances)
     {
         var now = DateTime.UtcNow;
 
         // 检查是否需要扩容
-        if (ShouldScaleUp(metrics))
+        if (ShouldScaleUp(metrics, currentInstances))
         {
             var cooldown = TimeSpan.FromSeconds(_options.ScaleUpCooldownSeconds);
             if (!_lastScaleUp.HasValue || now - _lastScaleUp.Value > cooldown)
             {
-                var delta = CalculateScaleUpDelta(metrics);
+                var delta = CalculateScaleUpDelta(metrics, currentInstances);
                 return ScalingDecision.ScaleUp(
                     delta,
                     $"CPU: {metrics.CpuPercent:F1}%, 内存: {metrics.MemoryPercent:F1}%, 队列: {metrics.QueueLength}"
@@ -124,7 +133,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
         }
 
         // 检查是否可以缩容
-        if (ShouldScaleDown(metrics))
+        if (ShouldScaleDown(metrics, currentInstances))
         {
             var cooldown = TimeSpan.FromSeconds(_options.ScaleDownCooldownSeconds);
             if (!_lastScaleDown.HasValue || now - _lastScaleDown.Value > cooldown)
@@ -140,30 +149,30 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
         return ScalingDecision.None;
     }
 
-    private bool ShouldScaleUp(ScalingMetrics metrics)
+    private bool ShouldScaleUp(ScalingMetrics metrics, int currentInstances)
     {
         return metrics.CpuPercent > _options.TargetCpuPercent
             || metrics.MemoryPercent > _options.TargetMemoryPercent
-            || metrics.QueueLength > _currentInstances * 10;
+            || metrics.QueueLength > currentInstances * 10;
     }
 
-    private bool ShouldScaleDown(ScalingMetrics metrics)
+    private bool ShouldScaleDown(ScalingMetrics metrics, int currentInstances)
     {
-        return _currentInstances > _options.MinInstances
+        return currentInstances > _options.MinInstances
             && metrics.CpuPercent < _options.TargetCpuPercent * 0.5
             && metrics.MemoryPercent < _options.TargetMemoryPercent * 0.5
-            && metrics.QueueLength < _currentInstances * 2;
+            && metrics.QueueLength < currentInstances * 2;
     }
 
-    private int CalculateScaleUpDelta(ScalingMetrics metrics)
+    private int CalculateScaleUpDelta(ScalingMetrics metrics, int currentInstances)
     {
         // 计算需要多少实例
         var cpuRatio = metrics.CpuPercent / _options.TargetCpuPercent;
         var memoryRatio = metrics.MemoryPercent / _options.TargetMemoryPercent;
         var targetRatio = Math.Max(cpuRatio, memoryRatio);
 
-        var targetInstances = (int)Math.Ceiling(_currentInstances * targetRatio);
-        return Math.Max(1, targetInstances - _currentInstances);
+        var targetInstances = (int)Math.Ceiling(currentInstances * targetRatio);
+        return Math.Max(1, targetInstances - currentInstances);
     }
 
     private async Task ApplyScalingAsync(
@@ -174,7 +183,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     {
         _logger.LogInformation(
             "从 {Current} 扩展到 {New} 个实例。原因：{Reason}",
-            _currentInstances,
+            CurrentInstances,
             newCount,
             decision.Reason
         );

@@ -6,7 +6,7 @@ using Dawning.Agents.Abstractions.Observability;
 /// <summary>
 /// 分布式追踪器
 /// </summary>
-public sealed class DistributedTracer
+public sealed class DistributedTracer : IDisposable
 {
     private readonly ActivitySource _source;
     private readonly TelemetryConfig _config;
@@ -106,6 +106,14 @@ public sealed class DistributedTracer
         }
 
         return new ActivitySpan(activity);
+    }
+
+    /// <summary>
+    /// 释放 ActivitySource 资源
+    /// </summary>
+    public void Dispose()
+    {
+        _source.Dispose();
     }
 }
 

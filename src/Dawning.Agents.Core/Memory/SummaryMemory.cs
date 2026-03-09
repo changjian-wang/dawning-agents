@@ -23,6 +23,7 @@ public class SummaryMemory : IConversationMemory
     private readonly int _maxRecentMessages;
     private readonly int _summaryThreshold;
     private readonly Lock _lock = new();
+    private readonly SemaphoreSlim _summarySemaphore = new(1, 1);
     private readonly ILogger<SummaryMemory> _logger;
 
     /// <summary>
@@ -131,10 +132,18 @@ public class SummaryMemory : IConversationMemory
             }
         }
 
-        // 在锁外进行摘要（避免长时间持有锁）
+        // 使用信号量串行化摘要操作，防止并发摘要覆盖
         if (messagesToSummarize != null)
         {
-            await SummarizeMessagesAsync(messagesToSummarize, cancellationToken);
+            await _summarySemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                await SummarizeMessagesAsync(messagesToSummarize, cancellationToken);
+            }
+            finally
+            {
+                _summarySemaphore.Release();
+            }
         }
     }
 

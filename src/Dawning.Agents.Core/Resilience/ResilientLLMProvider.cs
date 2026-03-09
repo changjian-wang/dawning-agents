@@ -74,10 +74,54 @@ public class ResilientLLMProvider : ILLMProvider
 
             if (enumerator is null)
             {
-                yield break;
+                throw new InvalidOperationException(
+                    "Failed to initialize chat stream from inner provider"
+                );
             }
 
             // 流式返回内容
+            while (await enumerator.MoveNextAsync())
+            {
+                yield return enumerator.Current;
+            }
+        }
+        finally
+        {
+            if (enumerator is not null)
+            {
+                await enumerator.DisposeAsync();
+            }
+        }
+    }
+
+    public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        _logger.LogDebug("通过弹性策略执行 ChatStreamEventsAsync");
+
+        IAsyncEnumerator<StreamingChatEvent>? enumerator = null;
+
+        try
+        {
+            await _resilienceProvider.ExecuteAsync(
+                async ct =>
+                {
+                    var stream = _innerProvider.ChatStreamEventsAsync(messages, options, ct);
+                    enumerator = stream.GetAsyncEnumerator(ct);
+                },
+                cancellationToken
+            );
+
+            if (enumerator is null)
+            {
+                throw new InvalidOperationException(
+                    "Failed to initialize chat stream events from inner provider"
+                );
+            }
+
             while (await enumerator.MoveNextAsync())
             {
                 yield return enumerator.Current;

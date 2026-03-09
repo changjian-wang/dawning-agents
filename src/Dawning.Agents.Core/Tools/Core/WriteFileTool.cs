@@ -15,13 +15,21 @@ namespace Dawning.Agents.Core.Tools.Core;
 public sealed class WriteFileTool : ITool
 {
     private readonly ILogger<WriteFileTool> _logger;
+    private readonly string? _workingDirectory;
 
     /// <summary>
     /// 创建 WriteFileTool
     /// </summary>
-    public WriteFileTool(ILogger<WriteFileTool>? logger = null)
+    /// <param name="logger">日志记录器</param>
+    /// <param name="workingDirectory">工作目录（沙箱根目录），设置后将禁止访问此目录外的路径</param>
+    public WriteFileTool(ILogger<WriteFileTool>? logger = null, string? workingDirectory = null)
     {
         _logger = logger ?? NullLogger<WriteFileTool>.Instance;
+        _workingDirectory = workingDirectory is not null
+            ? Path.GetFullPath(workingDirectory)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar
+            : null;
     }
 
     /// <inheritdoc />
@@ -93,7 +101,20 @@ public sealed class WriteFileTool : ITool
             return Task.FromResult(ToolResult.Fail("Path cannot be empty"));
         }
 
-        var fullPath = Path.GetFullPath(path);
+        var fullPath = _workingDirectory is not null
+            ? Path.GetFullPath(Path.Combine(_workingDirectory, path))
+            : Path.GetFullPath(path);
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        if (_workingDirectory is not null && !fullPath.StartsWith(_workingDirectory, comparison))
+        {
+            _logger.LogWarning("Path traversal attempt blocked: {Path}", path);
+            return Task.FromResult(
+                ToolResult.Fail($"Access denied: path is outside the allowed directory")
+            );
+        }
 
         _logger.LogDebug("Writing file: {Path}", fullPath);
 

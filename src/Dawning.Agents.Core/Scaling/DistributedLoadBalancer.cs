@@ -352,6 +352,8 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
         for (int i = 0; i < _options.FailoverRetries; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var instance = GetInstanceExcluding(sessionKey, triedInstances);
             if (instance == null)
             {
@@ -363,6 +365,10 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
             try
             {
                 return await action(instance);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

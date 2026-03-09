@@ -27,6 +27,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     private volatile bool _collectionInitialized;
     private int _count;
     private readonly SemaphoreSlim _initLock = new(1, 1);
+    private bool _disposed;
 
     public string Name => "Qdrant";
 
@@ -322,6 +323,12 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _disposed = true;
         _initLock.Dispose();
         _client.Dispose();
         return ValueTask.CompletedTask;

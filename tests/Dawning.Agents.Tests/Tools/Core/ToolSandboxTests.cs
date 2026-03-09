@@ -83,10 +83,11 @@ public class ToolSandboxTests : IDisposable
     {
         // Arrange
         File.WriteAllText(Path.Combine(_tempDir, "marker.txt"), "found");
+        var command = OperatingSystem.IsWindows() ? "type marker.txt" : "cat marker.txt";
 
         // Act
         var result = await _sandbox.ExecuteAsync(
-            "cat marker.txt",
+            command,
             new ToolSandboxOptions { WorkingDirectory = _tempDir }
         );
 
@@ -120,8 +121,9 @@ public class ToolSandboxTests : IDisposable
     public async Task ExecuteAsync_Timeout_ShouldKillProcess()
     {
         // Act
+        var command = OperatingSystem.IsWindows() ? "ping -n 61 127.0.0.1" : "sleep 60";
         var result = await _sandbox.ExecuteAsync(
-            "sleep 60",
+            command,
             new ToolSandboxOptions
             {
                 WorkingDirectory = _tempDir,
@@ -139,8 +141,9 @@ public class ToolSandboxTests : IDisposable
     public async Task ExecuteAsync_EnvironmentVariables_ShouldBeAvailable()
     {
         // Act
+        var command = OperatingSystem.IsWindows() ? "echo %MY_TEST_VAR%" : "echo $MY_TEST_VAR";
         var result = await _sandbox.ExecuteAsync(
-            "echo $MY_TEST_VAR",
+            command,
             new ToolSandboxOptions
             {
                 WorkingDirectory = _tempDir,
@@ -179,11 +182,12 @@ public class ToolSandboxTests : IDisposable
         // Arrange
         using var cts = new CancellationTokenSource();
         cts.Cancel();
+        var command = OperatingSystem.IsWindows() ? "ping -n 11 127.0.0.1" : "sleep 10";
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             _sandbox.ExecuteAsync(
-                "sleep 10",
+                command,
                 new ToolSandboxOptions { WorkingDirectory = _tempDir },
                 cts.Token
             )

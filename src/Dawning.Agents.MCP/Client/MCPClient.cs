@@ -26,6 +26,7 @@ public sealed class MCPClient : IAsyncDisposable
     private MCPServerInfo? _serverInfo;
     private MCPServerCapabilities? _serverCapabilities;
     private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
+    private CancellationTokenSource? _listenerCts;
     private Task? _listenerTask;
 
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
@@ -109,7 +110,8 @@ public sealed class MCPClient : IAsyncDisposable
         await _transport.StartAsync(cancellationToken);
 
         // 启动响应监听
-        _listenerTask = ListenForResponsesAsync(cancellationToken);
+        _listenerCts = new CancellationTokenSource();
+        _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
         await InitializeAsync(cancellationToken);
@@ -133,7 +135,8 @@ public sealed class MCPClient : IAsyncDisposable
         await _transport.StartAsync(cancellationToken);
 
         // 启动响应监听
-        _listenerTask = ListenForResponsesAsync(cancellationToken);
+        _listenerCts = new CancellationTokenSource();
+        _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
         await InitializeAsync(cancellationToken);
@@ -432,6 +435,23 @@ public sealed class MCPClient : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_listenerCts != null)
+        {
+            await _listenerCts.CancelAsync();
+        }
+
+        if (_listenerTask != null)
+        {
+            try
+            {
+                await _listenerTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected during shutdown
+            }
+        }
+
         if (_transport != null)
         {
             await _transport.DisposeAsync();
@@ -446,6 +466,7 @@ public sealed class MCPClient : IAsyncDisposable
             _serverProcess.Dispose();
         }
 
+        _listenerCts?.Dispose();
         _requestLock.Dispose();
     }
 }

@@ -96,22 +96,27 @@ public sealed class SequentialOrchestrator : OrchestratorBase
             else
             {
                 // 转换输出作为下一个 Agent 的输入
-                currentInput =
+                var transformed =
                     _inputTransformer != null
                         ? _inputTransformer(record)
-                        : record.Response.FinalAnswer ?? currentInput;
+                        : record.Response.FinalAnswer;
 
+                currentInput = transformed ?? currentInput;
                 context.CurrentInput = currentInput;
             }
         }
 
-        // 获取最终结果
-        var finalRecord = context.ExecutionHistory.LastOrDefault();
-        var finalOutput = finalRecord?.Response.FinalAnswer ?? string.Empty;
+        // 获取最终结果：优先使用最后成功的答案
+        var executionHistory = context.ExecutionHistory;
+        var lastSuccessRecord = executionHistory.LastOrDefault(r => r.Response.Success);
+        var finalOutput =
+            lastSuccessRecord?.Response.FinalAnswer
+            ?? executionHistory.LastOrDefault()?.Response.FinalAnswer
+            ?? string.Empty;
 
         return OrchestrationResult.Successful(
             finalOutput,
-            context.ExecutionHistory,
+            executionHistory,
             TimeSpan.Zero,
             new Dictionary<string, object>(context.Metadata)
         );

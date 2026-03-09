@@ -109,6 +109,42 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
         // 这里不记录，或者可以实现估算逻辑
     }
 
+    /// <inheritdoc />
+    public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        StreamingTokenUsage? lastUsage = null;
+
+        await foreach (
+            var evt in _innerProvider.ChatStreamEventsAsync(messages, options, cancellationToken)
+        )
+        {
+            if (evt.Usage is not null)
+            {
+                lastUsage = evt.Usage;
+            }
+
+            yield return evt;
+        }
+
+        // 如果最后一个事件包含 token 用量，记录它
+        if (lastUsage is not null)
+        {
+            _tracker.Record(
+                TokenUsageRecord.Create(
+                    _source,
+                    lastUsage.PromptTokens,
+                    lastUsage.CompletionTokens,
+                    _innerProvider.Name,
+                    _sessionId
+                )
+            );
+        }
+    }
+
     /// <summary>
     /// 创建一个新的带不同来源标识的装饰器实例
     /// </summary>
