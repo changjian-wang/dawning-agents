@@ -216,24 +216,9 @@ public sealed class StdioTransport : IMCPTransport
     private static long FindSequence(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> sequence)
     {
         var reader = new SequenceReader<byte>(buffer);
-        while (reader.TryReadTo(out ReadOnlySpan<byte> _, sequence, advancePastDelimiter: false))
+        if (reader.TryReadTo(out ReadOnlySpan<byte> _, sequence, advancePastDelimiter: false))
         {
             return reader.Consumed;
-        }
-
-        // 手动搜索
-        var position = 0L;
-        foreach (var segment in buffer)
-        {
-            var span = segment.Span;
-            for (var i = 0; i <= span.Length - sequence.Length; i++)
-            {
-                if (span.Slice(i, sequence.Length).SequenceEqual(sequence))
-                {
-                    return position + i;
-                }
-            }
-            position += span.Length;
         }
 
         return -1;

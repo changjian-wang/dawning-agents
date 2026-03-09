@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Pinecone;
+using Pinecone.Rest;
 
 namespace Dawning.Agents.Pinecone;
 
@@ -23,7 +24,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     private readonly PineconeClient _client;
     private readonly PineconeOptions _options;
     private readonly ILogger<PineconeVectorStore> _logger;
-    private object? _index; // 使用 object 因为 Index<T> 是泛型
+    private Index<RestTransport>? _index;
     private volatile bool _initialized;
     private int _count;
     private readonly SemaphoreSlim _initLock = new(1, 1);
@@ -181,7 +182,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 var chunk = MatchToChunk(match);
                 if (chunk != null)
                 {
-                    results.Add(new SearchResult { Chunk = chunk, Score = match.Score ?? 0f });
+                    results.Add(new SearchResult { Chunk = chunk, Score = (float)match.Score });
                 }
             }
         }
@@ -293,24 +294,20 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         }
         _disposed = true;
 
-        try
-        {
-            _initLock.Dispose();
-        }
-        catch (ObjectDisposedException) { }
-
-        if (_index is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
+        _initLock.Dispose();
+        _index?.Dispose();
         _client.Dispose();
         return ValueTask.CompletedTask;
     }
 
     #region Private Helpers
 
-    private async Task<dynamic> GetIndexAsync(CancellationToken cancellationToken = default)
+    private async Task<Index<RestTransport>> GetIndexAsync(
+        CancellationToken cancellationToken = default
+    )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         if (_initialized && _index != null)
         {
             return _index;
@@ -332,7 +329,9 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         }
     }
 
-    private async Task<dynamic> InitializeIndexAsync(CancellationToken cancellationToken = default)
+    private async Task<Index<RestTransport>> InitializeIndexAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         // 检查索引是否存在
         var indexes = await _client.ListIndexes().ConfigureAwait(false);
@@ -374,8 +373,8 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         _index = await _client.GetIndex(_options.IndexName).ConfigureAwait(false);
 
         // 获取当前向量数量
-        var stats = await ((dynamic)_index).DescribeStats().ConfigureAwait(false);
-        _count = (int)(stats.TotalVectorCount ?? 0);
+        var stats = await _index.DescribeStats().ConfigureAwait(false);
+        _count = (int)stats.TotalVectorCount;
 
         _initialized = true;
         return _index;

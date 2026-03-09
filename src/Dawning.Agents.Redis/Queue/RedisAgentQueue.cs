@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Distributed;
@@ -30,6 +31,10 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     private volatile bool _initialized;
     private bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
+    private readonly ConcurrentDictionary<
+        string,
+        (RedisValue StreamId, string Data)
+    > _messageIdToStreamEntry = new();
 
     /// <inheritdoc />
     public string ConsumerGroup => _options.ConsumerGroup;
@@ -224,6 +229,9 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 return null;
             }
 
+            // 记录 messageId → (streamId, data) 映射，供 AcknowledgeAsync/RequeueAsync 使用
+            _messageIdToStreamEntry[message.MessageId] = (entry.Id, data.ToString());
+
             _logger.LogDebug(
                 "Dequeued message {MessageId} with stream ID {StreamId}",
                 message.MessageId,
@@ -281,9 +289,25 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
         try
         {
-            // 需要知道 stream entry ID 才能 ack
-            // 这里简化处理，实际应该维护 messageId -> streamId 的映射
-            _logger.LogDebug("Acknowledged message {MessageId}", messageId);
+            if (_messageIdToStreamEntry.TryRemove(messageId, out var entry))
+            {
+                await _database
+                    .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.StreamId)
+                    .ConfigureAwait(false);
+
+                _logger.LogDebug(
+                    "Acknowledged message {MessageId} with stream ID {StreamId}",
+                    messageId,
+                    entry.StreamId
+                );
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Cannot acknowledge message {MessageId}: stream ID mapping not found",
+                    messageId
+                );
+            }
         }
         catch (Exception ex)
         {
@@ -301,8 +325,45 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
 
-        _logger.LogDebug("Requeued message {MessageId} with delay {Delay}", messageId, delay);
-        await Task.CompletedTask.ConfigureAwait(false);
+        try
+        {
+            // 先确认原消息，防止 PEL 积压
+            if (!_messageIdToStreamEntry.TryRemove(messageId, out var entry))
+            {
+                _logger.LogWarning("Cannot requeue unknown message {MessageId}", messageId);
+                return;
+            }
+
+            await _database
+                .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.StreamId)
+                .ConfigureAwait(false);
+
+            // 使用原始序列化数据重新入队
+            if (delay.HasValue)
+            {
+                var delayKey = $"{_queueKey}:delayed";
+                var executeAt = DateTimeOffset.UtcNow.Add(delay.Value).ToUnixTimeMilliseconds();
+                await _database
+                    .SortedSetAddAsync(delayKey, entry.Data, executeAt)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await _database
+                    .StreamAddAsync(
+                        _queueKey,
+                        new NameValueEntry[] { new("data", entry.Data), new("priority", 0) }
+                    )
+                    .ConfigureAwait(false);
+            }
+
+            _logger.LogDebug("Requeued message {MessageId} with delay {Delay}", messageId, delay);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to requeue message {MessageId}", messageId);
+            throw;
+        }
     }
 
     /// <inheritdoc />

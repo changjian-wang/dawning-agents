@@ -18,7 +18,6 @@ public sealed class MCPClient : IAsyncDisposable
 {
     private readonly MCPClientOptions _options;
     private readonly ILogger<MCPClient> _logger;
-    private readonly SemaphoreSlim _requestLock = new(1, 1);
     private IMCPTransport? _transport;
     private Process? _serverProcess;
     private long _requestId;
@@ -475,7 +474,6 @@ public sealed class MCPClient : IAsyncDisposable
         }
 
         _listenerCts?.Dispose();
-        _requestLock.Dispose();
     }
 }
 

@@ -101,18 +101,7 @@ public sealed class MCPServer : IAsyncDisposable
 
                 // 限制并发请求
                 await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
-                _ = ProcessMessageAsync(message, linkedCts.Token)
-                    .ContinueWith(
-                        _ =>
-                        {
-                            try
-                            {
-                                _requestSemaphore.Release();
-                            }
-                            catch (ObjectDisposedException) { }
-                        },
-                        TaskScheduler.Default
-                    );
+                _ = ProcessAndReleaseAsync(message, linkedCts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -125,6 +114,29 @@ public sealed class MCPServer : IAsyncDisposable
         }
 
         _logger.LogInformation("MCP Server stopped");
+    }
+
+    /// <summary>
+    /// 处理消息并释放信号量
+    /// </summary>
+    private async Task ProcessAndReleaseAsync(string message, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ProcessMessageAsync(message, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled error processing message");
+        }
+        finally
+        {
+            try
+            {
+                _requestSemaphore.Release();
+            }
+            catch (ObjectDisposedException) { }
+        }
     }
 
     /// <summary>

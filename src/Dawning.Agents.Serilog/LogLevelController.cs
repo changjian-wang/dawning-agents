@@ -94,8 +94,18 @@ public class LogLevelController : ILogLevelController
                 return;
             }
 
-            _cts.Cancel();
-            _cts.Dispose();
+            try
+            {
+                _cts.Cancel();
+            }
+            catch (ObjectDisposedException) { }
+
+            try
+            {
+                _cts.Dispose();
+            }
+            catch (ObjectDisposedException) { }
+
             Restore();
         }
 
