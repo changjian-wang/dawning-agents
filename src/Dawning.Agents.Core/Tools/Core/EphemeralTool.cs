@@ -176,8 +176,8 @@ public sealed class EphemeralTool : ITool
         var result = script;
         foreach (var param in parameters)
         {
-            // Replace $param_name with the value (shell-escaped)
-            result = result.Replace($"${param.Key}", EscapeForShell(param.Value));
+            // Replace $param_name with the value (shell-escaped and single-quoted)
+            result = result.Replace($"${param.Key}", $"'{EscapeForShell(param.Value)}'");
         }
 
         return result;

@@ -410,14 +410,24 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     {
         _logger.LogDebug("Clearing all chunks from Weaviate class {ClassName}", _options.ClassName);
 
-        // 删除并重建 Schema 类
-        using var deleteResponse = await _httpClient
-            .DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
-            .ConfigureAwait(false);
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            // 删除并重建 Schema 类
+            using var deleteResponse = await _httpClient
+                .DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
+                .ConfigureAwait(false);
 
-        await EnsureClassExistsAsync(cancellationToken).ConfigureAwait(false);
+            _classEnsured = false;
+            await EnsureClassExistsAsync(cancellationToken).ConfigureAwait(false);
+            _classEnsured = true;
 
-        Interlocked.Exchange(ref _count, 0);
+            Interlocked.Exchange(ref _count, 0);
+        }
+        finally
+        {
+            _initLock.Release();
+        }
     }
 
     /// <inheritdoc />

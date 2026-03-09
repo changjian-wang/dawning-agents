@@ -285,12 +285,17 @@ public sealed class RedisDistributedLock : IDistributedLock
 
         _disposed = true;
 
-        if (IsAcquired)
+        try
         {
-            await ReleaseAsync().ConfigureAwait(false);
+            if (IsAcquired)
+            {
+                await ReleaseAsync().ConfigureAwait(false);
+            }
         }
-
-        StopRenewalTimer();
+        finally
+        {
+            StopRenewalTimer();
+        }
     }
 }
 

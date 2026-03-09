@@ -102,7 +102,17 @@ public sealed class MCPServer : IAsyncDisposable
                 // 限制并发请求
                 await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
                 _ = ProcessMessageAsync(message, linkedCts.Token)
-                    .ContinueWith(_ => _requestSemaphore.Release(), TaskScheduler.Default);
+                    .ContinueWith(
+                        _ =>
+                        {
+                            try
+                            {
+                                _requestSemaphore.Release();
+                            }
+                            catch (ObjectDisposedException) { }
+                        },
+                        TaskScheduler.Default
+                    );
             }
             catch (OperationCanceledException)
             {

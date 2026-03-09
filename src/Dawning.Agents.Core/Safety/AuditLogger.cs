@@ -14,7 +14,6 @@ public class InMemoryAuditLogger : IAuditLogger
     private readonly AuditOptions _options;
     private readonly ILogger<InMemoryAuditLogger> _logger;
     private readonly ConcurrentQueue<AuditEntry> _entries = new();
-    private int _count;
 
     public InMemoryAuditLogger(
         IOptions<AuditOptions> options,
@@ -37,13 +36,9 @@ public class InMemoryAuditLogger : IAuditLogger
         var processedEntry = ProcessEntry(entry);
 
         _entries.Enqueue(processedEntry);
-        Interlocked.Increment(ref _count);
 
         // 清理过多的条目
-        while (_count > _options.MaxInMemoryEntries && _entries.TryDequeue(out _))
-        {
-            Interlocked.Decrement(ref _count);
-        }
+        while (_entries.Count > _options.MaxInMemoryEntries && _entries.TryDequeue(out _)) { }
 
         _logger.LogDebug(
             "审计日志: {EventType} - Session={SessionId}, Agent={AgentName}, Status={Status}",
@@ -109,16 +104,13 @@ public class InMemoryAuditLogger : IAuditLogger
     /// </summary>
     public void Clear()
     {
-        while (_entries.TryDequeue(out _))
-        {
-            Interlocked.Decrement(ref _count);
-        }
+        while (_entries.TryDequeue(out _)) { }
     }
 
     /// <summary>
     /// 当前条目数
     /// </summary>
-    public int Count => _count;
+    public int Count => _entries.Count;
 
     private AuditEntry ProcessEntry(AuditEntry entry)
     {

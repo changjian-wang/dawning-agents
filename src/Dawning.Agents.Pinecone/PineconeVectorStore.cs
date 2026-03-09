@@ -204,7 +204,17 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         await index.Delete(new[] { id }, _options.Namespace).ConfigureAwait(false);
 
-        Interlocked.Decrement(ref _count);
+        // 防止计数变为负数
+        int oldCount;
+        do
+        {
+            oldCount = Volatile.Read(ref _count);
+            if (oldCount <= 0)
+            {
+                break;
+            }
+        } while (Interlocked.CompareExchange(ref _count, oldCount - 1, oldCount) != oldCount);
+
         _logger.LogDebug("Deleted chunk {ChunkId} from Pinecone", id);
         return true;
     }
@@ -223,10 +233,19 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         await index.Delete(filter, _options.Namespace).ConfigureAwait(false);
 
-        // Pinecone 删除不返回数量，估计为 1
-        Interlocked.Decrement(ref _count);
+        // Pinecone 删除不返回数量，无法精确计算
+        int oldCount;
+        do
+        {
+            oldCount = Volatile.Read(ref _count);
+            if (oldCount <= 0)
+            {
+                break;
+            }
+        } while (Interlocked.CompareExchange(ref _count, oldCount - 1, oldCount) != oldCount);
+
         _logger.LogDebug("Deleted chunks for document {DocumentId} from Pinecone", documentId);
-        return 1;
+        return oldCount > 0 ? 1 : 0;
     }
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
@@ -305,7 +324,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 return _index;
             }
 
-            return await InitializeIndexAsync().ConfigureAwait(false);
+            return await InitializeIndexAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -313,7 +332,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         }
     }
 
-    private async Task<dynamic> InitializeIndexAsync()
+    private async Task<dynamic> InitializeIndexAsync(CancellationToken cancellationToken = default)
     {
         // 检查索引是否存在
         var indexes = await _client.ListIndexes().ConfigureAwait(false);
@@ -341,7 +360,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 );
 
                 // 等待索引就绪
-                await WaitForIndexReadyAsync().ConfigureAwait(false);
+                await WaitForIndexReadyAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -362,13 +381,14 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         return _index;
     }
 
-    private async Task WaitForIndexReadyAsync()
+    private async Task WaitForIndexReadyAsync(CancellationToken cancellationToken = default)
     {
         const int maxAttempts = 60;
         const int delayMs = 2000;
 
         for (var i = 0; i < maxAttempts; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var indexes = await _client.ListIndexes().ConfigureAwait(false);
             var indexInfo = indexes.FirstOrDefault(idx => idx.Name == _options.IndexName);
             if (indexInfo?.Status?.State == IndexState.Ready)
@@ -376,7 +396,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                 return;
             }
 
-            await Task.Delay(delayMs).ConfigureAwait(false);
+            await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
         }
 
         throw new TimeoutException(

@@ -96,7 +96,7 @@ public class EphemeralToolTests
         _mockSandbox
             .Setup(s =>
                 s.ExecuteAsync(
-                    "echo Hello Alice",
+                    "echo Hello 'Alice'",
                     It.IsAny<ToolSandboxOptions>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -196,7 +196,7 @@ public class EphemeralToolTests
         _mockSandbox
             .Setup(s =>
                 s.ExecuteAsync(
-                    "echo hi",
+                    "echo 'hi'",
                     It.IsAny<ToolSandboxOptions>(),
                     It.IsAny<CancellationToken>()
                 )

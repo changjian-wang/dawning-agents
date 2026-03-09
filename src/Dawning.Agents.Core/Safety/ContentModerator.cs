@@ -114,6 +114,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
     private string BuildModerationPrompt(string content)
     {
         var categories = string.Join(", ", _options.Categories);
+        var boundary = $"BOUNDARY_{Guid.NewGuid():N}";
         var jsonFormat = """
             {
               "allowed": true/false,
@@ -131,9 +132,9 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             {jsonFormat}
 
             待审核内容:
-            ---
+            {boundary}
             {content}
-            ---
+            {boundary}
 
             请只返回 JSON，不要有其他内容。
             """;
@@ -150,7 +151,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             if (jsonStart >= 0 && jsonEnd > jsonStart)
             {
                 var json = response.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                var doc = System.Text.Json.JsonDocument.Parse(json);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
                 var allowed =

@@ -104,7 +104,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
 
         _logger.LogDebug("发送嵌入请求到 Ollama，模型: {Model}", _model);
 
-        var response = await _httpClient
+        using var response = await _httpClient
             .PostAsync("/api/embed", content, cancellationToken)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
@@ -163,7 +163,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             validTexts.Count
         );
 
-        var response = await _httpClient
+        using var response = await _httpClient
             .PostAsync("/api/embed", content, cancellationToken)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();

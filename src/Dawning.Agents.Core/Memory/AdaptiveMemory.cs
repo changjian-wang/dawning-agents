@@ -23,7 +23,7 @@ public class AdaptiveMemory : IConversationMemory
     private readonly int _maxRecentMessages;
     private readonly int _summaryThreshold;
     private readonly ILogger<AdaptiveMemory> _logger;
-    private readonly Lock _lock = new();
+    private readonly SemaphoreSlim _downgradeLock = new(1, 1);
     private bool _hasDowngraded;
 
     /// <summary>
@@ -34,16 +34,7 @@ public class AdaptiveMemory : IConversationMemory
     /// <summary>
     /// 是否已降级到 SummaryMemory
     /// </summary>
-    public bool HasDowngraded
-    {
-        get
-        {
-            lock (_lock)
-            {
-                return _hasDowngraded;
-            }
-        }
-    }
+    public bool HasDowngraded => Volatile.Read(ref _hasDowngraded);
 
     /// <summary>
     /// 初始化自适应记忆
@@ -100,47 +91,53 @@ public class AdaptiveMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
-        var currentMemory = _currentMemory;
-        await currentMemory.AddMessageAsync(message, cancellationToken).ConfigureAwait(false);
-
-        // 检查是否需要降级
-        if (!Volatile.Read(ref _hasDowngraded))
+        await _downgradeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            var totalTokens = await currentMemory
-                .GetTokenCountAsync(cancellationToken)
-                .ConfigureAwait(false);
+            var currentMemory = _currentMemory;
+            await currentMemory.AddMessageAsync(message, cancellationToken).ConfigureAwait(false);
 
-            if (totalTokens >= _downgradeThreshold)
+            // 检查是否需要降级
+            if (!Volatile.Read(ref _hasDowngraded))
             {
-                await DowngradeToSummaryMemoryAsync(cancellationToken).ConfigureAwait(false);
+                var totalTokens = await currentMemory
+                    .GetTokenCountAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (totalTokens >= _downgradeThreshold)
+                {
+                    await DowngradeToSummaryMemoryCoreAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
+        }
+        finally
+        {
+            _downgradeLock.Release();
         }
     }
 
     /// <summary>
-    /// 降级到 SummaryMemory
+    /// 降级到 SummaryMemory（调用方必须持有 _downgradeLock）
     /// </summary>
-    private async Task DowngradeToSummaryMemoryAsync(CancellationToken cancellationToken)
+    private async Task DowngradeToSummaryMemoryCoreAsync(CancellationToken cancellationToken)
     {
-        IReadOnlyList<ConversationMessage> existingMessages;
-
-        lock (_lock)
+        if (_hasDowngraded)
         {
-            if (_hasDowngraded)
-            {
-                return; // 已经降级，避免重复
-            }
-
-            _hasDowngraded = true;
+            return;
         }
+
+        var currentTokens = await _currentMemory
+            .GetTokenCountAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogInformation(
             "触发自动降级：从 BufferMemory 切换到 SummaryMemory（当前 token: {Tokens}）",
-            await _currentMemory.GetTokenCountAsync(cancellationToken).ConfigureAwait(false)
+            currentTokens
         );
 
         // 获取现有消息
-        existingMessages = await _currentMemory
+        var existingMessages = await _currentMemory
             .GetMessagesAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -160,10 +157,8 @@ public class AdaptiveMemory : IConversationMemory
         }
 
         // 切换到 SummaryMemory
-        lock (_lock)
-        {
-            _currentMemory = summaryMemory;
-        }
+        _currentMemory = summaryMemory;
+        _hasDowngraded = true;
 
         _logger.LogInformation(
             "降级完成，新 token 数: {NewTokens}",
@@ -197,13 +192,18 @@ public class AdaptiveMemory : IConversationMemory
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        await _currentMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
-
-        lock (_lock)
+        await _downgradeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
+            await _currentMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
+
             // 重置为 BufferMemory
             _currentMemory = new BufferMemory(_tokenCounter);
             _hasDowngraded = false;
+        }
+        finally
+        {
+            _downgradeLock.Release();
         }
 
         _logger.LogDebug("AdaptiveMemory 已清空并重置为 BufferMemory");

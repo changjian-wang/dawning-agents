@@ -50,6 +50,8 @@ public class WorkflowEngine : IWorkflowEngine
         var stopwatch = Stopwatch.StartNew();
         var nodeMap = definition.Nodes.ToDictionary(n => n.Id);
         var currentNodeId = definition.StartNodeId;
+        const int maxExecutionSteps = 1000;
+        var executionStepCount = 0;
 
         _logger.LogInformation(
             "开始执行工作流 {WorkflowId}: {WorkflowName}",
@@ -63,6 +65,16 @@ public class WorkflowEngine : IWorkflowEngine
                 !string.IsNullOrEmpty(currentNodeId) && !cancellationToken.IsCancellationRequested
             )
             {
+                if (++executionStepCount > maxExecutionSteps)
+                {
+                    return CreateFailedResult(
+                        definition.Id,
+                        $"工作流执行超过最大步骤数 ({maxExecutionSteps})，可能存在循环",
+                        stopwatch,
+                        context
+                    );
+                }
+
                 if (!nodeMap.TryGetValue(currentNodeId, out var nodeDefinition))
                 {
                     return CreateFailedResult(

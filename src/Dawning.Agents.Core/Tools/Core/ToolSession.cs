@@ -18,7 +18,7 @@ public sealed class ToolSession : IToolSession
         StringComparer.OrdinalIgnoreCase
     );
 
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 创建工具会话

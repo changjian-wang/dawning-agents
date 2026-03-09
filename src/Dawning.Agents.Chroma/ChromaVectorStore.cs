@@ -33,6 +33,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private string? _collectionId;
     private int _count;
+    private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Chroma";
     public int Count => _count;
@@ -449,6 +450,24 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_collectionId != null)
+            {
+                return;
+            }
+
+            await EnsureCollectionCoreAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _initLock.Release();
+        }
+    }
+
+    private async Task EnsureCollectionCoreAsync(CancellationToken cancellationToken)
+    {
         // 尝试获取现有集合
         using var getResponse = await _httpClient
             .GetAsync($"/api/v1/collections/{_options.CollectionName}", cancellationToken)
@@ -530,7 +549,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        // HttpClient lifetime is managed by IHttpClientFactory — do not dispose here
+        _initLock.Dispose();
         return ValueTask.CompletedTask;
     }
 }

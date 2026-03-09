@@ -115,7 +115,7 @@ public class OllamaProvider : ILLMProvider
             Content = content,
         };
 
-        var response = await _httpClient
+        using var response = await _httpClient
             .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
@@ -162,7 +162,7 @@ public class OllamaProvider : ILLMProvider
             Content = content,
         };
 
-        var response = await _httpClient
+        using var response = await _httpClient
             .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
