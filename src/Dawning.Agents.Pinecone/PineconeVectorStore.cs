@@ -256,7 +256,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         // 删除命名空间中的所有向量
         await index.DeleteAll(_options.Namespace).ConfigureAwait(false);
 
-        _count = 0;
+        Interlocked.Exchange(ref _count, 0);
         _logger.LogDebug(
             "Cleared Pinecone namespace {Namespace}",
             _options.Namespace ?? "(default)"

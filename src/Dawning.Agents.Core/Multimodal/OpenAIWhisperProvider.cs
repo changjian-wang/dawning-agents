@@ -17,6 +17,7 @@ namespace Dawning.Agents.Core.Multimodal;
 public class OpenAIWhisperProvider : IAudioTranscriptionProvider
 {
     private readonly HttpClient _httpClient;
+    private readonly HttpClient _downloadClient;
     private readonly string _apiKey;
     private readonly string _baseUrl;
     private readonly string _defaultModel;
@@ -62,6 +63,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     )
     {
         _httpClient = httpClient;
+        _downloadClient = new HttpClient(); // Separate client without auth headers for external URLs
         _apiKey = apiKey;
         _baseUrl = baseUrl.TrimEnd('/');
         _defaultModel = defaultModel;
@@ -93,7 +95,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
             // 从 URL 下载
             try
             {
-                audioData = await _httpClient
+                audioData = await _downloadClient
                     .GetByteArrayAsync(audio.Url, cancellationToken)
                     .ConfigureAwait(false);
                 fileName = Path.GetFileName(new Uri(audio.Url!).LocalPath);

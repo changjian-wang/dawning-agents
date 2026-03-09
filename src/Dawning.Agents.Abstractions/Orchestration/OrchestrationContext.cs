@@ -9,6 +9,8 @@ public class OrchestrationContext
     private readonly Dictionary<string, object> _metadata = [];
     private readonly Lock _lock = new();
     private string _currentInput = string.Empty;
+    private bool _shouldStop;
+    private string? _stopReason;
 
     /// <summary>
     /// 会话 ID
@@ -94,10 +96,42 @@ public class OrchestrationContext
     /// <summary>
     /// 是否应该停止执行（用于条件路由）
     /// </summary>
-    public bool ShouldStop { get; set; }
+    public bool ShouldStop
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _shouldStop;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _shouldStop = value;
+            }
+        }
+    }
 
     /// <summary>
     /// 停止原因
     /// </summary>
-    public string? StopReason { get; set; }
+    public string? StopReason
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _stopReason;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _stopReason = value;
+            }
+        }
+    }
 }

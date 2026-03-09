@@ -19,24 +19,23 @@ public sealed class SpanIdEnricher : ILogEventEnricher
             return;
         }
 
-        if (!string.IsNullOrEmpty(activity.TraceId.ToString()))
+        var traceId = activity.TraceId.ToString();
+        if (!string.IsNullOrEmpty(traceId))
         {
-            logEvent.AddPropertyIfAbsent(
-                propertyFactory.CreateProperty("TraceId", activity.TraceId.ToString())
-            );
+            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("TraceId", traceId));
         }
 
-        if (!string.IsNullOrEmpty(activity.SpanId.ToString()))
+        var spanId = activity.SpanId.ToString();
+        if (!string.IsNullOrEmpty(spanId))
         {
-            logEvent.AddPropertyIfAbsent(
-                propertyFactory.CreateProperty("SpanId", activity.SpanId.ToString())
-            );
+            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("SpanId", spanId));
         }
 
-        if (!string.IsNullOrEmpty(activity.ParentSpanId.ToString()))
+        var parentSpanId = activity.ParentSpanId.ToString();
+        if (!string.IsNullOrEmpty(parentSpanId))
         {
             logEvent.AddPropertyIfAbsent(
-                propertyFactory.CreateProperty("ParentSpanId", activity.ParentSpanId.ToString())
+                propertyFactory.CreateProperty("ParentSpanId", parentSpanId)
             );
         }
     }

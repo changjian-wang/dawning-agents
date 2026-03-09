@@ -24,6 +24,8 @@ public sealed class MCPServer : IAsyncDisposable
     private readonly List<IMCPPromptProvider> _promptProviders = [];
     private readonly SemaphoreSlim _requestSemaphore;
     private readonly CancellationTokenSource _cts = new();
+    private readonly List<Task> _inflightTasks = [];
+    private readonly Lock _inflightLock = new();
     private bool _initialized;
     private MCPClientInfo? _clientInfo;
 
@@ -101,7 +103,22 @@ public sealed class MCPServer : IAsyncDisposable
 
                 // 限制并发请求
                 await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
-                _ = ProcessAndReleaseAsync(message, linkedCts.Token);
+                var task = ProcessAndReleaseAsync(message, linkedCts.Token);
+                lock (_inflightLock)
+                {
+                    _inflightTasks.Add(task);
+                }
+
+                _ = task.ContinueWith(
+                    _ =>
+                    {
+                        lock (_inflightLock)
+                        {
+                            _inflightTasks.Remove(task);
+                        }
+                    },
+                    TaskScheduler.Default
+                );
             }
             catch (OperationCanceledException)
             {
@@ -171,13 +188,23 @@ public sealed class MCPServer : IAsyncDisposable
         catch (JsonException ex)
         {
             _logger.LogWarning(ex, "JSON parse error");
-            await SendErrorAsync(null, MCPErrorCodes.ParseError, ex.Message, cancellationToken)
+            await SendErrorAsync(
+                    null,
+                    MCPErrorCodes.ParseError,
+                    "Invalid JSON format",
+                    cancellationToken
+                )
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing message");
-            await SendErrorAsync(null, MCPErrorCodes.InternalError, ex.Message, cancellationToken)
+            await SendErrorAsync(
+                    null,
+                    MCPErrorCodes.InternalError,
+                    "Internal server error",
+                    cancellationToken
+                )
                 .ConfigureAwait(false);
         }
     }
@@ -365,7 +392,11 @@ public sealed class MCPServer : IAsyncDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Tool execution failed: {Tool}", callParams.Name);
-            return MCPResponse.Failure(request.Id, MCPErrorCodes.ToolExecutionFailed, ex.Message);
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.ToolExecutionFailed,
+                "Tool execution failed"
+            );
         }
     }
 
@@ -516,14 +547,15 @@ public sealed class MCPServer : IAsyncDisposable
     /// <summary>
     /// 解析 JSON Schema 字符串
     /// </summary>
-    private static MCPInputSchema ParseJsonSchema(string schemaJson)
+    private MCPInputSchema ParseJsonSchema(string schemaJson)
     {
         try
         {
             return JsonSerializer.Deserialize<MCPInputSchema>(schemaJson) ?? new MCPInputSchema();
         }
-        catch
+        catch (JsonException ex)
         {
+            _logger.LogWarning(ex, "Failed to parse tool JSON schema");
             return new MCPInputSchema();
         }
     }
@@ -568,6 +600,26 @@ public sealed class MCPServer : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _cts.Cancel();
+
+        // Await all in-flight request tasks
+        Task[] snapshot;
+        lock (_inflightLock)
+        {
+            snapshot = [.. _inflightTasks];
+        }
+
+        if (snapshot.Length > 0)
+        {
+            try
+            {
+                await Task.WhenAll(snapshot).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Errors already logged in ProcessAndReleaseAsync
+            }
+        }
+
         _requestSemaphore.Dispose();
         _cts.Dispose();
         await _transport.DisposeAsync().ConfigureAwait(false);

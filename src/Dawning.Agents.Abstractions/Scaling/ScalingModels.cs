@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Scaling;
 
 /// <summary>
@@ -16,7 +18,7 @@ namespace Dawning.Agents.Abstractions.Scaling;
 /// }
 /// </code>
 /// </remarks>
-public record ScalingOptions
+public record ScalingOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

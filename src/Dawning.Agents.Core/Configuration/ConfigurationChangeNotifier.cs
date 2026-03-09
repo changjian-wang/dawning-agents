@@ -56,8 +56,8 @@ public sealed class ConfigurationChangeNotifier<TOptions>
             return;
         }
 
-        var oldValue = _currentValue;
-        _currentValue = newValue;
+        var oldValue = Volatile.Read(ref _currentValue);
+        Volatile.Write(ref _currentValue, newValue);
 
         _logger.LogInformation(
             "Configuration changed for {OptionsType}, Name={Name}",

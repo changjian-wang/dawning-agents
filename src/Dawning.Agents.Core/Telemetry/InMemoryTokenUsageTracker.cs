@@ -13,6 +13,7 @@ namespace Dawning.Agents.Core.Telemetry;
 public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
 {
     private readonly ConcurrentBag<TokenUsageRecord> _records = [];
+    private readonly Lock _resetLock = new();
     private int _totalPromptTokens;
     private int _totalCompletionTokens;
     private int _callCount;
@@ -110,37 +111,40 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     /// <inheritdoc />
     public void Reset(string? source = null, string? sessionId = null)
     {
-        if (source == null && sessionId == null)
+        lock (_resetLock)
         {
-            // 全部重置
-            _records.Clear();
-            Interlocked.Exchange(ref _totalPromptTokens, 0);
-            Interlocked.Exchange(ref _totalCompletionTokens, 0);
-            Interlocked.Exchange(ref _callCount, 0);
-        }
-        else
-        {
-            // 部分重置：由于 ConcurrentBag 不支持删除，需要重建
-            var remaining = _records
-                .Where(r =>
-                    (source == null || r.Source != source)
-                    && (sessionId == null || r.SessionId != sessionId)
-                )
-                .ToList();
-
-            _records.Clear();
-            foreach (var record in remaining)
+            if (source == null && sessionId == null)
             {
-                _records.Add(record);
+                // 全部重置
+                _records.Clear();
+                Interlocked.Exchange(ref _totalPromptTokens, 0);
+                Interlocked.Exchange(ref _totalCompletionTokens, 0);
+                Interlocked.Exchange(ref _callCount, 0);
             }
+            else
+            {
+                // 部分重置：由于 ConcurrentBag 不支持删除，需要重建
+                var remaining = _records
+                    .Where(r =>
+                        (source == null || r.Source != source)
+                        && (sessionId == null || r.SessionId != sessionId)
+                    )
+                    .ToList();
 
-            // 重新计算总数
-            Interlocked.Exchange(ref _totalPromptTokens, remaining.Sum(r => r.PromptTokens));
-            Interlocked.Exchange(
-                ref _totalCompletionTokens,
-                remaining.Sum(r => r.CompletionTokens)
-            );
-            Interlocked.Exchange(ref _callCount, remaining.Count);
+                _records.Clear();
+                foreach (var record in remaining)
+                {
+                    _records.Add(record);
+                }
+
+                // 重新计算总数
+                Interlocked.Exchange(ref _totalPromptTokens, remaining.Sum(r => r.PromptTokens));
+                Interlocked.Exchange(
+                    ref _totalCompletionTokens,
+                    remaining.Sum(r => r.CompletionTokens)
+                );
+                Interlocked.Exchange(ref _callCount, remaining.Count);
+            }
         }
     }
 

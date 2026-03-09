@@ -272,13 +272,17 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                 .DeleteCollectionAsync(_options.CollectionName, null, cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
-            // 集合可能不存在，忽略错误
+            _logger.LogWarning(
+                ex,
+                "Failed to delete Qdrant collection {Collection} during clear (may not exist)",
+                _options.CollectionName
+            );
         }
 
         _collectionInitialized = false;
-        _count = 0;
+        Interlocked.Exchange(ref _count, 0);
 
         await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 

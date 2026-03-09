@@ -1,3 +1,5 @@
+using Dawning.Agents.Abstractions;
+
 namespace Dawning.Agents.Abstractions.Configuration;
 
 /// <summary>
@@ -17,7 +19,7 @@ namespace Dawning.Agents.Abstractions.Configuration;
 /// }
 /// </code>
 /// </remarks>
-public record AgentDeploymentOptions
+public record AgentDeploymentOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -92,7 +94,7 @@ public record AgentDeploymentOptions
 /// }
 /// </code>
 /// </remarks>
-public record LLMDeploymentOptions
+public record LLMDeploymentOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -176,7 +178,7 @@ public record LLMDeploymentOptions
 /// }
 /// </code>
 /// </remarks>
-public record CacheOptions
+public record CacheOptions : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称

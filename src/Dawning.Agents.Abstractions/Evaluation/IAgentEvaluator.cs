@@ -203,7 +203,7 @@ public record EvaluationReport
     /// <summary>
     /// 所有评估结果
     /// </summary>
-    public required List<EvaluationResult> Results { get; init; }
+    public required IReadOnlyList<EvaluationResult> Results { get; init; }
 
     /// <summary>
     /// 总测试用例数

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// Agent 自动扩展器实现
 /// </summary>
-public sealed class AgentAutoScaler : IAgentAutoScaler
+public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 {
     private readonly ScalingOptions _options;
     private readonly Func<Task<ScalingMetrics>> _metricsProvider;
@@ -229,5 +229,11 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
         {
             _currentInstances = count;
         }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _evaluateLock.Dispose();
     }
 }

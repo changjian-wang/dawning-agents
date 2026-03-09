@@ -54,6 +54,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 
         _httpClient = httpClient;
         _options = options.Value;
+        _options.Validate();
         _logger = logger ?? NullLogger<WeaviateVectorStore>.Instance;
 
         _jsonOptions = new JsonSerializerOptions

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// <summary>
 /// 用完整可观测性包装 Agent
 /// </summary>
-public sealed class ObservableAgent : IAgent
+public sealed class ObservableAgent : IAgent, IDisposable
 {
     private readonly IAgent _innerAgent;
     private readonly AgentTelemetry _telemetry;
@@ -151,4 +151,10 @@ public sealed class ObservableAgent : IAgent
     /// 获取指标收集器
     /// </summary>
     public MetricsCollector MetricsCollector => _metrics;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _tracer.Dispose();
+    }
 }

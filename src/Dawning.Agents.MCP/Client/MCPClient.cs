@@ -69,6 +69,13 @@ public sealed class MCPClient : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        if (IsConnected)
+        {
+            throw new InvalidOperationException(
+                "Already connected to MCP Server. Dispose first before reconnecting."
+            );
+        }
+
         _logger.LogInformation(
             "Connecting to MCP Server: {Command} {Arguments}",
             command,
@@ -130,6 +137,13 @@ public sealed class MCPClient : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        if (IsConnected)
+        {
+            throw new InvalidOperationException(
+                "Already connected to MCP Server. Dispose first before reconnecting."
+            );
+        }
+
         _transport = transport;
         await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
 

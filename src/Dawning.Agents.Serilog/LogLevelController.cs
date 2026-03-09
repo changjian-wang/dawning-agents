@@ -81,6 +81,11 @@ public class LogLevelController : ILogLevelController
                         if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                         {
                             Restore();
+                            try
+                            {
+                                _cts.Dispose();
+                            }
+                            catch (ObjectDisposedException) { }
                         }
                     },
                     TaskContinuationOptions.OnlyOnRanToCompletion

@@ -415,22 +415,33 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        if (_collectionId == null)
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            return;
+            if (_collectionId == null)
+            {
+                return;
+            }
+
+            // 删除并重新创建集合
+            using var deleteResponse = await _httpClient
+                .DeleteAsync($"/api/v1/collections/{_collectionId}", cancellationToken)
+                .ConfigureAwait(false);
+
+            _collectionId = null;
+            Interlocked.Exchange(ref _count, 0);
+
+            await EnsureCollectionCoreAsync(cancellationToken).ConfigureAwait(false);
+
+            _logger.LogInformation(
+                "Cleared Chroma collection {Collection}",
+                _options.CollectionName
+            );
         }
-
-        // 删除并重新创建集合
-        using var deleteResponse = await _httpClient
-            .DeleteAsync($"/api/v1/collections/{_collectionId}", cancellationToken)
-            .ConfigureAwait(false);
-
-        _collectionId = null;
-        Interlocked.Exchange(ref _count, 0);
-
-        await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
-
-        _logger.LogInformation("Cleared Chroma collection {Collection}", _options.CollectionName);
+        finally
+        {
+            _initLock.Release();
+        }
     }
 
     /// <summary>

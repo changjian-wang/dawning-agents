@@ -19,7 +19,7 @@ public sealed class StdioTransport : IMCPTransport
     private readonly ILogger<StdioTransport> _logger;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly Pipe _pipe = new();
-    private bool _isConnected;
+    private volatile bool _isConnected;
     private CancellationTokenSource? _readCts;
     private Task? _readTask;
 

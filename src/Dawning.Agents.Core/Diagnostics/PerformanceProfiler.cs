@@ -141,29 +141,32 @@ public class PerformanceProfiler : IPerformanceProfiler
             },
             (_, existing) =>
             {
-                existing.TotalCount++;
-                if (isSuccess)
+                lock (existing)
                 {
-                    existing.SuccessCount++;
-                }
-                else
-                {
-                    existing.FailureCount++;
-                }
+                    existing.TotalCount++;
+                    if (isSuccess)
+                    {
+                        existing.SuccessCount++;
+                    }
+                    else
+                    {
+                        existing.FailureCount++;
+                    }
 
-                existing.TotalDuration += duration;
-                if (duration < existing.MinDuration)
-                {
-                    existing.MinDuration = duration;
-                }
+                    existing.TotalDuration += duration;
+                    if (duration < existing.MinDuration)
+                    {
+                        existing.MinDuration = duration;
+                    }
 
-                if (duration > existing.MaxDuration)
-                {
-                    existing.MaxDuration = duration;
-                }
+                    if (duration > existing.MaxDuration)
+                    {
+                        existing.MaxDuration = duration;
+                    }
 
-                existing.LastCallTime = DateTime.UtcNow;
-                return existing;
+                    existing.LastCallTime = DateTime.UtcNow;
+                    return existing;
+                }
             }
         );
     }

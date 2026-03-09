@@ -24,6 +24,8 @@ public sealed class RedisDistributedLock : IDistributedLock
     private readonly DistributedLockOptions _options;
     private Timer? _renewalTimer;
     private bool _disposed;
+    private volatile bool _isAcquired;
+    private long _expiresAtTicks; // 0 = null, otherwise DateTime.Ticks
 
     /// <inheritdoc />
     public string Resource => _resource;
@@ -32,10 +34,22 @@ public sealed class RedisDistributedLock : IDistributedLock
     public string LockId => _lockId;
 
     /// <inheritdoc />
-    public bool IsAcquired { get; private set; }
+    public bool IsAcquired
+    {
+        get => _isAcquired;
+        private set => _isAcquired = value;
+    }
 
     /// <inheritdoc />
-    public DateTime? ExpiresAt { get; private set; }
+    public DateTime? ExpiresAt
+    {
+        get
+        {
+            var ticks = Volatile.Read(ref _expiresAtTicks);
+            return ticks == 0 ? null : new DateTime(ticks, DateTimeKind.Utc);
+        }
+        private set => Volatile.Write(ref _expiresAtTicks, value?.Ticks ?? 0);
+    }
 
     /// <summary>
     /// 初始化 Redis 分布式锁
