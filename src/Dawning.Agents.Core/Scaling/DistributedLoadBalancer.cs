@@ -160,6 +160,10 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
             return;
         }
 
+        // 取消并释放之前的 Watch
+        _watchCts?.Cancel();
+        _watchCts?.Dispose();
+
         _watchCts = new CancellationTokenSource();
         _ = WatchLoopAsync(serviceName, _watchCts.Token);
     }
@@ -452,7 +456,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
     private AgentInstance GetRoundRobin(List<AgentInstance> instances)
     {
-        var index = Interlocked.Increment(ref _roundRobinIndex) % instances.Count;
+        var index = (int)(
+            (uint)Interlocked.Increment(ref _roundRobinIndex) % (uint)instances.Count
+        );
         return instances[index];
     }
 

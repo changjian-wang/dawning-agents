@@ -201,7 +201,7 @@ public class FunctionCallingAgent : AgentBase
                 else
                 {
                     // LLM 返回最终答案（无工具调用）
-                    var finalAnswer = response.Content;
+                    var finalAnswer = response.Content ?? string.Empty;
 
                     context.AddStep(
                         new AgentStep

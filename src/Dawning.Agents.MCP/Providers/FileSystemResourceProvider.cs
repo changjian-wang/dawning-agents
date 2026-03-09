@@ -24,6 +24,12 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
     )
     {
         _rootPath = Path.GetFullPath(rootPath);
+        // 确保以目录分隔符结尾，防止 StartsWith 匹配同前缀的其他目录
+        if (!_rootPath.EndsWith(Path.DirectorySeparatorChar))
+        {
+            _rootPath += Path.DirectorySeparatorChar;
+        }
+
         _allowedExtensions =
             allowedExtensions
             ?? [".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".cs", ".py", ".js", ".ts"];

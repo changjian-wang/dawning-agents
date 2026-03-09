@@ -104,7 +104,14 @@ public sealed class WindowMemory : IConversationMemory
     {
         lock (_lock)
         {
-            var result = _messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
+            IEnumerable<ConversationMessage> messages = _messages;
+
+            if (maxTokens.HasValue)
+            {
+                messages = TrimToTokenLimit(maxTokens.Value);
+            }
+
+            var result = messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
 
             return Task.FromResult<IReadOnlyList<ChatMessage>>(result);
         }
@@ -132,5 +139,31 @@ public sealed class WindowMemory : IConversationMemory
         {
             return Task.FromResult(_messages.Sum(m => m.TokenCount ?? 0));
         }
+    }
+
+    /// <summary>
+    /// 裁剪消息以适应 token 限制（从最近的消息开始，调用方须持有 _lock）
+    /// </summary>
+    private IEnumerable<ConversationMessage> TrimToTokenLimit(int maxTokens)
+    {
+        var result = new LinkedList<ConversationMessage>();
+        var tokenCount = 0;
+
+        // 从最近的消息开始倒序遍历
+        var node = _messages.Last;
+        while (node != null)
+        {
+            var msgTokens = node.Value.TokenCount ?? 0;
+            if (tokenCount + msgTokens > maxTokens)
+            {
+                break;
+            }
+
+            result.AddFirst(node.Value);
+            tokenCount += msgTokens;
+            node = node.Previous;
+        }
+
+        return result;
     }
 }

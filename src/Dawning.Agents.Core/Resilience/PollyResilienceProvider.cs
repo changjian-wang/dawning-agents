@@ -21,10 +21,11 @@ namespace Dawning.Agents.Core.Resilience;
 /// 3. 重试 (Retry) - 失败后重试
 /// 4. 断路器 (CircuitBreaker) - 防止级联故障
 /// </remarks>
-public class PollyResilienceProvider : IResilienceProvider
+public class PollyResilienceProvider : IResilienceProvider, IDisposable
 {
     private readonly ResiliencePipeline _pipeline;
     private readonly ILogger<PollyResilienceProvider> _logger;
+    private ConcurrencyLimiter? _concurrencyLimiter;
 
     public PollyResilienceProvider(
         IOptions<ResilienceOptions> options,
@@ -91,7 +92,7 @@ public class PollyResilienceProvider : IResilienceProvider
         // 2. 舱壁隔离策略（并发限制）
         if (options.Bulkhead.Enabled)
         {
-            var limiter = new ConcurrencyLimiter(
+            _concurrencyLimiter = new ConcurrencyLimiter(
                 new ConcurrencyLimiterOptions
                 {
                     PermitLimit = options.Bulkhead.MaxConcurrency,
@@ -104,7 +105,9 @@ public class PollyResilienceProvider : IResilienceProvider
                 new RateLimiterStrategyOptions
                 {
                     RateLimiter = args =>
-                        limiter.AcquireAsync(cancellationToken: args.Context.CancellationToken),
+                        _concurrencyLimiter.AcquireAsync(
+                            cancellationToken: args.Context.CancellationToken
+                        ),
                     OnRejected = args =>
                     {
                         _logger.LogWarning(
@@ -195,5 +198,13 @@ public class PollyResilienceProvider : IResilienceProvider
         }
 
         return builder.Build();
+    }
+
+    /// <summary>
+    /// 释放 ConcurrencyLimiter 资源
+    /// </summary>
+    public void Dispose()
+    {
+        _concurrencyLimiter?.Dispose();
     }
 }

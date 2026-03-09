@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Abstractions.Workflow;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -344,8 +345,11 @@ public class WorkflowEngine : IWorkflowEngine
             return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent 名称不能为空");
         }
 
-        // 从 DI 获取 Agent
-        var agent = _serviceProvider.GetService(typeof(IAgent)) as IAgent;
+        // 从 DI 获取 Agent（按名称匹配）
+        var agents = _serviceProvider.GetServices<IAgent>();
+        var agent = agents.FirstOrDefault(a =>
+            string.Equals(a.Name, agentName, StringComparison.OrdinalIgnoreCase)
+        );
         if (agent == null)
         {
             return NodeExecutionResult.Fail(nodeDefinition.Id, $"找不到 Agent: {agentName}");

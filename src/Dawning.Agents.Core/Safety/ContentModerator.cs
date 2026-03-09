@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Safety;
 using Microsoft.Extensions.Logging;
@@ -114,7 +115,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
     private string BuildModerationPrompt(string content)
     {
         var categories = string.Join(", ", _options.Categories);
-        var boundary = $"BOUNDARY_{Guid.NewGuid():N}";
+        var boundary = $"BOUNDARY_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
         var jsonFormat = """
             {
               "allowed": true/false,
