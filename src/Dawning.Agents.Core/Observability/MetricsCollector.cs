@@ -157,8 +157,11 @@ public sealed class CounterMetric
 /// </summary>
 public sealed class HistogramMetric
 {
-    private readonly List<double> _values = [];
+    private const int MaxValues = 10_000;
+    private readonly double[] _values = new double[MaxValues];
     private readonly object _lock = new();
+    private int _count;
+    private int _writeIndex;
 
     /// <summary>
     /// 指标名称
@@ -186,7 +189,12 @@ public sealed class HistogramMetric
     {
         lock (_lock)
         {
-            _values.Add(value);
+            _values[_writeIndex] = value;
+            _writeIndex = (_writeIndex + 1) % MaxValues;
+            if (_count < MaxValues)
+            {
+                _count++;
+            }
         }
     }
 
@@ -197,31 +205,33 @@ public sealed class HistogramMetric
     {
         lock (_lock)
         {
-            var sorted = _values.OrderBy(v => v).ToList();
+            var snapshot = new double[_count];
+            Array.Copy(_values, 0, snapshot, 0, _count);
+            Array.Sort(snapshot);
             return new MetricData
             {
                 Name = Name,
                 Type = "histogram",
-                Count = sorted.Count,
-                Sum = sorted.Sum(),
-                Min = sorted.Count > 0 ? sorted[0] : 0,
-                Max = sorted.Count > 0 ? sorted[^1] : 0,
-                P50 = GetPercentile(sorted, 0.5),
-                P95 = GetPercentile(sorted, 0.95),
-                P99 = GetPercentile(sorted, 0.99),
+                Count = snapshot.Length,
+                Sum = snapshot.Sum(),
+                Min = snapshot.Length > 0 ? snapshot[0] : 0,
+                Max = snapshot.Length > 0 ? snapshot[^1] : 0,
+                P50 = GetPercentile(snapshot, 0.5),
+                P95 = GetPercentile(snapshot, 0.95),
+                P99 = GetPercentile(snapshot, 0.99),
                 Tags = Tags,
             };
         }
     }
 
-    private static double GetPercentile(List<double> sorted, double percentile)
+    private static double GetPercentile(double[] sorted, double percentile)
     {
-        if (sorted.Count == 0)
+        if (sorted.Length == 0)
         {
             return 0;
         }
 
-        var index = (int)(percentile * (sorted.Count - 1));
+        var index = (int)(percentile * (sorted.Length - 1));
         return sorted[index];
     }
 }

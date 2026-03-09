@@ -65,7 +65,25 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
 
         foreach (var pattern in _patterns)
         {
-            var matches = pattern.Regex.Matches(normalizedContent);
+            MatchCollection matches;
+            try
+            {
+                matches = pattern.Regex.Matches(normalizedContent);
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                _logger.LogWarning("Regex 匹配超时: 类别={Category}, 跳过此模式", pattern.Category);
+                issues.Add(
+                    new GuardrailIssue
+                    {
+                        Type = pattern.Category,
+                        Description = $"正则匹配超时 — 可能存在 ReDoS 攻击",
+                        Severity = IssueSeverity.Error,
+                    }
+                );
+                continue;
+            }
+
             foreach (Match match in matches)
             {
                 var issue = new GuardrailIssue

@@ -76,27 +76,25 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
         var metrics = await _metricsProvider();
 
         int currentSnapshot;
+        int newCount;
+        ScalingDecision decision;
+
         lock (_lock)
         {
             currentSnapshot = _currentInstances;
-        }
+            decision = MakeScalingDecision(metrics, currentSnapshot);
 
-        var decision = MakeScalingDecision(metrics, currentSnapshot);
+            if (decision.Action == ScalingAction.None)
+            {
+                _logger.LogDebug(
+                    "扩展评估: 无需操作 (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
+                    metrics.CpuPercent,
+                    metrics.MemoryPercent,
+                    metrics.QueueLength
+                );
+                return decision;
+            }
 
-        if (decision.Action == ScalingAction.None)
-        {
-            _logger.LogDebug(
-                "扩展评估: 无需操作 (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
-                metrics.CpuPercent,
-                metrics.MemoryPercent,
-                metrics.QueueLength
-            );
-            return decision;
-        }
-
-        int newCount;
-        lock (_lock)
-        {
             newCount =
                 decision.Action == ScalingAction.ScaleUp
                     ? Math.Min(_currentInstances + decision.Delta, _options.MaxInstances)

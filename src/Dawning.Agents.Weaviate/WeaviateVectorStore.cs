@@ -383,13 +383,12 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        var response = await _httpClient.SendAsync(
-            new HttpRequestMessage(HttpMethod.Delete, "/v1/batch/objects")
-            {
-                Content = JsonContent.Create(deleteRequest, options: _jsonOptions),
-            },
-            cancellationToken
-        );
+        using var request = new HttpRequestMessage(HttpMethod.Delete, "/v1/batch/objects")
+        {
+            Content = JsonContent.Create(deleteRequest, options: _jsonOptions),
+        };
+
+        var response = await _httpClient.SendAsync(request, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {

@@ -112,6 +112,34 @@ public class SlidingWindowRateLimiter : IRateLimiter
     }
 
     /// <summary>
+    /// 清理空闲桶（窗口期内无记录的桶会被移除）
+    /// </summary>
+    public void EvictIdleBuckets()
+    {
+        var now = _timeProvider.GetUtcNow();
+        var keysToRemove = new List<string>();
+
+        foreach (var kvp in _buckets)
+        {
+            kvp.Value.CleanupExpired(now);
+            if (kvp.Value.Count == 0)
+            {
+                keysToRemove.Add(kvp.Key);
+            }
+        }
+
+        foreach (var key in keysToRemove)
+        {
+            _buckets.TryRemove(key, out _);
+        }
+
+        if (keysToRemove.Count > 0)
+        {
+            _logger.LogDebug("清理了 {Count} 个空闲的速率限制桶", keysToRemove.Count);
+        }
+    }
+
+    /// <summary>
     /// 速率限制桶（滑动窗口）
     /// </summary>
     private class RateLimitBucket

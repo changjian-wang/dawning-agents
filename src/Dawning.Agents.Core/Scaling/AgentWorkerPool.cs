@@ -15,6 +15,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     private readonly ILogger<AgentWorkerPool> _logger;
     private readonly List<Task> _workers = [];
     private readonly CancellationTokenSource _cts = new();
+    private readonly Lock _lock = new();
     private readonly int _workerCount;
     private bool _isRunning;
     private bool _disposed;
@@ -41,36 +42,47 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     /// <inheritdoc />
     public void Start()
     {
-        if (_isRunning)
+        lock (_lock)
         {
-            _logger.LogWarning("工作池已在运行中");
-            return;
+            if (_isRunning)
+            {
+                _logger.LogWarning("工作池已在运行中");
+                return;
+            }
+
+            for (int i = 0; i < _workerCount; i++)
+            {
+                var workerId = i;
+                _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, _cts.Token)));
+            }
+
+            _isRunning = true;
         }
 
-        for (int i = 0; i < _workerCount; i++)
-        {
-            var workerId = i;
-            _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, _cts.Token)));
-        }
-
-        _isRunning = true;
         _logger.LogInformation("已启动 {WorkerCount} 个 Agent 工作线程", _workerCount);
     }
 
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        if (!_isRunning)
+        Task[] snapshot;
+        lock (_lock)
         {
-            return;
+            if (!_isRunning)
+            {
+                return;
+            }
+
+            _isRunning = false;
+            snapshot = [.. _workers];
         }
 
         _logger.LogInformation("正在停止工作池...");
-        _cts.Cancel();
+        await _cts.CancelAsync();
 
         try
         {
-            await Task.WhenAll(_workers).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            await Task.WhenAll(snapshot).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         }
         catch (TimeoutException)
         {
@@ -81,8 +93,11 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _logger.LogWarning("工作池停止被取消");
         }
 
-        _workers.Clear();
-        _isRunning = false;
+        lock (_lock)
+        {
+            _workers.Clear();
+        }
+
         _logger.LogInformation("工作池已停止");
     }
 
@@ -142,16 +157,25 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed)
+        Task[] snapshot;
+        lock (_lock)
         {
-            return;
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _isRunning = false;
+            snapshot = [.. _workers];
+            _workers.Clear();
         }
 
         _cts.Cancel();
 
         try
         {
-            Task.WhenAll(_workers).Wait(TimeSpan.FromSeconds(30));
+            Task.WhenAll(snapshot).Wait(TimeSpan.FromSeconds(30));
         }
         catch
         {
@@ -159,6 +183,5 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         }
 
         _cts.Dispose();
-        _disposed = true;
     }
 }

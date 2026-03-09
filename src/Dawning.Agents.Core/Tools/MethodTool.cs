@@ -97,7 +97,8 @@ public sealed class MethodTool : ITool
                 var taskType = task.GetType();
                 if (taskType.IsGenericType)
                 {
-                    result = ((dynamic)task).Result;
+                    var resultProperty = taskType.GetProperty("Result");
+                    result = resultProperty?.GetValue(task);
                 }
                 else
                 {

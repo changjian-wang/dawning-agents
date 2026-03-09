@@ -233,24 +233,37 @@ public sealed class RedisDistributedLock : IDistributedLock
         );
 
         _renewalTimer = new Timer(
-            async _ =>
+            _ =>
             {
-                try
-                {
-                    if (IsAcquired)
-                    {
-                        await ExtendAsync(_expiry).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Auto-renewal failed for lock {Resource}", _resource);
-                }
+                _ = RenewAsync();
             },
             null,
             renewalInterval,
             renewalInterval
         );
+    }
+
+    private async Task RenewAsync()
+    {
+        try
+        {
+            if (IsAcquired)
+            {
+                var extended = await ExtendAsync(_expiry).ConfigureAwait(false);
+                if (!extended)
+                {
+                    _logger.LogWarning(
+                        "Auto-renewal lost lock {Resource}, stopping timer",
+                        _resource
+                    );
+                    StopRenewalTimer();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Auto-renewal failed for lock {Resource}", _resource);
+        }
     }
 
     /// <summary>

@@ -21,6 +21,7 @@ public sealed class StdioTransport : IMCPTransport
     private readonly Pipe _pipe = new();
     private bool _isConnected;
     private CancellationTokenSource? _readCts;
+    private Task? _readTask;
 
     public StdioTransport(ILogger<StdioTransport>? logger = null)
         : this(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger) { }
@@ -44,8 +45,8 @@ public sealed class StdioTransport : IMCPTransport
         _readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _isConnected = true;
 
-        // 启动后台读取任务
-        _ = ReadInputAsync(_readCts.Token);
+        // 启动后台读取任务（捕获引用以便关闭时等待）
+        _readTask = ReadInputAsync(_readCts.Token);
 
         _logger.LogDebug("Stdio transport started");
         return Task.CompletedTask;
@@ -239,7 +240,24 @@ public sealed class StdioTransport : IMCPTransport
     public async ValueTask DisposeAsync()
     {
         _isConnected = false;
-        _readCts?.Cancel();
+
+        if (_readCts != null)
+        {
+            await _readCts.CancelAsync();
+        }
+
+        if (_readTask != null)
+        {
+            try
+            {
+                await _readTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // 正常取消
+            }
+        }
+
         _readCts?.Dispose();
         _writeLock.Dispose();
         await _pipe.Reader.CompleteAsync();

@@ -12,7 +12,7 @@ public sealed class AgentLoadBalancer : IAgentLoadBalancer
     private readonly List<AgentInstance> _instances = [];
     private readonly object _lock = new();
     private readonly ILogger<AgentLoadBalancer> _logger;
-    private int _roundRobinIndex;
+    private int _roundRobinIndex = -1;
 
     public AgentLoadBalancer(ILogger<AgentLoadBalancer>? logger = null)
     {
@@ -69,7 +69,9 @@ public sealed class AgentLoadBalancer : IAgentLoadBalancer
                 return null;
             }
 
-            var index = Interlocked.Increment(ref _roundRobinIndex) % healthyInstances.Count;
+            var index = (int)(
+                (uint)Interlocked.Increment(ref _roundRobinIndex) % (uint)healthyInstances.Count
+            );
             var instance = healthyInstances[index];
             _logger.LogDebug("选择实例 {InstanceId} (轮询索引: {Index})", instance.Id, index);
             return instance;

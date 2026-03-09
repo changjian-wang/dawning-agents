@@ -29,10 +29,10 @@ description: |
 
 ## Templates
 
-- `templates/interface-template.cs`
-- `templates/service-template.cs`
-- `templates/extensions-template.cs`
-- `templates/options-template.cs`
+- `templates/interface-template.cs.template`
+- `templates/service-template.cs.template`
+- `templates/extensions-template.cs.template`
+- `templates/options-template.cs.template`
 
 ## Post-change Workflow（必须按顺序执行）
 

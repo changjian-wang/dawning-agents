@@ -97,12 +97,13 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
 
     private ILLMProvider GetProvider()
     {
+        var provider = _innerProvider;
         if (_disposed)
         {
             throw new ObjectDisposedException(nameof(HotReloadableLLMProvider));
         }
 
-        return _innerProvider;
+        return provider;
     }
 
     private void OnOptionsChanged(LLMOptions newOptions, string? name)
