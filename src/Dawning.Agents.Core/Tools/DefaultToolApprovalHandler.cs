@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -116,7 +117,11 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
         // 检查危险命令
         if (IsDangerousCommand(command))
         {
-            _logger.LogWarning("检测到危险命令: {Command}", command);
+            _logger.LogWarning(
+                "检测到危险命令: {CommandName}",
+                command.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
+                    ?? "unknown"
+            );
             return Task.FromResult(false);
         }
 
@@ -213,8 +218,8 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
             "reboot",
         };
 
-        var cmdLower = command.ToLowerInvariant();
-        return dangerous.Any(d => cmdLower.Contains(d));
+        var normalized = Regex.Replace(command, @"\s+", " ").ToLowerInvariant().Trim();
+        return dangerous.Any(d => normalized.Contains(d));
     }
 
     private static bool IsSafeCommand(string command)
@@ -238,6 +243,8 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
         };
 
         var cmdLower = command.ToLowerInvariant().Trim();
-        return safeCommands.Any(s => cmdLower.StartsWith(s));
+        return safeCommands.Any(s =>
+            cmdLower == s || cmdLower.StartsWith(s + " ", StringComparison.Ordinal)
+        );
     }
 }

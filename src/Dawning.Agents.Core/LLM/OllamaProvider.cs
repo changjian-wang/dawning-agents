@@ -51,7 +51,7 @@ public class OllamaProvider : ILLMProvider
 
         _logger.LogDebug("发送聊天请求到 Ollama，模型: {Model}", _model);
 
-        var response = await _httpClient
+        using var response = await _httpClient
             .PostAsync("/api/chat", content, cancellationToken)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
@@ -137,7 +137,7 @@ public class OllamaProvider : ILLMProvider
                 continue;
             }
 
-            var chunk = JsonSerializer.Deserialize<OllamaChatResponse>(line, JsonOptions.Default);
+            var chunk = TryDeserializeChunk(line);
             if (!string.IsNullOrEmpty(chunk?.Message?.Content))
             {
                 yield return chunk.Message.Content;
@@ -188,7 +188,7 @@ public class OllamaProvider : ILLMProvider
                 continue;
             }
 
-            var chunk = JsonSerializer.Deserialize<OllamaChatResponse>(line, JsonOptions.Default);
+            var chunk = TryDeserializeChunk(line);
             if (chunk is null)
             {
                 continue;
@@ -243,6 +243,19 @@ public class OllamaProvider : ILLMProvider
                 CompletionTokens = completionTokens,
             }
         );
+    }
+
+    private OllamaChatResponse? TryDeserializeChunk(string line)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<OllamaChatResponse>(line, JsonOptions.Default);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse Ollama streaming response chunk");
+            return null;
+        }
     }
 
     private OllamaChatRequest BuildRequest(

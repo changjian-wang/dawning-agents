@@ -205,7 +205,7 @@ public sealed class MethodTool : ITool
         {
             return JsonDocument.Parse(input);
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or ArgumentException)
         {
             return null;
         }
