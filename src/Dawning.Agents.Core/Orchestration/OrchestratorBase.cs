@@ -1,5 +1,6 @@
 namespace Dawning.Agents.Core.Orchestration;
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Orchestration;
@@ -25,7 +26,7 @@ public abstract class OrchestratorBase : IOrchestrator
     /// <summary>
     /// Agent 列表
     /// </summary>
-    protected readonly List<IAgent> _agents = [];
+    protected ImmutableList<IAgent> _agents = [];
 
     /// <summary>
     /// 创建编排器基类
@@ -48,7 +49,7 @@ public abstract class OrchestratorBase : IOrchestrator
     public virtual string? Description { get; protected set; }
 
     /// <inheritdoc />
-    public IReadOnlyList<IAgent> Agents => _agents.AsReadOnly();
+    public IReadOnlyList<IAgent> Agents => Volatile.Read(ref _agents);
 
     /// <summary>
     /// 添加 Agent 到编排器
@@ -56,7 +57,7 @@ public abstract class OrchestratorBase : IOrchestrator
     public OrchestratorBase AddAgent(IAgent agent)
     {
         ArgumentNullException.ThrowIfNull(agent);
-        _agents.Add(agent);
+        ImmutableInterlocked.Update(ref _agents, (list, a) => list.Add(a), agent);
         Logger.LogDebug("Agent {AgentName} 已添加到编排器 {OrchestratorName}", agent.Name, Name);
         return this;
     }

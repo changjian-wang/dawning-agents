@@ -30,6 +30,11 @@ public sealed class ParallelOrchestrator : OrchestratorBase
     private Func<IReadOnlyList<AgentExecutionRecord>, string>? _customAggregator;
 
     /// <summary>
+    /// 本地聚合策略（避免修改共享 Options）
+    /// </summary>
+    private ResultAggregationStrategy? _localAggregationStrategy;
+
+    /// <summary>
     /// 创建并行编排器
     /// </summary>
     public ParallelOrchestrator(
@@ -50,7 +55,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
     )
     {
         _customAggregator = aggregator;
-        Options.AggregationStrategy = ResultAggregationStrategy.Custom;
+        _localAggregationStrategy = ResultAggregationStrategy.Custom;
         return this;
     }
 
@@ -163,7 +168,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
             return string.Empty;
         }
 
-        return Options.AggregationStrategy switch
+        return (_localAggregationStrategy ?? Options.AggregationStrategy) switch
         {
             ResultAggregationStrategy.LastResult => AggregateLastResult(results),
             ResultAggregationStrategy.FirstSuccess => AggregateFirstSuccess(results),

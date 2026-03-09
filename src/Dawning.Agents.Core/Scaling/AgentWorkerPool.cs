@@ -188,4 +188,35 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
         _cts.Dispose();
     }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        Task[] snapshot;
+        lock (_lock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _isRunning = false;
+            snapshot = [.. _workers];
+            _workers.Clear();
+        }
+
+        await _cts.CancelAsync().ConfigureAwait(false);
+
+        try
+        {
+            await Task.WhenAll(snapshot).WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+        }
+        catch
+        {
+            // 忽略停止时的异常
+        }
+
+        _cts.Dispose();
+    }
 }

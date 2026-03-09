@@ -17,7 +17,8 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     private int _currentInstances;
     private DateTime? _lastScaleUp;
     private DateTime? _lastScaleDown;
-    private readonly object _lock = new();
+    private readonly SemaphoreSlim _evaluateLock = new(1, 1);
+    private readonly object _stateLock = new();
 
     public AgentAutoScaler(
         ScalingOptions options,
@@ -39,7 +40,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     {
         get
         {
-            lock (_lock)
+            lock (_stateLock)
             {
                 return _currentInstances;
             }
@@ -51,7 +52,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     {
         get
         {
-            lock (_lock)
+            lock (_stateLock)
             {
                 return _lastScaleUp;
             }
@@ -63,7 +64,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     {
         get
         {
-            lock (_lock)
+            lock (_stateLock)
             {
                 return _lastScaleDown;
             }
@@ -75,40 +76,48 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     {
         var metrics = await _metricsProvider().ConfigureAwait(false);
 
-        int currentSnapshot;
-        int newCount;
-        ScalingDecision decision;
-
-        lock (_lock)
+        await _evaluateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            currentSnapshot = _currentInstances;
-            decision = MakeScalingDecision(metrics, currentSnapshot);
+            int currentSnapshot;
+            int newCount;
+            ScalingDecision decision;
 
-            if (decision.Action == ScalingAction.None)
+            lock (_stateLock)
             {
-                _logger.LogDebug(
-                    "扩展评估: 无需操作 (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
-                    metrics.CpuPercent,
-                    metrics.MemoryPercent,
-                    metrics.QueueLength
-                );
-                return decision;
+                currentSnapshot = _currentInstances;
+                decision = MakeScalingDecision(metrics, currentSnapshot);
+
+                if (decision.Action == ScalingAction.None)
+                {
+                    _logger.LogDebug(
+                        "扩展评估: 无需操作 (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
+                        metrics.CpuPercent,
+                        metrics.MemoryPercent,
+                        metrics.QueueLength
+                    );
+                    return decision;
+                }
+
+                newCount =
+                    decision.Action == ScalingAction.ScaleUp
+                        ? Math.Min(_currentInstances + decision.Delta, _options.MaxInstances)
+                        : Math.Max(_currentInstances - decision.Delta, _options.MinInstances);
+
+                if (newCount == _currentInstances)
+                {
+                    return decision;
+                }
             }
 
-            newCount =
-                decision.Action == ScalingAction.ScaleUp
-                    ? Math.Min(_currentInstances + decision.Delta, _options.MaxInstances)
-                    : Math.Max(_currentInstances - decision.Delta, _options.MinInstances);
+            await ApplyScalingAsync(newCount, decision, cancellationToken).ConfigureAwait(false);
 
-            if (newCount == _currentInstances)
-            {
-                return decision;
-            }
+            return decision;
         }
-
-        await ApplyScalingAsync(newCount, decision, cancellationToken).ConfigureAwait(false);
-
-        return decision;
+        finally
+        {
+            _evaluateLock.Release();
+        }
     }
 
     private ScalingDecision MakeScalingDecision(ScalingMetrics metrics, int currentInstances)
@@ -190,7 +199,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
         {
             await _scaleAction(newCount).ConfigureAwait(false);
 
-            lock (_lock)
+            lock (_stateLock)
             {
                 if (decision.Action == ScalingAction.ScaleUp)
                 {
@@ -216,7 +225,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler
     /// </summary>
     internal void SetCurrentInstances(int count)
     {
-        lock (_lock)
+        lock (_stateLock)
         {
             _currentInstances = count;
         }

@@ -1,6 +1,7 @@
 namespace Dawning.Agents.Core.Communication;
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Dawning.Agents.Abstractions.Communication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,18 +20,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 /// </remarks>
 public sealed class InMemoryMessageBus : IMessageBus
 {
-    private readonly ConcurrentDictionary<string, List<Action<AgentMessage>>> _subscribers = new();
     private readonly ConcurrentDictionary<
         string,
-        List<(string AgentId, Action<EventMessage> Handler)>
+        ImmutableList<Action<AgentMessage>>
+    > _subscribers = new();
+    private readonly ConcurrentDictionary<
+        string,
+        ImmutableList<(string AgentId, Action<EventMessage> Handler)>
     > _topicSubscribers = new();
     private readonly ConcurrentDictionary<
         string,
         TaskCompletionSource<ResponseMessage>
     > _pendingRequests = new();
     private readonly ILogger<InMemoryMessageBus> _logger;
-    private readonly object _subscriberLock = new();
-    private readonly object _topicLock = new();
 
     /// <summary>
     /// 创建内存消息总线
@@ -58,13 +60,7 @@ public sealed class InMemoryMessageBus : IMessageBus
         // 发送给指定接收者
         if (_subscribers.TryGetValue(message.ReceiverId, out var handlers))
         {
-            List<Action<AgentMessage>> handlersCopy;
-            lock (_subscriberLock)
-            {
-                handlersCopy = handlers.ToList();
-            }
-
-            foreach (var handler in handlersCopy)
+            foreach (var handler in handlers)
             {
                 try
                 {
@@ -94,13 +90,7 @@ public sealed class InMemoryMessageBus : IMessageBus
     {
         _logger.LogDebug("广播消息 {MessageId} 来自 {Sender}", message.Id, message.SenderId);
 
-        List<List<Action<AgentMessage>>> allHandlers;
-        lock (_subscriberLock)
-        {
-            allHandlers = _subscribers.Values.Select(h => h.ToList()).ToList();
-        }
-
-        foreach (var handlers in allHandlers)
+        foreach (var handlers in _subscribers.Values)
         {
             foreach (var handler in handlers)
             {
@@ -121,21 +111,21 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public IDisposable Subscribe(string agentId, Action<AgentMessage> handler)
     {
-        var handlers = _subscribers.GetOrAdd(agentId, _ => new List<Action<AgentMessage>>());
-
-        lock (_subscriberLock)
-        {
-            handlers.Add(handler);
-        }
+        _subscribers.AddOrUpdate(
+            agentId,
+            _ => ImmutableList.Create(handler),
+            (_, list) => list.Add(handler)
+        );
 
         _logger.LogDebug("Agent {AgentId} 订阅了消息", agentId);
 
         return new Subscription(() =>
         {
-            lock (_subscriberLock)
-            {
-                handlers.Remove(handler);
-            }
+            _subscribers.AddOrUpdate(
+                agentId,
+                _ => ImmutableList<Action<AgentMessage>>.Empty,
+                (_, list) => list.Remove(handler)
+            );
             _logger.LogDebug("Agent {AgentId} 取消了订阅", agentId);
         });
     }
@@ -143,26 +133,23 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public IDisposable Subscribe(string agentId, string topic, Action<EventMessage> handler)
     {
-        var subscribers = _topicSubscribers.GetOrAdd(
-            topic,
-            _ => new List<(string, Action<EventMessage>)>()
-        );
-
         var subscription = (agentId, handler);
 
-        lock (_topicLock)
-        {
-            subscribers.Add(subscription);
-        }
+        _topicSubscribers.AddOrUpdate(
+            topic,
+            _ => ImmutableList.Create(subscription),
+            (_, list) => list.Add(subscription)
+        );
 
         _logger.LogDebug("Agent {AgentId} 订阅了主题 {Topic}", agentId, topic);
 
         return new Subscription(() =>
         {
-            lock (_topicLock)
-            {
-                subscribers.Remove(subscription);
-            }
+            _topicSubscribers.AddOrUpdate(
+                topic,
+                _ => ImmutableList<(string AgentId, Action<EventMessage> Handler)>.Empty,
+                (_, list) => list.Remove(subscription)
+            );
             _logger.LogDebug("Agent {AgentId} 取消订阅主题 {Topic}", agentId, topic);
         });
     }
@@ -178,13 +165,7 @@ public sealed class InMemoryMessageBus : IMessageBus
 
         if (_topicSubscribers.TryGetValue(topic, out var subscribers))
         {
-            List<(string AgentId, Action<EventMessage> Handler)> subscribersCopy;
-            lock (_topicLock)
-            {
-                subscribersCopy = subscribers.ToList();
-            }
-
-            foreach (var (agentId, handler) in subscribersCopy)
+            foreach (var (agentId, handler) in subscribers)
             {
                 try
                 {

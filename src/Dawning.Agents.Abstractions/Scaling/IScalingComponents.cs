@@ -124,7 +124,7 @@ public interface IAgentRequestQueue
 /// <summary>
 /// 工作池接口
 /// </summary>
-public interface IAgentWorkerPool : IDisposable
+public interface IAgentWorkerPool : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// 启动工作池

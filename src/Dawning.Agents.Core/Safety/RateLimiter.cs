@@ -9,12 +9,14 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 滑动窗口速率限制器
 /// </summary>
-public class SlidingWindowRateLimiter : IRateLimiter
+public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 {
     private readonly RateLimitOptions _options;
     private readonly ILogger<SlidingWindowRateLimiter> _logger;
     private readonly ConcurrentDictionary<string, RateLimitBucket> _buckets = new();
     private readonly TimeProvider _timeProvider;
+    private readonly Timer _evictionTimer;
+    private bool _disposed;
 
     public SlidingWindowRateLimiter(
         IOptions<RateLimitOptions> options,
@@ -25,6 +27,14 @@ public class SlidingWindowRateLimiter : IRateLimiter
         _options = options.Value;
         _logger = logger ?? NullLogger<SlidingWindowRateLimiter>.Instance;
         _timeProvider = timeProvider ?? TimeProvider.System;
+
+        // Auto-evict idle buckets every 60 seconds
+        _evictionTimer = new Timer(
+            _ => EvictIdleBuckets(),
+            null,
+            TimeSpan.FromSeconds(60),
+            TimeSpan.FromSeconds(60)
+        );
     }
 
     /// <inheritdoc />
@@ -136,6 +146,16 @@ public class SlidingWindowRateLimiter : IRateLimiter
         if (keysToRemove.Count > 0)
         {
             _logger.LogDebug("清理了 {Count} 个空闲的速率限制桶", keysToRemove.Count);
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            _evictionTimer.Dispose();
         }
     }
 
