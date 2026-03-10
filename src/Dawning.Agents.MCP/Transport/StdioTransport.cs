@@ -169,7 +169,7 @@ public sealed class StdioTransport : IMCPTransport
         var headerSlice = buffer.Slice(0, headerEnd);
         var headerText = Encoding.UTF8.GetString(headerSlice);
 
-        if (!TryParseContentLength(headerText, out var contentLength))
+        if (!TryParseContentLength(headerText, out var contentLength) || contentLength <= 0)
         {
             return false;
         }

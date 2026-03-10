@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Multimodal;
 /// 使用 OpenAI Whisper API 将音频转录为文本。
 /// 支持 mp3, mp4, mpeg, mpga, m4a, wav, webm 格式。
 /// </remarks>
-public class OpenAIWhisperProvider : IAudioTranscriptionProvider
+public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly HttpClient _downloadClient;
@@ -373,5 +373,14 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
             "mpeg" or "mpga" => "audio/mpeg",
             _ => "application/octet-stream",
         };
+    }
+
+    /// <summary>
+    /// 释放下载客户端资源
+    /// </summary>
+    public void Dispose()
+    {
+        _downloadClient.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

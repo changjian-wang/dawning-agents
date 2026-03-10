@@ -246,15 +246,15 @@ public class ContentModeratorTests
     #region CheckAsync Tests - JSON Parsing Edge Cases
 
     [Fact]
-    public async Task CheckAsync_MalformedJson_HandlesGracefully()
+    public async Task CheckAsync_MalformedJson_DefaultsToDeny()
     {
         SetupLLMResponse("This is not JSON");
         var moderator = new ContentModerator(_mockLLM.Object, null, _mockLogger.Object);
 
         var result = await moderator.CheckAsync("Some content");
 
-        // Should default to pass when parsing fails and no clear disallow signal
-        result.Passed.Should().BeTrue();
+        // Should default to deny when parsing fails (fail-closed for safety)
+        result.Passed.Should().BeFalse();
     }
 
     [Fact]

@@ -20,6 +20,7 @@ public class LoadBalancedRouter : ModelRouterBase
 {
     private readonly ModelRoutingStrategy _strategy;
     private int _roundRobinIndex = -1;
+    private readonly Lock _randomLock = new();
     private readonly Random _random = new();
     private readonly Dictionary<string, int> _weights;
 
@@ -79,7 +80,11 @@ public class LoadBalancedRouter : ModelRouterBase
         var totalWeight = providers.Sum(p => GetWeight(p.Name));
 
         // 生成随机数
-        var randomValue = _random.Next(totalWeight);
+        int randomValue;
+        lock (_randomLock)
+        {
+            randomValue = _random.Next(totalWeight);
+        }
 
         // 选择提供者
         var currentWeight = 0;
@@ -97,7 +102,11 @@ public class LoadBalancedRouter : ModelRouterBase
 
     private ILLMProvider SelectRandom(IReadOnlyList<ILLMProvider> providers)
     {
-        var index = _random.Next(providers.Count);
+        int index;
+        lock (_randomLock)
+        {
+            index = _random.Next(providers.Count);
+        }
         return providers[index];
     }
 

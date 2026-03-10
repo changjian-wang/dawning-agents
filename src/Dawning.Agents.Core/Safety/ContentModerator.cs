@@ -203,8 +203,13 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             };
         }
 
-        // 默认允许
-        return new ModerationResult { IsAllowed = true, ViolatedCategories = [] };
+        // 默认拒绝（fail-closed：无法确认安全时拒绝通过）
+        return new ModerationResult
+        {
+            IsAllowed = false,
+            ViolatedCategories = ["ParseError"],
+            Reason = "无法解析审核响应，默认拒绝",
+        };
     }
 
     private record ModerationResult

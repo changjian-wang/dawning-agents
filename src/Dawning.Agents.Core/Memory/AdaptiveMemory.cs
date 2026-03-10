@@ -30,7 +30,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     /// <summary>
     /// 获取当前存储的消息数量
     /// </summary>
-    public int MessageCount => _currentMemory.MessageCount;
+    public int MessageCount => Volatile.Read(ref _currentMemory).MessageCount;
 
     /// <summary>
     /// 是否已降级到 SummaryMemory
