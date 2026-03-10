@@ -216,6 +216,18 @@ public sealed class MethodTool : ITool
     /// </summary>
     private static object? ConvertJsonValue(JsonElement element, Type targetType)
     {
+        // 处理 Nullable<T>：提取底层类型
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        if (underlyingType is not null)
+        {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return ConvertJsonValue(element, underlyingType);
+        }
+
         return targetType switch
         {
             _ when targetType == typeof(string) => element.GetString(),
@@ -225,7 +237,7 @@ public sealed class MethodTool : ITool
             _ when targetType == typeof(float) => element.GetSingle(),
             _ when targetType == typeof(bool) => element.GetBoolean(),
             _ when targetType == typeof(decimal) => element.GetDecimal(),
-            _ => element.GetString(),
+            _ => JsonSerializer.Deserialize(element.GetRawText(), targetType),
         };
     }
 

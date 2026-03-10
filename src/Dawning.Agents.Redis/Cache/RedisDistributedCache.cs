@@ -222,7 +222,16 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
 
         if (options.AbsoluteExpiration.HasValue)
         {
-            return options.AbsoluteExpiration.Value - DateTimeOffset.UtcNow;
+            var expiry = options.AbsoluteExpiration.Value - DateTimeOffset.UtcNow;
+            if (expiry <= TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    "AbsoluteExpiration 必须为将来的时间"
+                );
+            }
+
+            return expiry;
         }
 
         if (options.SlidingExpiration.HasValue)

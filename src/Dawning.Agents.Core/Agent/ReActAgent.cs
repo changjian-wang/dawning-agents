@@ -116,6 +116,7 @@ public partial class ReActAgent : AgentBase
             Action = action,
             ActionInput = actionInput,
             Observation = observation,
+            Cost = EstimateStepCost(response),
         };
     }
 

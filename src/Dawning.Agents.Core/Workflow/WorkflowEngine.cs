@@ -142,6 +142,12 @@ public class WorkflowEngine : IWorkflowEngine
             }
 
             stopwatch.Stop();
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return CreateFailedResult(definition.Id, "工作流执行被取消", stopwatch, context);
+            }
+
             var finalOutput = context.GetLastResult()?.Output;
 
             _logger.LogInformation(

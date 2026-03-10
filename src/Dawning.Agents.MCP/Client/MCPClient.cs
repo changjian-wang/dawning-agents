@@ -27,6 +27,7 @@ public sealed class MCPClient : IAsyncDisposable
     private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
     private CancellationTokenSource? _listenerCts;
     private Task? _listenerTask;
+    private bool _disposed;
 
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
     {
@@ -475,6 +476,13 @@ public sealed class MCPClient : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         if (_listenerCts != null)
         {
             await _listenerCts.CancelAsync().ConfigureAwait(false);

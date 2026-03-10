@@ -303,8 +303,6 @@ public sealed class RedisDistributedLock : IDistributedLock
             return;
         }
 
-        _disposed = true;
-
         StopRenewalTimer();
 
         try
@@ -317,6 +315,10 @@ public sealed class RedisDistributedLock : IDistributedLock
         catch
         {
             // Best-effort release during disposal
+        }
+        finally
+        {
+            _disposed = true;
         }
     }
 }

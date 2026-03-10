@@ -144,13 +144,12 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
             .GetMessagesAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        // 创建 SummaryMemory
+        // 创建 SummaryMemory（ILogger<AdaptiveMemory> 无法转换为 ILogger<SummaryMemory>，显式传 null 由 SummaryMemory 回退到 NullLogger）
         var summaryMemory = new SummaryMemory(
             _llm,
             _tokenCounter,
             _maxRecentMessages,
-            _summaryThreshold,
-            _logger as ILogger<SummaryMemory>
+            _summaryThreshold
         );
 
         // 迁移消息到 SummaryMemory（这会自动触发摘要）
@@ -208,8 +207,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
             _currentMemory = new BufferMemory(_tokenCounter);
             _hasDowngraded = false;
 
-            // 释放旧的记忆资源（可能是 SummaryMemory，持有 SemaphoreSlim）
-            (oldMemory as IDisposable)?.Dispose();
+            // 不立即 Dispose 旧 memory，避免与并发读取路径竞态（让 GC 回收）
         }
         finally
         {

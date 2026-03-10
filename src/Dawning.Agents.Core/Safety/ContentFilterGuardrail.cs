@@ -54,10 +54,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 
         foreach (var keyword in _blockedKeywordsLower)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var index = 0;
             while ((index = contentLower.IndexOf(keyword, index, StringComparison.Ordinal)) >= 0)
@@ -162,10 +159,7 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 
             foreach (Match match in matches)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var domain = match.Groups[1].Value.ToLowerInvariant();
 

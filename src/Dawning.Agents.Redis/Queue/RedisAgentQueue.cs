@@ -220,12 +220,32 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             if (data.IsNullOrEmpty)
             {
+                // ACK 损坏的消息并移入死信队列
+                await _database
+                    .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.Id)
+                    .ConfigureAwait(false);
+                await MoveToDeadLetterAsync(
+                        entry.Id.ToString(),
+                        "Empty data field",
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
                 return null;
             }
 
             var message = JsonSerializer.Deserialize<DistributedQueueMessage>(data.ToString());
             if (message == null)
             {
+                // ACK 损坏的消息并移入死信队列
+                await _database
+                    .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.Id)
+                    .ConfigureAwait(false);
+                await MoveToDeadLetterAsync(
+                        entry.Id.ToString(),
+                        "Deserialization returned null",
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
                 return null;
             }
 

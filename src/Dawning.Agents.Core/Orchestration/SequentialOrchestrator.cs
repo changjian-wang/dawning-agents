@@ -110,6 +110,17 @@ public sealed class SequentialOrchestrator : OrchestratorBase
         // 获取最终结果：优先使用最后成功的答案
         var executionHistory = context.ExecutionHistory;
         var lastSuccessRecord = executionHistory.LastOrDefault(r => r.Response.Success);
+
+        // ContinueOnError 且全部失败时返回失败
+        if (lastSuccessRecord == null && executionHistory.Count > 0)
+        {
+            return OrchestrationResult.Failed(
+                "所有 Agent 都执行失败",
+                executionHistory,
+                TimeSpan.Zero
+            );
+        }
+
         var finalOutput =
             lastSuccessRecord?.Response.FinalAnswer
             ?? executionHistory.LastOrDefault()?.Response.FinalAnswer
