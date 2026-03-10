@@ -227,17 +227,18 @@ public class RoutingLLMProvider : ILLMProvider
     )
     {
         var sw = Stopwatch.StartNew();
-        var outputTokens = 0;
+        var totalChars = 0;
 
         await foreach (var chunk in stream.WithCancellation(cancellationToken))
         {
-            outputTokens++;
+            totalChars += chunk.Length;
             yield return chunk;
         }
 
         sw.Stop();
 
-        // 报告成功
+        // 估算输出 token 数（流式响应无法获取精确 token 计数）
+        var outputTokens = totalChars / 4;
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
         _router.ReportResult(

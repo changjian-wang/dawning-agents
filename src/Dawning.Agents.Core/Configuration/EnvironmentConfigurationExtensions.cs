@@ -101,8 +101,11 @@ public static class EnvironmentConfigurationExtensions
 
             // 处理引号
             if (
-                (value.StartsWith('"') && value.EndsWith('"'))
-                || (value.StartsWith('\'') && value.EndsWith('\''))
+                value.Length >= 2
+                && (
+                    (value.StartsWith('"') && value.EndsWith('"'))
+                    || (value.StartsWith('\'') && value.EndsWith('\''))
+                )
             )
             {
                 value = value[1..^1];
