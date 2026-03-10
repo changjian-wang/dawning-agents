@@ -182,9 +182,9 @@ public sealed class MethodTool : ITool
             {
                 args[i] = param.DefaultValue;
             }
-            else if (param.ParameterType == typeof(string))
+            else if (param.ParameterType == typeof(string) && methodParams.Length == 1)
             {
-                // 单参数字符串，直接使用输入
+                // 单参数字符串方法，直接使用输入
                 args[i] = input;
             }
             else

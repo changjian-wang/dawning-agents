@@ -548,8 +548,17 @@ public class WorkflowEngine : IWorkflowEngine
         return outgoingEdge?.ToNodeId;
     }
 
-    private bool EvaluateCondition(string condition, string inputValue, WorkflowContext context)
+    private bool EvaluateCondition(string condition, string? inputValue, WorkflowContext context)
     {
+        if (string.IsNullOrEmpty(inputValue))
+        {
+            // inputValue 为 null/empty 时，仅支持 state: 条件
+            var stateParts = condition.Split(':', 2);
+            return stateParts.Length == 2
+                && stateParts[0].Equals("state", StringComparison.OrdinalIgnoreCase)
+                && context.GetState<string>(stateParts[1]) != null;
+        }
+
         // 简单的条件评估
         // 支持: contains:xxx, equals:xxx, startsWith:xxx, endsWith:xxx
         var parts = condition.Split(':', 2);
@@ -577,7 +586,7 @@ public class WorkflowEngine : IWorkflowEngine
         var result = template;
 
         // 替换 {{input}}
-        result = result.Replace("{{input}}", context.Input);
+        result = result.Replace("{{input}}", context.Input ?? "");
 
         // 替换 {{lastOutput}}
         result = result.Replace("{{lastOutput}}", context.GetLastResult()?.Output ?? "");

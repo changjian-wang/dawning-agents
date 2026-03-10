@@ -202,6 +202,14 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
         catch (RegexMatchTimeoutException ex)
         {
             _logger.LogWarning(ex, "URL 正则匹配超时");
+            issues.Add(
+                new GuardrailIssue
+                {
+                    Type = "RegexTimeout",
+                    Description = "URL 匹配超时，无法完成域名检测",
+                    Severity = IssueSeverity.Error,
+                }
+            );
         }
 
         if (issues.Count == 0)

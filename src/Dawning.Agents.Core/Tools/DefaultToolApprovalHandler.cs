@@ -14,6 +14,7 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
     private readonly ApprovalStrategy _strategy;
     private readonly HashSet<string> _autoApprovedUrls;
     private readonly HashSet<string> _autoApprovedCommands;
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// 创建默认审批处理器
@@ -75,10 +76,13 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
         ArgumentException.ThrowIfNullOrWhiteSpace(url, nameof(url));
 
         // 检查是否在自动批准列表中
-        if (_autoApprovedUrls.Contains(url) || IsAutoApprovedDomain(url))
+        lock (_lock)
         {
-            _logger.LogDebug("URL {Url} 在自动批准列表中", url);
-            return Task.FromResult(true);
+            if (_autoApprovedUrls.Contains(url) || IsAutoApprovedDomain(url))
+            {
+                _logger.LogDebug("URL {Url} 在自动批准列表中", url);
+                return Task.FromResult(true);
+            }
         }
 
         // 根据策略决定
@@ -108,10 +112,13 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
         ArgumentException.ThrowIfNullOrWhiteSpace(command, nameof(command));
 
         // 检查是否在自动批准列表中
-        if (_autoApprovedCommands.Contains(command))
+        lock (_lock)
         {
-            _logger.LogDebug("命令 {Command} 在自动批准列表中", command);
-            return Task.FromResult(true);
+            if (_autoApprovedCommands.Contains(command))
+            {
+                _logger.LogDebug("命令 {Command} 在自动批准列表中", command);
+                return Task.FromResult(true);
+            }
         }
 
         // 检查危险命令
@@ -144,7 +151,10 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
     /// </summary>
     public void AddAutoApprovedUrl(string url)
     {
-        _autoApprovedUrls.Add(url);
+        lock (_lock)
+        {
+            _autoApprovedUrls.Add(url);
+        }
     }
 
     /// <summary>
@@ -152,7 +162,10 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
     /// </summary>
     public void AddAutoApprovedCommand(string command)
     {
-        _autoApprovedCommands.Add(command);
+        lock (_lock)
+        {
+            _autoApprovedCommands.Add(command);
+        }
     }
 
     private static bool ApproveByRisk(ITool tool)

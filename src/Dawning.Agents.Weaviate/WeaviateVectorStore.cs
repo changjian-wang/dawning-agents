@@ -247,8 +247,14 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                     : [];
 
                 var id = additional.TryGetProperty("id", out var idProp)
-                    ? idProp.GetString() ?? Guid.NewGuid().ToString()
-                    : Guid.NewGuid().ToString();
+                    ? idProp.GetString()
+                    : null;
+
+                if (string.IsNullOrEmpty(id))
+                {
+                    _logger.LogWarning("搜索结果缺少 _additional.id，跳过");
+                    continue;
+                }
 
                 var chunk = new DocumentChunk
                 {
@@ -277,7 +283,10 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         _logger.LogDebug("Getting chunk {Id} from Weaviate", id);
 
         using var response = await _httpClient
-            .GetAsync($"/v1/objects/{_options.ClassName}/{id}", cancellationToken)
+            .GetAsync(
+                $"/v1/objects/{_options.ClassName}/{Uri.EscapeDataString(id)}",
+                cancellationToken
+            )
             .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -335,7 +344,10 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         _logger.LogDebug("Deleting chunk {Id} from Weaviate", id);
 
         using var response = await _httpClient
-            .DeleteAsync($"/v1/objects/{_options.ClassName}/{id}", cancellationToken)
+            .DeleteAsync(
+                $"/v1/objects/{_options.ClassName}/{Uri.EscapeDataString(id)}",
+                cancellationToken
+            )
             .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)

@@ -106,6 +106,14 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
             catch (RegexMatchTimeoutException ex)
             {
                 _logger.LogWarning(ex, "正则表达式 {PatternName} 匹配超时", compiled.Config.Name);
+                issues.Add(
+                    new GuardrailIssue
+                    {
+                        Type = compiled.Config.Name,
+                        Description = $"正则匹配超时，无法完成 {compiled.Config.Name} 检测",
+                        Severity = IssueSeverity.Error,
+                    }
+                );
             }
         }
 
