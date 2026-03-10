@@ -392,6 +392,39 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     {
         await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
+        // 先查询匹配的 ID 数量（Chroma 删除 API 不返回已删除数量）
+        var countRequest = new
+        {
+            where = new Dictionary<string, object> { ["document_id"] = documentId },
+            include = Array.Empty<string>(),
+        };
+
+        int matchCount = 0;
+        using (
+            var countResponse = await _httpClient
+                .PostAsJsonAsync(
+                    $"/api/v1/collections/{_collectionId}/get",
+                    countRequest,
+                    _jsonOptions,
+                    cancellationToken
+                )
+                .ConfigureAwait(false)
+        )
+        {
+            if (countResponse.IsSuccessStatusCode)
+            {
+                var countResult = await countResponse
+                    .Content.ReadFromJsonAsync<ChromaGetResponse>(_jsonOptions, cancellationToken)
+                    .ConfigureAwait(false);
+                matchCount = countResult?.Ids?.Count ?? 0;
+            }
+        }
+
+        if (matchCount == 0)
+        {
+            return 0;
+        }
+
         var request = new
         {
             where = new Dictionary<string, object> { ["document_id"] = documentId },
@@ -411,14 +444,16 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             return 0;
         }
 
-        // Chroma 不返回删除数量
+        Interlocked.Add(ref _count, -matchCount);
+
         _logger.LogDebug(
-            "Deleted chunks for document {DocumentId} from Chroma collection {Collection}",
+            "Deleted {Count} chunks for document {DocumentId} from Chroma collection {Collection}",
+            matchCount,
             documentId,
             _options.CollectionName
         );
 
-        return 0; // Chroma API 不提供已删除数量
+        return matchCount;
     }
 
     /// <inheritdoc />

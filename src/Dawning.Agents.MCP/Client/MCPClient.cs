@@ -436,7 +436,11 @@ public sealed class MCPClient : IAsyncDisposable
                     continue;
                 }
 
-                var id = Convert.ToInt64(response.Id);
+                if (!long.TryParse(response.Id.ToString(), out var id))
+                {
+                    _logger.LogWarning("Received response with non-numeric ID: {Id}", response.Id);
+                    continue;
+                }
 
                 TaskCompletionSource<MCPResponse>? tcs;
                 lock (_pendingRequests)

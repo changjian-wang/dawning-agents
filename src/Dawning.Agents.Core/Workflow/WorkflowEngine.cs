@@ -509,37 +509,25 @@ public class WorkflowEngine : IWorkflowEngine
         return NodeExecutionResult.Ok(nodeDefinition.Id);
     }
 
-    private async Task<NodeExecutionResult> ExecuteParallelNodeAsync(
+    private Task<NodeExecutionResult> ExecuteParallelNodeAsync(
         WorkflowNodeDefinition nodeDefinition,
         WorkflowContext context,
         CancellationToken cancellationToken
     )
     {
-        // 并行执行简化实现 - 返回成功
-        await Task.CompletedTask.ConfigureAwait(false);
-        return NodeExecutionResult.Ok(nodeDefinition.Id, "并行节点执行完成");
+        throw new NotSupportedException(
+            $"并行节点 '{nodeDefinition.Id}' 执行未实现，请勿在工作流中添加 Parallel 类型节点"
+        );
     }
 
-    private async Task<NodeExecutionResult> ExecuteLoopNodeAsync(
+    private Task<NodeExecutionResult> ExecuteLoopNodeAsync(
         WorkflowNodeDefinition nodeDefinition,
         WorkflowContext context,
         CancellationToken cancellationToken
     )
     {
-        var config = nodeDefinition.Config;
-        var maxIterations = 10;
-
-        if (config?.TryGetValue("maxIterations", out var maxObj) == true)
-        {
-            maxIterations = Convert.ToInt32(maxObj);
-        }
-
-        // 简化实现 - 只是标记循环次数
-        context.SetState($"{nodeDefinition.Id}_iterations", maxIterations);
-        await Task.CompletedTask.ConfigureAwait(false);
-        return NodeExecutionResult.Ok(
-            nodeDefinition.Id,
-            $"循环节点完成，最大迭代 {maxIterations} 次"
+        throw new NotSupportedException(
+            $"循环节点 '{nodeDefinition.Id}' 执行未实现，请勿在工作流中添加 Loop 类型节点"
         );
     }
 

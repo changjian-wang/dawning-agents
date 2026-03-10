@@ -99,12 +99,28 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
             end
         ";
 
-        await _database
-            .ScriptEvaluateAsync(script, new RedisKey[] { _lockKey }, new RedisValue[] { _lockId })
-            .ConfigureAwait(false);
+        var result = (int)
+            await _database
+                .ScriptEvaluateAsync(
+                    script,
+                    new RedisKey[] { _lockKey },
+                    new RedisValue[] { _lockId }
+                )
+                .ConfigureAwait(false);
 
-        _hasLock = false;
-        _logger.LogDebug("Released session lock for {SessionId}", SessionId);
+        if (result == 1)
+        {
+            _hasLock = false;
+            _logger.LogDebug("Released session lock for {SessionId}", SessionId);
+        }
+        else
+        {
+            _hasLock = false;
+            _logger.LogWarning(
+                "Session lock for {SessionId} was not held (expired or stolen)",
+                SessionId
+            );
+        }
     }
 
     /// <inheritdoc />
