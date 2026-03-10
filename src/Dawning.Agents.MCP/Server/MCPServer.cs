@@ -223,6 +223,20 @@ public sealed class MCPServer : IAsyncDisposable
         CancellationToken cancellationToken
     )
     {
+        // Per MCP spec: reject all requests except Initialize before initialization
+        if (
+            !_initialized
+            && request.Method != MCPMethods.Initialize
+            && request.Method != MCPMethods.Initialized
+        )
+        {
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.InvalidRequest,
+                "Server not initialized. Send 'initialize' first."
+            );
+        }
+
         return request.Method switch
         {
             MCPMethods.Initialize => await HandleInitializeAsync(request, cancellationToken)

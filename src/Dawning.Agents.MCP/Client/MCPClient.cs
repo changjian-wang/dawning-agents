@@ -100,6 +100,16 @@ public sealed class MCPClient : IAsyncDisposable
         try
         {
             _serverProcess.Start();
+
+            // Drain stderr to prevent pipe deadlock
+            _serverProcess.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data != null)
+                {
+                    _logger.LogDebug("MCP Server stderr: {Line}", e.Data);
+                }
+            };
+            _serverProcess.BeginErrorReadLine();
         }
         catch
         {
@@ -140,7 +150,15 @@ public sealed class MCPClient : IAsyncDisposable
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
-        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
 
         _logger.LogInformation(
             "Connected to MCP Server: {Name} v{Version}",
@@ -172,7 +190,15 @@ public sealed class MCPClient : IAsyncDisposable
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
         // 发送初始化请求
-        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
     }
 
     /// <summary>
@@ -507,6 +533,16 @@ public sealed class MCPClient : IAsyncDisposable
         if (_transport != null)
         {
             await _transport.DisposeAsync().ConfigureAwait(false);
+        }
+
+        // Cancel all in-flight requests so callers are not blocked until their timeouts expire
+        lock (_pendingRequests)
+        {
+            foreach (var tcs in _pendingRequests.Values)
+            {
+                tcs.TrySetCanceled();
+            }
+            _pendingRequests.Clear();
         }
 
         if (_serverProcess != null)

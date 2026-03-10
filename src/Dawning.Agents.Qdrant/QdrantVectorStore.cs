@@ -199,6 +199,21 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
+        // 先查询确认条目是否存在，避免 Qdrant 对不存在条目也返回 Completed 导致 _count 错误递减
+        var scrollResult = await _client
+            .ScrollAsync(
+                _options.CollectionName,
+                filter: filter,
+                limit: 1,
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
+
+        if (scrollResult.Result.Count == 0)
+        {
+            return false;
+        }
+
         var updateResult = await _client
             .DeleteAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -247,17 +262,12 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        // 先搜索获取数量
-        var scrollResult = await _client
-            .ScrollAsync(
-                _options.CollectionName,
-                filter: filter,
-                limit: 10000,
-                cancellationToken: cancellationToken
-            )
+        // 使用 CountAsync 获取精确数量（无上限限制，避免 ScrollAsync limit:10000 截断问题）
+        var countResult = await _client
+            .CountAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        var count = scrollResult.Result.Count;
+        var count = (int)countResult;
 
         if (count > 0)
         {

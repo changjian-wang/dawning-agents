@@ -170,7 +170,7 @@ public class HumanInLoopAgent : IAgent
         Exception? lastException = null;
         var attemptedSolutions = new List<string>();
 
-        for (int attempt = 0; attempt < _options.MaxRetries; attempt++)
+        for (int attempt = 0; attempt <= _options.MaxRetries; attempt++)
         {
             try
             {
@@ -187,11 +187,17 @@ public class HumanInLoopAgent : IAgent
                 // 取消操作应该直接向上传播
                 throw;
             }
-            catch (Exception ex) when (attempt < _options.MaxRetries - 1)
+            catch (Exception ex)
             {
                 lastException = ex;
                 attemptedSolutions.Add($"第 {attempt + 1} 次尝试失败：{ex.Message}");
                 _logger.LogWarning(ex, "第 {Attempt} 次尝试失败，请求指导", attempt + 1);
+
+                // 最后一次重试失败，退出循环由后续代码抛出升级异常
+                if (attempt >= _options.MaxRetries)
+                {
+                    break;
+                }
 
                 var input = await _handler
                     .RequestInputAsync(
@@ -232,7 +238,7 @@ public class HumanInLoopAgent : IAgent
                 lastException,
                 new Dictionary<string, object>
                 {
-                    ["attempts"] = _options.MaxRetries,
+                    ["attempts"] = _options.MaxRetries + 1,
                     ["lastError"] = lastException.Message,
                 },
                 attemptedSolutions
@@ -243,7 +249,7 @@ public class HumanInLoopAgent : IAgent
             throw new AgentEscalationException(
                 "多次尝试后仍然失败",
                 "未知错误",
-                new Dictionary<string, object> { ["attempts"] = _options.MaxRetries },
+                new Dictionary<string, object> { ["attempts"] = _options.MaxRetries + 1 },
                 attemptedSolutions
             );
         }

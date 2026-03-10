@@ -134,6 +134,24 @@ public sealed class ToolSandbox : IToolSandbox
                     TimedOut = true,
                 };
             }
+            finally
+            {
+                // Ensure process is killed on user cancellation or any other exit path
+                if (!process.HasExited)
+                {
+                    TryKillProcess(process);
+                }
+
+                // Collect orphan stream tasks to prevent unobserved task exceptions
+                try
+                {
+                    await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Streams may already be faulted/cancelled — safe to ignore
+                }
+            }
         }
         catch (OperationCanceledException)
         {

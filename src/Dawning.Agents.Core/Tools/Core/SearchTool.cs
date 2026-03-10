@@ -186,7 +186,11 @@ public sealed class SearchTool : ITool
         {
             try
             {
-                regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                regex = new Regex(
+                    pattern,
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(2)
+                );
             }
             catch (ArgumentException ex)
             {

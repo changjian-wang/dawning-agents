@@ -358,13 +358,32 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.StreamId)
                 .ConfigureAwait(false);
 
-            // 使用原始序列化数据重新入队
+            // 反序列化以递增 RetryCount，检查是否超过上限
+            var message = JsonSerializer.Deserialize<DistributedQueueMessage>(entry.Data);
+            if (message != null)
+            {
+                message = message with { RetryCount = message.RetryCount + 1 };
+                if (message.RetryCount >= message.MaxRetries)
+                {
+                    await MoveToDeadLetterAsync(
+                            messageId,
+                            $"Max retries exceeded ({message.MaxRetries})",
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
+                    return;
+                }
+            }
+
+            var requeueData = message != null ? JsonSerializer.Serialize(message) : entry.Data;
+
+            // 重新入队
             if (delay.HasValue)
             {
                 var delayKey = $"{_queueKey}:delayed";
                 var executeAt = DateTimeOffset.UtcNow.Add(delay.Value).ToUnixTimeMilliseconds();
                 await _database
-                    .SortedSetAddAsync(delayKey, entry.Data, executeAt)
+                    .SortedSetAddAsync(delayKey, requeueData, executeAt)
                     .ConfigureAwait(false);
             }
             else
@@ -372,7 +391,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 await _database
                     .StreamAddAsync(
                         _queueKey,
-                        new NameValueEntry[] { new("data", entry.Data), new("priority", 0) }
+                        new NameValueEntry[] { new("data", requeueData), new("priority", 0) }
                     )
                     .ConfigureAwait(false);
             }

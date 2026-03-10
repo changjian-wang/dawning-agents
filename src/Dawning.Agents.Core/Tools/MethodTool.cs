@@ -105,6 +105,25 @@ public sealed class MethodTool : ITool
                     result = null;
                 }
             }
+            else if (result is not null && result.GetType() is { IsValueType: true } valueType)
+            {
+                // 处理 ValueTask / ValueTask<T>
+                if (
+                    valueType.IsGenericType
+                    && valueType.GetGenericTypeDefinition() == typeof(ValueTask<>)
+                )
+                {
+                    var asTask = valueType.GetMethod("AsTask")!.Invoke(result, null) as Task;
+                    await asTask!.ConfigureAwait(false);
+                    var resultProperty = asTask.GetType().GetProperty("Result");
+                    result = resultProperty?.GetValue(asTask);
+                }
+                else if (valueType == typeof(ValueTask))
+                {
+                    await ((ValueTask)result).ConfigureAwait(false);
+                    result = null;
+                }
+            }
 
             // 处理返回值
             return result switch
@@ -303,6 +322,13 @@ public sealed class MethodTool : ITool
     /// </summary>
     private static string GetJsonType(Type type)
     {
+        // 先解包 Nullable<T>，确保 int? / bool? 等生成正确的 schema 类型
+        var underlying = Nullable.GetUnderlyingType(type);
+        if (underlying is not null)
+        {
+            return GetJsonType(underlying);
+        }
+
         return type switch
         {
             _ when type == typeof(string) => "string",

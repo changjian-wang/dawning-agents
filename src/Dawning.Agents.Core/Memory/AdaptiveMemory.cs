@@ -176,7 +176,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     )
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _currentMemory.GetMessagesAsync(cancellationToken);
+        return Volatile.Read(ref _currentMemory).GetMessagesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -188,7 +188,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     )
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _currentMemory.GetContextAsync(maxTokens, cancellationToken);
+        return Volatile.Read(ref _currentMemory).GetContextAsync(maxTokens, cancellationToken);
     }
 
     /// <summary>
@@ -223,7 +223,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _currentMemory.GetTokenCountAsync(cancellationToken);
+        return Volatile.Read(ref _currentMemory).GetTokenCountAsync(cancellationToken);
     }
 
     /// <summary>

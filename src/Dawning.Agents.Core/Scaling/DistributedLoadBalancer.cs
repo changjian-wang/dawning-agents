@@ -162,12 +162,12 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
             return;
         }
 
-        // 取消并释放之前的 Watch
-        _watchCts?.Cancel();
-        _watchCts?.Dispose();
+        // 取消并释放之前的 Watch（使用 Interlocked.Exchange 防止并发竞态）
+        var oldCts = Interlocked.Exchange(ref _watchCts, new CancellationTokenSource());
+        oldCts?.Cancel();
+        oldCts?.Dispose();
 
-        _watchCts = new CancellationTokenSource();
-        _ = WatchLoopAsync(serviceName, _watchCts.Token)
+        _ = WatchLoopAsync(serviceName, _watchCts!.Token)
             .ContinueWith(
                 t =>
                 {
@@ -579,8 +579,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         }
 
         _disposed = true;
-        _watchCts?.Cancel();
-        _watchCts?.Dispose();
+        var cts = Interlocked.Exchange(ref _watchCts, null);
+        cts?.Cancel();
+        cts?.Dispose();
         _lock.Dispose();
     }
 }

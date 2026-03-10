@@ -279,6 +279,7 @@ public class OllamaProvider : ILLMProvider
             {
                 Role = msg.Role.ToLowerInvariant(),
                 Content = msg.Content,
+                ToolCallId = msg.ToolCallId,
             };
 
             // assistant 消息携带 tool_calls
@@ -384,6 +385,9 @@ public class OllamaProvider : ILLMProvider
 
         [JsonPropertyName("content")]
         public string? Content { get; init; }
+
+        [JsonPropertyName("tool_call_id")]
+        public string? ToolCallId { get; init; }
 
         [JsonPropertyName("tool_calls")]
         public List<OllamaToolCall>? ToolCalls { get; set; }

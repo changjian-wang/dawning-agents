@@ -89,7 +89,11 @@ public partial class ReActAgent : AgentBase
         };
 
         var response = await LLMProvider
-            .ChatAsync(messages, new ChatCompletionOptions { MaxTokens = 1024 }, cancellationToken)
+            .ChatAsync(
+                messages,
+                new ChatCompletionOptions { MaxTokens = Options.MaxTokens },
+                cancellationToken
+            )
             .ConfigureAwait(false);
         var llmOutput = response.Content ?? string.Empty;
 
@@ -140,8 +144,12 @@ public partial class ReActAgent : AgentBase
             }
         }
 
-        // 如果没有 Action 且有 Thought，可能 LLM 直接给出了答案（非标准格式）
-        if (string.IsNullOrEmpty(step.Action) && !string.IsNullOrEmpty(step.Thought))
+        // 如果没有 Action 且有 Thought，仅在已达最大步数时作为兜底返回
+        if (
+            string.IsNullOrEmpty(step.Action)
+            && !string.IsNullOrEmpty(step.Thought)
+            && step.StepNumber >= Options.MaxSteps
+        )
         {
             // 将 Thought 作为答案返回
             return step.Thought;

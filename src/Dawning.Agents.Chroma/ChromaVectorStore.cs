@@ -472,6 +472,16 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
                 .DeleteAsync($"/api/v1/collections/{_collectionId}", cancellationToken)
                 .ConfigureAwait(false);
 
+            if (!deleteResponse.IsSuccessStatusCode)
+            {
+                var err = await deleteResponse
+                    .Content.ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                throw new InvalidOperationException(
+                    $"Failed to clear Chroma collection '{_options.CollectionName}': [{(int)deleteResponse.StatusCode}] {err}"
+                );
+            }
+
             _collectionId = null;
             Interlocked.Exchange(ref _count, 0);
 

@@ -187,16 +187,22 @@ public class ApprovalWorkflow
     /// <returns>风险级别</returns>
     public RiskLevel AssessRiskLevel(string action, IReadOnlyDictionary<string, object>? context)
     {
-        var lowerAction = action.ToLower();
-
         // 检查关键风险关键词
-        if (_options.CriticalRiskKeywords.Any(k => lowerAction.Contains(k.ToLower())))
+        if (
+            _options.CriticalRiskKeywords.Any(k =>
+                action.Contains(k, StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             return RiskLevel.Critical;
         }
 
         // 检查高风险关键词
-        if (_options.HighRiskKeywords.Any(k => lowerAction.Contains(k.ToLower())))
+        if (
+            _options.HighRiskKeywords.Any(k =>
+                action.Contains(k, StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             return RiskLevel.High;
         }
@@ -211,7 +217,7 @@ public class ApprovalWorkflow
 
             if (
                 context.TryGetValue("environment", out var env)
-                && env?.ToString()?.ToLower() == "production"
+                && env?.ToString()?.Equals("production", StringComparison.OrdinalIgnoreCase) == true
             )
             {
                 return RiskLevel.Critical;

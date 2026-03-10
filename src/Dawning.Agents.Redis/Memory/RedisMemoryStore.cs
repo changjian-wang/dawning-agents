@@ -266,7 +266,14 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
 
         if (_hasLock)
         {
-            await UnlockSessionAsync().ConfigureAwait(false);
+            try
+            {
+                await UnlockSessionAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "释放 Redis 会话锁失败");
+            }
         }
     }
 }

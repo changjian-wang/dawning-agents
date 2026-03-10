@@ -56,7 +56,9 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         CancellationToken cancellationToken = default
     )
     {
-        var tcs = new TaskCompletionSource<ConfirmationResponse>();
+        var tcs = new TaskCompletionSource<ConfirmationResponse>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
         _pendingConfirmations[request.Id] = tcs;
 
         _logger.LogDebug("发送确认请求 {RequestId}", request.Id);
@@ -104,7 +106,9 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
     )
     {
         var requestId = Guid.NewGuid().ToString();
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
         _pendingInputs[requestId] = tcs;
 
         _logger.LogDebug("发送输入请求 {RequestId}", requestId);
@@ -140,7 +144,9 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         CancellationToken cancellationToken = default
     )
     {
-        var tcs = new TaskCompletionSource<EscalationResult>();
+        var tcs = new TaskCompletionSource<EscalationResult>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
         _pendingEscalations[request.Id] = tcs;
 
         _logger.LogDebug("发送升级请求 {RequestId}", request.Id);

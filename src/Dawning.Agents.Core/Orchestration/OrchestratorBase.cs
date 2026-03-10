@@ -192,6 +192,10 @@ public abstract class OrchestratorBase : IOrchestrator
         {
             response = await agent.RunAsync(input, linkedCts.Token).ConfigureAwait(false);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (OperationCanceledException) when (agentCts.IsCancellationRequested)
         {
             response = AgentResponse.Failed(

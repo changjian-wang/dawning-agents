@@ -66,9 +66,10 @@ public static class LoggingServiceCollectionExtensions
     {
         var loggerConfig = new LoggerConfiguration();
 
-        // 最小级别
+        // 最小级别（通过 LevelSwitch 控制，支持运行时动态调整）
         var minLevel = ParseLogLevel(options.MinimumLevel);
-        loggerConfig.MinimumLevel.Is(minLevel);
+        var levelSwitch = new LoggingLevelSwitch(minLevel);
+        loggerConfig.MinimumLevel.ControlledBy(levelSwitch);
 
         // 命名空间级别覆盖
         foreach (var (ns, level) in options.Override)
@@ -145,7 +146,6 @@ public static class LoggingServiceCollectionExtensions
         Log.Logger = loggerConfig.CreateLogger();
 
         // 注册日志级别开关（用于动态调整）
-        var levelSwitch = new LoggingLevelSwitch(minLevel);
         services.AddSingleton(levelSwitch);
         services.AddSingleton<ILogLevelController>(sp => new LogLevelController(
             sp.GetRequiredService<LoggingLevelSwitch>()

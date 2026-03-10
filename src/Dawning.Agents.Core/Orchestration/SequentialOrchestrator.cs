@@ -60,8 +60,9 @@ public sealed class SequentialOrchestrator : OrchestratorBase
     )
     {
         var currentInput = context.CurrentInput;
+        var agents = _agents;
 
-        for (var i = 0; i < _agents.Count; i++)
+        for (var i = 0; i < agents.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -70,13 +71,13 @@ public sealed class SequentialOrchestrator : OrchestratorBase
                 Logger.LogInformation(
                     "编排在 Agent {Index}/{Total} 处停止，原因: {Reason}",
                     i + 1,
-                    _agents.Count,
+                    agents.Count,
                     context.StopReason
                 );
                 break;
             }
 
-            var agent = _agents[i];
+            var agent = agents[i];
             var record = await ExecuteAgentAsync(agent, currentInput, i, cancellationToken)
                 .ConfigureAwait(false);
             context.AddExecutionRecord(record);

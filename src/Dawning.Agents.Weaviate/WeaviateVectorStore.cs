@@ -210,7 +210,12 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         {
             foreach (var item in jsonArray.EnumerateArray())
             {
-                var additional = item.GetProperty("_additional");
+                if (!item.TryGetProperty("_additional", out var additional))
+                {
+                    _logger.LogWarning("搜索结果缺少 _additional 字段，跳过");
+                    continue;
+                }
+
                 var certainty = additional.TryGetProperty("certainty", out var cert)
                     ? cert.GetSingle()
                     : 0f;
@@ -433,6 +438,13 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                 .DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
                 .ConfigureAwait(false);
 
+            if (!deleteResponse.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to delete Weaviate class '{_options.ClassName}': {deleteResponse.StatusCode}"
+                );
+            }
+
             _classEnsured = false;
             await EnsureClassExistsAsync(cancellationToken).ConfigureAwait(false);
             _classEnsured = true;
@@ -562,10 +574,8 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             var error = await createResponse
                 .Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
-            _logger.LogWarning(
-                "Failed to create Weaviate class {ClassName}: {Error}",
-                _options.ClassName,
-                error
+            throw new InvalidOperationException(
+                $"Failed to create Weaviate class '{_options.ClassName}': [{(int)createResponse.StatusCode}] {error}"
             );
         }
     }

@@ -100,7 +100,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
                 new Dictionary<string, string>
                 {
                     ["agent"] = _innerAgent.Name,
-                    ["success"] = response.Success.ToString().ToLower(),
+                    ["success"] = response.Success.ToString().ToLowerInvariant(),
                 }
             );
 

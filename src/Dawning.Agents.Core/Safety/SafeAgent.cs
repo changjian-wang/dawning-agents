@@ -285,6 +285,10 @@ public sealed class SafeAgent : IAgent
 
             return response;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Agent {AgentName} 执行异常", Name);

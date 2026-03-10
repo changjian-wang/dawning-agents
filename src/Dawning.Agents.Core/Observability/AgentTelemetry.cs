@@ -102,7 +102,7 @@ public sealed class AgentTelemetry : IDisposable
         var tags = new TagList
         {
             { "agent.name", agentName },
-            { "success", success.ToString().ToLower() },
+            { "success", success.ToString().ToLowerInvariant() },
         };
 
         _requestCounter.Add(1, tags);

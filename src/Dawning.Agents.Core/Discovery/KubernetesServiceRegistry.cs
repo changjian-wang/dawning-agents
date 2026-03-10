@@ -66,7 +66,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         try
         {
             var url =
-                $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/endpoints/{serviceName}";
+                $"{_options.ApiServerUrl}/api/v1/namespaces/{Uri.EscapeDataString(_options.Namespace)}/endpoints/{Uri.EscapeDataString(serviceName)}";
             using var response = await _httpClient
                 .GetAsync(url, cancellationToken)
                 .ConfigureAwait(false);
@@ -128,7 +128,8 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
     {
         try
         {
-            var url = $"{_options.ApiServerUrl}/api/v1/namespaces/{_options.Namespace}/services";
+            var url =
+                $"{_options.ApiServerUrl}/api/v1/namespaces/{Uri.EscapeDataString(_options.Namespace)}/services";
             using var response = await _httpClient
                 .GetAsync(url, cancellationToken)
                 .ConfigureAwait(false);

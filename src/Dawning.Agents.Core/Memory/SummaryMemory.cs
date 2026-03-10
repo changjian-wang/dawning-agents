@@ -198,6 +198,15 @@ public class SummaryMemory : IConversationMemory, IDisposable
 
             _logger.LogDebug("摘要生成成功，长度: {Length} 字符", _summary.Length);
         }
+        catch (OperationCanceledException)
+        {
+            // 取消时将消息放回，并重新抛出以遵守取消约定
+            lock (_lock)
+            {
+                _recentMessages.InsertRange(0, messages);
+            }
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "生成摘要失败，将保留原始消息");
@@ -278,16 +287,24 @@ public class SummaryMemory : IConversationMemory, IDisposable
     /// <summary>
     /// 清空所有消息和摘要
     /// </summary>
-    public Task ClearAsync(CancellationToken cancellationToken = default)
+    public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        lock (_lock)
-        {
-            _recentMessages.Clear();
-            _summary = string.Empty;
-        }
 
-        return Task.CompletedTask;
+        // 等待正在进行的摘要操作完成，防止旧消息被还原覆盖清空结果
+        await _summarySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            lock (_lock)
+            {
+                _recentMessages.Clear();
+                _summary = string.Empty;
+            }
+        }
+        finally
+        {
+            _summarySemaphore.Release();
+        }
     }
 
     /// <summary>

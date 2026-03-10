@@ -96,6 +96,8 @@ public static class OpenTelemetryServiceCollectionExtensions
             configuration.GetSection(OpenTelemetryOptions.SectionName).Get<OpenTelemetryOptions>()
             ?? new OpenTelemetryOptions();
 
+        options.Validate();
+
         services.Configure<OpenTelemetryOptions>(
             configuration.GetSection(OpenTelemetryOptions.SectionName)
         );

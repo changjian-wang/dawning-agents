@@ -68,10 +68,7 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
 
                 foreach (Match match in matches)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var maskedValue = MaskValue(match.Value, compiled.Config);
 
