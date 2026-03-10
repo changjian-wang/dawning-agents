@@ -300,7 +300,7 @@ public sealed class SearchTool : ITool
                 pattern,
                 new EnumerationOptions
                 {
-                    RecurseSubdirectories = pattern.Contains("**"),
+                    RecurseSubdirectories = pattern.Contains("**", StringComparison.Ordinal),
                     IgnoreInaccessible = true,
                     MatchCasing = MatchCasing.CaseInsensitive,
                 }

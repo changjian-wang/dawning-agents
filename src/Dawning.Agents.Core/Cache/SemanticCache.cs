@@ -120,7 +120,7 @@ public class SemanticCache : ISemanticCache
                     ? createdAt
                     : DateTimeOffset.MinValue,
                 Metadata = chunk
-                    .Metadata.Where(kv => !kv.Key.StartsWith("_"))
+                    .Metadata.Where(kv => !kv.Key.StartsWith("_", StringComparison.Ordinal))
                     .ToDictionary(kv => kv.Key, kv => kv.Value),
             };
         }

@@ -194,7 +194,9 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
                 "nuget.org",
             };
 
-            return trustedDomains.Any(d => host == d || host.EndsWith("." + d));
+            return trustedDomains.Any(d =>
+                host == d || host.EndsWith("." + d, StringComparison.OrdinalIgnoreCase)
+            );
         }
         catch
         {

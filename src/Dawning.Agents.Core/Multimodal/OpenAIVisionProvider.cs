@@ -241,7 +241,7 @@ public class OpenAIVisionProvider : IVisionProvider
             && !cancellationToken.IsCancellationRequested
         )
         {
-            if (string.IsNullOrEmpty(line) || !line.StartsWith("data: "))
+            if (string.IsNullOrEmpty(line) || !line.StartsWith("data: ", StringComparison.Ordinal))
             {
                 continue;
             }

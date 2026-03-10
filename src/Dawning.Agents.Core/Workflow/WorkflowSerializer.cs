@@ -111,23 +111,23 @@ public class WorkflowSerializer : IWorkflowSerializer
             var trimmed = line.TrimStart();
             var indent = line.Length - trimmed.Length;
 
-            if (trimmed.StartsWith("id:"))
+            if (trimmed.StartsWith("id:", StringComparison.Ordinal))
             {
                 id = trimmed["id:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("name:") && indent == 0)
+            else if (trimmed.StartsWith("name:", StringComparison.Ordinal) && indent == 0)
             {
                 name = trimmed["name:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("description:"))
+            else if (trimmed.StartsWith("description:", StringComparison.Ordinal))
             {
                 description = trimmed["description:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("version:"))
+            else if (trimmed.StartsWith("version:", StringComparison.Ordinal))
             {
                 version = trimmed["version:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("startNodeId:"))
+            else if (trimmed.StartsWith("startNodeId:", StringComparison.Ordinal))
             {
                 startNodeId = trimmed["startNodeId:".Length..].Trim();
             }
@@ -150,7 +150,10 @@ public class WorkflowSerializer : IWorkflowSerializer
                     currentConfig = null;
                 }
             }
-            else if (currentSection == "nodes" && trimmed.StartsWith("- id:"))
+            else if (
+                currentSection == "nodes"
+                && trimmed.StartsWith("- id:", StringComparison.Ordinal)
+            )
             {
                 // 新节点
                 if (currentNode != null)
@@ -171,7 +174,7 @@ public class WorkflowSerializer : IWorkflowSerializer
             }
             else if (
                 currentSection == "nodes"
-                && trimmed.StartsWith("name:")
+                && trimmed.StartsWith("name:", StringComparison.Ordinal)
                 && currentNode != null
             )
             {
@@ -179,7 +182,7 @@ public class WorkflowSerializer : IWorkflowSerializer
             }
             else if (
                 currentSection == "nodes"
-                && trimmed.StartsWith("type:")
+                && trimmed.StartsWith("type:", StringComparison.Ordinal)
                 && currentNode != null
             )
             {
@@ -208,7 +211,10 @@ public class WorkflowSerializer : IWorkflowSerializer
                     currentConfig[key] = value == "null" ? null : value;
                 }
             }
-            else if (currentSection == "edges" && trimmed.StartsWith("- from:"))
+            else if (
+                currentSection == "edges"
+                && trimmed.StartsWith("- from:", StringComparison.Ordinal)
+            )
             {
                 // 完成上一条边
                 if (currentEdge != null)
@@ -222,13 +228,17 @@ public class WorkflowSerializer : IWorkflowSerializer
                     ToNodeId = "",
                 };
             }
-            else if (currentSection == "edges" && trimmed.StartsWith("to:") && currentEdge != null)
+            else if (
+                currentSection == "edges"
+                && trimmed.StartsWith("to:", StringComparison.Ordinal)
+                && currentEdge != null
+            )
             {
                 currentEdge = currentEdge with { ToNodeId = trimmed["to:".Length..].Trim() };
             }
             else if (
                 currentSection == "edges"
-                && trimmed.StartsWith("label:")
+                && trimmed.StartsWith("label:", StringComparison.Ordinal)
                 && currentEdge != null
             )
             {
