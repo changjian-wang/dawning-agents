@@ -44,7 +44,7 @@ public record ComponentHealth
     /// <summary>
     /// 附加数据
     /// </summary>
-    public IDictionary<string, object>? Data { get; init; }
+    public IReadOnlyDictionary<string, object>? Data { get; init; }
 }
 
 /// <summary>

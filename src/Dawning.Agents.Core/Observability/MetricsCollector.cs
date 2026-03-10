@@ -18,7 +18,7 @@ public sealed class MetricsCollector
     public void IncrementCounter(
         string name,
         long value = 1,
-        IDictionary<string, string>? tags = null
+        IReadOnlyDictionary<string, string>? tags = null
     )
     {
         var key = GetMetricKey(name, tags);
@@ -29,7 +29,11 @@ public sealed class MetricsCollector
     /// <summary>
     /// 记录直方图值
     /// </summary>
-    public void RecordHistogram(string name, double value, IDictionary<string, string>? tags = null)
+    public void RecordHistogram(
+        string name,
+        double value,
+        IReadOnlyDictionary<string, string>? tags = null
+    )
     {
         var key = GetMetricKey(name, tags);
         var histogram = _histograms.GetOrAdd(key, _ => new HistogramMetric(name, tags));
@@ -39,7 +43,11 @@ public sealed class MetricsCollector
     /// <summary>
     /// 设置仪表值
     /// </summary>
-    public void SetGauge(string name, double value, IDictionary<string, string>? tags = null)
+    public void SetGauge(
+        string name,
+        double value,
+        IReadOnlyDictionary<string, string>? tags = null
+    )
     {
         var key = GetMetricKey(name, tags);
         var gauge = _gauges.GetOrAdd(key, _ => new GaugeMetric(name, tags));
@@ -49,7 +57,7 @@ public sealed class MetricsCollector
     /// <summary>
     /// 获取计数器值
     /// </summary>
-    public long? GetCounter(string name, IDictionary<string, string>? tags = null)
+    public long? GetCounter(string name, IReadOnlyDictionary<string, string>? tags = null)
     {
         var key = GetMetricKey(name, tags);
         return _counters.TryGetValue(key, out var counter) ? counter.Value : null;
@@ -58,7 +66,7 @@ public sealed class MetricsCollector
     /// <summary>
     /// 获取仪表值
     /// </summary>
-    public double? GetGauge(string name, IDictionary<string, string>? tags = null)
+    public double? GetGauge(string name, IReadOnlyDictionary<string, string>? tags = null)
     {
         var key = GetMetricKey(name, tags);
         return _gauges.TryGetValue(key, out var gauge) ? gauge.Value : null;
@@ -88,7 +96,7 @@ public sealed class MetricsCollector
         _gauges.Clear();
     }
 
-    private static string GetMetricKey(string name, IDictionary<string, string>? tags)
+    private static string GetMetricKey(string name, IReadOnlyDictionary<string, string>? tags)
     {
         if (tags == null || tags.Count == 0)
         {
@@ -118,7 +126,7 @@ public sealed class CounterMetric
     /// <summary>
     /// 标签
     /// </summary>
-    public IDictionary<string, string>? Tags { get; }
+    public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
     /// 当前值
@@ -128,7 +136,7 @@ public sealed class CounterMetric
     /// <summary>
     /// 创建计数器
     /// </summary>
-    public CounterMetric(string name, IDictionary<string, string>? tags)
+    public CounterMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
         Name = name;
         Tags = tags;
@@ -171,12 +179,12 @@ public sealed class HistogramMetric
     /// <summary>
     /// 标签
     /// </summary>
-    public IDictionary<string, string>? Tags { get; }
+    public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
     /// 创建直方图
     /// </summary>
-    public HistogramMetric(string name, IDictionary<string, string>? tags)
+    public HistogramMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
         Name = name;
         Tags = tags;
@@ -251,7 +259,7 @@ public sealed class GaugeMetric
     /// <summary>
     /// 标签
     /// </summary>
-    public IDictionary<string, string>? Tags { get; }
+    public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
     /// 当前值
@@ -261,7 +269,7 @@ public sealed class GaugeMetric
     /// <summary>
     /// 创建仪表
     /// </summary>
-    public GaugeMetric(string name, IDictionary<string, string>? tags)
+    public GaugeMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
         Name = name;
         Tags = tags;

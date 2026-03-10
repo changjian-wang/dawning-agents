@@ -19,13 +19,14 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     private int _callCount;
 
     /// <inheritdoc />
-    public int TotalPromptTokens => _totalPromptTokens;
+    public int TotalPromptTokens => Volatile.Read(ref _totalPromptTokens);
 
     /// <inheritdoc />
-    public int TotalCompletionTokens => _totalCompletionTokens;
+    public int TotalCompletionTokens => Volatile.Read(ref _totalCompletionTokens);
 
     /// <inheritdoc />
-    public int TotalTokens => _totalPromptTokens + _totalCompletionTokens;
+    public int TotalTokens =>
+        Volatile.Read(ref _totalPromptTokens) + Volatile.Read(ref _totalCompletionTokens);
 
     /// <inheritdoc />
     public int CallCount => _callCount;

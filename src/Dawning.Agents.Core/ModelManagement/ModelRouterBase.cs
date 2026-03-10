@@ -76,26 +76,18 @@ public abstract class ModelRouterBase : IModelRouter
         // 更新统计信息
         if (_statistics.TryGetValue(name, out var stats))
         {
-            lock (stats)
+            if (result.Success)
             {
-                stats.TotalRequests++;
-                if (result.Success)
-                {
-                    stats.SuccessfulRequests++;
-                    stats.TotalInputTokens += result.InputTokens;
-                    stats.TotalOutputTokens += result.OutputTokens;
-                    stats.TotalCost += result.Cost;
-
-                    // 更新平均延迟（简单移动平均）
-                    stats.AverageLatencyMs =
-                        (stats.AverageLatencyMs * (stats.SuccessfulRequests - 1) + result.LatencyMs)
-                        / stats.SuccessfulRequests;
-                }
-                else
-                {
-                    stats.FailedRequests++;
-                }
-                stats.LastUpdated = DateTimeOffset.UtcNow;
+                stats.RecordSuccess(
+                    result.InputTokens,
+                    result.OutputTokens,
+                    result.Cost,
+                    result.LatencyMs
+                );
+            }
+            else
+            {
+                stats.RecordFailure();
             }
         }
 
@@ -156,7 +148,7 @@ public abstract class ModelRouterBase : IModelRouter
     /// </summary>
     public IReadOnlyDictionary<string, ModelStatistics> GetAllStatistics()
     {
-        return _statistics;
+        return new Dictionary<string, ModelStatistics>(_statistics);
     }
 
     /// <summary>

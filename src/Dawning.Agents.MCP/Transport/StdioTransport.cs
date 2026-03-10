@@ -42,7 +42,9 @@ public sealed class StdioTransport : IMCPTransport
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
+        var oldCts = _readCts;
         _readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        oldCts?.Dispose();
         _isConnected = true;
 
         // 启动后台读取任务（捕获引用以便关闭时等待）
@@ -92,7 +94,7 @@ public sealed class StdioTransport : IMCPTransport
 
             if (TryParseMessage(ref buffer, out var message))
             {
-                _pipe.Reader.AdvanceTo(buffer.Start, buffer.End);
+                _pipe.Reader.AdvanceTo(buffer.Start);
                 _logger.LogTrace("Received message: {Length} bytes", message?.Length ?? 0);
                 return message;
             }

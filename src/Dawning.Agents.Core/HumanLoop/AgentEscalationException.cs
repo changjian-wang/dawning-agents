@@ -18,7 +18,7 @@ public class AgentEscalationException : Exception
     /// <summary>
     /// 上下文数据
     /// </summary>
-    public IDictionary<string, object> Context { get; }
+    public IReadOnlyDictionary<string, object> Context { get; }
 
     /// <summary>
     /// 已尝试的解决方案
@@ -31,7 +31,7 @@ public class AgentEscalationException : Exception
     public AgentEscalationException(
         string reason,
         string description,
-        IDictionary<string, object>? context = null,
+        IReadOnlyDictionary<string, object>? context = null,
         IReadOnlyList<string>? attemptedSolutions = null
     )
         : base(reason)
@@ -49,7 +49,7 @@ public class AgentEscalationException : Exception
         string reason,
         string description,
         Exception innerException,
-        IDictionary<string, object>? context = null,
+        IReadOnlyDictionary<string, object>? context = null,
         IReadOnlyList<string>? attemptedSolutions = null
     )
         : base(reason, innerException)

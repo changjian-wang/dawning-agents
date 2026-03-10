@@ -283,7 +283,7 @@ public class EnterpriseSample : SampleBase
             var selected = loadBalancer.GetLeastLoadedInstance();
             if (selected != null)
             {
-                selected.ActiveRequests++;
+                selected.IncrementActiveRequests();
                 ConsoleHelper.PrintDim(
                     $"  请求 {i} → {selected.Id} (活跃请求: {selected.ActiveRequests})"
                 );

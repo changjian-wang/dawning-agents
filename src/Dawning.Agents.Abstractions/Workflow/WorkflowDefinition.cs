@@ -28,12 +28,12 @@ public record WorkflowDefinition
     /// <summary>
     /// 节点定义列表
     /// </summary>
-    public List<WorkflowNodeDefinition> Nodes { get; init; } = [];
+    public IReadOnlyList<WorkflowNodeDefinition> Nodes { get; init; } = [];
 
     /// <summary>
     /// 边（连接）定义列表
     /// </summary>
-    public List<WorkflowEdgeDefinition> Edges { get; init; } = [];
+    public IReadOnlyList<WorkflowEdgeDefinition> Edges { get; init; } = [];
 
     /// <summary>
     /// 起始节点 ID
@@ -69,7 +69,7 @@ public record WorkflowNodeDefinition
     /// <summary>
     /// 节点配置（JSON 格式，根据 Type 解析为具体配置类）
     /// </summary>
-    public Dictionary<string, object?>? Config { get; init; }
+    public IReadOnlyDictionary<string, object?>? Config { get; init; }
 
     /// <summary>
     /// 可视化位置 X
@@ -84,7 +84,7 @@ public record WorkflowNodeDefinition
     /// <summary>
     /// 元数据
     /// </summary>
-    public Dictionary<string, object?>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, object?>? Metadata { get; init; }
 }
 
 /// <summary>

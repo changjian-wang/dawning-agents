@@ -83,7 +83,7 @@ public record ConditionNodeConfig
     /// <summary>
     /// 分支列表
     /// </summary>
-    public List<ConditionBranch> Branches { get; init; } = [];
+    public IReadOnlyList<ConditionBranch> Branches { get; init; } = [];
 
     /// <summary>
     /// 默认分支（所有条件都不匹配时）
@@ -167,7 +167,7 @@ public record ParallelNodeConfig
     /// <summary>
     /// 并行分支
     /// </summary>
-    public List<ParallelBranch> Branches { get; init; } = [];
+    public IReadOnlyList<ParallelBranch> Branches { get; init; } = [];
 
     /// <summary>
     /// 等待策略

@@ -71,12 +71,28 @@ public record AgentInstance
     /// <summary>
     /// 是否健康
     /// </summary>
-    public bool IsHealthy { get; set; } = true;
+    public volatile bool IsHealthy = true;
+
+    private int _activeRequests;
 
     /// <summary>
     /// 活跃请求数
     /// </summary>
-    public int ActiveRequests { get; set; }
+    public int ActiveRequests
+    {
+        get => Volatile.Read(ref _activeRequests);
+        set => Volatile.Write(ref _activeRequests, value);
+    }
+
+    /// <summary>
+    /// 原子递增活跃请求数
+    /// </summary>
+    public void IncrementActiveRequests() => Interlocked.Increment(ref _activeRequests);
+
+    /// <summary>
+    /// 原子递减活跃请求数
+    /// </summary>
+    public void DecrementActiveRequests() => Interlocked.Decrement(ref _activeRequests);
 
     /// <summary>
     /// 权重 (用于加权负载均衡)

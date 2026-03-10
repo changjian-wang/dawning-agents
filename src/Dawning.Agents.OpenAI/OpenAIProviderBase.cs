@@ -123,7 +123,10 @@ public abstract class OpenAIProviderBase : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        await foreach (var evt in ChatStreamEventsAsync(messages, options, cancellationToken))
+        await foreach (
+            var evt in ChatStreamEventsAsync(messages, options, cancellationToken)
+                .ConfigureAwait(false)
+        )
         {
             if (!string.IsNullOrEmpty(evt.ContentDelta))
             {
@@ -156,11 +159,9 @@ public abstract class OpenAIProviderBase : ILLMProvider
         int? completionTokens = null;
 
         await foreach (
-            var update in _chatClient.CompleteChatStreamingAsync(
-                chatMessages,
-                requestOptions,
-                cancellationToken
-            )
+            var update in _chatClient
+                .CompleteChatStreamingAsync(chatMessages, requestOptions, cancellationToken)
+                .ConfigureAwait(false)
         )
         {
             // Content delta

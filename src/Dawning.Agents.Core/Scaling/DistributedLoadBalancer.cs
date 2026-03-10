@@ -93,6 +93,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
     private int _roundRobinIndex;
     private CancellationTokenSource? _watchCts;
+    private Task? _watchTask;
     private bool _disposed;
 
     public DistributedLoadBalancer(
@@ -167,17 +168,18 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         oldCts?.Cancel();
         oldCts?.Dispose();
 
-        _ = WatchLoopAsync(serviceName, _watchCts!.Token)
-            .ContinueWith(
-                t =>
+        var task = WatchLoopAsync(serviceName, _watchCts!.Token);
+        _watchTask = task;
+        _ = task.ContinueWith(
+            t =>
+            {
+                if (t.IsFaulted)
                 {
-                    if (t.IsFaulted)
-                    {
-                        _logger.LogError(t.Exception, "Watch 循环发生未观察的异常");
-                    }
-                },
-                TaskScheduler.Default
-            );
+                    _logger.LogError(t.Exception, "Watch 循环发生未观察的异常");
+                }
+            },
+            TaskScheduler.Default
+        );
     }
 
     private async Task WatchLoopAsync(string serviceName, CancellationToken cancellationToken)
@@ -581,6 +583,14 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         _disposed = true;
         var cts = Interlocked.Exchange(ref _watchCts, null);
         cts?.Cancel();
+        try
+        {
+            _watchTask?.Wait(TimeSpan.FromSeconds(5));
+        }
+        catch (AggregateException)
+        {
+            // Watch loop already handles its own exceptions
+        }
         cts?.Dispose();
         _lock.Dispose();
     }

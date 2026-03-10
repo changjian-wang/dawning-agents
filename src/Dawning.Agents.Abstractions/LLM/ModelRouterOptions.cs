@@ -141,6 +141,13 @@ public class ModelPricing
 /// </summary>
 public class ModelStatistics
 {
+    private long _totalRequests;
+    private long _successfulRequests;
+    private long _failedRequests;
+    private long _totalInputTokens;
+    private long _totalOutputTokens;
+    private readonly Lock _lock = new();
+
     /// <summary>
     /// 提供者名称
     /// </summary>
@@ -149,58 +156,107 @@ public class ModelStatistics
     /// <summary>
     /// 总请求数
     /// </summary>
-    public long TotalRequests { get; set; }
+    public long TotalRequests => Interlocked.Read(ref _totalRequests);
 
     /// <summary>
     /// 成功请求数
     /// </summary>
-    public long SuccessfulRequests { get; set; }
+    public long SuccessfulRequests => Interlocked.Read(ref _successfulRequests);
 
     /// <summary>
     /// 失败请求数
     /// </summary>
-    public long FailedRequests { get; set; }
+    public long FailedRequests => Interlocked.Read(ref _failedRequests);
 
     /// <summary>
     /// 总输入 Token 数
     /// </summary>
-    public long TotalInputTokens { get; set; }
+    public long TotalInputTokens => Interlocked.Read(ref _totalInputTokens);
 
     /// <summary>
     /// 总输出 Token 数
     /// </summary>
-    public long TotalOutputTokens { get; set; }
+    public long TotalOutputTokens => Interlocked.Read(ref _totalOutputTokens);
 
     /// <summary>
     /// 总成本（美元）
     /// </summary>
-    public decimal TotalCost { get; set; }
+    public decimal TotalCost { get; private set; }
 
     /// <summary>
     /// 平均延迟（毫秒）
     /// </summary>
-    public double AverageLatencyMs { get; set; }
+    public double AverageLatencyMs { get; private set; }
 
     /// <summary>
     /// P99 延迟（毫秒）
     /// </summary>
-    public long P99LatencyMs { get; set; }
+    public long P99LatencyMs { get; private set; }
 
     /// <summary>
     /// 最后更新时间
     /// </summary>
-    public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset LastUpdated { get; private set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 成功率
     /// </summary>
-    public double SuccessRate =>
-        TotalRequests == 0 ? 1.0 : (double)SuccessfulRequests / TotalRequests;
+    public double SuccessRate
+    {
+        get
+        {
+            var total = Interlocked.Read(ref _totalRequests);
+            var successful = Interlocked.Read(ref _successfulRequests);
+            return total == 0 ? 1.0 : (double)successful / total;
+        }
+    }
 
     /// <summary>
     /// 是否健康（成功率 > 95%）
     /// </summary>
     public bool IsHealthy => SuccessRate >= 0.95;
+
+    /// <summary>
+    /// 记录成功请求
+    /// </summary>
+    public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
+    {
+        Interlocked.Increment(ref _totalRequests);
+        Interlocked.Increment(ref _successfulRequests);
+        Interlocked.Add(ref _totalInputTokens, inputTokens);
+        Interlocked.Add(ref _totalOutputTokens, outputTokens);
+        lock (_lock)
+        {
+            TotalCost += cost;
+            AverageLatencyMs =
+                (AverageLatencyMs * (_totalRequests - 1) + latencyMs) / _totalRequests;
+            LastUpdated = DateTimeOffset.UtcNow;
+        }
+    }
+
+    /// <summary>
+    /// 记录失败请求
+    /// </summary>
+    public void RecordFailure()
+    {
+        Interlocked.Increment(ref _totalRequests);
+        Interlocked.Increment(ref _failedRequests);
+        lock (_lock)
+        {
+            LastUpdated = DateTimeOffset.UtcNow;
+        }
+    }
+
+    /// <summary>
+    /// 更新 P99 延迟
+    /// </summary>
+    public void UpdateP99Latency(long p99Ms)
+    {
+        lock (_lock)
+        {
+            P99LatencyMs = p99Ms;
+        }
+    }
 }
 
 /// <summary>

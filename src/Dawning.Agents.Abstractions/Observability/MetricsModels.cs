@@ -58,7 +58,7 @@ public record MetricData
     /// <summary>
     /// 标签
     /// </summary>
-    public IDictionary<string, string>? Tags { get; init; }
+    public IReadOnlyDictionary<string, string>? Tags { get; init; }
 }
 
 /// <summary>

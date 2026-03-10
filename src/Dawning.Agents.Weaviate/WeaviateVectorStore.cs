@@ -75,6 +75,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task AddAsync(DocumentChunk chunk, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(chunk);
         await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
         await AddBatchAsync([chunk], cancellationToken).ConfigureAwait(false);
     }
@@ -141,6 +142,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(queryEmbedding);
         _logger.LogDebug(
             "Searching Weaviate with topK={TopK}, minScore={MinScore}",
             topK,

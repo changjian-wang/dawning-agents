@@ -21,7 +21,7 @@ public sealed class MCPClient : IAsyncDisposable
     private IMCPTransport? _transport;
     private Process? _serverProcess;
     private long _requestId;
-    private bool _initialized;
+    private volatile bool _initialized;
     private MCPServerInfo? _serverInfo;
     private MCPServerCapabilities? _serverCapabilities;
     private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
@@ -146,6 +146,7 @@ public sealed class MCPClient : IAsyncDisposable
         }
 
         // 启动响应监听
+        _listenerCts?.Dispose();
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
@@ -186,6 +187,7 @@ public sealed class MCPClient : IAsyncDisposable
         await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
 
         // 启动响应监听
+        _listenerCts?.Dispose();
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
@@ -395,7 +397,18 @@ public sealed class MCPClient : IAsyncDisposable
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(timeout);
 
-            var response = await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
+            MCPResponse response;
+            try
+            {
+                response = await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new MCPException(
+                    MCPErrorCodes.InternalError,
+                    $"Request '{method}' timed out after {timeout.TotalSeconds}s"
+                );
+            }
 
             if (response.Error != null)
             {

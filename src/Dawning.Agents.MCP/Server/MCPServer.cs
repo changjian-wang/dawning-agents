@@ -22,6 +22,8 @@ public sealed class MCPServer : IAsyncDisposable
     private readonly ILogger<MCPServer> _logger;
     private readonly List<IMCPResourceProvider> _resourceProviders = [];
     private readonly List<IMCPPromptProvider> _promptProviders = [];
+    private IMCPResourceProvider[] _frozenResourceProviders = [];
+    private IMCPPromptProvider[] _frozenPromptProviders = [];
     private readonly SemaphoreSlim _requestSemaphore;
     private readonly CancellationTokenSource _cts = new();
     private readonly List<Task> _inflightTasks = [];
@@ -89,6 +91,10 @@ public sealed class MCPServer : IAsyncDisposable
         );
 
         await _transport.StartAsync(linkedCts.Token).ConfigureAwait(false);
+
+        // Freeze provider lists for thread-safe access during request processing
+        _frozenResourceProviders = [.. _resourceProviders];
+        _frozenPromptProviders = [.. _promptProviders];
 
         // 主消息循环
         while (!linkedCts.Token.IsCancellationRequested)
@@ -255,11 +261,7 @@ public sealed class MCPServer : IAsyncDisposable
             // 通知方法不需要响应
             MCPMethods.Initialized => null,
 
-            _ => MCPResponse.Failure(
-                request.Id,
-                MCPErrorCodes.MethodNotFound,
-                $"Unknown method: {request.Method}"
-            ),
+            _ => MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, "Unknown method"),
         };
     }
 
@@ -369,11 +371,7 @@ public sealed class MCPServer : IAsyncDisposable
         var tool = _toolRegistry.GetTool(callParams.Name);
         if (tool == null)
         {
-            return MCPResponse.Failure(
-                request.Id,
-                MCPErrorCodes.ToolNotFound,
-                $"Tool not found: {callParams.Name}"
-            );
+            return MCPResponse.Failure(request.Id, MCPErrorCodes.ToolNotFound, "Tool not found");
         }
 
         try
@@ -430,7 +428,7 @@ public sealed class MCPServer : IAsyncDisposable
             return MCPResponse.Success(request.Id, new ListResourcesResult { Resources = [] });
         }
 
-        var resources = _resourceProviders.SelectMany(p => p.GetResources()).ToList();
+        var resources = _frozenResourceProviders.SelectMany(p => p.GetResources()).ToList();
 
         return MCPResponse.Success(request.Id, new ListResourcesResult { Resources = resources });
     }
@@ -464,7 +462,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        foreach (var provider in _resourceProviders)
+        foreach (var provider in _frozenResourceProviders)
         {
             var content = await provider
                 .ReadResourceAsync(readParams.Uri, cancellationToken)
@@ -481,7 +479,7 @@ public sealed class MCPServer : IAsyncDisposable
         return MCPResponse.Failure(
             request.Id,
             MCPErrorCodes.ResourceNotFound,
-            $"Resource not found: {readParams.Uri}"
+            "Resource not found"
         );
     }
 
@@ -495,7 +493,7 @@ public sealed class MCPServer : IAsyncDisposable
             return MCPResponse.Success(request.Id, new ListPromptsResult { Prompts = [] });
         }
 
-        var prompts = _promptProviders.SelectMany(p => p.GetPrompts()).ToList();
+        var prompts = _frozenPromptProviders.SelectMany(p => p.GetPrompts()).ToList();
 
         return MCPResponse.Success(request.Id, new ListPromptsResult { Prompts = prompts });
     }
@@ -529,7 +527,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        foreach (var provider in _promptProviders)
+        foreach (var provider in _frozenPromptProviders)
         {
             var result = await provider
                 .GetPromptAsync(getParams.Name, getParams.Arguments, cancellationToken)
@@ -541,11 +539,7 @@ public sealed class MCPServer : IAsyncDisposable
             }
         }
 
-        return MCPResponse.Failure(
-            request.Id,
-            MCPErrorCodes.ResourceNotFound,
-            $"Prompt not found: {getParams.Name}"
-        );
+        return MCPResponse.Failure(request.Id, MCPErrorCodes.ResourceNotFound, "Prompt not found");
     }
 
     /// <summary>

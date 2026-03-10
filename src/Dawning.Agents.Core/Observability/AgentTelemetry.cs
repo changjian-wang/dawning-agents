@@ -150,10 +150,10 @@ public sealed class AgentTelemetry : IDisposable
 
     private class ActiveRequestTracker : IDisposable
     {
-        private readonly Action _onDispose;
+        private Action? _onDispose;
 
         public ActiveRequestTracker(Action onDispose) => _onDispose = onDispose;
 
-        public void Dispose() => _onDispose();
+        public void Dispose() => Interlocked.Exchange(ref _onDispose, null)?.Invoke();
     }
 }

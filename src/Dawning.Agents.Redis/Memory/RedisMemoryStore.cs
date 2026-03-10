@@ -27,7 +27,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     private readonly string _lockKey;
     private readonly string _lockId;
     private readonly ITokenCounter? _tokenCounter;
-    private bool _hasLock;
+    private volatile bool _hasLock;
     private bool _disposed;
 
     /// <inheritdoc />
@@ -208,9 +208,10 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
                 totalTokens += tokenCount;
             }
 
-            result.Insert(0, chatMessage);
+            result.Add(chatMessage);
         }
 
+        result.Reverse();
         return result;
     }
 

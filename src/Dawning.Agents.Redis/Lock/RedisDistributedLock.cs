@@ -252,7 +252,7 @@ public sealed class RedisDistributedLock : IDistributedLock
             _expiry.TotalMilliseconds * _options.RenewalInterval
         );
 
-        _renewalTimer = new Timer(
+        var newTimer = new Timer(
             _ =>
             {
                 _ = RenewAsync();
@@ -261,6 +261,8 @@ public sealed class RedisDistributedLock : IDistributedLock
             renewalInterval,
             renewalInterval
         );
+        var oldTimer = Interlocked.Exchange(ref _renewalTimer, newTimer);
+        oldTimer?.Dispose();
     }
 
     private async Task RenewAsync()
@@ -291,8 +293,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     /// </summary>
     private void StopRenewalTimer()
     {
-        _renewalTimer?.Dispose();
-        _renewalTimer = null;
+        Interlocked.Exchange(ref _renewalTimer, null)?.Dispose();
     }
 
     /// <inheritdoc />

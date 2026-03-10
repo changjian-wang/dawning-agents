@@ -81,7 +81,7 @@ public static class OpenAIServiceCollectionExtensions
         string model = "text-embedding-3-small"
     )
     {
-        services.AddSingleton<IEmbeddingProvider>(sp => new OpenAIEmbeddingProvider(
+        services.TryAddSingleton<IEmbeddingProvider>(sp => new OpenAIEmbeddingProvider(
             apiKey,
             model,
             sp.GetService<ILoggerFactory>()?.CreateLogger<OpenAIEmbeddingProvider>()

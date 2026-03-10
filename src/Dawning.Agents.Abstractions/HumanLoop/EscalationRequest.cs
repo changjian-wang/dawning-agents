@@ -38,7 +38,8 @@ public record EscalationRequest
     /// <summary>
     /// 上下文数据
     /// </summary>
-    public IDictionary<string, object> Context { get; init; } = new Dictionary<string, object>();
+    public IReadOnlyDictionary<string, object> Context { get; init; } =
+        new Dictionary<string, object>();
 
     /// <summary>
     /// 已尝试的解决方案

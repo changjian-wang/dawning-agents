@@ -40,9 +40,10 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 模型维度映射
     /// </summary>
-    private static readonly Dictionary<string, int> ModelDimensions = new(
-        StringComparer.OrdinalIgnoreCase
-    )
+    private static readonly IReadOnlyDictionary<string, int> ModelDimensions = new Dictionary<
+        string,
+        int
+    >(StringComparer.OrdinalIgnoreCase)
     {
         ["text-embedding-3-small"] = 1536,
         ["text-embedding-3-large"] = 3072,

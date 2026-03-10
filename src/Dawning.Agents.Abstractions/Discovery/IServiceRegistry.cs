@@ -52,15 +52,21 @@ public sealed record ServiceInstance
     /// </summary>
     public DateTimeOffset RegisteredAt { get; init; } = DateTimeOffset.UtcNow;
 
+    private long _lastHeartbeatTicks = DateTimeOffset.UtcNow.UtcTicks;
+
     /// <summary>
     /// 最后心跳时间
     /// </summary>
-    public DateTimeOffset LastHeartbeat { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset LastHeartbeat
+    {
+        get => new(Volatile.Read(ref _lastHeartbeatTicks), TimeSpan.Zero);
+        set => Volatile.Write(ref _lastHeartbeatTicks, value.UtcTicks);
+    }
 
     /// <summary>
     /// 是否健康
     /// </summary>
-    public bool IsHealthy { get; set; } = true;
+    public volatile bool IsHealthy = true;
 
     /// <summary>
     /// 获取服务 URI

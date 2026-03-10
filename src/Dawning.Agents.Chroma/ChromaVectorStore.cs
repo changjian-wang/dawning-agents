@@ -31,7 +31,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     private readonly ChromaOptions _options;
     private readonly ILogger<ChromaVectorStore> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
-    private string? _collectionId;
+    private volatile string? _collectionId;
     private int _count;
     private bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
@@ -72,6 +72,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public async Task AddAsync(DocumentChunk chunk, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(chunk);
         await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
         await AddBatchAsync([chunk], cancellationToken).ConfigureAwait(false);
     }
@@ -165,6 +166,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(queryEmbedding);
         await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
         var request = new

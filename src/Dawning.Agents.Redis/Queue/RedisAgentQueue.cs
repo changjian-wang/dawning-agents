@@ -109,6 +109,10 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             }
 
             _initialized = true;
+
+            // Reconcile local count from Redis XLEN
+            var length = await _database.StreamLengthAsync(_queueKey).ConfigureAwait(false);
+            Interlocked.Exchange(ref _count, (int)Math.Min(length, int.MaxValue));
         }
         finally
         {

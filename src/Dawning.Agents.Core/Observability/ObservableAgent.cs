@@ -156,5 +156,6 @@ public sealed class ObservableAgent : IAgent, IDisposable
     public void Dispose()
     {
         _tracer.Dispose();
+        _telemetry.Dispose();
     }
 }

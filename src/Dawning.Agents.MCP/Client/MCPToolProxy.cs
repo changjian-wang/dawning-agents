@@ -60,13 +60,13 @@ public sealed class MCPToolProxy : ITool
 
             return result.IsError ? ToolResult.Fail(output) : ToolResult.Ok(output);
         }
-        catch (MCPException ex)
+        catch (MCPException)
         {
-            return ToolResult.Fail($"MCP Error ({ex.ErrorCode}): {ex.Message}");
+            return ToolResult.Fail("MCP tool call failed");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return ToolResult.Fail($"Error calling remote tool: {ex.Message}");
+            return ToolResult.Fail("Remote tool execution failed");
         }
     }
 }

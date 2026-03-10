@@ -284,24 +284,32 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        // 删除并重新创建集合
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await _client
-                .DeleteCollectionAsync(_options.CollectionName, null, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(
-                ex,
-                "Failed to delete Qdrant collection {Collection} during clear (may not exist)",
-                _options.CollectionName
-            );
-        }
+            // 删除并重新创建集合
+            try
+            {
+                await _client
+                    .DeleteCollectionAsync(_options.CollectionName, null, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to delete Qdrant collection {Collection} during clear (may not exist)",
+                    _options.CollectionName
+                );
+            }
 
-        _collectionInitialized = false;
-        Interlocked.Exchange(ref _count, 0);
+            _collectionInitialized = false;
+            Interlocked.Exchange(ref _count, 0);
+        }
+        finally
+        {
+            _initLock.Release();
+        }
 
         await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -366,7 +374,6 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             // 已被释放，忽略
         }
 
-        _client.Dispose();
         return ValueTask.CompletedTask;
     }
 

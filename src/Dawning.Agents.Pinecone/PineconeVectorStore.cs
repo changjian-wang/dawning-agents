@@ -131,7 +131,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         const int batchSize = 100;
         for (var i = 0; i < vectors.Count; i += batchSize)
         {
-            var batch = vectors.Skip(i).Take(batchSize).ToList();
+            var batch = vectors.GetRange(i, Math.Min(batchSize, vectors.Count - i));
             await index.Upsert(batch, _options.Namespace).ConfigureAwait(false);
         }
 
@@ -296,7 +296,6 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         _initLock.Dispose();
         _index?.Dispose();
-        _client.Dispose();
         return ValueTask.CompletedTask;
     }
 

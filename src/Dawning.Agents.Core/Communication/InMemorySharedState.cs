@@ -24,7 +24,7 @@ public partial class InMemorySharedState : ISharedState
     private readonly ConcurrentDictionary<string, List<Action<string, object?>>> _watchers = new();
     private static readonly ConcurrentDictionary<string, Regex> _regexCache = new();
     private readonly ILogger<InMemorySharedState> _logger;
-    private readonly object _watcherLock = new();
+    private readonly ConcurrentDictionary<string, object> _watcherLocks = new();
 
     /// <summary>
     /// 创建内存共享状态
@@ -113,8 +113,9 @@ public partial class InMemorySharedState : ISharedState
     public IDisposable OnChange(string key, Action<string, object?> handler)
     {
         var handlers = _watchers.GetOrAdd(key, _ => new List<Action<string, object?>>());
+        var keyLock = _watcherLocks.GetOrAdd(key, _ => new object());
 
-        lock (_watcherLock)
+        lock (keyLock)
         {
             handlers.Add(handler);
         }
@@ -123,7 +124,7 @@ public partial class InMemorySharedState : ISharedState
 
         return new Subscription(() =>
         {
-            lock (_watcherLock)
+            lock (keyLock)
             {
                 handlers.Remove(handler);
             }
@@ -149,8 +150,9 @@ public partial class InMemorySharedState : ISharedState
     {
         if (_watchers.TryGetValue(key, out var handlers))
         {
+            var keyLock = _watcherLocks.GetOrAdd(key, _ => new object());
             List<Action<string, object?>> handlersCopy;
-            lock (_watcherLock)
+            lock (keyLock)
             {
                 handlersCopy = handlers.ToList();
             }

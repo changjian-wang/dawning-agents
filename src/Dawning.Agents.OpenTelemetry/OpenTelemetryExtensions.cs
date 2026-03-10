@@ -189,6 +189,9 @@ public static class OpenTelemetryServiceCollectionExtensions
         double samplingRatio = 1.0
     )
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(samplingRatio, 0.0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(samplingRatio, 1.0);
+
         services
             .AddOpenTelemetry()
             .WithTracing(builder =>

@@ -534,7 +534,7 @@ public class WorkflowEngine : IWorkflowEngine
     private string? DetermineNextNode(
         WorkflowNodeDefinition currentNode,
         NodeExecutionResult result,
-        List<WorkflowEdgeDefinition> edges
+        IReadOnlyList<WorkflowEdgeDefinition> edges
     )
     {
         // 如果节点指定了下一个节点（条件分支）
