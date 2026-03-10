@@ -3,6 +3,8 @@ namespace Dawning.Agents.MCP.Client;
 using System.Text.Json;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.MCP.Protocol;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
 /// MCP 工具代理
@@ -15,11 +17,17 @@ public sealed class MCPToolProxy : ITool
 {
     private readonly MCPClient _client;
     private readonly MCPToolDefinition _definition;
+    private readonly ILogger<MCPToolProxy> _logger;
 
-    public MCPToolProxy(MCPClient client, MCPToolDefinition definition)
+    public MCPToolProxy(
+        MCPClient client,
+        MCPToolDefinition definition,
+        ILogger<MCPToolProxy>? logger = null
+    )
     {
         _client = client;
         _definition = definition;
+        _logger = logger ?? NullLogger<MCPToolProxy>.Instance;
     }
 
     private string? _cachedParametersSchema;
@@ -63,12 +71,14 @@ public sealed class MCPToolProxy : ITool
 
             return result.IsError ? ToolResult.Fail(output) : ToolResult.Ok(output);
         }
-        catch (MCPException)
+        catch (MCPException ex)
         {
+            _logger.LogError(ex, "MCP tool call failed: {Tool}", _definition.Name);
             return ToolResult.Fail("MCP tool call failed");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Remote tool execution failed: {Tool}", _definition.Name);
             return ToolResult.Fail("Remote tool execution failed");
         }
     }

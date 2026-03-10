@@ -73,11 +73,12 @@ public class LatencyOptimizedRouter : ModelRouterBase
             }
         }
 
-        var selected = providerLatencies.First().Provider;
+        var best = providerLatencies.First();
+        var selected = best.Provider;
         _logger.LogDebug(
             "延迟优化选择: {Provider}，平均延迟: {Latency:F0}ms",
             selected.Name,
-            providerLatencies.First().Latency
+            best.Latency
         );
 
         return Task.FromResult(selected);

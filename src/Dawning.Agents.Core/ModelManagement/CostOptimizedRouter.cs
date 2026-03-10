@@ -92,11 +92,12 @@ public class CostOptimizedRouter : ModelRouterBase
             }
         }
 
-        var selected = providerCosts.First().Provider;
+        var best = providerCosts.First();
+        var selected = best.Provider;
         _logger.LogDebug(
             "成本优化选择: {Provider}，预估成本: ${Cost:F6}",
             selected.Name,
-            providerCosts.First().Cost
+            best.Cost
         );
 
         return Task.FromResult(selected);

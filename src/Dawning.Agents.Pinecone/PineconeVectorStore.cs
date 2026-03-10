@@ -450,7 +450,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         var metadata = new Dictionary<string, string>();
         foreach (var (key, value) in match.Metadata)
         {
-            if (key.StartsWith("meta_"))
+            if (key.StartsWith("meta_", StringComparison.Ordinal))
             {
                 metadata[key[5..]] = value.Inner?.ToString() ?? string.Empty;
             }
@@ -482,7 +482,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         var metadata = new Dictionary<string, string>();
         foreach (var (key, value) in vector.Metadata)
         {
-            if (key.StartsWith("meta_"))
+            if (key.StartsWith("meta_", StringComparison.Ordinal))
             {
                 metadata[key[5..]] = value.Inner?.ToString() ?? string.Empty;
             }

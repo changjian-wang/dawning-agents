@@ -504,7 +504,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         var metadata = new Dictionary<string, string>();
         foreach (var (key, value) in point.Payload)
         {
-            if (key.StartsWith("meta_"))
+            if (key.StartsWith("meta_", StringComparison.Ordinal))
             {
                 metadata[key[5..]] = value.StringValue;
             }
@@ -544,7 +544,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         var metadata = new Dictionary<string, string>();
         foreach (var (key, value) in point.Payload)
         {
-            if (key.StartsWith("meta_"))
+            if (key.StartsWith("meta_", StringComparison.Ordinal))
             {
                 metadata[key[5..]] = value.StringValue;
             }
