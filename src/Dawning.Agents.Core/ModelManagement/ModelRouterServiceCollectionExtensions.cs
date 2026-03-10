@@ -103,7 +103,9 @@ public static class ModelRouterServiceCollectionExtensions
         services.TryAddSingleton<IModelRouter>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<ModelRouterOptions>>();
-            var providers = sp.GetServices<ILLMProvider>().ToList();
+            var providers = sp.GetServices<ILLMProvider>()
+                .Where(p => p is not RoutingLLMProvider)
+                .ToList();
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
             return options.Value.Strategy switch
