@@ -200,8 +200,13 @@ public class VectorMemory : IConversationMemory
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "归档消息失败: {MessageId}", message.Id);
-            // 归档失败不应该影响主流程，只记录警告
+            _logger.LogWarning(ex, "归档消息失败，消息将保留在最近消息中: {MessageId}", message.Id);
+
+            // 归档失败时将消息放回最近消息列表末尾，防止数据丢失
+            lock (_lock)
+            {
+                _recentMessages.Add(message);
+            }
         }
     }
 

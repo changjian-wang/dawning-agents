@@ -254,16 +254,14 @@ public class SemanticCacheTests
             .Setup(x => x.EmbedAsync("What is AI?", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new float[] { 0.1f, 0.2f, 0.3f });
         _mockEmbedding
-            .Setup(x =>
-                x.EmbedAsync("What is artificial intelligence?", It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(new float[] { 0.11f, 0.21f, 0.31f }); // 相似但不完全相同
+            .Setup(x => x.EmbedAsync("What is machine learning?", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new float[] { 0.9f, -0.5f, 0.1f }); // 余弦相似度远低于 0.99
 
         await cache.SetAsync("What is AI?", "AI is artificial intelligence.");
-        var result = await cache.GetAsync("What is artificial intelligence?");
+        var result = await cache.GetAsync("What is machine learning?");
 
-        // 由于阈值很高，可能返回 null
-        // 具体取决于实际相似度
+        // 由于阈值很高（0.99），不够相似的查询应返回 null
+        result.Should().BeNull();
     }
 
     #endregion

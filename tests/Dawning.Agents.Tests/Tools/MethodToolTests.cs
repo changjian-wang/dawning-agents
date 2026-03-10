@@ -173,14 +173,9 @@ public sealed class MethodToolTests
         // Act
         var result = await tool.ExecuteAsync("test");
 
-        // Assert - Task 方法可能返回空结果，检查不抛异常即可
-        // 如果 result.Success 为 false，打印错误消息以便调试
-        if (!result.Success)
-        {
-            // Task 无返回值方法执行，可能有参数解析问题
-            // 我们只测试方法能被调用
-        }
+        // Assert
         result.Should().NotBeNull();
+        result.Success.Should().BeTrue();
     }
 
     [Fact]
