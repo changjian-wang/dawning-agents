@@ -560,9 +560,16 @@ public sealed class MCPClient : IAsyncDisposable
 
         if (_serverProcess != null)
         {
-            if (!_serverProcess.HasExited)
+            try
             {
-                _serverProcess.Kill();
+                if (!_serverProcess.HasExited)
+                {
+                    _serverProcess.Kill();
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // Process already exited between HasExited check and Kill()
             }
             _serverProcess.Dispose();
         }

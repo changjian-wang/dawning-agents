@@ -80,7 +80,7 @@ public sealed class DistributedLoadBalancerOptions
 /// <summary>
 /// 分布式负载均衡器（支持服务发现集成）
 /// </summary>
-public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
+public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, IAsyncDisposable
 {
     private readonly IServiceRegistry? _serviceRegistry;
     private readonly DistributedLoadBalancerOptions _options;
@@ -591,6 +591,36 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         {
             // Watch loop already handles its own exceptions
         }
+        cts?.Dispose();
+        _lock.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        var cts = Interlocked.Exchange(ref _watchCts, null);
+        if (cts != null)
+        {
+            await cts.CancelAsync().ConfigureAwait(false);
+        }
+
+        if (_watchTask != null)
+        {
+            try
+            {
+                await _watchTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // Watch loop already handles its own exceptions
+            }
+        }
+
         cts?.Dispose();
         _lock.Dispose();
     }

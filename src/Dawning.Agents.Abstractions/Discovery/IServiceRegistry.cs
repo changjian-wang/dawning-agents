@@ -63,10 +63,16 @@ public sealed record ServiceInstance
         set => Volatile.Write(ref _lastHeartbeatTicks, value.UtcTicks);
     }
 
+    private bool _isHealthy = true;
+
     /// <summary>
     /// 是否健康
     /// </summary>
-    public volatile bool IsHealthy = true;
+    public bool IsHealthy
+    {
+        get => Volatile.Read(ref _isHealthy);
+        set => Volatile.Write(ref _isHealthy, value);
+    }
 
     /// <summary>
     /// 获取服务 URI

@@ -128,12 +128,17 @@ public static class EnvironmentConfigurationExtensions
     /// </summary>
     private static string ProcessEscapeSequences(string value)
     {
+        // Process \\ first using placeholder to avoid premature matching.
+        // e.g. input "\\n" should become "\n" (literal backslash + n),
+        // not backslash + newline.
+        const string placeholder = "\x00";
         return value
+            .Replace("\\\\", placeholder)
             .Replace("\\n", "\n")
             .Replace("\\r", "\r")
             .Replace("\\t", "\t")
             .Replace("\\\"", "\"")
             .Replace("\\'", "'")
-            .Replace("\\\\", "\\");
+            .Replace(placeholder, "\\");
     }
 }

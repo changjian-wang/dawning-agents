@@ -114,7 +114,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
             }
 
             // 使用处理后的内容继续下一个护栏
-            if (!string.IsNullOrEmpty(result.ProcessedContent))
+            if (result.ProcessedContent != null)
             {
                 currentContent = result.ProcessedContent;
             }
