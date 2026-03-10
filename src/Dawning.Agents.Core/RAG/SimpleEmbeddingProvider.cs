@@ -108,7 +108,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
                 {
                     var ngram = token.Substring(j, n);
                     var ngramHash = ComputeHash(ngram);
-                    var index = Math.Abs(BitConverter.ToInt32(ngramHash, 0)) % _dimensions;
+                    var index = (BitConverter.ToInt32(ngramHash, 0) & 0x7FFFFFFF) % _dimensions;
                     vector[index] += 0.5f;
                 }
             }

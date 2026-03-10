@@ -1,3 +1,4 @@
+using System.Web;
 using Dawning.Agents.Abstractions.Multimodal;
 using Dawning.Agents.Core.Multimodal;
 using Microsoft.Extensions.Configuration;
@@ -90,21 +91,23 @@ public static class MultimodalServiceCollectionExtensions
         string apiVersion = "2024-02-15-preview"
     )
     {
+        services
+            .AddHttpClient("AzureOpenAIVision")
+            .ConfigureHttpClient(client => client.DefaultRequestHeaders.Add("api-key", apiKey))
+            .AddHttpMessageHandler(() => new AzureApiVersionHandler(apiVersion));
+
         services.TryAddSingleton<IVisionProvider>(sp =>
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("AzureOpenAIVision");
-            // Azure 使用不同的认证头
-            httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
             var logger =
                 sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIVisionProvider>>();
 
-            // Azure OpenAI 的 URL 格式不同
             return new OpenAIVisionProvider(
                 httpClient,
-                apiKey: "", // Azure 使用 api-key 头
-                baseUrl: $"{endpoint}?api-version={apiVersion}",
-                defaultModel: "", // Azure 部署名在 URL 中
+                apiKey: "",
+                baseUrl: endpoint,
+                defaultModel: "",
                 logger: logger
             );
         });
@@ -202,18 +205,22 @@ public static class MultimodalServiceCollectionExtensions
         string apiVersion = "2024-02-15-preview"
     )
     {
+        services
+            .AddHttpClient("AzureOpenAIWhisper")
+            .ConfigureHttpClient(client => client.DefaultRequestHeaders.Add("api-key", apiKey))
+            .AddHttpMessageHandler(() => new AzureApiVersionHandler(apiVersion));
+
         services.TryAddSingleton<IAudioTranscriptionProvider>(sp =>
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("AzureOpenAIWhisper");
-            httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
             var logger =
                 sp.GetService<Microsoft.Extensions.Logging.ILogger<OpenAIWhisperProvider>>();
 
             return new OpenAIWhisperProvider(
                 httpClient,
                 apiKey: "",
-                baseUrl: $"{endpoint}?api-version={apiVersion}",
+                baseUrl: endpoint,
                 defaultModel: "",
                 logger: logger
             );
@@ -354,4 +361,27 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     #endregion
+
+    /// <summary>
+    /// 为 Azure OpenAI 请求添加 api-version 查询参数
+    /// </summary>
+    private sealed class AzureApiVersionHandler(string apiVersion) : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            if (request.RequestUri is not null)
+            {
+                var uriBuilder = new UriBuilder(request.RequestUri);
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                query["api-version"] = apiVersion;
+                uriBuilder.Query = query.ToString();
+                request.RequestUri = uriBuilder.Uri;
+            }
+
+            return base.SendAsync(request, cancellationToken);
+        }
+    }
 }

@@ -89,9 +89,17 @@ public sealed class KnowledgeBase
             .EmbedBatchAsync(texts, cancellationToken)
             .ConfigureAwait(false);
 
+        var embeddingList = embeddings.ToList();
+        if (embeddingList.Count != chunks.Count)
+        {
+            throw new InvalidOperationException(
+                $"Embedding count mismatch: expected {chunks.Count}, got {embeddingList.Count}"
+            );
+        }
+
         // 3. 添加嵌入向量到块
         var chunksWithEmbeddings = chunks
-            .Zip(embeddings, (chunk, embedding) => chunk with { Embedding = embedding })
+            .Zip(embeddingList, (chunk, embedding) => chunk with { Embedding = embedding })
             .ToList();
 
         // 4. 存储到向量数据库
