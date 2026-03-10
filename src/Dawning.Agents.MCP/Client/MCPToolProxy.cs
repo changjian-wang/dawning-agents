@@ -22,11 +22,14 @@ public sealed class MCPToolProxy : ITool
         _definition = definition;
     }
 
+    private string? _cachedParametersSchema;
+
     public string Name => _definition.Name;
 
     public string Description => _definition.Description ?? string.Empty;
 
-    public string ParametersSchema => JsonSerializer.Serialize(_definition.InputSchema);
+    public string ParametersSchema =>
+        _cachedParametersSchema ??= JsonSerializer.Serialize(_definition.InputSchema);
 
     public bool RequiresConfirmation => false;
 

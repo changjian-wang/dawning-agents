@@ -120,61 +120,59 @@ public static class OpenTelemetryServiceCollectionExtensions
             );
         }
 
+        var otelBuilder = services.AddOpenTelemetry();
+
         // 配置追踪
         if (options.EnableTracing)
         {
-            services
-                .AddOpenTelemetry()
-                .WithTracing(builder =>
+            otelBuilder.WithTracing(builder =>
+            {
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddSource(AgentInstrumentation.ServiceName)
+                    .AddHttpClientInstrumentation()
+                    .SetSampler(new TraceIdRatioBasedSampler(options.SamplingRatio));
+
+                if (!string.IsNullOrEmpty(options.OtlpEndpoint))
                 {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddSource(AgentInstrumentation.ServiceName)
-                        .AddHttpClientInstrumentation()
-                        .SetSampler(new TraceIdRatioBasedSampler(options.SamplingRatio));
-
-                    if (!string.IsNullOrEmpty(options.OtlpEndpoint))
+                    builder.AddOtlpExporter(otlp =>
                     {
-                        builder.AddOtlpExporter(otlp =>
-                        {
-                            otlp.Endpoint = new Uri(options.OtlpEndpoint);
-                        });
-                    }
+                        otlp.Endpoint = new Uri(options.OtlpEndpoint);
+                    });
+                }
 
-                    if (options.EnableConsoleExporter)
-                    {
-                        builder.AddConsoleExporter();
-                    }
-                });
+                if (options.EnableConsoleExporter)
+                {
+                    builder.AddConsoleExporter();
+                }
+            });
         }
 
         // 配置指标
         if (options.EnableMetrics)
         {
-            services
-                .AddOpenTelemetry()
-                .WithMetrics(builder =>
+            otelBuilder.WithMetrics(builder =>
+            {
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddMeter(AgentInstrumentation.ServiceName)
+                    .AddRuntimeInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddPrometheusExporter();
+
+                if (!string.IsNullOrEmpty(options.OtlpEndpoint))
                 {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddMeter(AgentInstrumentation.ServiceName)
-                        .AddRuntimeInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddPrometheusExporter();
-
-                    if (!string.IsNullOrEmpty(options.OtlpEndpoint))
+                    builder.AddOtlpExporter(otlp =>
                     {
-                        builder.AddOtlpExporter(otlp =>
-                        {
-                            otlp.Endpoint = new Uri(options.OtlpEndpoint);
-                        });
-                    }
+                        otlp.Endpoint = new Uri(options.OtlpEndpoint);
+                    });
+                }
 
-                    if (options.EnableConsoleExporter)
-                    {
-                        builder.AddConsoleExporter();
-                    }
-                });
+                if (options.EnableConsoleExporter)
+                {
+                    builder.AddConsoleExporter();
+                }
+            });
         }
 
         return services;
