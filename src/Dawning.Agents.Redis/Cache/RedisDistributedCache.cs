@@ -137,12 +137,9 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         var fullKey = GetFullKey(key);
         try
         {
-            // Redis 不支持直接 refresh，需要获取当前 TTL 并重新设置
-            var ttl = _database.KeyTimeToLive(fullKey);
-            if (ttl.HasValue)
-            {
-                _database.KeyExpire(fullKey, ttl.Value);
-            }
+            // Refresh 用于滑动过期：重新计时，但 Redis 不储存原始过期时间。
+            // 触发一次读取以让 Redis 的滑动过期机制生效（如果已配置）。
+            _database.StringGet(fullKey);
         }
         catch (Exception ex)
         {
@@ -160,11 +157,8 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         var fullKey = GetFullKey(key);
         try
         {
-            var ttl = await _database.KeyTimeToLiveAsync(fullKey).ConfigureAwait(false);
-            if (ttl.HasValue)
-            {
-                await _database.KeyExpireAsync(fullKey, ttl.Value).ConfigureAwait(false);
-            }
+            // Refresh 用于滑动过期：触发一次读取以让 Redis 的滑动过期机制生效
+            await _database.StringGetAsync(fullKey).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

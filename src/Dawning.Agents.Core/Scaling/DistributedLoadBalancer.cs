@@ -93,6 +93,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
     private int _roundRobinIndex;
     private CancellationTokenSource? _watchCts;
+    private bool _disposed;
 
     public DistributedLoadBalancer(
         IServiceRegistry? serviceRegistry = null,
@@ -113,6 +114,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         if (_serviceRegistry == null)
         {
             _logger.LogWarning("未配置 ServiceRegistry，跳过同步");
@@ -227,6 +229,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     /// <inheritdoc />
     public void RegisterInstance(AgentInstance instance)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(instance);
 
         _lock.EnterWriteLock();
@@ -255,6 +258,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     /// <inheritdoc />
     public void UnregisterInstance(string instanceId)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterWriteLock();
         try
         {
@@ -281,6 +285,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
     /// </summary>
     public AgentInstance? GetInstance(string? sessionKey)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterReadLock();
         try
         {
@@ -518,7 +523,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         }
 
         var index = Interlocked.Increment(ref _roundRobinIndex);
-        var target = index % totalWeight;
+        var target = (int)((uint)index % (uint)totalWeight);
         var cumulative = 0;
 
         foreach (var instance in instances)
@@ -568,6 +573,12 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         _watchCts?.Cancel();
         _watchCts?.Dispose();
         _lock.Dispose();

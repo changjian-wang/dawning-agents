@@ -19,6 +19,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private DateTime? _lastScaleDown;
     private readonly SemaphoreSlim _evaluateLock = new(1, 1);
     private readonly object _stateLock = new();
+    private bool _disposed;
 
     public AgentAutoScaler(
         ScalingOptions options,
@@ -74,6 +75,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     /// <inheritdoc />
     public async Task<ScalingDecision> EvaluateAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var metrics = await _metricsProvider().ConfigureAwait(false);
 
         await _evaluateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -234,6 +236,12 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         _evaluateLock.Dispose();
     }
 }

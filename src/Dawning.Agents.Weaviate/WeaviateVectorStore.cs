@@ -340,7 +340,16 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 
         if (response.IsSuccessStatusCode)
         {
-            Interlocked.Decrement(ref _count);
+            int oldCount;
+            do
+            {
+                oldCount = Volatile.Read(ref _count);
+                if (oldCount <= 0)
+                {
+                    break;
+                }
+            } while (Interlocked.CompareExchange(ref _count, oldCount - 1, oldCount) != oldCount);
+
             return true;
         }
 

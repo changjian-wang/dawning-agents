@@ -367,6 +367,11 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 执行 Agent
         var response = await agent.RunAsync(input, cancellationToken).ConfigureAwait(false);
+        if (!response.Success)
+        {
+            return NodeExecutionResult.Fail(nodeDefinition.Id, response.Error ?? "Agent 执行失败");
+        }
+
         return NodeExecutionResult.Ok(nodeDefinition.Id, response.FinalAnswer);
     }
 
@@ -491,7 +496,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         if (config?.TryGetValue("delayMs", out var delayObj) == true)
         {
-            delayMs = Convert.ToInt32(delayObj);
+            delayMs = Math.Max(0, Convert.ToInt32(delayObj));
         }
 
         await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);

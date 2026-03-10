@@ -201,11 +201,15 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
         await _downgradeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await _currentMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
+            var oldMemory = _currentMemory;
+            await oldMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
 
             // 重置为 BufferMemory
             _currentMemory = new BufferMemory(_tokenCounter);
             _hasDowngraded = false;
+
+            // 释放旧的记忆资源（可能是 SummaryMemory，持有 SemaphoreSlim）
+            (oldMemory as IDisposable)?.Dispose();
         }
         finally
         {

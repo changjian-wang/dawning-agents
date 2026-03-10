@@ -145,6 +145,11 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     private void CleanupExpiredInstances(object? state)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         var expireThreshold = DateTimeOffset.UtcNow.AddSeconds(-_options.ServiceExpireSeconds);
         var expiredIds = _instances
             .Where(kv => kv.Value.LastHeartbeat < expireThreshold)

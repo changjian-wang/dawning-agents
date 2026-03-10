@@ -205,7 +205,16 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
         if (updateResult.Status == UpdateStatus.Completed)
         {
-            Interlocked.Decrement(ref _count);
+            int oldCount;
+            do
+            {
+                oldCount = Volatile.Read(ref _count);
+                if (oldCount <= 0)
+                {
+                    break;
+                }
+            } while (Interlocked.CompareExchange(ref _count, oldCount - 1, oldCount) != oldCount);
+
             _logger.LogDebug("Deleted chunk {ChunkId} from Qdrant", id);
             return true;
         }

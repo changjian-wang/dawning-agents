@@ -74,14 +74,14 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     /// <summary>
     /// 确保消费者组已创建
     /// </summary>
-    private async Task EnsureInitializedAsync()
+    private async Task EnsureInitializedAsync(CancellationToken cancellationToken = default)
     {
         if (_initialized)
         {
             return;
         }
 
-        await _initLock.WaitAsync().ConfigureAwait(false);
+        await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (_initialized)
@@ -133,7 +133,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     )
     {
         ArgumentNullException.ThrowIfNull(item);
-        await EnsureInitializedAsync().ConfigureAwait(false);
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
         var message = new DistributedQueueMessage
         {
@@ -198,7 +198,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        await EnsureInitializedAsync().ConfigureAwait(false);
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {

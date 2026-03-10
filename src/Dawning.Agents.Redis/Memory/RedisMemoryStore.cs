@@ -127,7 +127,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
                 .ConfigureAwait(false);
         }
 
-        MessageCount = (int)Math.Min(currentLength + 1, _sessionOptions.MaxMessages);
+        MessageCount = (int)Math.Min(currentLength, _sessionOptions.MaxMessages);
 
         if (_sessionOptions.EnableSlidingExpiry)
         {

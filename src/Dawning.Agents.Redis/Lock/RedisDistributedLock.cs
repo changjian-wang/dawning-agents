@@ -305,6 +305,8 @@ public sealed class RedisDistributedLock : IDistributedLock
 
         _disposed = true;
 
+        StopRenewalTimer();
+
         try
         {
             if (IsAcquired)
@@ -312,9 +314,9 @@ public sealed class RedisDistributedLock : IDistributedLock
                 await ReleaseAsync().ConfigureAwait(false);
             }
         }
-        finally
+        catch
         {
-            StopRenewalTimer();
+            // Best-effort release during disposal
         }
     }
 }

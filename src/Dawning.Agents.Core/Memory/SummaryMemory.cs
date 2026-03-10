@@ -249,7 +249,30 @@ public class SummaryMemory : IConversationMemory, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var messages = await GetMessagesAsync(cancellationToken).ConfigureAwait(false);
-        return messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
+        var chatMessages = messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
+
+        if (maxTokens.HasValue)
+        {
+            var budget = maxTokens.Value;
+            var result = new List<ChatMessage>();
+
+            // 从最新消息开始向前取，确保最近的上下文优先
+            for (var i = chatMessages.Count - 1; i >= 0; i--)
+            {
+                var tokens = _tokenCounter.CountTokens(chatMessages[i].Content);
+                if (tokens > budget)
+                {
+                    break;
+                }
+
+                budget -= tokens;
+                result.Insert(0, chatMessages[i]);
+            }
+
+            return result;
+        }
+
+        return chatMessages;
     }
 
     /// <summary>
