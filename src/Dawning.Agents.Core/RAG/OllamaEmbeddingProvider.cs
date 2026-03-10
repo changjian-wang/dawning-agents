@@ -107,7 +107,19 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         using var response = await _httpClient
             .PostAsync("/api/embed", content, cancellationToken)
             .ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
+            _logger.LogError(
+                "Ollama 嵌入请求失败: {StatusCode} {Error}",
+                response.StatusCode,
+                errorBody
+            );
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = await response
             .Content.ReadFromJsonAsync<OllamaEmbedResponse>(JsonOptions.Default, cancellationToken)
@@ -166,7 +178,19 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         using var response = await _httpClient
             .PostAsync("/api/embed", content, cancellationToken)
             .ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
+            _logger.LogError(
+                "Ollama 批量嵌入请求失败: {StatusCode} {Error}",
+                response.StatusCode,
+                errorBody
+            );
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = await response
             .Content.ReadFromJsonAsync<OllamaEmbedResponse>(JsonOptions.Default, cancellationToken)

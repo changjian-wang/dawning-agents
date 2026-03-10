@@ -113,7 +113,26 @@ public sealed class MCPClient : IAsyncDisposable
             Microsoft.Extensions.Logging.Abstractions.NullLogger<StdioTransport>.Instance
         );
 
-        await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            try
+            {
+                _serverProcess.Kill();
+            }
+            catch
+            {
+                // Best effort - process may have already exited
+            }
+
+            _serverProcess.Dispose();
+            _serverProcess = null;
+            _transport = null;
+            throw;
+        }
 
         // 启动响应监听
         _listenerCts = new CancellationTokenSource();

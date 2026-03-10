@@ -165,7 +165,17 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable
         _watchCts?.Dispose();
 
         _watchCts = new CancellationTokenSource();
-        _ = WatchLoopAsync(serviceName, _watchCts.Token);
+        _ = WatchLoopAsync(serviceName, _watchCts.Token)
+            .ContinueWith(
+                t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        _logger.LogError(t.Exception, "Watch 循环发生未观察的异常");
+                    }
+                },
+                TaskScheduler.Default
+            );
     }
 
     private async Task WatchLoopAsync(string serviceName, CancellationToken cancellationToken)

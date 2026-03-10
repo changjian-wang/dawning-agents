@@ -216,6 +216,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         lock (_lock)
         {
             var result = new List<ConversationMessage>();
@@ -246,6 +247,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var messages = await GetMessagesAsync(cancellationToken).ConfigureAwait(false);
         return messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
     }
@@ -255,6 +257,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
     /// </summary>
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         lock (_lock)
         {
             _recentMessages.Clear();
@@ -269,6 +272,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         lock (_lock)
         {
             var recentTokens = _recentMessages.Sum(m => m.TokenCount ?? 0);
@@ -289,7 +293,13 @@ public class SummaryMemory : IConversationMemory, IDisposable
             return;
         }
 
-        _summarySemaphore.Dispose();
-        _disposed = true;
+        try
+        {
+            _summarySemaphore.Dispose();
+        }
+        finally
+        {
+            _disposed = true;
+        }
     }
 }

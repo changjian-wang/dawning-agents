@@ -26,7 +26,7 @@ public sealed class MCPServer : IAsyncDisposable
     private readonly CancellationTokenSource _cts = new();
     private readonly List<Task> _inflightTasks = [];
     private readonly Lock _inflightLock = new();
-    private bool _initialized;
+    private volatile bool _initialized;
     private MCPClientInfo? _clientInfo;
 
     public MCPServer(
@@ -98,6 +98,12 @@ public sealed class MCPServer : IAsyncDisposable
                 var message = await _transport.ReceiveAsync(linkedCts.Token).ConfigureAwait(false);
                 if (message == null)
                 {
+                    if (!_transport.IsConnected)
+                    {
+                        _logger.LogInformation("Transport disconnected, stopping server");
+                        break;
+                    }
+
                     continue;
                 }
 

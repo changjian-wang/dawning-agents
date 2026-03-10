@@ -176,6 +176,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         return _currentMemory.GetMessagesAsync(cancellationToken);
     }
 
@@ -187,6 +188,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         return _currentMemory.GetContextAsync(maxTokens, cancellationToken);
     }
 
@@ -195,6 +197,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         await _downgradeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -217,6 +220,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         return _currentMemory.GetTokenCountAsync(cancellationToken);
     }
 
@@ -230,8 +234,14 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
             return;
         }
 
-        _downgradeLock.Dispose();
-        (_currentMemory as IDisposable)?.Dispose();
-        _disposed = true;
+        try
+        {
+            _downgradeLock.Dispose();
+            (_currentMemory as IDisposable)?.Dispose();
+        }
+        finally
+        {
+            _disposed = true;
+        }
     }
 }

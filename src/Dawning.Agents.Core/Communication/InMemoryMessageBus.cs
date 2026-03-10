@@ -238,7 +238,7 @@ public sealed class InMemoryMessageBus : IMessageBus
     private sealed class Subscription : IDisposable
     {
         private readonly Action _unsubscribe;
-        private bool _disposed;
+        private volatile bool _disposed;
 
         public Subscription(Action unsubscribe) => _unsubscribe = unsubscribe;
 

@@ -321,7 +321,7 @@ public class TokenRateLimiter
             while (true)
             {
                 var current = Volatile.Read(ref _totalTokens);
-                if (current + count > maxTokens)
+                if (count < 0 || current > maxTokens - count)
                 {
                     return false;
                 }
