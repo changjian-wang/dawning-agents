@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Dawning.Agents.Abstractions;
 
 namespace Dawning.Agents.Abstractions.Safety;
@@ -141,6 +142,20 @@ public class SafetyOptions : IValidatableOptions
         if (MaxOutputLength <= 0)
         {
             throw new InvalidOperationException("MaxOutputLength must be greater than 0");
+        }
+
+        foreach (var pattern in SensitivePatterns)
+        {
+            try
+            {
+                _ = new Regex(pattern.Pattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new InvalidOperationException(
+                    $"SensitivePattern '{pattern.Name}' has invalid regex: {ex.Message}"
+                );
+            }
         }
     }
 }

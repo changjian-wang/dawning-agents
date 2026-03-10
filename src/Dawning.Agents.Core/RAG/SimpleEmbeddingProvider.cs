@@ -35,6 +35,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
         ILogger<SimpleEmbeddingProvider>? logger = null
     )
     {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(dimensions, 0);
         _dimensions = dimensions;
         _logger = logger ?? NullLogger<SimpleEmbeddingProvider>.Instance;
     }

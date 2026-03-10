@@ -277,9 +277,8 @@ public class FunctionCallingAgent : AgentBase
         var tool = ResolveTool(toolCall.FunctionName);
         if (tool == null)
         {
-            var errorMsg = $"Tool '{toolCall.FunctionName}' not found";
-            Logger.LogWarning(errorMsg);
-            return errorMsg;
+            Logger.LogWarning("Tool '{ToolName}' not found", toolCall.FunctionName);
+            return $"Tool '{toolCall.FunctionName}' not found";
         }
 
         Logger.LogDebug(

@@ -79,5 +79,10 @@ public sealed class MCPClientOptions : IValidatableOptions
         {
             throw new InvalidOperationException("MaxReconnectAttempts must be non-negative");
         }
+
+        if (ReconnectIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException("ReconnectIntervalSeconds must be greater than 0");
+        }
     }
 }
