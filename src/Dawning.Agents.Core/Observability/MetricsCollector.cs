@@ -167,7 +167,7 @@ public sealed class HistogramMetric
 {
     private const int MaxValues = 10_000;
     private readonly double[] _values = new double[MaxValues];
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private int _count;
     private int _writeIndex;
 

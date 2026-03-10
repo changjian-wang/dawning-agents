@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.Agent;
 public sealed class CostTracker : ICostTracker
 {
     private decimal _totalCost;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     /// <inheritdoc />
     public decimal TotalCost

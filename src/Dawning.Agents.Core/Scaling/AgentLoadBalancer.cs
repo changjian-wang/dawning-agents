@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 public sealed class AgentLoadBalancer : IAgentLoadBalancer
 {
     private readonly List<AgentInstance> _instances = [];
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly ILogger<AgentLoadBalancer> _logger;
     private int _roundRobinIndex = -1;
 

@@ -207,7 +207,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         try
         {
             // 先处理延迟队列中到期的消息
-            await ProcessDelayedMessagesAsync().ConfigureAwait(false);
+            await ProcessDelayedMessagesAsync(cancellationToken).ConfigureAwait(false);
 
             // 从 Stream 读取消息
             var entries = await _database
@@ -275,7 +275,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     /// <summary>
     /// 处理延迟队列中到期的消息
     /// </summary>
-    private async Task ProcessDelayedMessagesAsync()
+    private async Task ProcessDelayedMessagesAsync(CancellationToken cancellationToken = default)
     {
         var delayKey = $"{_queueKey}:delayed";
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -287,6 +287,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
         foreach (var entry in entries)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // 移动到主队列
             var removed = await _database
                 .SortedSetRemoveAsync(delayKey, entry)
@@ -430,6 +431,12 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             await _database
                 .ListRightPushAsync(_deadLetterKey, JsonSerializer.Serialize(deadLetterEntry))
+                .ConfigureAwait(false);
+
+            // Cap dead letter queue size and set TTL to prevent unbounded growth
+            await _database.ListTrimAsync(_deadLetterKey, -10_000, -1).ConfigureAwait(false);
+            await _database
+                .KeyExpireAsync(_deadLetterKey, TimeSpan.FromDays(7), ExpireWhen.HasNoExpiry)
                 .ConfigureAwait(false);
 
             _logger.LogWarning(

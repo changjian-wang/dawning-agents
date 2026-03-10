@@ -165,7 +165,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     private class RateLimitBucket
     {
         private readonly TimeSpan _windowSize;
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly List<DateTimeOffset> _timestamps = [];
 
         public RateLimitBucket(TimeSpan windowSize)

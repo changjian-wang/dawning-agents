@@ -77,7 +77,7 @@ public class EnvironmentSecretsManager : ISecretsManager
 public class InMemorySecretsManager : ISecretsManager
 {
     private readonly Dictionary<string, string> _secrets = new(StringComparer.OrdinalIgnoreCase);
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly ILogger<InMemorySecretsManager> _logger;
 
     public InMemorySecretsManager(ILogger<InMemorySecretsManager>? logger = null)

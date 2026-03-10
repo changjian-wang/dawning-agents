@@ -34,7 +34,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<HotReloadableLLMProvider> _logger;
     private readonly IDisposable? _changeTokenRegistration;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private volatile ILLMProvider _innerProvider;
     private bool _disposed;
 

@@ -18,7 +18,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private DateTime? _lastScaleUp;
     private DateTime? _lastScaleDown;
     private readonly SemaphoreSlim _evaluateLock = new(1, 1);
-    private readonly object _stateLock = new();
+    private readonly Lock _stateLock = new();
     private bool _disposed;
 
     public AgentAutoScaler(

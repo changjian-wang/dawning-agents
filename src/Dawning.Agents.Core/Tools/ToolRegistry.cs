@@ -18,7 +18,7 @@ public sealed class ToolRegistry : IToolRegistry
     // 缓存，注册/移除工具时失效
     private volatile IReadOnlyList<ITool>? _cachedAllTools;
     private volatile IReadOnlyList<string>? _cachedCategories;
-    private readonly object _cacheLock = new();
+    private readonly Lock _cacheLock = new();
 
     public ToolRegistry(ILogger<ToolRegistry>? logger = null)
     {
