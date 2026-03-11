@@ -1,6 +1,7 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
 using Dawning.Agents.Abstractions.RAG;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -23,7 +24,7 @@ public static class MemoryServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<MemoryOptions>(configuration.GetSection(MemoryOptions.SectionName));
+        services.AddValidatedOptions<MemoryOptions>(configuration, MemoryOptions.SectionName);
 
         // 注册 Token 计数器
         services.TryAddSingleton<ITokenCounter>(sp =>

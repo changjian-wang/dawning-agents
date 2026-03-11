@@ -1,5 +1,6 @@
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -44,7 +45,7 @@ public static class RAGServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<RAGOptions>(configuration.GetSection(RAGOptions.SectionName));
+        services.AddValidatedOptions<RAGOptions>(configuration, RAGOptions.SectionName);
         return services.AddRAG();
     }
 
@@ -56,7 +57,7 @@ public static class RAGServiceCollectionExtensions
         Action<RAGOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         return services.AddRAG();
     }
 
@@ -91,8 +92,8 @@ public static class RAGServiceCollectionExtensions
     )
     {
         // 绑定配置
-        services.Configure<LLMOptions>(configuration.GetSection(LLMOptions.SectionName));
-        services.Configure<RAGOptions>(configuration.GetSection(RAGOptions.SectionName));
+        services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
+        services.AddValidatedOptions<RAGOptions>(configuration, RAGOptions.SectionName);
 
         // 注册 HttpClient（用于 Ollama）
         RegisterOllamaEmbeddingHttpClient(services);

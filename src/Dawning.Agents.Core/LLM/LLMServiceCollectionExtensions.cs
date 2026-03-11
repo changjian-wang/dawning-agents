@@ -1,4 +1,5 @@
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -75,7 +76,7 @@ public static class LLMServiceCollectionExtensions
     )
     {
         // 绑定配置
-        services.Configure<LLMOptions>(configuration.GetSection(LLMOptions.SectionName));
+        services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
 
         // 检查是否有配置，如果没有则回退到环境变量
         var section = configuration.GetSection(LLMOptions.SectionName);
@@ -132,7 +133,7 @@ public static class LLMServiceCollectionExtensions
     )
     {
         // 绑定配置
-        services.Configure<LLMOptions>(configuration.GetSection(LLMOptions.SectionName));
+        services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
 
         // 检查是否有配置，如果没有则回退到环境变量
         var section = configuration.GetSection(LLMOptions.SectionName);
@@ -158,7 +159,7 @@ public static class LLMServiceCollectionExtensions
         Action<LLMOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
 
         // 注册 HttpClient
         RegisterOllamaHttpClient(services);

@@ -23,7 +23,7 @@ public static class AgentServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
+        services.AddValidatedOptions<AgentOptions>(configuration, AgentOptions.SectionName);
 
         // 确保 ToolRegistry 已注册（Agent 可选依赖）
         services.AddToolRegistry();
@@ -44,7 +44,7 @@ public static class AgentServiceCollectionExtensions
         Action<AgentOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
 
         // 确保 ToolRegistry 已注册（Agent 可选依赖）
         services.AddToolRegistry();
@@ -69,7 +69,7 @@ public static class AgentServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
+        services.AddValidatedOptions<AgentOptions>(configuration, AgentOptions.SectionName);
 
         services.AddToolRegistry();
 
@@ -89,7 +89,7 @@ public static class AgentServiceCollectionExtensions
         Action<AgentOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
 
         services.AddToolRegistry();
 
