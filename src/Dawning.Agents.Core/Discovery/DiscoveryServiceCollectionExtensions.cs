@@ -1,5 +1,6 @@
 using System;
 using Dawning.Agents.Abstractions.Discovery;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,8 +17,9 @@ public static class DiscoveryServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<ServiceRegistryOptions>(
-            configuration.GetSection(ServiceRegistryOptions.SectionName)
+        services.AddValidatedOptions<ServiceRegistryOptions>(
+            configuration,
+            ServiceRegistryOptions.SectionName
         );
         services.Configure<KubernetesOptions>(
             configuration.GetSection(KubernetesOptions.SectionName)

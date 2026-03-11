@@ -1,4 +1,5 @@
 using Dawning.Agents.Abstractions.Resilience;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -41,8 +42,9 @@ public static class ResilienceServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<ResilienceOptions>(
-            configuration.GetSection(ResilienceOptions.SectionName)
+        services.AddValidatedOptions<ResilienceOptions>(
+            configuration,
+            ResilienceOptions.SectionName
         );
 
         services.TryAddSingleton<IResilienceProvider, PollyResilienceProvider>();
@@ -58,7 +60,7 @@ public static class ResilienceServiceCollectionExtensions
         Action<ResilienceOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         services.TryAddSingleton<IResilienceProvider, PollyResilienceProvider>();
 
         return services;
@@ -69,7 +71,7 @@ public static class ResilienceServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddResilience(this IServiceCollection services)
     {
-        services.Configure<ResilienceOptions>(_ => { });
+        services.AddValidatedOptions<ResilienceOptions>(_ => { });
         services.TryAddSingleton<IResilienceProvider, PollyResilienceProvider>();
 
         return services;

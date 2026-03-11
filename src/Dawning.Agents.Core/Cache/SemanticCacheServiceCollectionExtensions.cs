@@ -1,5 +1,6 @@
 using Dawning.Agents.Abstractions.Cache;
 using Dawning.Agents.Abstractions.RAG;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,8 +26,9 @@ public static class SemanticCacheServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<SemanticCacheOptions>(
-            configuration.GetSection(SemanticCacheOptions.SectionName)
+        services.AddValidatedOptions<SemanticCacheOptions>(
+            configuration,
+            SemanticCacheOptions.SectionName
         );
 
         services.TryAddSingleton<ISemanticCache, SemanticCache>();
@@ -45,7 +47,7 @@ public static class SemanticCacheServiceCollectionExtensions
         Action<SemanticCacheOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         services.TryAddSingleton<ISemanticCache, SemanticCache>();
 
         return services;
@@ -66,7 +68,7 @@ public static class SemanticCacheServiceCollectionExtensions
         int expirationMinutes = 1440
     )
     {
-        services.Configure<SemanticCacheOptions>(options =>
+        services.AddValidatedOptions<SemanticCacheOptions>(options =>
         {
             options.SimilarityThreshold = similarityThreshold;
             options.MaxEntries = maxEntries;

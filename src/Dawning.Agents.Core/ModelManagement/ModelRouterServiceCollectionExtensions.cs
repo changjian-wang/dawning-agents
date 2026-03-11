@@ -1,4 +1,5 @@
 using Dawning.Agents.Abstractions.LLM;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -33,8 +34,9 @@ public static class ModelRouterServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<ModelRouterOptions>(
-            configuration.GetSection(ModelRouterOptions.SectionName)
+        services.AddValidatedOptions<ModelRouterOptions>(
+            configuration,
+            ModelRouterOptions.SectionName
         );
 
         return services.AddModelRouterCore();
@@ -48,7 +50,7 @@ public static class ModelRouterServiceCollectionExtensions
         Action<ModelRouterOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         return services.AddModelRouterCore();
     }
 

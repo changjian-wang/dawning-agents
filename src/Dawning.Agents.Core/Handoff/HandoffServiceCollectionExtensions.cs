@@ -1,5 +1,6 @@
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Handoff;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -24,9 +25,7 @@ public static class HandoffServiceCollectionExtensions
     {
         if (configuration != null)
         {
-            services.Configure<HandoffOptions>(
-                configuration.GetSection(HandoffOptions.SectionName)
-            );
+            services.AddValidatedOptions<HandoffOptions>(configuration, HandoffOptions.SectionName);
         }
 
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
@@ -45,7 +44,7 @@ public static class HandoffServiceCollectionExtensions
         Action<HandoffOptions> configureOptions
     )
     {
-        services.Configure(configureOptions);
+        services.AddValidatedOptions(configureOptions);
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
 
         return services;
