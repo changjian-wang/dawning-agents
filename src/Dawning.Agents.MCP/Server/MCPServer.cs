@@ -411,6 +411,14 @@ public sealed class MCPServer : IAsyncDisposable
 
             return MCPResponse.Success(request.Id, callResult);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return MCPResponse.Failure(
+                request.Id,
+                MCPErrorCodes.ToolExecutionFailed,
+                "Tool execution cancelled"
+            );
+        }
         catch (OperationCanceledException)
         {
             return MCPResponse.Failure(
