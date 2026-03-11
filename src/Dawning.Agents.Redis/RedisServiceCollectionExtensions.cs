@@ -106,9 +106,25 @@ public static class RedisServiceCollectionExtensions
     )
     {
         services.AddRedisConnection(configuration);
-        services.Configure<DistributedQueueOptions>(
-            configuration.GetSection(DistributedQueueOptions.SectionName)
-        );
+        services
+            .AddOptions<DistributedQueueOptions>()
+            .Bind(configuration.GetSection(DistributedQueueOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(DistributedQueueOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services.TryAddSingleton<IDistributedAgentQueue, RedisAgentQueue>();
 
@@ -127,9 +143,25 @@ public static class RedisServiceCollectionExtensions
     )
     {
         services.AddRedisConnection(configuration);
-        services.Configure<DistributedLockOptions>(
-            configuration.GetSection(DistributedLockOptions.SectionName)
-        );
+        services
+            .AddOptions<DistributedLockOptions>()
+            .Bind(configuration.GetSection(DistributedLockOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(DistributedLockOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services.TryAddSingleton<IDistributedLockFactory, RedisDistributedLockFactory>();
 
@@ -148,9 +180,25 @@ public static class RedisServiceCollectionExtensions
     )
     {
         services.AddRedisConnection(configuration);
-        services.Configure<DistributedSessionOptions>(
-            configuration.GetSection(DistributedSessionOptions.SectionName)
-        );
+        services
+            .AddOptions<DistributedSessionOptions>()
+            .Bind(configuration.GetSection(DistributedSessionOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(DistributedSessionOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services.TryAddSingleton<RedisMemoryStoreFactory>();
 

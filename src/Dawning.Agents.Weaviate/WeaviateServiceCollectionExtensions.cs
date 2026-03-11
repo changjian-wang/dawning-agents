@@ -23,7 +23,25 @@ public static class WeaviateServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<WeaviateOptions>(configuration.GetSection(WeaviateOptions.SectionName));
+        services
+            .AddOptions<WeaviateOptions>()
+            .Bind(configuration.GetSection(WeaviateOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(WeaviateOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services
             .AddHttpClient(nameof(WeaviateVectorStore))
@@ -65,7 +83,25 @@ public static class WeaviateServiceCollectionExtensions
         Action<WeaviateOptions> configure
     )
     {
-        services.Configure(configure);
+        services
+            .AddOptions<WeaviateOptions>()
+            .Configure(configure)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(WeaviateOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services
             .AddHttpClient(nameof(WeaviateVectorStore))

@@ -33,7 +33,25 @@ public static class QdrantServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<QdrantOptions>(configuration.GetSection(QdrantOptions.SectionName));
+        services
+            .AddOptions<QdrantOptions>()
+            .Bind(configuration.GetSection(QdrantOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(QdrantOptions)} configuration"
+            )
+            .ValidateOnStart();
         RegisterQdrantClient(services);
         services.TryAddSingleton<IVectorStore, QdrantVectorStore>();
         return services;
@@ -47,7 +65,25 @@ public static class QdrantServiceCollectionExtensions
         Action<QdrantOptions> configure
     )
     {
-        services.Configure(configure);
+        services
+            .AddOptions<QdrantOptions>()
+            .Configure(configure)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(QdrantOptions)} configuration"
+            )
+            .ValidateOnStart();
         RegisterQdrantClient(services);
         services.TryAddSingleton<IVectorStore, QdrantVectorStore>();
         return services;

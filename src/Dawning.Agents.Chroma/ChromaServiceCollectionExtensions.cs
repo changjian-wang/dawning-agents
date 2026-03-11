@@ -23,7 +23,25 @@ public static class ChromaServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<ChromaOptions>(configuration.GetSection(ChromaOptions.SectionName));
+        services
+            .AddOptions<ChromaOptions>()
+            .Bind(configuration.GetSection(ChromaOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(ChromaOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services
             .AddHttpClient(nameof(ChromaVectorStore))
@@ -66,7 +84,25 @@ public static class ChromaServiceCollectionExtensions
         Action<ChromaOptions> configureOptions
     )
     {
-        services.Configure(configureOptions);
+        services
+            .AddOptions<ChromaOptions>()
+            .Configure(configureOptions)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(ChromaOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services
             .AddHttpClient(nameof(ChromaVectorStore))

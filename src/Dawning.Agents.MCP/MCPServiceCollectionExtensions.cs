@@ -25,9 +25,25 @@ public static class MCPServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<MCPServerOptions>(
-            configuration.GetSection(MCPServerOptions.SectionName)
-        );
+        services
+            .AddOptions<MCPServerOptions>()
+            .Bind(configuration.GetSection(MCPServerOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPServerOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<IMCPTransport, StdioTransport>();
         services.TryAddSingleton<MCPServer>();
         return services;
@@ -44,7 +60,25 @@ public static class MCPServiceCollectionExtensions
         Action<MCPServerOptions> configureOptions
     )
     {
-        services.Configure(configureOptions);
+        services
+            .AddOptions<MCPServerOptions>()
+            .Configure(configureOptions)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPServerOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<IMCPTransport, StdioTransport>();
         services.TryAddSingleton<MCPServer>();
         return services;
@@ -55,7 +89,25 @@ public static class MCPServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddMCPServer(this IServiceCollection services)
     {
-        services.Configure<MCPServerOptions>(_ => { });
+        services
+            .AddOptions<MCPServerOptions>()
+            .Configure(_ => { })
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPServerOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<IMCPTransport, StdioTransport>();
         services.TryAddSingleton<MCPServer>();
         return services;
@@ -110,9 +162,25 @@ public static class MCPServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<MCPClientOptions>(
-            configuration.GetSection(MCPClientOptions.SectionName)
-        );
+        services
+            .AddOptions<MCPClientOptions>()
+            .Bind(configuration.GetSection(MCPClientOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPClientOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<MCPClient>();
         return services;
     }
@@ -128,7 +196,25 @@ public static class MCPServiceCollectionExtensions
         Action<MCPClientOptions> configureOptions
     )
     {
-        services.Configure(configureOptions);
+        services
+            .AddOptions<MCPClientOptions>()
+            .Configure(configureOptions)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPClientOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<MCPClient>();
         return services;
     }
@@ -138,7 +224,25 @@ public static class MCPServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddMCPClient(this IServiceCollection services)
     {
-        services.Configure<MCPClientOptions>(_ => { });
+        services
+            .AddOptions<MCPClientOptions>()
+            .Configure(_ => { })
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(MCPClientOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton<MCPClient>();
         return services;
     }

@@ -33,17 +33,35 @@ public static class PineconeServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<PineconeOptions>(opts =>
-        {
-            configuration.GetSection(PineconeOptions.SectionName).Bind(opts);
-
-            // 支持环境变量覆盖
-            var envApiKey = Environment.GetEnvironmentVariable("PINECONE_API_KEY");
-            if (!string.IsNullOrWhiteSpace(envApiKey))
+        services
+            .AddOptions<PineconeOptions>()
+            .Configure(opts =>
             {
-                opts.ApiKey = envApiKey;
-            }
-        });
+                configuration.GetSection(PineconeOptions.SectionName).Bind(opts);
+
+                // 支持环境变量覆盖
+                var envApiKey = Environment.GetEnvironmentVariable("PINECONE_API_KEY");
+                if (!string.IsNullOrWhiteSpace(envApiKey))
+                {
+                    opts.ApiKey = envApiKey;
+                }
+            })
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(PineconeOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services.TryAddSingleton(sp =>
         {
@@ -62,7 +80,25 @@ public static class PineconeServiceCollectionExtensions
         Action<PineconeOptions> configure
     )
     {
-        services.Configure(configure);
+        services
+            .AddOptions<PineconeOptions>()
+            .Configure(configure)
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(PineconeOptions)} configuration"
+            )
+            .ValidateOnStart();
         services.TryAddSingleton(sp =>
         {
             var opts = sp.GetRequiredService<IOptions<PineconeOptions>>().Value;
