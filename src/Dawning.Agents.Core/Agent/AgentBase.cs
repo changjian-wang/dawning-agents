@@ -98,7 +98,11 @@ public abstract class AgentBase : IAgent
 
         var stopwatch = Stopwatch.StartNew();
         var costTracker = CreateCostTracker();
-        Logger.LogInformation("Agent {AgentName} 开始执行任务: {Input}", Name, context.UserInput);
+        Logger.LogInformation(
+            "Agent {AgentName} 开始执行任务，输入长度: {InputLength}",
+            Name,
+            context.UserInput.Length
+        );
 
         try
         {

@@ -101,7 +101,9 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
         // 流式响应通常不返回 Token 统计，但我们仍然转发请求
         // 如果需要估算，可以在流结束后手动计算
         await foreach (
-            var chunk in _innerProvider.ChatStreamAsync(messages, options, cancellationToken)
+            var chunk in _innerProvider
+                .ChatStreamAsync(messages, options, cancellationToken)
+                .ConfigureAwait(false)
         )
         {
             yield return chunk;
@@ -121,7 +123,9 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
         StreamingTokenUsage? lastUsage = null;
 
         await foreach (
-            var evt in _innerProvider.ChatStreamEventsAsync(messages, options, cancellationToken)
+            var evt in _innerProvider
+                .ChatStreamEventsAsync(messages, options, cancellationToken)
+                .ConfigureAwait(false)
         )
         {
             if (evt.Usage is not null)

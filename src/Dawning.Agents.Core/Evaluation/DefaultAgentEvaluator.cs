@@ -145,18 +145,20 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
         // 使用信号量限制并发
         using var semaphore = new SemaphoreSlim(_options.MaxConcurrency);
-        var tasks = testCaseList.Select(async testCase =>
-        {
-            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-            try
+        var tasks = testCaseList
+            .Select(async testCase =>
             {
-                return await EvaluateAsync(testCase, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        });
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    return await EvaluateAsync(testCase, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            })
+            .ToList();
 
         if (_options.ContinueOnFailure)
         {

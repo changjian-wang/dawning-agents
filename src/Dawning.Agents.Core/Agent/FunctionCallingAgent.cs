@@ -76,9 +76,9 @@ public class FunctionCallingAgent : AgentBase
         var stopwatch = Stopwatch.StartNew();
         var costTracker = CreateCostTracker();
         Logger.LogInformation(
-            "FunctionCallingAgent {AgentName} 开始执行任务: {Input}",
+            "FunctionCallingAgent {AgentName} 开始执行任务，输入长度: {InputLength}",
             Name,
-            context.UserInput
+            context.UserInput.Length
         );
 
         try
