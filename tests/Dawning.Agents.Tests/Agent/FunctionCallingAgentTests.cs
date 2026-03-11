@@ -327,6 +327,48 @@ public class FunctionCallingAgentTests
     }
 
     [Fact]
+    public async Task RunAsync_ToolCancellation_ShouldReturnFailed()
+    {
+        var cancellableTool = new Mock<ITool>();
+        cancellableTool.Setup(t => t.Name).Returns("CancelableTool");
+        cancellableTool.Setup(t => t.Description).Returns("Cancels execution");
+        cancellableTool
+            .Setup(t => t.ParametersSchema)
+            .Returns("""{"type":"object","properties":{}}""");
+        cancellableTool.Setup(t => t.RequiresConfirmation).Returns(false);
+        cancellableTool.Setup(t => t.RiskLevel).Returns(ToolRiskLevel.Low);
+        cancellableTool.Setup(t => t.Category).Returns("test");
+        cancellableTool
+            .Setup(t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        _toolRegistry.Register(cancellableTool.Object);
+
+        _mockProvider
+            .Setup(p =>
+                p.ChatAsync(
+                    It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.IsAny<ChatCompletionOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ChatCompletionResponse
+                {
+                    Content = "",
+                    FinishReason = "tool_calls",
+                    ToolCalls = [new ToolCall("call_1", "CancelableTool", """{}""")],
+                }
+            );
+
+        var agent = CreateAgent();
+
+        var response = await agent.RunAsync("Use cancelable tool");
+
+        response.Success.Should().BeFalse();
+        response.Error.Should().Contain("cancelled");
+    }
+
+    [Fact]
     public async Task RunAsync_ExceedsMaxSteps_ShouldReturnFailed()
     {
         var searchTool = CreateMockTool("Search", "Search", "more info needed");

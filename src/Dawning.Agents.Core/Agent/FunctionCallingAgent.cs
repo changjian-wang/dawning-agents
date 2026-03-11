@@ -294,6 +294,10 @@ public class FunctionCallingAgent : AgentBase
 
             return result.Success ? result.Output : $"Tool error: {result.Error}";
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "工具 {ToolName} 执行失败", toolCall.FunctionName);
