@@ -55,14 +55,17 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         int stepCount = 0;
         string? failureReason = null;
         TokenUsage? tokenUsage = null;
+        using var evaluationCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken
+        );
+        evaluationCts.CancelAfter(TimeSpan.FromSeconds(_options.TestTimeoutSeconds));
 
         try
         {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(_options.TestTimeoutSeconds));
-
             // 执行 Agent
-            var response = await _agent.RunAsync(testCase.Input, cts.Token).ConfigureAwait(false);
+            var response = await _agent
+                .RunAsync(testCase.Input, evaluationCts.Token)
+                .ConfigureAwait(false);
 
             stopwatch.Stop();
 
@@ -95,6 +98,10 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
                 metricScores[evaluator.MetricName] = score;
                 _logger.LogTrace("Metric {Metric}: {Score}", evaluator.MetricName, score);
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (OperationCanceledException)
         {
