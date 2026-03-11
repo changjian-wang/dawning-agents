@@ -37,6 +37,9 @@ public sealed class ObservableAgent : IAgent, IDisposable
         ILogger? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(innerAgent);
+        ArgumentNullException.ThrowIfNull(telemetry);
+        ArgumentNullException.ThrowIfNull(config);
         _innerAgent = innerAgent;
         _telemetry = telemetry;
         _agentLogger = new AgentLogger(logger ?? NullLogger.Instance, innerAgent.Name, config);

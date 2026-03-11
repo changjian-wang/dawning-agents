@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.HumanLoop;
 /// <summary>
 /// 用于 Web/API 交互的异步回调处理器
 /// </summary>
-public class AsyncCallbackHandler : IHumanInteractionHandler
+public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
 {
     private readonly ConcurrentDictionary<
         string,
@@ -64,7 +64,14 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         _logger.LogDebug("发送确认请求 {RequestId}", request.Id);
 
         // 触发事件供 UI 处理
-        ConfirmationRequested?.Invoke(this, request);
+        try
+        {
+            ConfirmationRequested?.Invoke(this, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "确认请求事件处理器执行失败 {RequestId}", request.Id);
+        }
 
         try
         {
@@ -114,7 +121,14 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         _logger.LogDebug("发送输入请求 {RequestId}", requestId);
 
         // 触发事件供 UI 处理
-        InputRequested?.Invoke(this, (requestId, prompt, defaultValue));
+        try
+        {
+            InputRequested?.Invoke(this, (requestId, prompt, defaultValue));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "输入请求事件处理器执行失败 {RequestId}", requestId);
+        }
 
         try
         {
@@ -134,7 +148,14 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
     )
     {
         _logger.LogDebug("发送通知：{Level} - {Message}", level, message);
-        NotificationSent?.Invoke(this, (message, level));
+        try
+        {
+            NotificationSent?.Invoke(this, (message, level));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "通知事件处理器执行失败");
+        }
         return Task.CompletedTask;
     }
 
@@ -152,7 +173,14 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
         _logger.LogDebug("发送升级请求 {RequestId}", request.Id);
 
         // 触发事件供 UI 处理
-        EscalationRequested?.Invoke(this, request);
+        try
+        {
+            EscalationRequested?.Invoke(this, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "升级请求事件处理器执行失败 {RequestId}", request.Id);
+        }
 
         try
         {
@@ -264,5 +292,29 @@ public class AsyncCallbackHandler : IHumanInteractionHandler
             return tcs.TrySetCanceled();
         }
         return false;
+    }
+
+    /// <summary>
+    /// 取消所有挂起的请求并释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var tcs in _pendingConfirmations.Values)
+        {
+            tcs.TrySetCanceled();
+        }
+        _pendingConfirmations.Clear();
+
+        foreach (var tcs in _pendingEscalations.Values)
+        {
+            tcs.TrySetCanceled();
+        }
+        _pendingEscalations.Clear();
+
+        foreach (var tcs in _pendingInputs.Values)
+        {
+            tcs.TrySetCanceled();
+        }
+        _pendingInputs.Clear();
     }
 }

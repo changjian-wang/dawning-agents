@@ -154,19 +154,30 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
             return;
         }
 
-        var expireThreshold = DateTimeOffset.UtcNow.AddSeconds(-_options.ServiceExpireSeconds);
-        var expiredIds = _instances
-            .Where(kv => kv.Value.LastHeartbeat < expireThreshold)
-            .Select(kv => kv.Key)
-            .ToList();
-
-        foreach (var id in expiredIds)
+        try
         {
-            if (_instances.TryRemove(id, out var instance))
+            var expireThreshold = DateTimeOffset.UtcNow.AddSeconds(-_options.ServiceExpireSeconds);
+            var expiredIds = _instances
+                .Where(kv => kv.Value.LastHeartbeat < expireThreshold)
+                .Select(kv => kv.Key)
+                .ToList();
+
+            foreach (var id in expiredIds)
             {
-                _logger.LogWarning("服务过期: {ServiceName} (ID={Id})", instance.ServiceName, id);
-                NotifyWatchers(instance.ServiceName);
+                if (_instances.TryRemove(id, out var instance))
+                {
+                    _logger.LogWarning(
+                        "服务过期: {ServiceName} (ID={Id})",
+                        instance.ServiceName,
+                        id
+                    );
+                    NotifyWatchers(instance.ServiceName);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "清理过期实例时发生错误");
         }
     }
 

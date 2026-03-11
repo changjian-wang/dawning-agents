@@ -29,6 +29,8 @@ public sealed class EphemeralTool : ITool
         ILogger? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(sandbox);
         _definition = definition;
         _sandbox = sandbox;
         _defaultOptions = defaultOptions ?? new ToolSandboxOptions();

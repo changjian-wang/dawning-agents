@@ -17,6 +17,9 @@ public sealed class AgentLogger
     /// </summary>
     public AgentLogger(ILogger logger, string agentName, TelemetryConfig config)
     {
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentName);
+        ArgumentNullException.ThrowIfNull(config);
         _logger = logger;
         _agentName = agentName;
         _config = config;

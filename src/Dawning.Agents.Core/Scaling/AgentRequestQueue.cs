@@ -32,8 +32,15 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         CancellationToken cancellationToken = default
     )
     {
-        await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
-        _logger.LogDebug("工作项 {WorkItemId} 已入队", item.Id);
+        try
+        {
+            await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("工作项 {WorkItemId} 已入队", item.Id);
+        }
+        catch (ChannelClosedException)
+        {
+            throw new InvalidOperationException("请求队列已关闭，无法入队");
+        }
     }
 
     /// <inheritdoc />

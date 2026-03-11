@@ -27,6 +27,8 @@ public class WorkflowBuilder
     /// </summary>
     public static WorkflowBuilder Create(string id, string name)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         return new WorkflowBuilder(id, name);
     }
 

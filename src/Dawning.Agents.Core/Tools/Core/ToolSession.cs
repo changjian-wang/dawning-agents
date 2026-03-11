@@ -30,6 +30,8 @@ public sealed class ToolSession : IToolSession
         ILogger<ToolSession>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(sandbox);
+        ArgumentNullException.ThrowIfNull(store);
         _sandbox = sandbox;
         _store = store;
         _defaultOptions = defaultOptions ?? new ToolSandboxOptions();

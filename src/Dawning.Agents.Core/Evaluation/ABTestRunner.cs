@@ -30,6 +30,9 @@ public sealed class ABTestRunner
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(evaluatorA);
+        ArgumentNullException.ThrowIfNull(evaluatorB);
+        ArgumentNullException.ThrowIfNull(testCases);
         _logger.LogInformation("Starting A/B test: {A} vs {B}", evaluatorA.Name, evaluatorB.Name);
 
         var testCaseList = testCases.ToList();

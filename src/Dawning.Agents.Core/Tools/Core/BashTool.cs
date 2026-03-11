@@ -34,6 +34,7 @@ public sealed class BashTool : ITool
         ILogger<BashTool>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(sandbox);
         _sandbox = sandbox;
         _defaultOptions = defaultOptions ?? new ToolSandboxOptions();
         _commandAnalyzer = commandAnalyzer ?? new CommandAnalyzer();

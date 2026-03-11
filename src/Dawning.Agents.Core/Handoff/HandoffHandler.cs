@@ -46,6 +46,7 @@ public class HandoffHandler : IHandoffHandler
     /// <inheritdoc />
     public void RegisterAgents(IEnumerable<IAgent> agents)
     {
+        ArgumentNullException.ThrowIfNull(agents);
         foreach (var agent in agents)
         {
             RegisterAgent(agent);

@@ -67,6 +67,7 @@ public abstract class OrchestratorBase : IOrchestrator
     /// </summary>
     public OrchestratorBase AddAgents(IEnumerable<IAgent> agents)
     {
+        ArgumentNullException.ThrowIfNull(agents);
         foreach (var agent in agents)
         {
             AddAgent(agent);
