@@ -1,8 +1,11 @@
 namespace Dawning.Agents.Tests.MCP;
 
+using System.Reflection;
 using Dawning.Agents.MCP.Client;
 using Dawning.Agents.MCP.Protocol;
+using Dawning.Agents.MCP.Transport;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 public class MCPClientOptionsTests
@@ -107,6 +110,69 @@ public class MCPToolProxyTests
 
         // Assert
         proxy.Description.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenCancellationRequested_ShouldThrowOperationCanceledException()
+    {
+        // Arrange
+        var options = Options.Create(new MCPClientOptions());
+        var client = new MCPClient(options);
+
+        SetPrivateField(client, "_transport", new CancelOnSendTransport());
+        SetPrivateField(client, "_initialized", true);
+
+        var definition = new MCPToolDefinition
+        {
+            Name = "test_tool",
+            Description = "A test tool",
+            InputSchema = new MCPInputSchema(),
+        };
+
+        var proxy = new MCPToolProxy(client, definition);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var act = async () => await proxy.ExecuteAsync("{}", cts.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object? value)
+    {
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+        field!.SetValue(target, value);
+    }
+
+    private sealed class CancelOnSendTransport : IMCPTransport
+    {
+        public bool IsConnected => true;
+
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task SendAsync(string message, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.CompletedTask;
+        }
+
+        public Task<string?> ReceiveAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
     }
 }
 

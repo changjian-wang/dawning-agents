@@ -71,6 +71,10 @@ public sealed class MCPToolProxy : ITool
 
             return result.IsError ? ToolResult.Fail(output) : ToolResult.Ok(output);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (MCPException ex)
         {
             _logger.LogError(ex, "MCP tool call failed: {Tool}", _definition.Name);
