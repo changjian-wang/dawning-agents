@@ -67,6 +67,9 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
                 .RunAsync(testCase.Input, evaluationCts.Token)
                 .ConfigureAwait(false);
 
+            // 某些 Agent 可能将取消转换为失败结果而不抛异常；在这里强制遵守取消约定
+            evaluationCts.Token.ThrowIfCancellationRequested();
+
             stopwatch.Stop();
 
             actualOutput = response.FinalAnswer;

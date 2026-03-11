@@ -22,8 +22,7 @@ public class DefaultAgentEvaluatorCancellationTests
 
         var testCase = new EvaluationTestCase { Id = "cancel-001", Input = "cancel" };
 
-        var act = async () =>
-            await evaluator.EvaluateAsync(testCase, cts.Token).ConfigureAwait(false);
+        var act = async () => await evaluator.EvaluateAsync(testCase, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
@@ -63,6 +62,24 @@ public class DefaultAgentEvaluatorCancellationTests
 
         result.Passed.Should().BeFalse();
         result.FailureReason.Should().Be("Evaluation timed out");
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_Should_Propagate_Cancellation_When_Agent_Swallows_It()
+    {
+        var evaluator = new DefaultAgentEvaluator(
+            new CancellationSwallowingAgent(),
+            Options.Create(new EvaluationOptions { TestTimeoutSeconds = 30 })
+        );
+
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var testCase = new EvaluationTestCase { Id = "cancel-002", Input = "cancel" };
+
+        var act = async () => await evaluator.EvaluateAsync(testCase, cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     private sealed class BlockingAgent : IAgent
@@ -124,6 +141,36 @@ public class DefaultAgentEvaluatorCancellationTests
         {
             await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
             return 1.0;
+        }
+    }
+
+    private sealed class CancellationSwallowingAgent : IAgent
+    {
+        public string Name => "swallowing-agent";
+
+        public string Instructions => "test";
+
+        public Task<AgentResponse> RunAsync(
+            string input,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromResult(
+                    AgentResponse.Failed("Operation cancelled", [], TimeSpan.Zero)
+                );
+            }
+
+            return Task.FromResult(AgentResponse.Successful("ok", [], TimeSpan.Zero));
+        }
+
+        public Task<AgentResponse> RunAsync(
+            AgentContext context,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return RunAsync(context.UserInput, cancellationToken);
         }
     }
 }
