@@ -164,11 +164,12 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         }
 
         // 取消并释放之前的 Watch（使用 Interlocked.Exchange 防止并发竞态）
-        var oldCts = Interlocked.Exchange(ref _watchCts, new CancellationTokenSource());
+        var newCts = new CancellationTokenSource();
+        var oldCts = Interlocked.Exchange(ref _watchCts, newCts);
         oldCts?.Cancel();
         oldCts?.Dispose();
 
-        var task = WatchLoopAsync(serviceName, _watchCts!.Token);
+        var task = WatchLoopAsync(serviceName, newCts.Token);
         _watchTask = task;
         _ = task.ContinueWith(
             t =>

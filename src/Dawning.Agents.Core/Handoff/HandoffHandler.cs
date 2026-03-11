@@ -249,6 +249,20 @@ public class HandoffHandler : IHandoffHandler
                         )
                         .ConfigureAwait(false);
                 }
+                else
+                {
+                    _logger.LogWarning(
+                        "Agent {AgentName} produced malformed handoff response",
+                        agentName
+                    );
+
+                    return HandoffResult.Failed(
+                        agentName,
+                        "Malformed handoff response: unable to parse handoff request",
+                        chain,
+                        TimeSpan.Zero
+                    );
+                }
             }
 
             // 返回最终结果

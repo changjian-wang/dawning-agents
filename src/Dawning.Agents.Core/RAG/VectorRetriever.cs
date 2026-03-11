@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Logging;
@@ -89,7 +90,7 @@ public sealed class VectorRetriever : IRetriever
             var context = _options
                 .ContextTemplate.Replace("{index}", (i + 1).ToString())
                 .Replace("{content}", result.Chunk.Content)
-                .Replace("{score}", result.Score.ToString("F2"))
+                .Replace("{score}", result.Score.ToString("F2", CultureInfo.InvariantCulture))
                 .Replace("{source}", result.Chunk.Metadata.GetValueOrDefault("source", "unknown"));
 
             contextBuilder.AppendLine(context);

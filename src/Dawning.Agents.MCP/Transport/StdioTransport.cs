@@ -44,6 +44,7 @@ public sealed class StdioTransport : IMCPTransport
     {
         var oldCts = _readCts;
         _readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        oldCts?.Cancel();
         oldCts?.Dispose();
         _isConnected = true;
 

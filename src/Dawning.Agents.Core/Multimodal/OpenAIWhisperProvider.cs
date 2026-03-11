@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -208,7 +209,10 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
 
         if (options.Temperature > 0)
         {
-            content.Add(new StringContent(options.Temperature.ToString("F2")), "temperature");
+            content.Add(
+                new StringContent(options.Temperature.ToString("F2", CultureInfo.InvariantCulture)),
+                "temperature"
+            );
         }
 
         // 时间戳粒度

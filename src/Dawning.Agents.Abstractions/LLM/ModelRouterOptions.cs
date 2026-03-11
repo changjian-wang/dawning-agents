@@ -221,14 +221,14 @@ public class ModelStatistics
     /// </summary>
     public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
     {
-        var currentCount = Interlocked.Increment(ref _totalRequests);
-        Interlocked.Increment(ref _successfulRequests);
+        Interlocked.Increment(ref _totalRequests);
+        var successCount = Interlocked.Increment(ref _successfulRequests);
         Interlocked.Add(ref _totalInputTokens, inputTokens);
         Interlocked.Add(ref _totalOutputTokens, outputTokens);
         lock (_lock)
         {
             TotalCost += cost;
-            AverageLatencyMs = (AverageLatencyMs * (currentCount - 1) + latencyMs) / currentCount;
+            AverageLatencyMs = (AverageLatencyMs * (successCount - 1) + latencyMs) / successCount;
             LastUpdated = DateTimeOffset.UtcNow;
         }
     }
