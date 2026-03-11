@@ -155,10 +155,13 @@ public class OpenAIVisionProvider : IVisionProvider
             using var doc = JsonDocument.Parse(responseJson);
             var root = doc.RootElement;
 
-            var content = root.GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
+            var choices = root.GetProperty("choices");
+            if (choices.GetArrayLength() == 0)
+            {
+                return VisionChatResponse.Failed("API 返回空的 choices 数组");
+            }
+
+            var content = choices[0].GetProperty("message").GetProperty("content").GetString();
 
             var usage = root.GetProperty("usage");
             var promptTokens = usage.GetProperty("prompt_tokens").GetInt32();
@@ -253,7 +256,13 @@ public class OpenAIVisionProvider : IVisionProvider
             }
 
             using var doc = JsonDocument.Parse(data);
-            var delta = doc.RootElement.GetProperty("choices")[0].GetProperty("delta");
+            var choices = doc.RootElement.GetProperty("choices");
+            if (choices.GetArrayLength() == 0)
+            {
+                continue;
+            }
+
+            var delta = choices[0].GetProperty("delta");
 
             if (delta.TryGetProperty("content", out var contentElement))
             {
