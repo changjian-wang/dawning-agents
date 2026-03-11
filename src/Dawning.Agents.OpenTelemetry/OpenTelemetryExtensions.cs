@@ -98,9 +98,25 @@ public static class OpenTelemetryServiceCollectionExtensions
 
         options.Validate();
 
-        services.Configure<OpenTelemetryOptions>(
-            configuration.GetSection(OpenTelemetryOptions.SectionName)
-        );
+        services
+            .AddOptions<OpenTelemetryOptions>()
+            .Bind(configuration.GetSection(OpenTelemetryOptions.SectionName))
+            .Validate(
+                configured =>
+                {
+                    try
+                    {
+                        configured.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(OpenTelemetryOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         var resourceBuilder = ResourceBuilder
             .CreateDefault()

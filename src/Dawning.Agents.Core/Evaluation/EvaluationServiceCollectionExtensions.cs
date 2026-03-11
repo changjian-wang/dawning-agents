@@ -1,6 +1,7 @@
 namespace Dawning.Agents.Core.Evaluation;
 
 using Dawning.Agents.Abstractions.Evaluation;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -18,8 +19,9 @@ public static class EvaluationServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<EvaluationOptions>(
-            configuration.GetSection(EvaluationOptions.SectionName)
+        services.AddValidatedOptions<EvaluationOptions>(
+            configuration,
+            EvaluationOptions.SectionName
         );
 
         services.AddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();
@@ -44,11 +46,11 @@ public static class EvaluationServiceCollectionExtensions
     {
         if (configureOptions != null)
         {
-            services.Configure(configureOptions);
+            services.AddValidatedOptions(configureOptions);
         }
         else
         {
-            services.Configure<EvaluationOptions>(_ => { });
+            services.AddValidatedOptions<EvaluationOptions>(_ => { });
         }
 
         services.AddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();

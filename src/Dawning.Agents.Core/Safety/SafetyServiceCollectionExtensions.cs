@@ -1,4 +1,5 @@
 using Dawning.Agents.Abstractions.Safety;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -22,7 +23,7 @@ public static class SafetyServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<SafetyOptions>(configuration.GetSection(SafetyOptions.SectionName));
+        services.AddValidatedOptions<SafetyOptions>(configuration, SafetyOptions.SectionName);
 
         return services.AddSafetyGuardrailsCore();
     }
@@ -40,7 +41,11 @@ public static class SafetyServiceCollectionExtensions
     {
         if (configure != null)
         {
-            services.Configure(configure);
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<SafetyOptions>(_ => { });
         }
 
         return services.AddSafetyGuardrailsCore();
@@ -207,7 +212,11 @@ public static class SafetyServiceCollectionExtensions
     {
         if (configure != null)
         {
-            services.Configure(configure);
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<RateLimitOptions>(_ => { });
         }
 
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
@@ -224,9 +233,7 @@ public static class SafetyServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<RateLimitOptions>(
-            configuration.GetSection(RateLimitOptions.SectionName)
-        );
+        services.AddValidatedOptions<RateLimitOptions>(configuration, RateLimitOptions.SectionName);
 
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
         services.TryAddSingleton<TokenRateLimiter>();
@@ -247,7 +254,11 @@ public static class SafetyServiceCollectionExtensions
     {
         if (configure != null)
         {
-            services.Configure(configure);
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<AuditOptions>(_ => { });
         }
 
         services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();
@@ -263,7 +274,7 @@ public static class SafetyServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<AuditOptions>(configuration.GetSection(AuditOptions.SectionName));
+        services.AddValidatedOptions<AuditOptions>(configuration, AuditOptions.SectionName);
 
         services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();
 

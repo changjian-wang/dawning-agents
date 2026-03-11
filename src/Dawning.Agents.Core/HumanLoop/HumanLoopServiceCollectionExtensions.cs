@@ -1,4 +1,5 @@
 using Dawning.Agents.Abstractions.HumanLoop;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -21,9 +22,7 @@ public static class HumanLoopServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<HumanLoopOptions>(
-            configuration.GetSection(HumanLoopOptions.SectionName)
-        );
+        services.AddValidatedOptions<HumanLoopOptions>(configuration, HumanLoopOptions.SectionName);
 
         services.TryAddSingleton<ApprovalConfig>();
         services.TryAddSingleton<IHumanInteractionHandler, AutoApprovalHandler>();
@@ -45,11 +44,11 @@ public static class HumanLoopServiceCollectionExtensions
     {
         if (configure != null)
         {
-            services.Configure(configure);
+            services.AddValidatedOptions(configure);
         }
         else
         {
-            services.Configure<HumanLoopOptions>(_ => { });
+            services.AddValidatedOptions<HumanLoopOptions>(_ => { });
         }
 
         services.TryAddSingleton<ApprovalConfig>();
@@ -117,7 +116,11 @@ public static class HumanLoopServiceCollectionExtensions
     {
         if (configure != null)
         {
-            services.Configure(configure);
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<HumanLoopOptions>(_ => { });
         }
 
         services.TryAddScoped<HumanInLoopAgent>();

@@ -22,7 +22,7 @@ public static class ScalingServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<ScalingOptions>(configuration.GetSection(ScalingOptions.SectionName));
+        services.AddValidatedOptions<ScalingOptions>(configuration, ScalingOptions.SectionName);
         return services;
     }
 
@@ -34,7 +34,7 @@ public static class ScalingServiceCollectionExtensions
         Action<ScalingOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         return services;
     }
 
@@ -146,14 +146,16 @@ public static class ScalingServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<AgentDeploymentOptions>(
-            configuration.GetSection(AgentDeploymentOptions.SectionName)
+        services.AddValidatedOptions<AgentDeploymentOptions>(
+            configuration,
+            AgentDeploymentOptions.SectionName
         );
-        services.Configure<LLMDeploymentOptions>(
-            configuration.GetSection(LLMDeploymentOptions.SectionName)
+        services.AddValidatedOptions<LLMDeploymentOptions>(
+            configuration,
+            LLMDeploymentOptions.SectionName
         );
-        services.Configure<CacheOptions>(configuration.GetSection(CacheOptions.SectionName));
-        services.Configure<ScalingOptions>(configuration.GetSection(ScalingOptions.SectionName));
+        services.AddValidatedOptions<CacheOptions>(configuration, CacheOptions.SectionName);
+        services.AddValidatedOptions<ScalingOptions>(configuration, ScalingOptions.SectionName);
         return services;
     }
 

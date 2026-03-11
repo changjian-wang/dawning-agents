@@ -2,6 +2,7 @@ namespace Dawning.Agents.Core.Orchestration;
 
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Orchestration;
+using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -19,8 +20,9 @@ public static class OrchestrationServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<OrchestratorOptions>(
-            configuration.GetSection(OrchestratorOptions.SectionName)
+        services.AddValidatedOptions<OrchestratorOptions>(
+            configuration,
+            OrchestratorOptions.SectionName
         );
 
         return services;
@@ -34,7 +36,7 @@ public static class OrchestrationServiceCollectionExtensions
         Action<OrchestratorOptions> configure
     )
     {
-        services.Configure(configure);
+        services.AddValidatedOptions(configure);
         return services;
     }
 

@@ -53,7 +53,25 @@ public static class RedisServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        services
+            .AddOptions<RedisOptions>()
+            .Bind(configuration.GetSection(RedisOptions.SectionName))
+            .Validate(
+                options =>
+                {
+                    try
+                    {
+                        options.Validate();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                },
+                $"Invalid {nameof(RedisOptions)} configuration"
+            )
+            .ValidateOnStart();
 
         services.TryAddSingleton<IConnectionMultiplexer>(sp =>
         {
