@@ -1,56 +1,60 @@
 # Skills 改进计划
 
-> 当前状态：13 个 skills，覆盖开发全流程
+> 当前状态：16 个 skills + 2 个 agents，覆盖开发全流程
 > 创建时间：2026-02-27
+> 最后更新：2026-03-11（R38 审计后全面更新）
 
 ## 现有 Skills 清单
 
-| Skill | 用途 | 使用频率 |
-|-------|------|---------|
-| architecture | 项目结构、模块边界、核心接口 | 中 |
-| code-update | 编码模式、模板、命名空间规则 | 高 |
-| code-review | 代码审查清单、质量门禁 | 中 |
-| deep-audit | 逐行深度代码审计 | 高（近期） |
-| build-project | 构建命令、编译错误 | 高 |
-| run-tests | 测试执行、覆盖率 | 高 |
-| csharpier | 格式化规则 | 高 |
-| git-workflow | 提交规范、pre-commit | 高 |
-| markdown | Markdown/XML 文档规范 | 低 |
-| nuget-release | 版本管理、打包发布 | 低 |
-| deployment | Docker、K8s、可观测性 | 低 |
-| changelog | CHANGELOG 格式、release notes | 低 |
-| troubleshooting | 构建/测试/部署排错 | 中 |
+| Skill | 用途 | 使用频率 | 状态 |
+|-------|------|---------|------|
+| architecture | 项目结构、模块边界、核心接口 | 中 | ✅ 完备 |
+| code-update | 编码模式、模板、禁止事项、安全编码模式 | 高 | ✅ R38 更新 |
+| code-review | 代码审查（10 维度 + 禁止事项 13 条） | 中 | ✅ R38 更新 |
+| deep-audit | 深度代码审计（18 维度、双模式、扫描角度库） | 高 | ✅ R38 重写 |
+| build-project | 构建命令、编译错误 | 高 | ✅ 完备 |
+| run-tests | 测试执行、覆盖率（2225 tests） | 高 | ✅ 完备 |
+| csharpier | 格式化规则 | 高 | ✅ R38 修正命令 |
+| git-workflow | 提交规范、scope 列表、pre-commit | 高 | ✅ R38 补充 scope |
+| markdown | Markdown/XML 文档规范 | 低 | ✅ 完备 |
+| nuget-release | 版本管理、打包发布 | 低 | ✅ 完备 |
+| deployment | Docker、K8s、可观测性 | 低 | ✅ 完备 |
+| changelog | CHANGELOG 格式、release notes | 低 | ✅ 完备 |
+| troubleshooting | 构建/测试/部署排错、analyzer 代码 | 中 | ✅ R38 补充 |
+| security-audit | OWASP Top 10、依赖漏洞、密钥泄露 | 低 | ✅ 完备 |
+| performance | BenchmarkDotNet、热路径、内存分配 | 低 | ✅ 完备 |
+| dependency-update | NuGet 依赖升级、CVE 修补 | 低 | ✅ 完备 |
+
+## Agents
+
+| Agent | 用途 | 状态 |
+|-------|------|------|
+| @auditor | 全量审计 → 修复 → 构建 → 测试 → 提交 | ✅ R38 更新（18 维度 + 增量模式） |
+| @releaser | 变更日志 → 版本号 → 构建 → 测试 → 打包 → 标签 | ✅ 完备 |
 
 ---
 
-## Phase 1: 高价值（直接提升效率）
+## Phase 1: 高价值（直接提升效率） ✅ 已完成
 
-### 1.1 Skill 编排链
+### 1.1 Skill 编排链 ✅
 
-**目标**：让 agent 可靠地自动串联多个 skill，减少人工"继续"指令
+**已实现**：`copilot-instructions.md` 定义了 3 条标准工作流链，各 skill 的 post-change workflow 段落已声明后续步骤。
 
-**现状**：`copilot-instructions.md` 里有一句 `code-update → build-project → run-tests → csharpier → git-workflow`，但各 skill 内部没有声明后续步骤
+### 1.2 Skill 质检回路 ✅
 
-**方案**：
-- 在每个 SKILL.md 中增加 `## 编排` 段落，声明 `前置 skill` 和 `后续 skill`
-- 定义 3 条标准工作流链：
-  - **代码变更链**：`code-update → build-project → run-tests → csharpier → git-workflow`
-  - **审计修复链**：`deep-audit → code-update → build-project → run-tests → csharpier → git-workflow`
-  - **发布链**：`changelog → nuget-release → deployment`
+**已实现**：`code-review/SKILL.md` 开头声明了交叉检查引用（architecture + code-update + csharpier）。
+
+### 1.3 Skill 触发条件精细化
+
+**状态**：部分完成。`copilot-instructions.md` 的 Skill 索引表已有触发关键词，但各 SKILL.md 的 YAML frontmatter 中尚未增加结构化触发规则。
+
+**优先级**：低 — 当前自然语言触发已足够可靠。
 
 **工作量**：修改 13 个 SKILL.md + copilot-instructions.md
 
-### 1.2 Skill 质检回路
+### 1.2 Skill 质检回路 ✅
 
-**目标**：`code-review` 自动对照 `architecture` 和 `code-update` 规则做交叉检查
-
-**现状**：`code-review` 有自己的清单，但不会主动读取 `architecture` skill 的模块边界规则
-
-**方案**：
-- 在 `code-review/SKILL.md` 中增加引用段：列出必须交叉检查的 skill 及其关键规则
-- 审查时自动读取 `architecture/SKILL.md` 中的模块边界、`code-update/SKILL.md` 中的禁止事项
-
-**工作量**：修改 1 个 SKILL.md
+**已实现**：`code-review/SKILL.md` 开头声明了交叉检查引用（architecture + code-update + csharpier）。R38 更新后增加了 5 个审查维度（线程安全、DI 生命周期、数值边界、Channel/TCS、事件/Timer 安全）。
 
 ### 1.3 Skill 触发条件精细化
 
@@ -72,15 +76,17 @@
 
 ---
 
-## Phase 2: 中等价值（扩展覆盖面）
+## Phase 2: 中等价值（扩展覆盖面） ✅ 已完成
 
-### 2.1 缺失 Skill 补充
+### 2.1 缺失 Skill 补充 ✅
 
-| 新 Skill | 用途 | 优先级 |
-|----------|------|--------|
-| `security-audit` | 安全专项审计：OWASP Top 10、依赖漏洞、密钥泄露 | P1 |
-| `performance` | 性能分析：热路径、内存分配、Benchmark 解读 | P2 |
-| `dependency-update` | 依赖升级策略：NuGet 更新、破坏性变更评估 | P3 |
+全部 3 个新 Skill 已创建：
+
+| 新 Skill | 状态 | 创建时间 |
+|----------|------|----------|
+| `security-audit` | ✅ 完成 | 2026-02 |
+| `performance` | ✅ 完成 | 2026-02 |
+| `dependency-update` | ✅ 完成 | 2026-02 |
 
 **工作量**：每个新 skill 创建 1 个 SKILL.md
 
@@ -140,18 +146,13 @@ Q&A 列表
 
 ## Phase 3: 探索性（需要验证）
 
-### 3.1 Custom Agent Mode
+### 3.1 Custom Agent Mode ✅
 
-**目标**：创建专用 agent，一句话触发完整工作流
+**已实现**：创建了 2 个 agent 文件：
+- `.github/agents/auditor.agent.md` — 组合 deep-audit + code-update + build + test + format + git
+- `.github/agents/releaser.agent.md` — 组合 changelog + nuget-release + build + test + format + git
 
-**方案**：
-- 创建 `.github/agents/auditor.agent.md`：组合 deep-audit + code-update + build-project + run-tests + csharpier + git-workflow
-- 创建 `.github/agents/releaser.agent.md`：组合 changelog + nuget-release + deployment
-- 用户输入 `@auditor 全面审计` 即可触发完整流程
-
-**前提**：VS Code Copilot 支持 `.agent.md` 自定义 agent（需验证当前版本是否支持）
-
-**工作量**：创建 2-3 个 agent 文件 + 测试
+用户输入 `@auditor 全面审计` 或 `@releaser 发布 0.2.0` 即可触发。
 
 ### 3.2 Skill 自测试
 
