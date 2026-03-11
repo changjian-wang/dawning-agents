@@ -91,9 +91,15 @@ public sealed class ReadFileTool : ITool
             using var doc = JsonDocument.Parse(input);
             var root = doc.RootElement;
 
-            path =
-                root.GetProperty("path").GetString()
-                ?? throw new ArgumentException("path is required");
+            if (
+                !root.TryGetProperty("path", out var pathProp)
+                || string.IsNullOrWhiteSpace(pathProp.GetString())
+            )
+            {
+                throw new ArgumentException("Path cannot be empty");
+            }
+
+            path = pathProp.GetString()!;
 
             if (
                 root.TryGetProperty("offset", out var offsetProp)
@@ -114,6 +120,10 @@ public sealed class ReadFileTool : ITool
         catch (JsonException)
         {
             path = input.Trim();
+        }
+        catch (ArgumentException ex)
+        {
+            return Task.FromResult(ToolResult.Fail(ex.Message));
         }
 
         if (string.IsNullOrWhiteSpace(path))

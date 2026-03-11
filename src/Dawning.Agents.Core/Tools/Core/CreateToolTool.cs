@@ -161,17 +161,35 @@ public sealed class CreateToolTool : ITool
         using var doc = JsonDocument.Parse(input);
         var root = doc.RootElement;
 
+        if (
+            !root.TryGetProperty("name", out var nameProp)
+            || string.IsNullOrWhiteSpace(nameProp.GetString())
+        )
+        {
+            throw new ArgumentException("name is required");
+        }
+
+        if (
+            !root.TryGetProperty("description", out var descriptionProp)
+            || string.IsNullOrWhiteSpace(descriptionProp.GetString())
+        )
+        {
+            throw new ArgumentException("description is required");
+        }
+
+        if (
+            !root.TryGetProperty("script", out var scriptProp)
+            || string.IsNullOrWhiteSpace(scriptProp.GetString())
+        )
+        {
+            throw new ArgumentException("script is required");
+        }
+
         var definition = new EphemeralToolDefinition
         {
-            Name =
-                root.GetProperty("name").GetString()
-                ?? throw new ArgumentException("name is required"),
-            Description =
-                root.GetProperty("description").GetString()
-                ?? throw new ArgumentException("description is required"),
-            Script =
-                root.GetProperty("script").GetString()
-                ?? throw new ArgumentException("script is required"),
+            Name = nameProp.GetString()!,
+            Description = descriptionProp.GetString()!,
+            Script = scriptProp.GetString()!,
         };
 
         if (root.TryGetProperty("scope", out var scopeProp))
@@ -187,22 +205,46 @@ public sealed class CreateToolTool : ITool
 
         if (root.TryGetProperty("parameters", out var paramsProp))
         {
+            if (paramsProp.ValueKind != JsonValueKind.Array)
+            {
+                throw new ArgumentException("parameters must be an array");
+            }
+
             foreach (var paramElement in paramsProp.EnumerateArray())
             {
+                if (
+                    !paramElement.TryGetProperty("name", out var paramNameProp)
+                    || string.IsNullOrWhiteSpace(paramNameProp.GetString())
+                )
+                {
+                    throw new ArgumentException("parameter name is required");
+                }
+
+                if (
+                    !paramElement.TryGetProperty("description", out var paramDescriptionProp)
+                    || string.IsNullOrWhiteSpace(paramDescriptionProp.GetString())
+                )
+                {
+                    throw new ArgumentException("parameter description is required");
+                }
+
                 var param = new ScriptParameter
                 {
-                    Name =
-                        paramElement.GetProperty("name").GetString()
-                        ?? throw new ArgumentException("parameter name is required"),
-                    Description =
-                        paramElement.GetProperty("description").GetString()
-                        ?? throw new ArgumentException("parameter description is required"),
+                    Name = paramNameProp.GetString()!,
+                    Description = paramDescriptionProp.GetString()!,
                     Type = paramElement.TryGetProperty("type", out var typeProp)
                         ? typeProp.GetString() ?? "string"
                         : "string",
                     Required =
                         !paramElement.TryGetProperty("required", out var reqProp)
-                        || reqProp.GetBoolean(),
+                        || reqProp.ValueKind switch
+                        {
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            _ => throw new ArgumentException(
+                                "parameter required must be a boolean"
+                            ),
+                        },
                 };
 
                 definition.Parameters.Add(param);

@@ -93,9 +93,15 @@ public sealed class BashTool : ITool
             using var doc = JsonDocument.Parse(input);
             var root = doc.RootElement;
 
-            command =
-                root.GetProperty("command").GetString()
-                ?? throw new ArgumentException("command is required");
+            if (
+                !root.TryGetProperty("command", out var commandProp)
+                || string.IsNullOrWhiteSpace(commandProp.GetString())
+            )
+            {
+                throw new ArgumentException("Command cannot be empty");
+            }
+
+            command = commandProp.GetString()!;
 
             if (
                 root.TryGetProperty("timeout", out var timeoutProp)
@@ -109,6 +115,10 @@ public sealed class BashTool : ITool
         {
             // If not valid JSON, treat the entire input as the command
             command = input.Trim();
+        }
+        catch (ArgumentException ex)
+        {
+            return ToolResult.Fail(ex.Message);
         }
 
         if (string.IsNullOrWhiteSpace(command))

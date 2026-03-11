@@ -103,9 +103,15 @@ public sealed class SearchTool : ITool
             using var doc = JsonDocument.Parse(input);
             var root = doc.RootElement;
 
-            pattern =
-                root.GetProperty("pattern").GetString()
-                ?? throw new ArgumentException("pattern is required");
+            if (
+                !root.TryGetProperty("pattern", out var patternProp)
+                || string.IsNullOrWhiteSpace(patternProp.GetString())
+            )
+            {
+                throw new ArgumentException("Pattern cannot be empty");
+            }
+
+            pattern = patternProp.GetString()!;
 
             if (root.TryGetProperty("mode", out var modeProp))
             {
@@ -138,6 +144,10 @@ public sealed class SearchTool : ITool
         catch (JsonException)
         {
             pattern = input.Trim();
+        }
+        catch (ArgumentException ex)
+        {
+            return Task.FromResult(ToolResult.Fail(ex.Message));
         }
 
         if (string.IsNullOrWhiteSpace(pattern))

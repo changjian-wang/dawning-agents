@@ -282,53 +282,101 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
             using var doc = JsonDocument.Parse(responseText);
             var root = doc.RootElement;
 
-            var text = root.GetProperty("text").GetString() ?? "";
+            var text =
+                root.TryGetProperty("text", out var textElement)
+                && textElement.ValueKind == JsonValueKind.String
+                    ? textElement.GetString() ?? string.Empty
+                    : string.Empty;
 
             string? language = null;
             if (root.TryGetProperty("language", out var langElement))
             {
-                language = langElement.GetString();
+                if (langElement.ValueKind == JsonValueKind.String)
+                {
+                    language = langElement.GetString();
+                }
             }
 
             double? duration = null;
             if (root.TryGetProperty("duration", out var durationElement))
             {
-                duration = durationElement.GetDouble();
+                if (durationElement.ValueKind == JsonValueKind.Number)
+                {
+                    duration = durationElement.GetDouble();
+                }
             }
 
             List<TranscriptionSegment>? segments = null;
-            if (root.TryGetProperty("segments", out var segmentsElement))
+            if (
+                root.TryGetProperty("segments", out var segmentsElement)
+                && segmentsElement.ValueKind == JsonValueKind.Array
+            )
             {
                 segments = [];
                 foreach (var seg in segmentsElement.EnumerateArray())
                 {
+                    if (
+                        !seg.TryGetProperty("id", out var idProp)
+                        || idProp.ValueKind != JsonValueKind.Number
+                        || !seg.TryGetProperty("start", out var startProp)
+                        || startProp.ValueKind != JsonValueKind.Number
+                        || !seg.TryGetProperty("end", out var endProp)
+                        || endProp.ValueKind != JsonValueKind.Number
+                    )
+                    {
+                        continue;
+                    }
+
                     segments.Add(
                         new TranscriptionSegment
                         {
-                            Id = seg.GetProperty("id").GetInt32(),
-                            Start = seg.GetProperty("start").GetDouble(),
-                            End = seg.GetProperty("end").GetDouble(),
-                            Text = seg.GetProperty("text").GetString() ?? "",
-                            Confidence = seg.TryGetProperty("avg_logprob", out var prob)
-                                ? Math.Exp(prob.GetDouble()) // Convert log probability to probability
-                                : null,
+                            Id = idProp.GetInt32(),
+                            Start = startProp.GetDouble(),
+                            End = endProp.GetDouble(),
+                            Text =
+                                seg.TryGetProperty("text", out var segTextProp)
+                                && segTextProp.ValueKind == JsonValueKind.String
+                                    ? segTextProp.GetString() ?? string.Empty
+                                    : string.Empty,
+                            Confidence =
+                                seg.TryGetProperty("avg_logprob", out var prob)
+                                && prob.ValueKind == JsonValueKind.Number
+                                    ? Math.Exp(prob.GetDouble()) // Convert log probability to probability
+                                    : null,
                         }
                     );
                 }
             }
 
             List<TranscriptionWord>? words = null;
-            if (root.TryGetProperty("words", out var wordsElement))
+            if (
+                root.TryGetProperty("words", out var wordsElement)
+                && wordsElement.ValueKind == JsonValueKind.Array
+            )
             {
                 words = [];
                 foreach (var word in wordsElement.EnumerateArray())
                 {
+                    if (
+                        !word.TryGetProperty("start", out var wordStartProp)
+                        || wordStartProp.ValueKind != JsonValueKind.Number
+                        || !word.TryGetProperty("end", out var wordEndProp)
+                        || wordEndProp.ValueKind != JsonValueKind.Number
+                    )
+                    {
+                        continue;
+                    }
+
                     words.Add(
                         new TranscriptionWord
                         {
-                            Word = word.GetProperty("word").GetString() ?? "",
-                            Start = word.GetProperty("start").GetDouble(),
-                            End = word.GetProperty("end").GetDouble(),
+                            Word =
+                                word.TryGetProperty("word", out var wordTextProp)
+                                && wordTextProp.ValueKind == JsonValueKind.String
+                                    ? wordTextProp.GetString() ?? string.Empty
+                                    : string.Empty,
+                            Start = wordStartProp.GetDouble(),
+                            End = wordEndProp.GetDouble(),
                         }
                     );
                 }

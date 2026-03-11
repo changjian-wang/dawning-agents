@@ -83,17 +83,32 @@ public sealed class WriteFileTool : ITool
             using var doc = JsonDocument.Parse(input);
             var root = doc.RootElement;
 
-            path =
-                root.GetProperty("path").GetString()
-                ?? throw new ArgumentException("path is required");
+            if (
+                !root.TryGetProperty("path", out var pathProp)
+                || string.IsNullOrWhiteSpace(pathProp.GetString())
+            )
+            {
+                throw new ArgumentException("Path cannot be empty");
+            }
 
-            content =
-                root.GetProperty("content").GetString()
-                ?? throw new ArgumentException("content is required");
+            if (
+                !root.TryGetProperty("content", out var contentProp)
+                || contentProp.GetString() is null
+            )
+            {
+                throw new ArgumentException("content is required");
+            }
+
+            path = pathProp.GetString()!;
+            content = contentProp.GetString()!;
         }
         catch (JsonException ex)
         {
             return Task.FromResult(ToolResult.Fail($"Invalid input JSON: {ex.Message}"));
+        }
+        catch (ArgumentException ex)
+        {
+            return Task.FromResult(ToolResult.Fail(ex.Message));
         }
 
         if (string.IsNullOrWhiteSpace(path))

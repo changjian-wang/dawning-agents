@@ -91,19 +91,35 @@ public sealed class EditFileTool : ITool
             using var doc = JsonDocument.Parse(input);
             var root = doc.RootElement;
 
-            path =
-                root.GetProperty("path").GetString()
-                ?? throw new ArgumentException("path is required");
+            if (
+                !root.TryGetProperty("path", out var pathProp)
+                || string.IsNullOrWhiteSpace(pathProp.GetString())
+            )
+            {
+                throw new ArgumentException("Path cannot be empty");
+            }
 
-            oldString =
-                root.GetProperty("oldString").GetString()
-                ?? throw new ArgumentException("oldString is required");
+            if (
+                !root.TryGetProperty("oldString", out var oldStringProp)
+                || oldStringProp.GetString() is null
+            )
+            {
+                throw new ArgumentException("oldString is required");
+            }
 
-            newString = root.GetProperty("newString").GetString() ?? string.Empty;
+            path = pathProp.GetString()!;
+            oldString = oldStringProp.GetString()!;
+            newString = root.TryGetProperty("newString", out var newStringProp)
+                ? newStringProp.GetString() ?? string.Empty
+                : string.Empty;
         }
         catch (JsonException ex)
         {
             return Task.FromResult(ToolResult.Fail($"Invalid input JSON: {ex.Message}"));
+        }
+        catch (ArgumentException ex)
+        {
+            return Task.FromResult(ToolResult.Fail(ex.Message));
         }
 
         if (string.IsNullOrWhiteSpace(path))
