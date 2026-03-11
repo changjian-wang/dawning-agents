@@ -222,11 +222,11 @@ public class ModelStatistics
     public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
     {
         Interlocked.Increment(ref _totalRequests);
-        var successCount = Interlocked.Increment(ref _successfulRequests);
         Interlocked.Add(ref _totalInputTokens, inputTokens);
         Interlocked.Add(ref _totalOutputTokens, outputTokens);
         lock (_lock)
         {
+            var successCount = Interlocked.Increment(ref _successfulRequests);
             TotalCost += cost;
             AverageLatencyMs = (AverageLatencyMs * (successCount - 1) + latencyMs) / successCount;
             LastUpdated = DateTimeOffset.UtcNow;

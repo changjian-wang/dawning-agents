@@ -204,6 +204,82 @@ public class RoutingLLMProvider : ILLMProvider
         }
     }
 
+    public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        var messageList = messages.ToList();
+        var context = CreateRoutingContext(messageList, options);
+        var excludedProviders = new List<string>();
+        var maxRetries = _options.EnableFailover ? _options.MaxFailoverRetries : 0;
+
+        Exception? lastException = null;
+        IAsyncEnumerable<StreamingChatEvent>? successfulStream = null;
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
+        {
+            context = context with { ExcludedProviders = excludedProviders };
+
+            ILLMProvider provider;
+            try
+            {
+                provider = await _router
+                    .SelectProviderAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (InvalidOperationException) when (attempt < maxRetries)
+            {
+                _logger.LogWarning("所有提供者都被排除，重置排除列表重试");
+                excludedProviders.Clear();
+                continue;
+            }
+
+            _logger.LogDebug(
+                "事件流尝试 {Attempt}/{MaxRetries} 使用提供者: {Provider}",
+                attempt + 1,
+                maxRetries + 1,
+                provider.Name
+            );
+
+            try
+            {
+                var stream = provider.ChatStreamEventsAsync(
+                    messageList,
+                    options,
+                    cancellationToken
+                );
+                successfulStream = WrapEventStreamWithReporting(stream, provider, messageList);
+                break;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "事件流提供者 {Provider} 初始化失败，尝试故障转移",
+                    provider.Name
+                );
+                _router.ReportResult(provider, ModelCallResult.Failed(ex.Message, 0));
+                excludedProviders.Add(provider.Name);
+                lastException = ex;
+            }
+        }
+
+        if (successfulStream == null)
+        {
+            throw new InvalidOperationException(
+                "All providers failed after failover attempts",
+                lastException
+            );
+        }
+
+        await foreach (var evt in successfulStream.WithCancellation(cancellationToken))
+        {
+            yield return evt;
+        }
+    }
+
     private async Task<(IAsyncEnumerable<string>? Stream, Exception? Error)> TryGetStreamAsync(
         ILLMProvider provider,
         IReadOnlyList<ChatMessage> messages,
@@ -242,6 +318,33 @@ public class RoutingLLMProvider : ILLMProvider
         sw.Stop();
 
         // 估算输出 token 数（流式响应无法获取精确 token 计数）
+        var outputTokens = totalChars / 4;
+        var inputTokens = EstimateInputTokens(messages);
+        var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
+        _router.ReportResult(
+            provider,
+            ModelCallResult.Succeeded(sw.ElapsedMilliseconds, inputTokens, outputTokens, cost)
+        );
+    }
+
+    private async IAsyncEnumerable<StreamingChatEvent> WrapEventStreamWithReporting(
+        IAsyncEnumerable<StreamingChatEvent> stream,
+        ILLMProvider provider,
+        IReadOnlyList<ChatMessage> messages,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        var sw = Stopwatch.StartNew();
+        var totalChars = 0;
+
+        await foreach (var evt in stream.WithCancellation(cancellationToken))
+        {
+            totalChars += evt.ContentDelta?.Length ?? 0;
+            yield return evt;
+        }
+
+        sw.Stop();
+
         var outputTokens = totalChars / 4;
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);

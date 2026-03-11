@@ -71,7 +71,13 @@ public record AgentInstance
     /// <summary>
     /// 是否健康
     /// </summary>
-    public volatile bool IsHealthy = true;
+    public bool IsHealthy
+    {
+        get => Volatile.Read(ref _isHealthy);
+        set => Volatile.Write(ref _isHealthy, value);
+    }
+
+    private bool _isHealthy = true;
 
     private int _activeRequests;
 
