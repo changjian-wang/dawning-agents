@@ -141,8 +141,11 @@ public sealed class MethodTool : ITool
         }
         catch (TargetInvocationException ex) when (ex.InnerException is OperationCanceledException)
         {
-            // 内部方法的取消操作
-            throw ex.InnerException;
+            // 内部方法的取消操作（保留原始堆栈信息）
+            System
+                .Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException)
+                .Throw();
+            throw; // unreachable, satisfies compiler
         }
         catch (TargetInvocationException ex) when (ex.InnerException != null)
         {

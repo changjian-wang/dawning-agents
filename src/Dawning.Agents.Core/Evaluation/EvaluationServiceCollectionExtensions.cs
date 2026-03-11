@@ -27,7 +27,7 @@ public static class EvaluationServiceCollectionExtensions
         services.TryAddSingleton<IMetricEvaluator, LatencyEvaluator>();
         services.TryAddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
 
-        services.TryAddTransient<IAgentEvaluator, DefaultAgentEvaluator>();
+        services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();
         services.TryAddSingleton<EvaluationReportGenerator>();
 
@@ -56,7 +56,7 @@ public static class EvaluationServiceCollectionExtensions
         services.TryAddSingleton<IMetricEvaluator, LatencyEvaluator>();
         services.TryAddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
 
-        services.TryAddTransient<IAgentEvaluator, DefaultAgentEvaluator>();
+        services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();
         services.TryAddSingleton<EvaluationReportGenerator>();
 
