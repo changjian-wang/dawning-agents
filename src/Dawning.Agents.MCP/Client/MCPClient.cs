@@ -402,6 +402,13 @@ public sealed class MCPClient : IAsyncDisposable
             {
                 response = await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
             }
+            catch (OperationCanceledException) when (_disposed)
+            {
+                throw new ObjectDisposedException(
+                    nameof(MCPClient),
+                    "MCP client was disposed while awaiting response"
+                );
+            }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 throw new MCPException(
