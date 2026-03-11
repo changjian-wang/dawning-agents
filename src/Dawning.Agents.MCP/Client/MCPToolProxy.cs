@@ -74,12 +74,12 @@ public sealed class MCPToolProxy : ITool
         catch (MCPException ex)
         {
             _logger.LogError(ex, "MCP tool call failed: {Tool}", _definition.Name);
-            return ToolResult.Fail("MCP tool call failed");
+            return ToolResult.Fail($"MCP tool call failed: {ex.Message}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Remote tool execution failed: {Tool}", _definition.Name);
-            return ToolResult.Fail("Remote tool execution failed");
+            return ToolResult.Fail($"Remote tool execution failed: {ex.Message}");
         }
     }
 }

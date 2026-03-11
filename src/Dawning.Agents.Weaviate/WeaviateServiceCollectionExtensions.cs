@@ -2,6 +2,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Weaviate;
@@ -25,7 +26,7 @@ public static class WeaviateServiceCollectionExtensions
         services.Configure<WeaviateOptions>(configuration.GetSection(WeaviateOptions.SectionName));
 
         services
-            .AddHttpClient<WeaviateVectorStore>()
+            .AddHttpClient(nameof(WeaviateVectorStore))
             .ConfigureHttpClient(
                 (sp, client) =>
                 {
@@ -41,7 +42,14 @@ public static class WeaviateServiceCollectionExtensions
                     }
                 }
             );
-        services.TryAddSingleton<IVectorStore, WeaviateVectorStore>();
+        services.TryAddSingleton<IVectorStore>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient(nameof(WeaviateVectorStore));
+            var options = sp.GetRequiredService<IOptions<WeaviateOptions>>();
+            var logger = sp.GetService<ILogger<WeaviateVectorStore>>();
+            return new WeaviateVectorStore(client, options, logger);
+        });
 
         return services;
     }
@@ -60,7 +68,7 @@ public static class WeaviateServiceCollectionExtensions
         services.Configure(configure);
 
         services
-            .AddHttpClient<WeaviateVectorStore>()
+            .AddHttpClient(nameof(WeaviateVectorStore))
             .ConfigureHttpClient(
                 (sp, client) =>
                 {
@@ -76,7 +84,14 @@ public static class WeaviateServiceCollectionExtensions
                     }
                 }
             );
-        services.TryAddSingleton<IVectorStore, WeaviateVectorStore>();
+        services.TryAddSingleton<IVectorStore>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient(nameof(WeaviateVectorStore));
+            var options = sp.GetRequiredService<IOptions<WeaviateOptions>>();
+            var logger = sp.GetService<ILogger<WeaviateVectorStore>>();
+            return new WeaviateVectorStore(client, options, logger);
+        });
 
         return services;
     }

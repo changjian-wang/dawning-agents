@@ -210,9 +210,21 @@ public class ApprovalWorkflow
         // 检查上下文中的风险指标
         if (context != null)
         {
-            if (context.TryGetValue("amount", out var amount) && amount is decimal d && d > 10000)
+            if (context.TryGetValue("amount", out var amount) && amount is IConvertible)
             {
-                return RiskLevel.High;
+                try
+                {
+                    var d = Convert.ToDecimal(
+                        amount,
+                        System.Globalization.CultureInfo.InvariantCulture
+                    );
+                    if (d > 10000)
+                    {
+                        return RiskLevel.High;
+                    }
+                }
+                catch (FormatException) { }
+                catch (OverflowException) { }
             }
 
             if (

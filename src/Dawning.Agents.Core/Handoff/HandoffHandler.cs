@@ -123,8 +123,8 @@ public class HandoffHandler : IHandoffHandler
         CancellationToken cancellationToken
     )
     {
-        // 检查深度限制
-        if (chain.Count > _options.MaxHandoffDepth)
+        // 检查深度限制（chain 包含入口记录，实际 handoff 次数 = Count - 1）
+        if (chain.Count - 1 > _options.MaxHandoffDepth)
         {
             _logger.LogWarning(
                 "Handoff depth limit exceeded. Max: {MaxDepth}, Current: {CurrentDepth}",

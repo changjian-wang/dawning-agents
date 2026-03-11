@@ -2,6 +2,7 @@ using Dawning.Agents.Abstractions.RAG;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Chroma;
@@ -25,7 +26,7 @@ public static class ChromaServiceCollectionExtensions
         services.Configure<ChromaOptions>(configuration.GetSection(ChromaOptions.SectionName));
 
         services
-            .AddHttpClient<ChromaVectorStore>()
+            .AddHttpClient(nameof(ChromaVectorStore))
             .ConfigureHttpClient(
                 (sp, client) =>
                 {
@@ -42,7 +43,14 @@ public static class ChromaServiceCollectionExtensions
                 }
             );
 
-        services.TryAddSingleton<IVectorStore, ChromaVectorStore>();
+        services.TryAddSingleton<IVectorStore>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient(nameof(ChromaVectorStore));
+            var options = sp.GetRequiredService<IOptions<ChromaOptions>>();
+            var logger = sp.GetService<ILogger<ChromaVectorStore>>();
+            return new ChromaVectorStore(client, options, logger);
+        });
 
         return services;
     }
@@ -61,7 +69,7 @@ public static class ChromaServiceCollectionExtensions
         services.Configure(configureOptions);
 
         services
-            .AddHttpClient<ChromaVectorStore>()
+            .AddHttpClient(nameof(ChromaVectorStore))
             .ConfigureHttpClient(
                 (sp, client) =>
                 {
@@ -78,7 +86,14 @@ public static class ChromaServiceCollectionExtensions
                 }
             );
 
-        services.TryAddSingleton<IVectorStore, ChromaVectorStore>();
+        services.TryAddSingleton<IVectorStore>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient(nameof(ChromaVectorStore));
+            var options = sp.GetRequiredService<IOptions<ChromaOptions>>();
+            var logger = sp.GetService<ILogger<ChromaVectorStore>>();
+            return new ChromaVectorStore(client, options, logger);
+        });
 
         return services;
     }
