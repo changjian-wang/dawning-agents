@@ -122,7 +122,7 @@ public abstract class AgentBase : IAgent
                 costTracker?.Add(step.Cost);
 
                 // 检查是否有最终答案
-                var finalAnswer = ExtractFinalAnswer(step);
+                var finalAnswer = ExtractFinalAnswer(step, context.MaxSteps);
                 if (finalAnswer != null)
                 {
                     stopwatch.Stop();
@@ -191,11 +191,12 @@ public abstract class AgentBase : IAgent
     /// 从步骤中提取最终答案
     /// </summary>
     /// <param name="step">当前执行步骤</param>
+    /// <param name="maxSteps">当前上下文的最大步数</param>
     /// <returns>最终答案字符串，如果该步骤不包含最终答案则返回 null</returns>
     /// <remarks>
     /// 当返回非 null 值时，Agent 循环将终止并返回成功响应
     /// </remarks>
-    protected abstract string? ExtractFinalAnswer(AgentStep step);
+    protected abstract string? ExtractFinalAnswer(AgentStep step, int maxSteps);
 
     /// <summary>
     /// 从 LLM 响应估算步骤成本（USD）

@@ -402,7 +402,7 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <inheritdoc/>
-    protected override string? ExtractFinalAnswer(AgentStep step)
+    protected override string? ExtractFinalAnswer(AgentStep step, int maxSteps)
     {
         throw new NotSupportedException(
             "FunctionCallingAgent 使用 Native Function Calling 循环，不走 ExtractFinalAnswer 路径"

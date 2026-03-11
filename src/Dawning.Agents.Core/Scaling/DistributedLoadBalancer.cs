@@ -188,7 +188,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         try
         {
             await foreach (
-                var instances in _serviceRegistry!.WatchAsync(serviceName, cancellationToken)
+                var instances in _serviceRegistry!
+                    .WatchAsync(serviceName, cancellationToken)
+                    .ConfigureAwait(false)
             )
             {
                 _lock.EnterWriteLock();

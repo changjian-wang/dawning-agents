@@ -132,7 +132,7 @@ public partial class ReActAgent : AgentBase
     /// <remarks>
     /// 当 LLM 输出包含 "Final Answer: ..." 时返回答案内容
     /// </remarks>
-    protected override string? ExtractFinalAnswer(AgentStep step)
+    protected override string? ExtractFinalAnswer(AgentStep step, int maxSteps)
     {
         // 从原始输出中提取 Final Answer
         if (!string.IsNullOrEmpty(step.RawOutput))
@@ -148,7 +148,7 @@ public partial class ReActAgent : AgentBase
         if (
             string.IsNullOrEmpty(step.Action)
             && !string.IsNullOrEmpty(step.Thought)
-            && step.StepNumber >= Options.MaxSteps
+            && step.StepNumber >= maxSteps
         )
         {
             // 将 Thought 作为答案返回

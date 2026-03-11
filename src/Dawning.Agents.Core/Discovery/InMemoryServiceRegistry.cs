@@ -117,7 +117,11 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
                 .ConfigureAwait(false);
             yield return current.ToArray();
 
-            await foreach (var instances in channel.Reader.ReadAllAsync(cancellationToken))
+            await foreach (
+                var instances in channel
+                    .Reader.ReadAllAsync(cancellationToken)
+                    .ConfigureAwait(false)
+            )
             {
                 yield return instances;
             }

@@ -145,13 +145,15 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
         // 使用信号量限制并发
         using var semaphore = new SemaphoreSlim(_options.MaxConcurrency);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var linkedToken = linkedCts.Token;
         var tasks = testCaseList
             .Select(async testCase =>
             {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await semaphore.WaitAsync(linkedToken).ConfigureAwait(false);
                 try
                 {
-                    return await EvaluateAsync(testCase, cancellationToken).ConfigureAwait(false);
+                    return await EvaluateAsync(testCase, linkedToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -178,8 +180,19 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
                         "Stopping evaluation due to failure: {TestCaseId}",
                         result.TestCaseId
                     );
+                    await linkedCts.CancelAsync().ConfigureAwait(false);
                     break;
                 }
+            }
+
+            // Await remaining tasks to ensure semaphore is not disposed while in use
+            try
+            {
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected — remaining tasks were cancelled
             }
         }
 

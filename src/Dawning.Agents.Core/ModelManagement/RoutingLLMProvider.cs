@@ -198,7 +198,9 @@ public class RoutingLLMProvider : ILLMProvider
             );
         }
 
-        await foreach (var chunk in successfulStream.WithCancellation(cancellationToken))
+        await foreach (
+            var chunk in successfulStream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             yield return chunk;
         }
@@ -274,7 +276,9 @@ public class RoutingLLMProvider : ILLMProvider
             );
         }
 
-        await foreach (var evt in successfulStream.WithCancellation(cancellationToken))
+        await foreach (
+            var evt in successfulStream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             yield return evt;
         }
@@ -309,7 +313,9 @@ public class RoutingLLMProvider : ILLMProvider
         var sw = Stopwatch.StartNew();
         var totalChars = 0;
 
-        await foreach (var chunk in stream.WithCancellation(cancellationToken))
+        await foreach (
+            var chunk in stream.WithCancellation(cancellationToken).ConfigureAwait(false)
+        )
         {
             totalChars += chunk.Length;
             yield return chunk;
@@ -337,7 +343,7 @@ public class RoutingLLMProvider : ILLMProvider
         var sw = Stopwatch.StartNew();
         var totalChars = 0;
 
-        await foreach (var evt in stream.WithCancellation(cancellationToken))
+        await foreach (var evt in stream.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             totalChars += evt.ContentDelta?.Length ?? 0;
             yield return evt;
