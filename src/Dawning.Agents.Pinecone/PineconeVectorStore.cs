@@ -31,7 +31,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
     public string Name => "Pinecone";
 
-    public int Count => _count;
+    public int Count => Volatile.Read(ref _count);
 
     /// <summary>
     /// 创建 Pinecone 向量存储
@@ -373,7 +373,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         // 获取当前向量数量
         var stats = await _index.DescribeStats().ConfigureAwait(false);
-        _count = (int)stats.TotalVectorCount;
+        _count = stats.TotalVectorCount > int.MaxValue ? int.MaxValue : (int)stats.TotalVectorCount;
 
         _initialized = true;
         return _index;

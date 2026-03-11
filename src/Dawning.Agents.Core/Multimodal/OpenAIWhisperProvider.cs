@@ -19,6 +19,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly HttpClient _downloadClient;
+    private readonly bool _ownsDownloadClient;
     private readonly string _apiKey;
     private readonly string _baseUrl;
     private readonly string _defaultModel;
@@ -60,11 +61,13 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
         string apiKey,
         string baseUrl = "https://api.openai.com/v1",
         string defaultModel = "whisper-1",
-        ILogger<OpenAIWhisperProvider>? logger = null
+        ILogger<OpenAIWhisperProvider>? logger = null,
+        HttpClient? downloadClient = null
     )
     {
         _httpClient = httpClient;
-        _downloadClient = new HttpClient(); // Separate client without auth headers for external URLs
+        _ownsDownloadClient = downloadClient == null;
+        _downloadClient = downloadClient ?? new HttpClient();
         _apiKey = apiKey;
         _baseUrl = baseUrl.TrimEnd('/');
         _defaultModel = defaultModel;
@@ -384,7 +387,11 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
     /// </summary>
     public void Dispose()
     {
-        _downloadClient.Dispose();
+        if (_ownsDownloadClient)
+        {
+            _downloadClient.Dispose();
+        }
+
         GC.SuppressFinalize(this);
     }
 }

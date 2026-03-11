@@ -38,7 +38,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     public string Name => "Weaviate";
 
     /// <inheritdoc />
-    public int Count => _count;
+    public int Count => Volatile.Read(ref _count);
 
     /// <summary>
     /// 创建 Weaviate 向量存储实例

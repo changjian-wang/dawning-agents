@@ -31,7 +31,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     public string Name => "Qdrant";
 
-    public int Count => _count;
+    public int Count => Volatile.Read(ref _count);
 
     /// <summary>
     /// 创建 Qdrant 向量存储

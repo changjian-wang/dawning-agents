@@ -37,7 +37,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Chroma";
-    public int Count => _count;
+    public int Count => Volatile.Read(ref _count);
 
     /// <summary>
     /// 创建 Chroma 向量存储
