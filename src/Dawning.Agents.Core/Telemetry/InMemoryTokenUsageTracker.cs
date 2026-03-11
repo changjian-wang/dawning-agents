@@ -34,10 +34,13 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     /// <inheritdoc />
     public void Record(TokenUsageRecord record)
     {
-        _records.Add(record);
-        Interlocked.Add(ref _totalPromptTokens, (long)record.PromptTokens);
-        Interlocked.Add(ref _totalCompletionTokens, (long)record.CompletionTokens);
-        Interlocked.Increment(ref _callCount);
+        lock (_resetLock)
+        {
+            _records.Add(record);
+            Interlocked.Add(ref _totalPromptTokens, (long)record.PromptTokens);
+            Interlocked.Add(ref _totalCompletionTokens, (long)record.CompletionTokens);
+            Interlocked.Increment(ref _callCount);
+        }
     }
 
     /// <inheritdoc />
