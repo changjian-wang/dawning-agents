@@ -316,6 +316,7 @@ public class DistributedLoadBalancerTests : IDisposable
         _balancer.RegisterInstance(CreateInstance("1"));
         _balancer.RegisterInstance(CreateInstance("2"));
         _balancer.RegisterInstance(CreateInstance("3"));
+        _balancer.RegisterInstance(CreateInstance("4"));
 
         // Act & Assert
         var act = async () =>

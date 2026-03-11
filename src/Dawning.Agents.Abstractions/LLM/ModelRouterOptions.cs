@@ -156,17 +156,44 @@ public class ModelStatistics
     /// <summary>
     /// 总请求数
     /// </summary>
-    public long TotalRequests => Interlocked.Read(ref _totalRequests);
+    public long TotalRequests
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _totalRequests;
+            }
+        }
+    }
 
     /// <summary>
     /// 成功请求数
     /// </summary>
-    public long SuccessfulRequests => Interlocked.Read(ref _successfulRequests);
+    public long SuccessfulRequests
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _successfulRequests;
+            }
+        }
+    }
 
     /// <summary>
     /// 失败请求数
     /// </summary>
-    public long FailedRequests => Interlocked.Read(ref _failedRequests);
+    public long FailedRequests
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _failedRequests;
+            }
+        }
+    }
 
     /// <summary>
     /// 总输入 Token 数
@@ -246,9 +273,10 @@ public class ModelStatistics
     {
         get
         {
-            var total = Interlocked.Read(ref _totalRequests);
-            var successful = Interlocked.Read(ref _successfulRequests);
-            return total == 0 ? 1.0 : (double)successful / total;
+            lock (_lock)
+            {
+                return _totalRequests == 0 ? 1.0 : (double)_successfulRequests / _totalRequests;
+            }
         }
     }
 
@@ -262,12 +290,13 @@ public class ModelStatistics
     /// </summary>
     public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
     {
-        Interlocked.Increment(ref _totalRequests);
         Interlocked.Add(ref _totalInputTokens, inputTokens);
         Interlocked.Add(ref _totalOutputTokens, outputTokens);
         lock (_lock)
         {
-            var successCount = Interlocked.Increment(ref _successfulRequests);
+            _totalRequests++;
+            _successfulRequests++;
+            var successCount = _successfulRequests;
             _totalCost += cost;
             _averageLatencyMs = (_averageLatencyMs * (successCount - 1) + latencyMs) / successCount;
             _lastUpdated = DateTimeOffset.UtcNow;
@@ -279,10 +308,10 @@ public class ModelStatistics
     /// </summary>
     public void RecordFailure()
     {
-        Interlocked.Increment(ref _totalRequests);
-        Interlocked.Increment(ref _failedRequests);
         lock (_lock)
         {
+            _totalRequests++;
+            _failedRequests++;
             _lastUpdated = DateTimeOffset.UtcNow;
         }
     }

@@ -120,7 +120,7 @@ public static class HumanLoopServiceCollectionExtensions
             services.Configure(configure);
         }
 
-        services.TryAddSingleton<HumanInLoopAgent>();
+        services.TryAddScoped<HumanInLoopAgent>();
 
         return services;
     }

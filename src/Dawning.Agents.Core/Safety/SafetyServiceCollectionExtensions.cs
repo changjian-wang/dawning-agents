@@ -42,10 +42,6 @@ public static class SafetyServiceCollectionExtensions
         {
             services.Configure(configure);
         }
-        else
-        {
-            services.TryAddSingleton(Options.Create(new SafetyOptions()));
-        }
 
         return services.AddSafetyGuardrailsCore();
     }
@@ -213,10 +209,6 @@ public static class SafetyServiceCollectionExtensions
         {
             services.Configure(configure);
         }
-        else
-        {
-            services.TryAddSingleton(Options.Create(new RateLimitOptions()));
-        }
 
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
         services.TryAddSingleton<TokenRateLimiter>();
@@ -256,10 +248,6 @@ public static class SafetyServiceCollectionExtensions
         if (configure != null)
         {
             services.Configure(configure);
-        }
-        else
-        {
-            services.TryAddSingleton(Options.Create(new AuditOptions()));
         }
 
         services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();

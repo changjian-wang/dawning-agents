@@ -376,7 +376,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     {
         var triedInstances = new HashSet<string>();
 
-        for (int i = 0; i < _options.FailoverRetries; i++)
+        for (int i = 0; i <= _options.FailoverRetries; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -403,7 +403,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             }
         }
 
-        throw new InvalidOperationException($"故障转移失败，已尝试 {_options.FailoverRetries} 次");
+        throw new InvalidOperationException(
+            $"故障转移失败，已尝试 {_options.FailoverRetries + 1} 次"
+        );
     }
 
     /// <summary>

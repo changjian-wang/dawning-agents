@@ -355,8 +355,9 @@ public class WorkflowEngine : IWorkflowEngine
             return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent 名称不能为空");
         }
 
-        // 从 DI 获取 Agent（按名称匹配）
-        var agents = _serviceProvider.GetServices<IAgent>();
+        // 从 DI 获取 Agent（按名称匹配，需要创建 scope 以解析 Scoped 服务）
+        using var scope = _serviceProvider.CreateScope();
+        var agents = scope.ServiceProvider.GetServices<IAgent>();
         var agent = agents.FirstOrDefault(a =>
             string.Equals(a.Name, agentName, StringComparison.OrdinalIgnoreCase)
         );
@@ -506,7 +507,14 @@ public class WorkflowEngine : IWorkflowEngine
 
         if (config?.TryGetValue("delayMs", out var delayObj) == true)
         {
-            delayMs = Math.Max(0, Convert.ToInt32(delayObj));
+            delayMs = delayObj switch
+            {
+                int i => Math.Max(0, i),
+                long l => (int)Math.Clamp(l, 0, int.MaxValue),
+                double d => (int)Math.Clamp(d, 0, int.MaxValue),
+                string s when int.TryParse(s, out var parsed) => Math.Max(0, parsed),
+                _ => delayMs,
+            };
         }
 
         await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);

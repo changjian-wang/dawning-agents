@@ -267,7 +267,12 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             .CountAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        var count = (int)countResult;
+        var count =
+            countResult > (ulong)int.MaxValue
+                ? throw new OverflowException(
+                    $"Count {countResult} exceeds int.MaxValue for document {documentId}"
+                )
+                : (int)countResult;
 
         if (count > 0)
         {
@@ -423,7 +428,8 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
                 var info = await _client
                     .GetCollectionInfoAsync(_options.CollectionName, cancellationToken)
                     .ConfigureAwait(false);
-                _count = (int)info.PointsCount;
+                _count =
+                    info.PointsCount > (ulong)int.MaxValue ? int.MaxValue : (int)info.PointsCount;
             }
 
             _collectionInitialized = true;
