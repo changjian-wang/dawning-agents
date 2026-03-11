@@ -91,6 +91,17 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         try
         {
             _database.StringSet(fullKey, value, expiry);
+
+            if (options.SlidingExpiration.HasValue)
+            {
+                var slidingMs = (long)options.SlidingExpiration.Value.TotalMilliseconds;
+                _database.StringSet(GetSlidingMetadataKey(fullKey), slidingMs, expiry);
+            }
+            else
+            {
+                _database.KeyDelete(GetSlidingMetadataKey(fullKey));
+            }
+
             _logger.LogDebug("Cache set: {Key}, Expiry: {Expiry}", fullKey, expiry);
         }
         catch (Exception ex)
@@ -119,6 +130,21 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         try
         {
             await _database.StringSetAsync(fullKey, value, expiry).ConfigureAwait(false);
+
+            if (options.SlidingExpiration.HasValue)
+            {
+                var slidingMs = (long)options.SlidingExpiration.Value.TotalMilliseconds;
+                await _database
+                    .StringSetAsync(GetSlidingMetadataKey(fullKey), slidingMs, expiry)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await _database
+                    .KeyDeleteAsync(GetSlidingMetadataKey(fullKey))
+                    .ConfigureAwait(false);
+            }
+
             _logger.LogDebug("Cache set: {Key}, Expiry: {Expiry}", fullKey, expiry);
         }
         catch (Exception ex)
@@ -137,9 +163,15 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         var fullKey = GetFullKey(key);
         try
         {
-            // Refresh 用于滑动过期：重新计时，但 Redis 不储存原始过期时间。
-            // 触发一次读取以让 Redis 的滑动过期机制生效（如果已配置）。
-            _database.StringGet(fullKey);
+            var slidingMeta = _database.StringGet(GetSlidingMetadataKey(fullKey));
+            if (!slidingMeta.HasValue || !long.TryParse(slidingMeta.ToString(), out var slidingMs))
+            {
+                return;
+            }
+
+            var sliding = TimeSpan.FromMilliseconds(slidingMs);
+            _database.KeyExpire(fullKey, sliding);
+            _database.KeyExpire(GetSlidingMetadataKey(fullKey), sliding);
         }
         catch (Exception ex)
         {
@@ -157,8 +189,19 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         var fullKey = GetFullKey(key);
         try
         {
-            // Refresh 用于滑动过期：触发一次读取以让 Redis 的滑动过期机制生效
-            await _database.StringGetAsync(fullKey).ConfigureAwait(false);
+            var slidingMeta = await _database
+                .StringGetAsync(GetSlidingMetadataKey(fullKey))
+                .ConfigureAwait(false);
+            if (!slidingMeta.HasValue || !long.TryParse(slidingMeta.ToString(), out var slidingMs))
+            {
+                return;
+            }
+
+            var sliding = TimeSpan.FromMilliseconds(slidingMs);
+            await _database.KeyExpireAsync(fullKey, sliding).ConfigureAwait(false);
+            await _database
+                .KeyExpireAsync(GetSlidingMetadataKey(fullKey), sliding)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -209,6 +252,8 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     /// 获取完整的缓存 key
     /// </summary>
     private string GetFullKey(string key) => $"{_prefix}cache:{key}";
+
+    private static string GetSlidingMetadataKey(string fullKey) => $"{fullKey}:sliding";
 
     /// <summary>
     /// 从配置中获取过期时间

@@ -164,6 +164,55 @@ public sealed class RedisDistributedLockTests
         // Assert
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task ExtendAsync_ShouldUseRemainingTtlSemantics_AndIncreaseExpiresAt()
+    {
+        var databaseMock = new Mock<IDatabase>();
+        var capturedScript = string.Empty;
+
+        databaseMock
+            .Setup(d =>
+                d.StringSetAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<RedisValue>(),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<When>()
+                )
+            )
+            .ReturnsAsync(true);
+
+        databaseMock
+            .Setup(d =>
+                d.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<RedisKey[]>(),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()
+                )
+            )
+            .Callback<string, RedisKey[], RedisValue[], CommandFlags>(
+                (script, _, _, _) => capturedScript = script
+            )
+            .ReturnsAsync(RedisResult.Create((RedisValue)1));
+
+        var lockInstance = new RedisDistributedLock(
+            databaseMock.Object,
+            "test-resource",
+            TimeSpan.FromSeconds(30),
+            _options,
+            NullLogger<RedisDistributedLock>.Instance
+        );
+
+        (await lockInstance.TryAcquireAsync(TimeSpan.FromMilliseconds(100))).Should().BeTrue();
+        var before = lockInstance.ExpiresAt;
+
+        var extended = await lockInstance.ExtendAsync(TimeSpan.FromSeconds(10));
+
+        extended.Should().BeTrue();
+        lockInstance.ExpiresAt.Should().BeAfter(before!.Value.AddSeconds(9));
+        capturedScript.ToLowerInvariant().Should().Contain("pttl");
+    }
 }
 
 /// <summary>

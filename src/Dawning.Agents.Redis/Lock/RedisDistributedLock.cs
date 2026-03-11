@@ -201,7 +201,12 @@ public sealed class RedisDistributedLock : IDistributedLock
         const string script =
             @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
-                return redis.call('pexpire', KEYS[1], ARGV[2])
+                local ttl = redis.call('pttl', KEYS[1])
+                if ttl > 0 then
+                    return redis.call('pexpire', KEYS[1], ttl + tonumber(ARGV[2]))
+                else
+                    return 0
+                end
             else
                 return 0
             end
@@ -219,7 +224,7 @@ public sealed class RedisDistributedLock : IDistributedLock
 
             if ((int)result == 1)
             {
-                ExpiresAt = DateTime.UtcNow.Add(extension);
+                ExpiresAt = (ExpiresAt ?? DateTime.UtcNow).Add(extension);
                 _logger.LogDebug(
                     "Extended lock {Resource} by {Extension}, new expiry: {ExpiresAt}",
                     _resource,

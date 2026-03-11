@@ -11,10 +11,14 @@ public class LogLevelController : ILogLevelController
 {
     private readonly LoggingLevelSwitch _levelSwitch;
     private readonly Lock _lock = new();
+    private readonly Dictionary<long, LogEventLevel> _temporaryLevels = [];
+    private long _scopeId;
+    private LogEventLevel _baseLevel;
 
     public LogLevelController(LoggingLevelSwitch levelSwitch)
     {
         _levelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
+        _baseLevel = _levelSwitch.MinimumLevel;
     }
 
     /// <inheritdoc />
@@ -24,7 +28,12 @@ public class LogLevelController : ILogLevelController
     public void SetLevel(string level)
     {
         var logLevel = ParseLevel(level);
-        _levelSwitch.MinimumLevel = logLevel;
+
+        lock (_lock)
+        {
+            _baseLevel = logLevel;
+            ApplyEffectiveLevelUnsafe();
+        }
     }
 
     /// <inheritdoc />
@@ -32,13 +41,35 @@ public class LogLevelController : ILogLevelController
     {
         lock (_lock)
         {
-            var originalLevel = _levelSwitch.MinimumLevel;
             var targetLevel = ParseLevel(level);
+            var id = Interlocked.Increment(ref _scopeId);
 
-            _levelSwitch.MinimumLevel = targetLevel;
+            _temporaryLevels[id] = targetLevel;
+            ApplyEffectiveLevelUnsafe();
 
-            return new TemporaryLevelScope(this, originalLevel, duration);
+            return new TemporaryLevelScope(this, id, duration);
         }
+    }
+
+    private void RemoveTemporaryLevel(long id)
+    {
+        lock (_lock)
+        {
+            _temporaryLevels.Remove(id);
+            ApplyEffectiveLevelUnsafe();
+        }
+    }
+
+    private void ApplyEffectiveLevelUnsafe()
+    {
+        if (_temporaryLevels.Count == 0)
+        {
+            _levelSwitch.MinimumLevel = _baseLevel;
+            return;
+        }
+
+        var latestId = _temporaryLevels.Keys.Max();
+        _levelSwitch.MinimumLevel = _temporaryLevels[latestId];
     }
 
     private static LogEventLevel ParseLevel(string level)
@@ -58,19 +89,15 @@ public class LogLevelController : ILogLevelController
     private sealed class TemporaryLevelScope : IDisposable
     {
         private readonly LogLevelController _controller;
-        private readonly LogEventLevel _originalLevel;
+        private readonly long _scopeId;
         private readonly CancellationTokenSource _cts;
         private readonly Task _restoreTask;
         private int _disposed;
 
-        public TemporaryLevelScope(
-            LogLevelController controller,
-            LogEventLevel originalLevel,
-            TimeSpan duration
-        )
+        public TemporaryLevelScope(LogLevelController controller, long scopeId, TimeSpan duration)
         {
             _controller = controller;
-            _originalLevel = originalLevel;
+            _scopeId = scopeId;
             _cts = new CancellationTokenSource();
 
             // 自动恢复任务
@@ -80,7 +107,7 @@ public class LogLevelController : ILogLevelController
                     {
                         if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                         {
-                            Restore();
+                            _controller.RemoveTemporaryLevel(_scopeId);
                             try
                             {
                                 _cts.Dispose();
@@ -111,15 +138,7 @@ public class LogLevelController : ILogLevelController
             }
             catch (ObjectDisposedException) { }
 
-            Restore();
-        }
-
-        private void Restore()
-        {
-            lock (_controller._lock)
-            {
-                _controller._levelSwitch.MinimumLevel = _originalLevel;
-            }
+            _controller.RemoveTemporaryLevel(_scopeId);
         }
     }
 }

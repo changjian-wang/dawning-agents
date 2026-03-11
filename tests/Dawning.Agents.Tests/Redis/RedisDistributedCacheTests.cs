@@ -134,6 +134,7 @@ public sealed class RedisDistributedCacheTests
     {
         // Arrange
         var key = "test-key";
+        var fullKey = $"{_options.InstanceName}cache:{key}";
         var value = "test-value"u8.ToArray();
         var options = new DistributedCacheEntryOptions
         {
@@ -162,7 +163,7 @@ public sealed class RedisDistributedCacheTests
         _databaseMock.Verify(
             d =>
                 d.StringSetAsync(
-                    It.Is<RedisKey>(k => k.ToString().Contains(key)),
+                    It.Is<RedisKey>(k => k == fullKey),
                     It.IsAny<RedisValue>(),
                     It.Is<TimeSpan?>(t => t.HasValue && t.Value.TotalMinutes == 10),
                     It.IsAny<bool>(),
@@ -220,6 +221,85 @@ public sealed class RedisDistributedCacheTests
                     It.IsAny<CommandFlags>()
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public void Refresh_WithSlidingMetadata_ExtendsExpiry()
+    {
+        var key = "test-key";
+        var fullKey = $"{_options.InstanceName}cache:{key}";
+        var slidingKey = $"{fullKey}:sliding";
+
+        _databaseMock
+            .Setup(d =>
+                d.StringGet(It.Is<RedisKey>(k => k == slidingKey), It.IsAny<CommandFlags>())
+            )
+            .Returns((RedisValue)"60000");
+
+        _databaseMock
+            .Setup(d =>
+                d.KeyExpire(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<ExpireWhen>(),
+                    It.IsAny<CommandFlags>()
+                )
+            )
+            .Returns(true);
+
+        var cache = CreateCache();
+
+        cache.Refresh(key);
+
+        _databaseMock.Verify(
+            d =>
+                d.KeyExpire(
+                    It.Is<RedisKey>(k => k == fullKey),
+                    It.Is<TimeSpan?>(t => t == TimeSpan.FromSeconds(60)),
+                    It.IsAny<ExpireWhen>(),
+                    It.IsAny<CommandFlags>()
+                ),
+            Times.Once
+        );
+        _databaseMock.Verify(
+            d =>
+                d.KeyExpire(
+                    It.Is<RedisKey>(k => k == slidingKey),
+                    It.Is<TimeSpan?>(t => t == TimeSpan.FromSeconds(60)),
+                    It.IsAny<ExpireWhen>(),
+                    It.IsAny<CommandFlags>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RefreshAsync_WithoutSlidingMetadata_DoesNotTouchExpiry()
+    {
+        var key = "test-key";
+        var fullKey = $"{_options.InstanceName}cache:{key}";
+        var slidingKey = $"{fullKey}:sliding";
+
+        _databaseMock
+            .Setup(d =>
+                d.StringGetAsync(It.Is<RedisKey>(k => k == slidingKey), It.IsAny<CommandFlags>())
+            )
+            .ReturnsAsync(RedisValue.Null);
+
+        var cache = CreateCache();
+
+        await cache.RefreshAsync(key);
+
+        _databaseMock.Verify(
+            d =>
+                d.KeyExpireAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<ExpireWhen>(),
+                    It.IsAny<CommandFlags>()
+                ),
+            Times.Never
         );
     }
 
