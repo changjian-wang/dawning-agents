@@ -52,27 +52,7 @@
 
 **工作量**：修改 13 个 SKILL.md + copilot-instructions.md
 
-### 1.2 Skill 质检回路 ✅
 
-**已实现**：`code-review/SKILL.md` 开头声明了交叉检查引用（architecture + code-update + csharpier）。R38 更新后增加了 5 个审查维度（线程安全、DI 生命周期、数值边界、Channel/TCS、事件/Timer 安全）。
-
-### 1.3 Skill 触发条件精细化
-
-**目标**：减少误触发和漏触发，让 agent 更精准匹配 skill
-
-**现状**：触发全靠自然语言描述（copilot-instructions.md 的 Skill 索引表）
-
-**方案**：
-- 在每个 SKILL.md 头部增加结构化触发规则：
-  ```yaml
-  # 触发条件
-  keywords: [构建, 编译, build, compile, dotnet build]
-  file_patterns: ["*.csproj", "Directory.Build.props"]
-  user_intents: [修复编译错误, 构建项目]
-  ```
-- 更新 copilot-instructions.md 的 Skill 索引表，增加关键词列
-
-**工作量**：修改 13 个 SKILL.md + copilot-instructions.md
 
 ---
 
