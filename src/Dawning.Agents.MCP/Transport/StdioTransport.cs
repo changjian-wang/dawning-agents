@@ -44,6 +44,8 @@ public sealed class StdioTransport : IMCPTransport
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         CancellationTokenSource? oldCts;
         Task? oldTask;
         CancellationTokenSource newCts;
@@ -58,7 +60,7 @@ public sealed class StdioTransport : IMCPTransport
             oldCts = _readCts;
             oldTask = _readTask;
 
-            newCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            newCts = new CancellationTokenSource();
             _readCts = newCts;
             _isConnected = true;
             _readTask = ReadInputAsync(newCts, newCts.Token);
@@ -309,6 +311,5 @@ public sealed class StdioTransport : IMCPTransport
         readCts?.Dispose();
         _writeLock.Dispose();
         await _pipe.Reader.CompleteAsync().ConfigureAwait(false);
-        await _pipe.Writer.CompleteAsync().ConfigureAwait(false);
     }
 }

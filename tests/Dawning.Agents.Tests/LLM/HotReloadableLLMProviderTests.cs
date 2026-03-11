@@ -1,3 +1,4 @@
+using System.Reflection;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Core.LLM;
 using FluentAssertions;
@@ -275,6 +276,37 @@ public class HotReloadableLLMProviderTests
     }
 
     [Fact]
+    public void ConfigurationChanged_DoesNotDisposeOldProviderImmediately()
+    {
+        // Arrange
+        var initialOptions = CreateValidOptions();
+        var newOptions = CreateValidOptions("qwen2.5:7b");
+
+        Action<LLMOptions, string?>? capturedCallback = null;
+
+        _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(initialOptions);
+        _optionsMonitorMock
+            .Setup(x => x.OnChange(It.IsAny<Action<LLMOptions, string?>>()))
+            .Callback<Action<LLMOptions, string?>>(callback => capturedCallback = callback)
+            .Returns(Mock.Of<IDisposable>());
+
+        SetupHttpClientFactory();
+
+        var provider = CreateProvider();
+        var oldProvider = new DisposableTestProvider();
+        SetPrivateField(provider, "_innerProvider", oldProvider);
+
+        // Act
+        capturedCallback?.Invoke(newOptions, null);
+
+        // Assert
+        oldProvider.IsDisposed.Should().BeFalse();
+
+        provider.Dispose();
+        oldProvider.IsDisposed.Should().BeTrue();
+    }
+
+    [Fact]
     public void Name_ReturnsInnerProviderName()
     {
         // Arrange
@@ -322,5 +354,58 @@ public class HotReloadableLLMProviderTests
             _httpClientFactoryMock.Object,
             NullLoggerFactory.Instance
         );
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object? value)
+    {
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+
+        field.Should().NotBeNull();
+        field!.SetValue(target, value);
+    }
+
+    private sealed class DisposableTestProvider : ILLMProvider, IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public string Name => "DisposableTestProvider";
+
+        public Task<ChatCompletionResponse> ChatAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return Task.FromResult(new ChatCompletionResponse { Content = "ok" });
+        }
+
+        public async IAsyncEnumerable<string> ChatStreamAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation]
+                CancellationToken cancellationToken = default
+        )
+        {
+            yield return "ok";
+            await Task.CompletedTask;
+        }
+
+        public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation]
+                CancellationToken cancellationToken = default
+        )
+        {
+            yield return StreamingChatEvent.Content("ok");
+            await Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            IsDisposed = true;
+        }
     }
 }

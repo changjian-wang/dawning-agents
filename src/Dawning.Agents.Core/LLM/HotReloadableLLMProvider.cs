@@ -35,6 +35,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     private readonly ILogger<HotReloadableLLMProvider> _logger;
     private readonly IDisposable? _changeTokenRegistration;
     private readonly Lock _lock = new();
+    private readonly List<IDisposable> _retiredProviders = [];
     private volatile ILLMProvider _innerProvider;
     private bool _disposed;
 
@@ -135,10 +136,10 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
                 var oldProvider = _innerProvider;
                 _innerProvider = CreateProvider(newOptions);
 
-                // 如果旧 Provider 是 IDisposable，则释放它
+                // 延迟释放旧 Provider，避免并发请求仍在使用旧实例时触发 ObjectDisposedException
                 if (oldProvider is IDisposable disposable)
                 {
-                    disposable.Dispose();
+                    _retiredProviders.Add(disposable);
                 }
             }
 
@@ -196,6 +197,12 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             {
                 disposable.Dispose();
             }
+
+            foreach (var retired in _retiredProviders)
+            {
+                retired.Dispose();
+            }
+            _retiredProviders.Clear();
 
             _logger.LogDebug("HotReloadableLLMProvider 已释放");
         }

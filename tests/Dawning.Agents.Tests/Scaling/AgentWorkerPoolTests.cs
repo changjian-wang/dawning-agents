@@ -4,6 +4,7 @@ using Dawning.Agents.Core.Scaling;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace Dawning.Agents.Tests.Scaling;
 
@@ -234,6 +235,73 @@ public class AgentWorkerPoolTests : IDisposable
         var response = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         response.FinalAnswer.Should().Be("Result");
+    }
+
+    [Fact]
+    public async Task WorkerPool_CanRestart_AfterStop_AndProcessNewItems()
+    {
+        var firstTcs = new TaskCompletionSource<AgentResponse>();
+        var secondTcs = new TaskCompletionSource<AgentResponse>();
+
+        var firstItem = new AgentWorkItem
+        {
+            Id = "first",
+            Input = "first-input",
+            CompletionSource = firstTcs,
+        };
+
+        var secondItem = new AgentWorkItem
+        {
+            Id = "second",
+            Input = "second-input",
+            CompletionSource = secondTcs,
+        };
+
+        var phase = 1;
+        var phase1Dequeued = false;
+        var phase2Dequeued = false;
+
+        _mockQueue
+            .Setup(q => q.DequeueAsync(It.IsAny<CancellationToken>()))
+            .Returns(
+                async (CancellationToken ct) =>
+                {
+                    if (phase == 1 && !phase1Dequeued)
+                    {
+                        phase1Dequeued = true;
+                        return firstItem;
+                    }
+
+                    if (phase == 2 && !phase2Dequeued)
+                    {
+                        phase2Dequeued = true;
+                        return secondItem;
+                    }
+
+                    await Task.Delay(Timeout.Infinite, ct);
+                    return null;
+                }
+            );
+
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (string input, CancellationToken _) =>
+                    AgentResponse.Successful(input, [], TimeSpan.FromMilliseconds(5))
+            );
+
+        using var pool = CreatePool(workerCount: 1);
+
+        pool.Start();
+        var firstResponse = await firstTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        firstResponse.FinalAnswer.Should().Be("first-input");
+
+        await pool.StopAsync();
+
+        phase = 2;
+        pool.Start();
+        var secondResponse = await secondTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        secondResponse.FinalAnswer.Should().Be("second-input");
     }
 
     #endregion

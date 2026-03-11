@@ -14,7 +14,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     private readonly IAgentRequestQueue _queue;
     private readonly ILogger<AgentWorkerPool> _logger;
     private readonly List<Task> _workers = [];
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _runCts;
     private readonly Lock _lock = new();
     private readonly int _workerCount;
     private bool _isRunning;
@@ -42,18 +42,29 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     /// <inheritdoc />
     public void Start()
     {
+        CancellationTokenSource runCts;
+
         lock (_lock)
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(AgentWorkerPool));
+            }
+
             if (_isRunning)
             {
                 _logger.LogWarning("工作池已在运行中");
                 return;
             }
 
+            _runCts?.Dispose();
+            _runCts = new CancellationTokenSource();
+            runCts = _runCts;
+
             for (int i = 0; i < _workerCount; i++)
             {
                 var workerId = i;
-                _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, _cts.Token), _cts.Token));
+                _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, runCts.Token), runCts.Token));
             }
 
             _isRunning = true;
@@ -66,6 +77,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         Task[] snapshot;
+        CancellationTokenSource? runCts;
         lock (_lock)
         {
             if (!_isRunning)
@@ -75,10 +87,16 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
             _isRunning = false;
             snapshot = [.. _workers];
+            runCts = _runCts;
+            _runCts = null;
         }
 
         _logger.LogInformation("正在停止工作池...");
-        await _cts.CancelAsync().ConfigureAwait(false);
+
+        if (runCts != null)
+        {
+            await runCts.CancelAsync().ConfigureAwait(false);
+        }
 
         try
         {
@@ -99,6 +117,8 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         {
             _workers.Clear();
         }
+
+        runCts?.Dispose();
 
         _logger.LogInformation("工作池已停止");
     }
@@ -162,6 +182,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     public void Dispose()
     {
         Task[] snapshot;
+        CancellationTokenSource? runCts;
         lock (_lock)
         {
             if (_disposed)
@@ -173,9 +194,11 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _isRunning = false;
             snapshot = [.. _workers];
             _workers.Clear();
+            runCts = _runCts;
+            _runCts = null;
         }
 
-        _cts.Cancel();
+        runCts?.Cancel();
 
         try
         {
@@ -186,13 +209,14 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             // 忽略停止时的异常
         }
 
-        _cts.Dispose();
+        runCts?.Dispose();
     }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         Task[] snapshot;
+        CancellationTokenSource? runCts;
         lock (_lock)
         {
             if (_disposed)
@@ -204,9 +228,14 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _isRunning = false;
             snapshot = [.. _workers];
             _workers.Clear();
+            runCts = _runCts;
+            _runCts = null;
         }
 
-        await _cts.CancelAsync().ConfigureAwait(false);
+        if (runCts != null)
+        {
+            await runCts.CancelAsync().ConfigureAwait(false);
+        }
 
         try
         {
@@ -217,6 +246,6 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             // 忽略停止时的异常
         }
 
-        _cts.Dispose();
+        runCts?.Dispose();
     }
 }

@@ -402,6 +402,8 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                     .ConfigureAwait(false);
             }
 
+            Interlocked.Increment(ref _count);
+
             _logger.LogDebug("Requeued message {MessageId} with delay {Delay}", messageId, delay);
         }
         catch (Exception ex)
