@@ -100,6 +100,7 @@ public static class EnvironmentConfigurationExtensions
             var value = trimmedLine[(separatorIndex + 1)..].Trim();
 
             // 处理引号
+            var quoteChar = '\0';
             if (
                 value.Length >= 2
                 && (
@@ -108,11 +109,15 @@ public static class EnvironmentConfigurationExtensions
                 )
             )
             {
+                quoteChar = value[0];
                 value = value[1..^1];
             }
 
-            // 处理转义字符
-            value = ProcessEscapeSequences(value);
+            // 仅双引号和无引号值处理转义（单引号保持字面值）
+            if (quoteChar != '\'')
+            {
+                value = ProcessEscapeSequences(value);
+            }
 
             // 处理嵌套配置键（用 __ 代替 :）
             key = key.Replace("__", ":");

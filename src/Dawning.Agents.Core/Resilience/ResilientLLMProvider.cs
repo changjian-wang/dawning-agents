@@ -71,7 +71,7 @@ public class ResilientLLMProvider : ILLMProvider
                     async ct =>
                     {
                         var stream = _innerProvider.ChatStreamAsync(messages, options, ct);
-                        enumerator = stream.GetAsyncEnumerator(ct);
+                        enumerator = stream.GetAsyncEnumerator(cancellationToken);
                     },
                     cancellationToken
                 )
@@ -116,7 +116,7 @@ public class ResilientLLMProvider : ILLMProvider
                     async ct =>
                     {
                         var stream = _innerProvider.ChatStreamEventsAsync(messages, options, ct);
-                        enumerator = stream.GetAsyncEnumerator(ct);
+                        enumerator = stream.GetAsyncEnumerator(cancellationToken);
                     },
                     cancellationToken
                 )
