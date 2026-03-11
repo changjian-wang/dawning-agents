@@ -178,25 +178,66 @@ public class ModelStatistics
     /// </summary>
     public long TotalOutputTokens => Interlocked.Read(ref _totalOutputTokens);
 
+    private decimal _totalCost;
+    private double _averageLatencyMs;
+    private long _p99LatencyMs;
+    private DateTimeOffset _lastUpdated = DateTimeOffset.UtcNow;
+
     /// <summary>
     /// 总成本（美元）
     /// </summary>
-    public decimal TotalCost { get; private set; }
+    public decimal TotalCost
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _totalCost;
+            }
+        }
+    }
 
     /// <summary>
     /// 平均延迟（毫秒）
     /// </summary>
-    public double AverageLatencyMs { get; private set; }
+    public double AverageLatencyMs
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _averageLatencyMs;
+            }
+        }
+    }
 
     /// <summary>
     /// P99 延迟（毫秒）
     /// </summary>
-    public long P99LatencyMs { get; private set; }
+    public long P99LatencyMs
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _p99LatencyMs;
+            }
+        }
+    }
 
     /// <summary>
     /// 最后更新时间
     /// </summary>
-    public DateTimeOffset LastUpdated { get; private set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset LastUpdated
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _lastUpdated;
+            }
+        }
+    }
 
     /// <summary>
     /// 成功率
@@ -227,9 +268,9 @@ public class ModelStatistics
         lock (_lock)
         {
             var successCount = Interlocked.Increment(ref _successfulRequests);
-            TotalCost += cost;
-            AverageLatencyMs = (AverageLatencyMs * (successCount - 1) + latencyMs) / successCount;
-            LastUpdated = DateTimeOffset.UtcNow;
+            _totalCost += cost;
+            _averageLatencyMs = (_averageLatencyMs * (successCount - 1) + latencyMs) / successCount;
+            _lastUpdated = DateTimeOffset.UtcNow;
         }
     }
 
@@ -242,7 +283,7 @@ public class ModelStatistics
         Interlocked.Increment(ref _failedRequests);
         lock (_lock)
         {
-            LastUpdated = DateTimeOffset.UtcNow;
+            _lastUpdated = DateTimeOffset.UtcNow;
         }
     }
 
@@ -253,7 +294,7 @@ public class ModelStatistics
     {
         lock (_lock)
         {
-            P99LatencyMs = p99Ms;
+            _p99LatencyMs = p99Ms;
         }
     }
 }

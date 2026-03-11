@@ -111,7 +111,7 @@ public class WorkflowSerializer : IWorkflowSerializer
             var trimmed = line.TrimStart();
             var indent = line.Length - trimmed.Length;
 
-            if (trimmed.StartsWith("id:", StringComparison.Ordinal))
+            if (trimmed.StartsWith("id:", StringComparison.Ordinal) && indent == 0)
             {
                 id = trimmed["id:".Length..].Trim();
             }
@@ -119,15 +119,15 @@ public class WorkflowSerializer : IWorkflowSerializer
             {
                 name = trimmed["name:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("description:", StringComparison.Ordinal))
+            else if (trimmed.StartsWith("description:", StringComparison.Ordinal) && indent == 0)
             {
                 description = trimmed["description:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("version:", StringComparison.Ordinal))
+            else if (trimmed.StartsWith("version:", StringComparison.Ordinal) && indent == 0)
             {
                 version = trimmed["version:".Length..].Trim();
             }
-            else if (trimmed.StartsWith("startNodeId:", StringComparison.Ordinal))
+            else if (trimmed.StartsWith("startNodeId:", StringComparison.Ordinal) && indent == 0)
             {
                 startNodeId = trimmed["startNodeId:".Length..].Trim();
             }
@@ -176,6 +176,7 @@ public class WorkflowSerializer : IWorkflowSerializer
                 currentSection == "nodes"
                 && trimmed.StartsWith("name:", StringComparison.Ordinal)
                 && currentNode != null
+                && currentConfig == null
             )
             {
                 currentNode = currentNode with { Name = trimmed["name:".Length..].Trim() };
@@ -184,6 +185,7 @@ public class WorkflowSerializer : IWorkflowSerializer
                 currentSection == "nodes"
                 && trimmed.StartsWith("type:", StringComparison.Ordinal)
                 && currentNode != null
+                && currentConfig == null
             )
             {
                 if (
