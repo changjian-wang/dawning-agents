@@ -44,6 +44,27 @@ public class DefaultAgentEvaluatorCancellationTests
         result.FailureReason.Should().Be("Evaluation timed out");
     }
 
+    [Fact]
+    public async Task EvaluateAsync_Should_Timeout_During_Metric_Evaluation()
+    {
+        var evaluator = new DefaultAgentEvaluator(
+            new FastAgent(),
+            Options.Create(new EvaluationOptions { TestTimeoutSeconds = 1 }),
+            [new SlowMetricEvaluator()]
+        );
+
+        var testCase = new EvaluationTestCase
+        {
+            Id = "timeout-metric-001",
+            Input = "metric timeout",
+        };
+
+        var result = await evaluator.EvaluateAsync(testCase);
+
+        result.Passed.Should().BeFalse();
+        result.FailureReason.Should().Be("Evaluation timed out");
+    }
+
     private sealed class BlockingAgent : IAgent
     {
         public string Name => "blocking-agent";
@@ -65,6 +86,44 @@ public class DefaultAgentEvaluatorCancellationTests
         )
         {
             return RunAsync(context.UserInput, cancellationToken);
+        }
+    }
+
+    private sealed class FastAgent : IAgent
+    {
+        public string Name => "fast-agent";
+
+        public string Instructions => "test";
+
+        public Task<AgentResponse> RunAsync(
+            string input,
+            CancellationToken cancellationToken = default
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(AgentResponse.Successful("ok", [], TimeSpan.Zero));
+        }
+
+        public Task<AgentResponse> RunAsync(
+            AgentContext context,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return RunAsync(context.UserInput, cancellationToken);
+        }
+    }
+
+    private sealed class SlowMetricEvaluator : IMetricEvaluator
+    {
+        public string MetricName => "SlowMetric";
+
+        public async Task<double> EvaluateAsync(
+            MetricEvaluationContext context,
+            CancellationToken cancellationToken = default
+        )
+        {
+            await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+            return 1.0;
         }
     }
 }

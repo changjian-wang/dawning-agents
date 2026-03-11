@@ -93,7 +93,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             foreach (var evaluator in _metricEvaluators)
             {
                 var score = await evaluator
-                    .EvaluateAsync(context, cancellationToken)
+                    .EvaluateAsync(context, evaluationCts.Token)
                     .ConfigureAwait(false);
                 metricScores[evaluator.MetricName] = score;
                 _logger.LogTrace("Metric {Metric}: {Score}", evaluator.MetricName, score);
