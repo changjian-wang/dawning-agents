@@ -67,6 +67,37 @@ description: |
 - ❌ `IMapper` / AutoMapper
 - ❌ 同步 I/O（`.Result`、`.Wait()`）
 - ❌ 遗漏 `CancellationToken` 传递
+- ❌ event `?.Invoke()` 无 try/catch — 订阅者异常会崩溃调用方
+- ❌ Timer/回调无 try/catch — 异常会永久停止 Timer
+- ❌ public 方法缺少 `ArgumentNullException.ThrowIfNull()` — 同类中部分有部分无
+- ❌ Singleton 持有 Scoped 依赖（captive dependency）
+- ❌ `Options.Create()` 绕过 Options 管线
+
+### 7. 线程安全与原子性
+
+- 多字段一致性读取是否在同一个 lock 内（128-bit struct/decimal 字段有 torn read 风险）
+- `Interlocked` 和 `lock` 混用是否正确
+- `volatile` 是否用于 `_disposed` 等跨线程标志
+- `ConcurrentDictionary` 操作是否有 TOCTOU 竞态
+
+### 8. DI 生命周期
+
+- Singleton 是否直接解析 Scoped 服务（应创建 scope）
+- `TryAddSingleton` vs `TryAddScoped` 是否匹配消费者的生命周期
+- `Options.Create()` 是否绕过了 `IOptions<T>` / `IValidateOptions<T>` 管线
+
+### 9. 数值边界
+
+- `ulong` → `int` 是否有溢出保护
+- `Convert.ToInt32()` / `Convert.ToDouble()` 是否处理了 `OverflowException`
+- LINQ `.Sum()` 对大量数据是否有 `int` 溢出风险
+- 模数运算 `%` 对负数是否安全
+
+### 10. Channel/TCS 生命周期
+
+- Channel 关闭后写入是否处理了 `ChannelClosedException`
+- 挂起的 `TaskCompletionSource` 在 Dispose 时是否 `TrySetCanceled()`
+- Singleton 中的 `ConcurrentDictionary<string, TCS>` 是否有清理机制
 
 ## Review Output Format
 

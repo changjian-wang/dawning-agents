@@ -20,9 +20,16 @@ description: |
 
 - **MA0004**: add `CancellationToken cancellationToken = default`
 - **MA0006**: use `string.Equals(a, b, StringComparison.Ordinal)`
+- **MA0025**: use `NotSupportedException` instead of `NotImplementedException` for deliberate non-support
 - **MA0049**: add `sealed` to non-inheritable classes
 - **MA0051**: extract helper methods
 - **Suppress if justified**: `#pragma warning disable MA0004`
+
+### IDE / Roslyn Analyzer Errors
+
+- **IDE0011**: add braces to `if`/`else`/`for`/`foreach` statements (required by project config)
+- **IDE0060**: remove unused parameter
+- **CS8600/CS8602/CS8604**: nullable reference type warnings — add `?`, null checks, or `!` (last resort)
 
 ### CSharpier Conflicts
 

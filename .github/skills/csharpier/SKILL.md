@@ -7,7 +7,7 @@ description: |
     - Fixing compilation errors (use build-project)
     - Running tests (use run-tests)
   Inputs: Request to format code or fix style issues
-  Outputs: Formatted code via `dotnet csharpier format .`
+  Outputs: Formatted code via `~/.dotnet/tools/csharpier format .`
   Success criteria: CSharpier reports 0 files changed (all code already formatted)
 ---
 

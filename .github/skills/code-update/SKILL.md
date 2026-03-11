@@ -52,3 +52,62 @@ description: |
 - ❌ 同步 I/O（`.Result`、`.Wait()`、`.GetAwaiter().GetResult()`）
 - ❌ 忘记 `CancellationToken` 参数传递（async 链中每一层都要传）
 
+## 必须遵循的安全编码模式
+
+### 参数校验（public 方法入口处）
+
+```csharp
+// 必须依赖
+ArgumentNullException.ThrowIfNull(innerAgent);
+ArgumentNullException.ThrowIfNull(config);
+
+// 字符串参数
+ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
+// 集合参数
+ArgumentNullException.ThrowIfNull(agents); // IEnumerable<T>
+```
+
+### 事件触发（必须 try/catch 隔离订阅者异常）
+
+```csharp
+try
+{
+    SomeEvent?.Invoke(this, args);
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "事件处理器执行失败");
+}
+```
+
+### Timer/回调（必须全局 try/catch 防止 Timer 停止）
+
+```csharp
+private void TimerCallback(object? state)
+{
+    if (_disposed) return;
+    try
+    {
+        // ... 清理逻辑
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Timer 回调执行失败");
+    }
+}
+```
+
+### IDisposable + TCS 清理
+
+```csharp
+public void Dispose()
+{
+    foreach (var tcs in _pendingRequests.Values)
+    {
+        tcs.TrySetCanceled();
+    }
+    _pendingRequests.Clear();
+}
+```
+

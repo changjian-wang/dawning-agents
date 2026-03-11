@@ -1,86 +1,213 @@
 ---
 description: |
-  Use when: Performing a comprehensive line-by-line code audit across all 12 projects, finding bugs, security issues, design flaws, and test gaps
+  Use when: Performing deep code audit to find bugs, security issues, design flaws, and test gaps across all 12 projects
   Don't use when:
     - Quick code review of a few files (use code-review)
     - Security-only audit without full scope (use security-audit)
     - Fixing issues without auditing first (use code-update)
     - Running tests (use run-tests)
     - Checking a single performance concern (use performance)
-  Inputs: Request for full codebase audit, optionally with focus area
-  Outputs: Structured audit report: findings by severity (CRITICAL/HIGH/MEDIUM/LOW), test gaps, comparison with previous audit
-  Success criteria: Every project audited, all findings documented with location and fix, test coverage gaps identified
+  Inputs: Request for codebase audit, optionally with focus area or scanning angle
+  Outputs: Structured audit report with findings by severity, then fix → build → test → format verification
+  Success criteria: Novel bugs found, all fixes verified (build 0/0, tests pass, CSharpier clean)
 ---
 
 # Deep Code Audit Skill
 
-## 执行流程（必须严格按序）
+## 概述
 
-### Phase 1: 读取所有 src/ 项目
+本 Skill 用于对 Dawning.Agents 代码库进行深度审计。支持两种模式：
+
+- **全量审计**（首轮）：逐项目逐文件阅读所有 .cs 文件
+- **增量审计**（后续轮次）：基于新颖扫描角度的定向扫描
+
+> **经验数据**：经过 38+ 轮审计共修复 ~190 个 bug，简单 bug 在前 10 轮已耗尽。后续轮次必须使用创新的扫描角度才能发现新问题。
+
+---
+
+## Phase 0: 前置检查
+
+1. **验证用户提交**：使用 `get_changed_files` 确认上一轮修改已提交
+2. **读取已知问题清单**：从 conversation summary 中加载 deferred/accepted issues 列表
+3. **选择扫描模式**：首轮用全量模式，后续用增量模式
+
+---
+
+## Phase 1A: 全量审计模式（首轮）
 
 按以下顺序逐项目、逐文件完整阅读（不跳过任何 .cs 文件）：
 
 ```
-1. Dawning.Agents.Abstractions
-2. Dawning.Agents.Core
-3. Dawning.Agents.OpenAI
-4. Dawning.Agents.Azure
-5. Dawning.Agents.MCP
-6. Dawning.Agents.OpenTelemetry
-7. Dawning.Agents.Serilog
-8. Dawning.Agents.Redis
-9. Dawning.Agents.Chroma
-10. Dawning.Agents.Pinecone
-11. Dawning.Agents.Qdrant
-12. Dawning.Agents.Weaviate
+1. Dawning.Agents.Abstractions    7. Dawning.Agents.Serilog
+2. Dawning.Agents.Core            8. Dawning.Agents.Redis
+3. Dawning.Agents.OpenAI          9. Dawning.Agents.Chroma
+4. Dawning.Agents.Azure          10. Dawning.Agents.Pinecone
+5. Dawning.Agents.MCP            11. Dawning.Agents.Qdrant
+6. Dawning.Agents.OpenTelemetry  12. Dawning.Agents.Weaviate
 ```
 
-### Phase 2: 每个文件必须检查的维度（12 个）
+## Phase 1B: 增量审计模式（后续轮次）
+
+### 扫描角度策略
+
+每轮选择 **2-3 个全新扫描角度**，用子代理并行执行。角度必须在之前轮次中未使用过。
+
+#### 已验证有效的扫描角度库（按发现率排序）
+
+**高发现率角度（每轮 3-7 个 bug）：**
+
+| 角度 | 描述 | 典型 Bug 示例 |
+|------|------|--------------|
+| 线程安全与原子性 | 共享状态 torn reads、Interlocked 与 lock 混用、volatile 缺失 | ModelStatistics 128-bit 字段 torn read |
+| CancellationToken 传播链 | CT 参数存在但未传递到内部调用 | SearchTool 未传递 CT 给 GrepSearch |
+| DI 生命周期不匹配 | Singleton 持有 Scoped、captive dependency、Options.Create() 绕过 | WorkflowEngine Singleton 解析 Scoped IAgent |
+| 异步模式正确性 | ConfigureAwait(false)、await foreach、fire-and-forget | 6x await foreach 缺少 ConfigureAwait |
+| 资源泄漏与 Dispose | IDisposable 缺失、double-dispose、挂起的 TCS 未取消 | AsyncCallbackHandler 无 IDisposable |
+| 参数校验一致性 | 同类中有的方法校验有的不校验、null 穿透多层 | ObservableAgent→AgentLogger null 穿透两层 |
+
+**中发现率角度（每轮 2-4 个 bug）：**
+
+| 角度 | 描述 | 典型 Bug 示例 |
+|------|------|--------------|
+| 事件与回调模式 | event Invoke 异常传播、Timer 回调无 try/catch | AsyncCallbackHandler 4x Invoke 无保护 |
+| 数值溢出与截断 | ulong→int、Convert.ToInt32、Sum 溢出 | QdrantVectorStore ulong→int 截断 |
+| 错误处理与异常类型 | ChannelClosedException 未处理、OCE 吞没 | AgentRequestQueue 写入关闭的 Channel |
+| 重试与 failover 语义 | off-by-one（fencepost error）、最后一次尝试异常丢失 | DistributedLoadBalancer FailoverRetries=0 问题 |
+| 配置与序列化 | YAML/JSON 解析边界、.env 引号语义 | .env 单引号内转义字符处理错误 |
+| 防御性编程缺失 | 构造函数依赖校验、集合 null 校验 | OrchestratorBase.AddAgents 集合未校验 |
+
+**低发现率但高价值角度：**
+
+| 角度 | 描述 | 典型 Bug 示例 |
+|------|------|--------------|
+| Polly/Resilience 交互 | 内部 CT 与外部 CT 绑定、策略覆盖范围 | ResilientLLMProvider 绑定 Polly 内部 CT |
+| 装饰器/代理模式 | 包装层信息丢失、元数据未透传 | HumanInLoopAgent metadata 丢失 |
+| 进程管理 | Process.Start 未 Kill/Dispose、shell 注入 | ToolSandbox 进程泄漏 |
+| 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态 | DefaultToolApprovalHandler HashSet 竞态 |
+| 环形缓冲区/滑动窗口 | 模数运算溢出、负索引 | HistogramMetric ring buffer 语义 |
+
+### 子代理 Prompt 模板
+
+```
+你是 .NET 代码审计专家。请对 dawning-agents 仓库的所有 src/ 目录下 .cs 文件
+进行 [角度名] 专项扫描。
+
+扫描要求：
+1. 逐文件读取所有相关代码
+2. 仅报告 genuinely new 问题（排除以下已知问题：[列出已知问题]）
+3. 每个发现给出：文件路径、行号、代码片段、问题描述、修复建议、严重级别
+4. 按严重级别排序输出
+
+排除的已知问题 ID 列表：
+[从 conversation summary 粘贴]
+```
+
+---
+
+## Phase 2: 检查维度（18 个）
+
+在原有 12 个维度基础上，增加 6 个从实战中提炼的高价值维度：
 
 | # | 维度 | 审查要点 |
 |---|------|---------|
 | 1 | **安全** | 注入、路径穿越、敏感信息泄露、不安全的反序列化 |
-| 2 | **资源管理** | IDisposable/IAsyncDisposable、using 语句、Stream/HttpClient 泄漏 |
-| 3 | **线程安全** | 共享可变状态、Lock/ConcurrentDictionary、竞态条件、死锁 |
-| 4 | **异步正确性** | `.Result`/`.Wait()` 同步阻塞、CancellationToken 传递 |
-| 5 | **空引用** | NullReferenceException、null-forgiving `!` 使用 |
+| 2 | **资源管理** | IDisposable/IAsyncDisposable、using、Stream/HttpClient 泄漏 |
+| 3 | **线程安全** | 共享可变状态、Lock/ConcurrentDictionary、竞态、死锁 |
+| 4 | **异步正确性** | `.Result`/`.Wait()` 阻塞、CT 传递、ConfigureAwait(false) |
+| 5 | **空引用** | NRE、null-forgiving `!`、null 穿透多层 |
 | 6 | **DI 合规** | 构造函数注入、无 `new` 运行时服务、生命周期正确性 |
 | 7 | **Options 校验** | `IValidatableOptions`、`Validate()` 覆盖率 |
 | 8 | **错误处理** | 精确异常类型、无裸 catch、无静默吞异常 |
-| 9 | **日志** | `ILogger<T>` 覆盖、日志级别合理性、结构化参数 |
-| 10 | **命名与规范** | 命名空间、接口前缀、Async 后缀、私有字段 `_` 前缀 |
+| 9 | **日志** | `ILogger<T>` 覆盖、日志级别、结构化参数 |
+| 10 | **命名与规范** | 命名空间、接口前缀、Async 后缀、`_` 前缀 |
 | 11 | **死代码** | 未使用参数、未引用方法、TODO/FIXME/HACK |
 | 12 | **性能** | 不必要分配、LINQ 热路径、字符串拼接 |
+| 13 | **原子性与 torn reads** | 多字段一致性读取、128-bit 字段需 lock、Interlocked 正确性 |
+| 14 | **事件/Timer/回调安全** | event Invoke 异常隔离、Timer 回调 try/catch、委托泄漏 |
+| 15 | **DI 生命周期** | Singleton 持有 Scoped（captive dependency）、Options.Create() 绕过 |
+| 16 | **数值边界** | 整数溢出、ulong→int 截断、Convert.ToXxx 溢出、模数负数 |
+| 17 | **Channel/Queue 生命周期** | ChannelClosedException、Complete 后写入、TCS 挂起清理 |
+| 18 | **Polly/Resilience 交互** | 内部 CT 绑定、策略覆盖范围、stream 失败上报 |
 
-### Phase 3: 读取测试项目
+---
 
-检查：哪些模块有测试、哪些缺失、是否有 `[Fact(Skip = ...)]`
+## Phase 3: 分类与过滤
 
-### Phase 4: 输出报告
+### 3.1 对比已知问题清单
 
-```markdown
-# 深度代码审计报告 - {日期}
+每个发现必须检查是否在 conversation summary 的 deferred/accepted issues 列表中。已知问题**直接跳过**。
 
-## 概要
-- 扫描文件数：N（CRITICAL: N, HIGH: N, MEDIUM: N, LOW: N）
+### 3.2 严重级别定义
 
-## CRITICAL / HIGH / MEDIUM / LOW
-| # | 维度 | 文件 | 行 | 描述 | 修复建议 |
+| 级别 | 定义 | 修复优先级 |
+|------|------|-----------|
+| CRITICAL | 数据损坏、安全漏洞、服务崩溃 | 必须立即修复 |
+| HIGH | 功能异常、资源泄漏、竞态条件导致错误行为 | 本轮修复 |
+| MEDIUM | 防御性校验缺失、错误信息不清、不一致行为 | 本轮修复（除设计层面问题） |
+| LOW | 代码风格、微优化、理论上可能但实际极难触发 | 推迟 |
 
-## 测试覆盖缺口
-| 模块 | 现有测试数 | 缺失覆盖 |
+### 3.3 推迟条件（不修复，记入 deferred 列表）
 
-## 与上次审计对比
+- 需要架构级重构（如接口变更影响所有实现）
+- 属于设计选择而非 bug（如 WeightedRoundRobin 实际是加权随机）
+- 修复风险大于收益（如改 Singleton 为 Scoped 影响所有消费者）
+- 理论极端场景（如 double 精度 >2^53）
+
+---
+
+## Phase 4: 修复
+
+对所有 CRITICAL/HIGH/MEDIUM 级别的非推迟问题执行修复。
+
+### 修复原则
+
+1. **最小改动** — 只修 bug 本身，不做"顺便"重构
+2. **保持 API 兼容** — 除非是参数校验（添加 ThrowIfNull 不破坏现有调用）
+3. **遵循现有模式** — 看同文件/同类中的已有模式来保持一致
+4. **批量修复** — 同类型 bug（如参数校验）用 multi_replace_string_in_file 一次完成
+
+---
+
+## Phase 5: 验证链（必须全部通过）
+
+```bash
+# 1. 构建（必须 0 warnings, 0 errors）
+dotnet build --nologo -v q
+
+# 2. 测试（必须全部通过，当前基线 2225）
+dotnet test --nologo -v q
+
+# 3. 格式化
+~/.dotnet/tools/csharpier format .
 ```
 
-### Phase 5: 持久化
+---
 
-将报告摘要写入 `/memories/session/audit-report.md`
+## Phase 6: 输出报告
+
+```markdown
+## R{N} 完成 — 修复汇总
+
+本轮共修复 **N 个 bug**，涉及 M 个文件。
+
+### 行为/功能 Bug（N 个）
+| # | 文件 | 问题 | 修复 |
+
+### 参数校验 Bug（N 个）
+| # | 文件 | 缺失校验 |
+
+### 推迟问题
+- [描述] — 推迟原因
+```
+
+---
 
 ## 执行原则
 
-- **不跳过任何文件** — 即使只有一个枚举
-- **不猜测** — 所有发现基于实际代码，给出文件名和行号
-- **使用子代理** — 推荐 Explore 子代理并行读取不同项目
-- **分批汇报** — 每 2-3 个项目后汇报进度
+1. **不重复报告** — 严格过滤 deferred/accepted issues
+2. **不猜测** — 所有发现基于实际代码，给出文件名和行号
+3. **创新扫描角度** — 每轮的角度不得与之前轮次重复
+4. **使用子代理并行扫描** — 2-3 个角度同时扫描，提高效率
+5. **分批汇报** — 扫描完成后先展示分类结果，确认后再修复
+6. **单轮闭环** — 每轮必须走完 扫描→分类→修复→验证 全链路
 

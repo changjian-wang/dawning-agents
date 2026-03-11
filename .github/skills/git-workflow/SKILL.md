@@ -36,11 +36,12 @@ type(scope): description
 
 ### Recommended Scopes
 
-- Core domains: `agent`, `llm`, `tools`, `memory`, `workflow`, `orchestration`, `safety`, `resilience`
-- Platform modules: `mcp`, `observability`, `logging`, `telemetry`, `diagnostics`, `health`, `scaling`
+- Core domains: `agent`, `llm`, `tools`, `memory`, `workflow`, `orchestration`, `safety`, `resilience`, `humanloop`, `communication`, `evaluation`, `handoff`
+- Platform modules: `mcp`, `observability`, `logging`, `telemetry`, `diagnostics`, `health`, `scaling`, `discovery`
 - Data/RAG: `rag`, `redis`, `chroma`, `pinecone`, `qdrant`, `weaviate`
 - App/config/docs: `api`, `samples`, `config`, `docs`, `test`
 - Providers: `openai`, `azure`, `serilog`
+- Maintenance: `audit`, `deps`, `skills`
 
 ### Examples
 
