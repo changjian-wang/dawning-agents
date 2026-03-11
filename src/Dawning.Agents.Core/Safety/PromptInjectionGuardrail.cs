@@ -236,7 +236,9 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                             custom.Description ?? "自定义检测模式",
                             new Regex(
                                 custom.Pattern,
-                                RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+                                RegexOptions.IgnoreCase
+                                    | RegexOptions.Compiled
+                                    | RegexOptions.CultureInvariant,
                                 TimeSpan.FromSeconds(1)
                             ),
                             custom.Severity
