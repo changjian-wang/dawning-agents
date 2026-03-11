@@ -84,6 +84,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         }
 
         var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
+        var existed = await ExistsAsync(index, chunk.Id).ConfigureAwait(false);
 
         var metadata = BuildMetadata(chunk);
         var vector = new Vector
@@ -95,7 +96,11 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         await index.Upsert(new[] { vector }, _options.Namespace).ConfigureAwait(false);
 
-        Interlocked.Increment(ref _count);
+        if (!existed)
+        {
+            Interlocked.Increment(ref _count);
+        }
+
         _logger.LogDebug(
             "Added chunk {ChunkId} to Pinecone index {Index}",
             chunk.Id,
@@ -129,13 +134,19 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         // Pinecone 建议每批最多 100 条
         const int batchSize = 100;
+        var insertedCount = 0;
         for (var i = 0; i < vectors.Count; i += batchSize)
         {
             var batch = vectors.GetRange(i, Math.Min(batchSize, vectors.Count - i));
+            var batchIds = batch.Select(v => v.Id).ToArray();
+            var existingIds = await FetchExistingIdsAsync(index, batchIds).ConfigureAwait(false);
+
             await index.Upsert(batch, _options.Namespace).ConfigureAwait(false);
+
+            insertedCount += batch.Count(v => !existingIds.Contains(v.Id));
         }
 
-        Interlocked.Add(ref _count, chunkList.Count);
+        Interlocked.Add(ref _count, insertedCount);
         _logger.LogDebug(
             "Added {Count} chunks to Pinecone index {Index}",
             chunkList.Count,
@@ -202,6 +213,12 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
         var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
+        var exists = await ExistsAsync(index, id).ConfigureAwait(false);
+        if (!exists)
+        {
+            _logger.LogDebug("Chunk {ChunkId} not found in Pinecone, skip delete", id);
+            return false;
+        }
 
         await index.Delete(new[] { id }, _options.Namespace).ConfigureAwait(false);
 
@@ -228,25 +245,52 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
 
         var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
+        var beforeStats = await index.DescribeStats().ConfigureAwait(false);
+        var beforeCount = beforeStats.TotalVectorCount;
 
         // Pinecone 支持按 metadata 过滤删除
         var filter = new MetadataMap { ["document_id"] = documentId };
 
         await index.Delete(filter, _options.Namespace).ConfigureAwait(false);
 
-        // Pinecone 删除不返回数量，无法精确计算
-        int oldCount;
-        do
-        {
-            oldCount = Volatile.Read(ref _count);
-            if (oldCount <= 0)
-            {
-                break;
-            }
-        } while (Interlocked.CompareExchange(ref _count, oldCount - 1, oldCount) != oldCount);
+        var afterStats = await index.DescribeStats().ConfigureAwait(false);
+        var afterCount = afterStats.TotalVectorCount;
+        var deleted = beforeCount > afterCount ? beforeCount - afterCount : 0;
+        Interlocked.Exchange(
+            ref _count,
+            afterCount > int.MaxValue ? int.MaxValue : (int)afterCount
+        );
 
-        _logger.LogDebug("Deleted chunks for document {DocumentId} from Pinecone", documentId);
-        return oldCount > 0 ? 1 : 0;
+        _logger.LogDebug(
+            "Deleted {DeletedCount} chunks for document {DocumentId} from Pinecone",
+            deleted,
+            documentId
+        );
+
+        return deleted > int.MaxValue ? int.MaxValue : (int)deleted;
+    }
+
+    private async Task<HashSet<string>> FetchExistingIdsAsync(
+        Index<RestTransport> index,
+        IReadOnlyCollection<string> ids
+    )
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var response =
+            (await index.Fetch(ids.ToArray(), _options.Namespace).ConfigureAwait(false))
+            as IDictionary<string, Vector>;
+
+        return response == null ? [] : response.Keys.ToHashSet(StringComparer.Ordinal);
+    }
+
+    private async Task<bool> ExistsAsync(Index<RestTransport> index, string id)
+    {
+        var existing = await FetchExistingIdsAsync(index, [id]).ConfigureAwait(false);
+        return existing.Contains(id);
     }
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)

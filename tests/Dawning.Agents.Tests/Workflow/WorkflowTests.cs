@@ -375,10 +375,9 @@ public class WorkflowTests
             .Build();
 
         var context = new WorkflowContext { Input = "Hello" };
-        var result = await engine.ExecuteAsync(definition, context, cts.Token);
+        var act = async () => await engine.ExecuteAsync(definition, context, cts.Token);
 
-        result.Success.Should().BeFalse();
-        result.Error.Should().Be("工作流执行被取消");
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
@@ -404,10 +403,9 @@ public class WorkflowTests
             .Build();
 
         var context = new WorkflowContext { Input = "Hello" };
-        var result = await engine.ExecuteAsync(definition, context, cts.Token);
+        var act = async () => await engine.ExecuteAsync(definition, context, cts.Token);
 
-        result.Success.Should().BeFalse();
-        result.Error.Should().Be("工作流执行被取消");
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]

@@ -168,6 +168,11 @@ public class WorkflowEngine : IWorkflowEngine
                 FinalState = context.State,
             };
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("工作流 {WorkflowId} 被取消", definition.Id);
+            throw;
+        }
         catch (OperationCanceledException)
         {
             _logger.LogWarning("工作流 {WorkflowId} 被取消", definition.Id);
