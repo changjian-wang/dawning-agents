@@ -227,7 +227,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         var chineseCount = text.Count(c => c >= 0x4E00 && c <= 0x9FFF);
         var englishCount = text.Length - chineseCount;
 
-        return (int)(chineseCount / 1.5 + englishCount / 4);
+        return (int)(chineseCount / 1.5 + englishCount / 4.0);
     }
 }
 

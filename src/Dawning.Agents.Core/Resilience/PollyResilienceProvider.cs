@@ -141,7 +141,6 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
                     UseJitter = options.Retry.UseJitter,
                     ShouldHandle = new PredicateBuilder()
                         .Handle<HttpRequestException>()
-                        .Handle<TaskCanceledException>()
                         .Handle<TimeoutRejectedException>(),
                     OnRetry = args =>
                     {
@@ -171,9 +170,7 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
                     BreakDuration = TimeSpan.FromSeconds(
                         options.CircuitBreaker.BreakDurationSeconds
                     ),
-                    ShouldHandle = new PredicateBuilder()
-                        .Handle<HttpRequestException>()
-                        .Handle<TaskCanceledException>(),
+                    ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>(),
                     OnOpened = args =>
                     {
                         _logger.LogError(

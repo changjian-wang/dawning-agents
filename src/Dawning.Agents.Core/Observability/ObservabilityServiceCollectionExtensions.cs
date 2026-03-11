@@ -133,18 +133,25 @@ public static class ObservabilityServiceCollectionExtensions
                 )
             );
 
-            // 注册可观测 Agent
-            services.AddScoped<IAgent>(sp =>
-            {
-                var marker = sp.GetRequiredService<InnerAgentMarker>();
-                var telemetry = sp.GetRequiredService<AgentTelemetry>();
-                var config = sp.GetRequiredService<TelemetryConfig>();
-                var loggerFactory = sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                var logger = loggerFactory?.CreateLogger(
-                    typeof(ObservableAgent).FullName ?? nameof(ObservableAgent)
-                );
-                return new ObservableAgent(marker.Agent, telemetry, config, logger);
-            });
+            // 注册可观测 Agent（保留原始生命周期）
+            services.Add(
+                new ServiceDescriptor(
+                    typeof(IAgent),
+                    sp =>
+                    {
+                        var marker = sp.GetRequiredService<InnerAgentMarker>();
+                        var telemetry = sp.GetRequiredService<AgentTelemetry>();
+                        var config = sp.GetRequiredService<TelemetryConfig>();
+                        var loggerFactory =
+                            sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                        var logger = loggerFactory?.CreateLogger(
+                            typeof(ObservableAgent).FullName ?? nameof(ObservableAgent)
+                        );
+                        return new ObservableAgent(marker.Agent, telemetry, config, logger);
+                    },
+                    agentDescriptor.Lifetime
+                )
+            );
         }
 
         return services;

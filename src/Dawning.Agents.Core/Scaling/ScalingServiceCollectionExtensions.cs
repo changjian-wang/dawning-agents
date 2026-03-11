@@ -90,7 +90,11 @@ public static class ScalingServiceCollectionExtensions
 
         // 同时注册具体类型，便于访问扩展方法
         services.TryAddSingleton<DistributedLoadBalancer>(sp =>
-            (DistributedLoadBalancer)sp.GetRequiredService<IAgentLoadBalancer>()
+            sp.GetRequiredService<IAgentLoadBalancer>() as DistributedLoadBalancer
+            ?? throw new InvalidOperationException(
+                $"IAgentLoadBalancer is {sp.GetRequiredService<IAgentLoadBalancer>().GetType().Name}, not DistributedLoadBalancer. "
+                    + "Ensure AddDistributedLoadBalancer is called before AddAgentLoadBalancer."
+            )
         );
 
         return services;

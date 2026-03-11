@@ -22,10 +22,10 @@ public static class EvaluationServiceCollectionExtensions
             configuration.GetSection(EvaluationOptions.SectionName)
         );
 
-        services.TryAddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, ToolCallAccuracyEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, LatencyEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
+        services.AddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();
+        services.AddSingleton<IMetricEvaluator, ToolCallAccuracyEvaluator>();
+        services.AddSingleton<IMetricEvaluator, LatencyEvaluator>();
+        services.AddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
 
         services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();
@@ -51,10 +51,10 @@ public static class EvaluationServiceCollectionExtensions
             services.Configure<EvaluationOptions>(_ => { });
         }
 
-        services.TryAddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, ToolCallAccuracyEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, LatencyEvaluator>();
-        services.TryAddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
+        services.AddSingleton<IMetricEvaluator, KeywordMatchEvaluator>();
+        services.AddSingleton<IMetricEvaluator, ToolCallAccuracyEvaluator>();
+        services.AddSingleton<IMetricEvaluator, LatencyEvaluator>();
+        services.AddSingleton<IMetricEvaluator, ExactMatchEvaluator>();
 
         services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();

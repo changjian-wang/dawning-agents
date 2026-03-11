@@ -323,6 +323,10 @@ public class WorkflowEngine : IWorkflowEngine
             stopwatch.Stop();
             return result with { DurationMs = stopwatch.ElapsedMilliseconds };
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             stopwatch.Stop();

@@ -71,7 +71,7 @@ public class LoadBalancedRouter : ModelRouterBase
     private ILLMProvider SelectRoundRobin(IReadOnlyList<ILLMProvider> providers)
     {
         var index = Interlocked.Increment(ref _roundRobinIndex);
-        return providers[index % providers.Count];
+        return providers[(int)((uint)index % (uint)providers.Count)];
     }
 
     private ILLMProvider SelectWeightedRoundRobin(IReadOnlyList<ILLMProvider> providers)

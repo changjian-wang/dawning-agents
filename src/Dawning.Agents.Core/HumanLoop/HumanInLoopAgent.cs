@@ -125,6 +125,10 @@ public class HumanInLoopAgent : IAgent
 
             return response;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (AgentEscalationException ex)
         {
             _logger.LogWarning("Agent 升级：{Reason}", ex.Reason);

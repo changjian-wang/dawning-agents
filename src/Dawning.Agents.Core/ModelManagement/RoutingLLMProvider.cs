@@ -102,7 +102,11 @@ public class RoutingLLMProvider : ILLMProvider
 
                 return response;
             }
-            catch (Exception ex) when (attempt < maxRetries && _options.EnableFailover)
+            catch (Exception ex)
+                when (ex is not OperationCanceledException
+                    && attempt < maxRetries
+                    && _options.EnableFailover
+                )
             {
                 sw.Stop();
                 _logger.LogWarning(ex, "提供者 {Provider} 调用失败，尝试故障转移", provider.Name);

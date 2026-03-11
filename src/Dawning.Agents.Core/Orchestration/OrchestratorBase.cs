@@ -144,6 +144,10 @@ public abstract class OrchestratorBase : IOrchestrator
                 stopwatch.Elapsed
             );
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             stopwatch.Stop();

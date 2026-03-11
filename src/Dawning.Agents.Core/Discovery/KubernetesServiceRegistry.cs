@@ -115,6 +115,10 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
             _logger.LogDebug("发现 {Count} 个 {ServiceName} 实例", instances.Count, serviceName);
             return instances;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取 Kubernetes Endpoints 失败: {ServiceName}", serviceName);
@@ -150,6 +154,10 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
                     .Where(n => !string.IsNullOrEmpty(n))
                     .ToList()
                 ?? (IReadOnlyList<string>)Array.Empty<string>();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
