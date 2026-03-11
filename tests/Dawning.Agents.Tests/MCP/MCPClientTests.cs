@@ -59,6 +59,35 @@ public class MCPClientOptionsTests
         options.MaxReconnectAttempts.Should().Be(5);
         options.ReconnectIntervalSeconds.Should().Be(10);
     }
+
+    [Theory]
+    [InlineData("python server.py", null, "python", "server.py")]
+    [InlineData(
+        "\"/usr/local/bin/python3\" server.py",
+        null,
+        "/usr/local/bin/python3",
+        "server.py"
+    )]
+    [InlineData("node", "server.js --port 3000", "node", "server.js --port 3000")]
+    public void ResolveProcessCommand_Should_Parse_Command_And_Arguments(
+        string command,
+        string? arguments,
+        string expectedFile,
+        string expectedArgs
+    )
+    {
+        var method = typeof(MCPClient).GetMethod(
+            "ResolveProcessCommand",
+            BindingFlags.NonPublic | BindingFlags.Static
+        );
+
+        method.Should().NotBeNull();
+        var tuple = ((string FileName, string Arguments))
+            method!.Invoke(null, [command, arguments])!;
+
+        tuple.FileName.Should().Be(expectedFile);
+        tuple.Arguments.Should().Be(expectedArgs);
+    }
 }
 
 public class MCPToolProxyTests

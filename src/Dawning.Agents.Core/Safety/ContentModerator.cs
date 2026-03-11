@@ -155,18 +155,41 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                var allowed =
-                    root.TryGetProperty("allowed", out var allowedProp) && allowedProp.GetBoolean();
+                var allowed = false;
+                if (root.TryGetProperty("allowed", out var allowedProp))
+                {
+                    allowed = allowedProp.ValueKind switch
+                    {
+                        System.Text.Json.JsonValueKind.True => true,
+                        System.Text.Json.JsonValueKind.False => false,
+                        System.Text.Json.JsonValueKind.String => bool.TryParse(
+                            allowedProp.GetString(),
+                            out var parsed
+                        ) && parsed,
+                        _ => false,
+                    };
+                }
 
                 var categories = new List<string>();
                 if (root.TryGetProperty("categories", out var categoriesProp))
                 {
-                    foreach (var cat in categoriesProp.EnumerateArray())
+                    if (categoriesProp.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
-                        var catStr = cat.GetString();
-                        if (!string.IsNullOrEmpty(catStr))
+                        foreach (var cat in categoriesProp.EnumerateArray())
                         {
-                            categories.Add(catStr);
+                            var catStr = cat.GetString();
+                            if (!string.IsNullOrEmpty(catStr))
+                            {
+                                categories.Add(catStr);
+                            }
+                        }
+                    }
+                    else if (categoriesProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                    {
+                        var singleCategory = categoriesProp.GetString();
+                        if (!string.IsNullOrEmpty(singleCategory))
+                        {
+                            categories.Add(singleCategory);
                         }
                     }
                 }

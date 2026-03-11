@@ -268,6 +268,29 @@ public class ContentModeratorTests
         result.Passed.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task CheckAsync_WithStringAllowedTrue_ShouldReturnPass()
+    {
+        SetupLLMResponse("""{"allowed": "true", "categories": [], "reason": null}""");
+        var moderator = new ContentModerator(_mockLLM.Object, null, _mockLogger.Object);
+
+        var result = await moderator.CheckAsync("safe content");
+
+        result.Passed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CheckAsync_WithStringCategories_ShouldParseSingleCategory()
+    {
+        SetupLLMResponse("""{"allowed": false, "categories": "暴力内容", "reason": "违规"}""");
+        var moderator = new ContentModerator(_mockLLM.Object, null, _mockLogger.Object);
+
+        var result = await moderator.CheckAsync("unsafe content");
+
+        result.Passed.Should().BeFalse();
+        result.Issues.Should().ContainSingle(i => i.Description == "暴力内容");
+    }
+
     #endregion
 
     #region ContentModeratorOptions Tests

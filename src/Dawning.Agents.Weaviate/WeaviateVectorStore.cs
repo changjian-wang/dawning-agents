@@ -210,6 +210,15 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             && classData is JsonElement jsonArray
         )
         {
+            if (jsonArray.ValueKind != JsonValueKind.Array)
+            {
+                _logger.LogWarning(
+                    "搜索结果类型异常，期望数组，实际为 {ValueKind}",
+                    jsonArray.ValueKind
+                );
+                return results;
+            }
+
             foreach (var item in jsonArray.EnumerateArray())
             {
                 if (!item.TryGetProperty("_additional", out var additional))
@@ -218,9 +227,12 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                     continue;
                 }
 
-                var certainty = additional.TryGetProperty("certainty", out var cert)
-                    ? cert.GetSingle()
-                    : 0f;
+                var certainty =
+                    additional.TryGetProperty("certainty", out var cert)
+                    && cert.ValueKind == JsonValueKind.Number
+                    && cert.TryGetSingle(out var certaintyValue)
+                        ? certaintyValue
+                        : 0f;
 
                 // certainty 转换为 score (certainty 范围是 0-1)
                 var score = certainty;

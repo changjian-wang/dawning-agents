@@ -83,10 +83,12 @@ public sealed class MCPClient : IAsyncDisposable
             arguments
         );
 
+        var (fileName, processArguments) = ResolveProcessCommand(command, arguments);
+
         var startInfo = new ProcessStartInfo
         {
-            FileName = command,
-            Arguments = arguments ?? string.Empty,
+            FileName = fileName,
+            Arguments = processArguments,
             WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory,
             UseShellExecute = false,
             RedirectStandardInput = true,
@@ -201,6 +203,43 @@ public sealed class MCPClient : IAsyncDisposable
             await DisposeAsync().ConfigureAwait(false);
             throw;
         }
+    }
+
+    private static (string FileName, string Arguments) ResolveProcessCommand(
+        string command,
+        string? arguments
+    )
+    {
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            throw new ArgumentException("Command cannot be null or whitespace", nameof(command));
+        }
+
+        if (!string.IsNullOrWhiteSpace(arguments))
+        {
+            return (command.Trim(), arguments);
+        }
+
+        var trimmed = command.Trim();
+
+        if (trimmed.StartsWith('"'))
+        {
+            var closingQuote = trimmed.IndexOf('"', 1);
+            if (closingQuote > 1)
+            {
+                var fileName = trimmed[1..closingQuote];
+                var remainingArgs = trimmed[(closingQuote + 1)..].TrimStart();
+                return (fileName, remainingArgs);
+            }
+        }
+
+        var separatorIndex = trimmed.IndexOfAny([' ', '\t']);
+        if (separatorIndex < 0)
+        {
+            return (trimmed, string.Empty);
+        }
+
+        return (trimmed[..separatorIndex], trimmed[(separatorIndex + 1)..].TrimStart());
     }
 
     /// <summary>

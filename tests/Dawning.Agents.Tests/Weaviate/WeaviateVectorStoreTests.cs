@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Dawning.Agents.Abstractions.RAG;
 using Dawning.Agents.Weaviate;
 using FluentAssertions;
@@ -128,7 +129,7 @@ public class WeaviateVectorStoreTests
         var options = new WeaviateOptions();
         configureOptions?.Invoke(options);
 
-        var httpClient = new HttpClient(handler);
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:8080") };
         return new WeaviateVectorStore(httpClient, Options.Create(options));
     }
 
@@ -191,6 +192,98 @@ public class WeaviateVectorStoreTests
         var act = () => new WeaviateVectorStore(httpClient, null!);
 
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenClassPayloadIsNotArray_ShouldReturnEmpty()
+    {
+        var handler = CreateMockHandler();
+
+        handler
+            .Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK))
+            .ReturnsAsync(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(
+                        new
+                        {
+                            data = new
+                            {
+                                get = new Dictionary<string, object>
+                                {
+                                    ["Document"] = new { unexpected = true },
+                                },
+                            },
+                        }
+                    ),
+                }
+            );
+
+        var store = CreateStore(handler.Object);
+
+        var results = await store.SearchAsync(new[] { 0.1f, 0.2f }, topK: 1);
+
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenCertaintyIsNotNumber_ShouldUseZeroScore()
+    {
+        var handler = CreateMockHandler();
+
+        handler
+            .Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK))
+            .ReturnsAsync(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(
+                        new
+                        {
+                            data = new
+                            {
+                                get = new Dictionary<string, object>
+                                {
+                                    ["Document"] = new[]
+                                    {
+                                        new
+                                        {
+                                            _additional = new
+                                            {
+                                                id = "chunk-1",
+                                                certainty = "high",
+                                            },
+                                            content = "content",
+                                            documentId = "doc-1",
+                                            chunkIndex = 0,
+                                            metadata = "{}",
+                                        },
+                                    },
+                                },
+                            },
+                        }
+                    ),
+                }
+            );
+
+        var store = CreateStore(handler.Object);
+
+        var results = await store.SearchAsync(new[] { 0.1f, 0.2f }, topK: 1, minScore: 0f);
+
+        results.Should().HaveCount(1);
+        results[0].Score.Should().Be(0f);
+        results[0].Chunk.Id.Should().Be("chunk-1");
     }
 }
 
