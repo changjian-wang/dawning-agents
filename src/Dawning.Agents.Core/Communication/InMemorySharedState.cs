@@ -183,7 +183,7 @@ public partial class InMemorySharedState : ISharedState
                 var regexPattern = "^" + Regex.Escape(p).Replace("\\*", ".*") + "$";
                 return new Regex(
                     regexPattern,
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
                     TimeSpan.FromSeconds(1)
                 );
             }

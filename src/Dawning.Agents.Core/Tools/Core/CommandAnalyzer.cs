@@ -180,7 +180,7 @@ public sealed partial class CommandAnalyzer
     {
         // Match the tool name as a standalone command (not part of a path/word)
         var pattern = $@"(?:^|[;&|]\s*){Regex.Escape(tool)}\b";
-        return new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        return new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     }
 
     #region Patterns

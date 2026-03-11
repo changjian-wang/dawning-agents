@@ -188,7 +188,7 @@ public sealed class SearchTool : ITool
             {
                 regex = new Regex(
                     pattern,
-                    RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
                     TimeSpan.FromSeconds(2)
                 );
             }

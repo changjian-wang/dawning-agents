@@ -53,7 +53,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             for (int i = 0; i < _workerCount; i++)
             {
                 var workerId = i;
-                _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, _cts.Token)));
+                _workers.Add(Task.Run(() => WorkerLoopAsync(workerId, _cts.Token), _cts.Token));
             }
 
             _isRunning = true;

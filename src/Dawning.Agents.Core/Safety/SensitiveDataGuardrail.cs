@@ -30,7 +30,7 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
                 Config = p,
                 Regex = new Regex(
                     p.Pattern,
-                    RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
                     TimeSpan.FromSeconds(1)
                 ),
             })

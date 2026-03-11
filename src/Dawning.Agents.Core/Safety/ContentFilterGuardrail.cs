@@ -110,7 +110,7 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 {
     private static readonly Regex UrlRegex = new(
         @"https?://([^/\s]+)",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase,
+        RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
         TimeSpan.FromSeconds(1)
     );
 
