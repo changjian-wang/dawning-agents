@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/changjian-wang/dawning-agents/actions/workflows/build.yml/badge.svg)](https://github.com/changjian-wang/dawning-agents/actions)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-1906%20passing-brightgreen)](https://github.com/changjian-wang/dawning-agents)
+[![Tests](https://img.shields.io/badge/Tests-2225%20passing-brightgreen)](https://github.com/changjian-wang/dawning-agents)
 [![codecov](https://codecov.io/gh/changjian-wang/dawning-agents/branch/main/graph/badge.svg)](https://codecov.io/gh/changjian-wang/dawning-agents)
 
 ## 🎯 为什么选择 Dawning.Agents？
@@ -568,9 +568,7 @@ dotnet run
 - [阅读材料](docs/readings/) - 16 个主题的详细资料
 
 ### 企业规划
-- [企业路线图](docs/ENTERPRISE_ROADMAP.md) - 企业级转型规划
-- [企业准备度评估](docs/ENTERPRISE_READINESS_ASSESSMENT.md) - 功能完成度分析
-- [差距填补计划](docs/ENTERPRISE_GAP_PLAN.md) - 剩余功能实现计划
+- [企业路线图](docs/ENTERPRISE_ROADMAP.md) - 功能状态、评分、v0.2.0 规划
 
 ### 开发参考
 - [变更日志](CHANGELOG.md) - 版本更新记录
@@ -583,9 +581,8 @@ dotnet test
 ```
 
 **测试统计**:
-- ✅ 测试数量: **1,906** 个（全部通过）
-- 📊 行覆盖率: 72.9%
-- 🔀 分支覆盖率: 62.6%
+- ✅ 测试数量: **2,225** 个（全部通过）
+- 📊 深度审计: 38 轮，~190 修复
 
 ### 测试分布
 

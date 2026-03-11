@@ -4,7 +4,7 @@
 
 ## 背景
 
-经过深度审读 12 个源码包 / 95 个抽象接口 / ~1900 测试，框架在架构、安全、Memory、Tool 等维度已达企业级水平。
+经过深度审读 12 个源码包 / 95 个抽象接口 / ~2225 测试，框架在架构、安全、Memory、Tool 等维度已达企业级水平。
 距离开源发布差"最后一英里"：社区治理文件、可运行 API 示例、测试并行化、OTEL 合规、README 更新。
 
 ## 执行顺序
@@ -198,7 +198,7 @@ WP1 社区治理文件 → WP2 API Sample 重建 → WP3 测试并行化 → WP4
 ## 验证清单
 
 - [ ] `dotnet build --configuration Release` 0 errors 0 warnings
-- [ ] `dotnet test` 所有测试通过（应 ≥ 1906）
+- [ ] `dotnet test` 所有测试通过（应 ≥ 2225）
 - [ ] `dotnet tool run csharpier .` 格式化通过
 - [ ] samples/Dawning.Agents.Api 可 `dotnet run` 启动
 - [ ] README 中无过时引用（64 工具、BuiltIn/、AddAllBuiltInTools）
