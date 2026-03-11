@@ -22,6 +22,7 @@ public sealed class MCPServer : IAsyncDisposable
     private readonly ILogger<MCPServer> _logger;
     private readonly List<IMCPResourceProvider> _resourceProviders = [];
     private readonly List<IMCPPromptProvider> _promptProviders = [];
+    private readonly Lock _providerLock = new();
     private IMCPResourceProvider[] _frozenResourceProviders = [];
     private IMCPPromptProvider[] _frozenPromptProviders = [];
     private readonly SemaphoreSlim _requestSemaphore;
@@ -61,7 +62,11 @@ public sealed class MCPServer : IAsyncDisposable
     /// </summary>
     public void RegisterResourceProvider(IMCPResourceProvider provider)
     {
-        _resourceProviders.Add(provider);
+        lock (_providerLock)
+        {
+            _resourceProviders.Add(provider);
+        }
+
         _logger.LogDebug("Registered resource provider: {Provider}", provider.GetType().Name);
     }
 
@@ -70,7 +75,11 @@ public sealed class MCPServer : IAsyncDisposable
     /// </summary>
     public void RegisterPromptProvider(IMCPPromptProvider provider)
     {
-        _promptProviders.Add(provider);
+        lock (_providerLock)
+        {
+            _promptProviders.Add(provider);
+        }
+
         _logger.LogDebug("Registered prompt provider: {Provider}", provider.GetType().Name);
     }
 
@@ -93,8 +102,11 @@ public sealed class MCPServer : IAsyncDisposable
         await _transport.StartAsync(linkedCts.Token).ConfigureAwait(false);
 
         // Freeze provider lists for thread-safe access during request processing
-        _frozenResourceProviders = [.. _resourceProviders];
-        _frozenPromptProviders = [.. _promptProviders];
+        lock (_providerLock)
+        {
+            _frozenResourceProviders = [.. _resourceProviders];
+            _frozenPromptProviders = [.. _promptProviders];
+        }
 
         // 主消息循环
         while (!linkedCts.Token.IsCancellationRequested)

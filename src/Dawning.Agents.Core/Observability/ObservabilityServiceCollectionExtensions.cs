@@ -5,6 +5,7 @@ using Dawning.Agents.Abstractions.Observability;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 /// <summary>
 /// 可观测性 DI 扩展方法
@@ -20,13 +21,7 @@ public static class ObservabilityServiceCollectionExtensions
     )
     {
         services.Configure<TelemetryConfig>(configuration.GetSection(TelemetryConfig.SectionName));
-
-        services.TryAddSingleton<TelemetryConfig>(sp =>
-        {
-            var config = new TelemetryConfig();
-            configuration.GetSection(TelemetryConfig.SectionName).Bind(config);
-            return config;
-        });
+        services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<TelemetryConfig>>().Value);
 
         services.TryAddSingleton<AgentTelemetry>();
         services.TryAddSingleton<MetricsCollector>();
@@ -43,10 +38,8 @@ public static class ObservabilityServiceCollectionExtensions
         Action<TelemetryConfig>? configure = null
     )
     {
-        var config = new TelemetryConfig();
-        configure?.Invoke(config);
-
-        services.TryAddSingleton(config);
+        services.Configure(configure ?? (_ => { }));
+        services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<TelemetryConfig>>().Value);
         services.TryAddSingleton<AgentTelemetry>();
         services.TryAddSingleton<MetricsCollector>();
         services.TryAddSingleton<AgentHealthCheck>();

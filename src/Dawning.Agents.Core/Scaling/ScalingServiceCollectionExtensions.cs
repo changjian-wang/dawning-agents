@@ -79,7 +79,7 @@ public static class ScalingServiceCollectionExtensions
             configuration.GetSection(DistributedLoadBalancerOptions.SectionName)
         );
 
-        services.TryAddSingleton<IAgentLoadBalancer>(sp =>
+        services.TryAddSingleton<DistributedLoadBalancer>(sp =>
         {
             var serviceRegistry = sp.GetService<IServiceRegistry>();
             var options =
@@ -88,13 +88,8 @@ public static class ScalingServiceCollectionExtensions
             return new DistributedLoadBalancer(serviceRegistry, options, logger);
         });
 
-        // 同时注册具体类型，便于访问扩展方法
-        services.TryAddSingleton<DistributedLoadBalancer>(sp =>
-            sp.GetRequiredService<IAgentLoadBalancer>() as DistributedLoadBalancer
-            ?? throw new InvalidOperationException(
-                $"IAgentLoadBalancer is {sp.GetRequiredService<IAgentLoadBalancer>().GetType().Name}, not DistributedLoadBalancer. "
-                    + "Ensure AddDistributedLoadBalancer is called before AddAgentLoadBalancer."
-            )
+        services.TryAddSingleton<IAgentLoadBalancer>(sp =>
+            sp.GetRequiredService<DistributedLoadBalancer>()
         );
 
         return services;
