@@ -125,14 +125,14 @@ public class LoadBalancedRouter : ModelRouterBase
             var name = provider.Name.ToLowerInvariant();
             weights[provider.Name] = name switch
             {
-                var n when n.Contains("ollama") => 10, // 本地优先
-                var n when n.Contains("gpt-4o-mini") => 5,
-                var n when n.Contains("gpt-3.5") => 4,
-                var n when n.Contains("claude-3-haiku") => 4,
-                var n when n.Contains("gpt-4o") => 2,
-                var n when n.Contains("claude-3-sonnet") => 2,
-                var n when n.Contains("gpt-4") => 1,
-                var n when n.Contains("claude-3-opus") => 1,
+                var n when n.Contains("ollama", StringComparison.Ordinal) => 10, // 本地优先
+                var n when n.Contains("gpt-4o-mini", StringComparison.Ordinal) => 5,
+                var n when n.Contains("gpt-3.5", StringComparison.Ordinal) => 4,
+                var n when n.Contains("claude-3-haiku", StringComparison.Ordinal) => 4,
+                var n when n.Contains("gpt-4o", StringComparison.Ordinal) => 2,
+                var n when n.Contains("claude-3-sonnet", StringComparison.Ordinal) => 2,
+                var n when n.Contains("gpt-4", StringComparison.Ordinal) => 1,
+                var n when n.Contains("claude-3-opus", StringComparison.Ordinal) => 1,
                 _ => 1,
             };
         }

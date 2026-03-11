@@ -100,14 +100,14 @@ public class LatencyOptimizedRouter : ModelRouterBase
         // 基于经验的默认延迟估算（毫秒）
         return providerName.ToLowerInvariant() switch
         {
-            var n when n.Contains("ollama") => 200, // 本地模型最快
-            var n when n.Contains("gpt-4o-mini") => 500,
-            var n when n.Contains("gpt-4o") => 800,
-            var n when n.Contains("gpt-4") => 1500,
-            var n when n.Contains("gpt-3.5") => 400,
-            var n when n.Contains("claude-3-haiku") => 400,
-            var n when n.Contains("claude-3-sonnet") => 800,
-            var n when n.Contains("claude-3-opus") => 2000,
+            var n when n.Contains("ollama", StringComparison.Ordinal) => 200, // 本地模型最快
+            var n when n.Contains("gpt-4o-mini", StringComparison.Ordinal) => 500,
+            var n when n.Contains("gpt-4o", StringComparison.Ordinal) => 800,
+            var n when n.Contains("gpt-4", StringComparison.Ordinal) => 1500,
+            var n when n.Contains("gpt-3.5", StringComparison.Ordinal) => 400,
+            var n when n.Contains("claude-3-haiku", StringComparison.Ordinal) => 400,
+            var n when n.Contains("claude-3-sonnet", StringComparison.Ordinal) => 800,
+            var n when n.Contains("claude-3-opus", StringComparison.Ordinal) => 2000,
             _ => 1000, // 默认估算
         };
     }

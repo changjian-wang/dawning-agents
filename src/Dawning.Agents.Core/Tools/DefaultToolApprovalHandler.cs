@@ -234,7 +234,7 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
         };
 
         var normalized = Regex.Replace(command, @"\s+", " ").ToLowerInvariant().Trim();
-        return dangerous.Any(d => normalized.Contains(d));
+        return dangerous.Any(d => normalized.Contains(d, StringComparison.Ordinal));
     }
 
     private static bool IsSafeCommand(string command)

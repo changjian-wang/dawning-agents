@@ -102,7 +102,8 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                     _queueKey
                 );
             }
-            catch (RedisServerException ex) when (ex.Message.Contains("BUSYGROUP"))
+            catch (RedisServerException ex)
+                when (ex.Message.Contains("BUSYGROUP", StringComparison.Ordinal))
             {
                 // 消费者组已存在，忽略
                 _logger.LogDebug("Consumer group {Group} already exists", _options.ConsumerGroup);

@@ -191,8 +191,8 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
         // 解析失败，根据响应内容做简单判断
         var lowerResponse = response.ToLowerInvariant();
         if (
-            lowerResponse.Contains("\"allowed\": false")
-            || lowerResponse.Contains("\"allowed\":false")
+            lowerResponse.Contains("\"allowed\": false", StringComparison.Ordinal)
+            || lowerResponse.Contains("\"allowed\":false", StringComparison.Ordinal)
         )
         {
             return new ModerationResult
