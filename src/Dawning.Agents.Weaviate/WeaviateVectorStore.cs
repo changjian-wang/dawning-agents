@@ -418,8 +418,25 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                 .ConfigureAwait(false);
             if (result?.Results?.Successful > 0)
             {
-                var deleted = (int)result.Results.Successful;
-                Interlocked.Add(ref _count, -deleted);
+                var successful = result.Results.Successful;
+                if (successful > int.MaxValue)
+                {
+                    _logger.LogWarning(
+                        "Delete result successful count {Successful} exceeds Int32 range; clamping",
+                        successful
+                    );
+                    successful = int.MaxValue;
+                }
+
+                var deleted = (int)successful;
+                int oldCount;
+                int newCount;
+                do
+                {
+                    oldCount = Volatile.Read(ref _count);
+                    newCount = oldCount <= deleted ? 0 : oldCount - deleted;
+                } while (Interlocked.CompareExchange(ref _count, newCount, oldCount) != oldCount);
+
                 return deleted;
             }
         }
