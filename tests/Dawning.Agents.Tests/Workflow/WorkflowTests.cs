@@ -1,5 +1,8 @@
+using Dawning.Agents.Abstractions.Agent;
+using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Abstractions.Workflow;
 using Dawning.Agents.Core;
+using Dawning.Agents.Core.Tools;
 using Dawning.Agents.Core.Workflow;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -347,6 +350,64 @@ public class WorkflowTests
         result.Success.Should().BeTrue();
         // 允许少量时间误差（由于系统调度）
         result.TotalDurationMs.Should().BeGreaterThanOrEqualTo(95);
+    }
+
+    [Fact]
+    public async Task WorkflowEngine_ExecuteAsync_AgentNode_ShouldTreatSwallowedCancellationAsCancelled()
+    {
+        using var cts = new CancellationTokenSource();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IAgent>(
+            new CancellationSwallowingAgent("TestAgent", () => cts.Cancel())
+        );
+        var sp = services.BuildServiceProvider();
+
+        var engine = new WorkflowEngine(sp);
+        var definition = WorkflowBuilder
+            .Create("test", "测试")
+            .AddStartNode("start")
+            .AddAgentNode("agent", "Agent", "TestAgent")
+            .AddEndNode("end")
+            .Connect("start", "agent")
+            .Connect("agent", "end")
+            .Build();
+
+        var context = new WorkflowContext { Input = "Hello" };
+        var result = await engine.ExecuteAsync(definition, context, cts.Token);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("工作流执行被取消");
+    }
+
+    [Fact]
+    public async Task WorkflowEngine_ExecuteAsync_ToolNode_ShouldTreatSwallowedCancellationAsCancelled()
+    {
+        using var cts = new CancellationTokenSource();
+
+        var toolRegistry = new ToolRegistry();
+        toolRegistry.Register(new CancellationSwallowingTool("CancelableTool", () => cts.Cancel()));
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var sp = services.BuildServiceProvider();
+
+        var engine = new WorkflowEngine(sp, toolRegistry);
+        var definition = WorkflowBuilder
+            .Create("test", "测试")
+            .AddStartNode("start")
+            .AddToolNode("tool", "Tool", "CancelableTool")
+            .AddEndNode("end")
+            .Connect("start", "tool")
+            .Connect("tool", "end")
+            .Build();
+
+        var context = new WorkflowContext { Input = "Hello" };
+        var result = await engine.ExecuteAsync(definition, context, cts.Token);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("工作流执行被取消");
     }
 
     [Fact]
@@ -725,4 +786,49 @@ public class WorkflowTests
     }
 
     #endregion
+}
+
+file sealed class CancellationSwallowingAgent(string name, Action cancel) : IAgent
+{
+    public string Name => name;
+
+    public string Instructions => "test";
+
+    public Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default)
+    {
+        cancel();
+        return Task.FromResult(AgentResponse.Failed("agent-failed", [], TimeSpan.Zero));
+    }
+
+    public Task<AgentResponse> RunAsync(
+        AgentContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return RunAsync(context.UserInput, cancellationToken);
+    }
+}
+
+file sealed class CancellationSwallowingTool(string name, Action cancel) : ITool
+{
+    public string Name => name;
+
+    public string Description => "test";
+
+    public string ParametersSchema => "{\"type\":\"object\"}";
+
+    public bool RequiresConfirmation => false;
+
+    public ToolRiskLevel RiskLevel => ToolRiskLevel.Low;
+
+    public string? Category => "test";
+
+    public Task<ToolResult> ExecuteAsync(
+        string input,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancel();
+        return Task.FromResult(ToolResult.Fail("tool-failed"));
+    }
 }

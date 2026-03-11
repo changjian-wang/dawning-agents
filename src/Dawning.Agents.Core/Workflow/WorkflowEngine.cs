@@ -378,6 +378,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 执行 Agent
         var response = await agent.RunAsync(input, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         if (!response.Success)
         {
             return NodeExecutionResult.Fail(nodeDefinition.Id, response.Error ?? "Agent 执行失败");
@@ -427,6 +428,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         // 执行工具
         var toolResult = await tool.ExecuteAsync(input, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         if (toolResult.Success)
         {
             return NodeExecutionResult.Ok(nodeDefinition.Id, toolResult.Output);
