@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.RAG;
 /// 数据存储在内存中，重启后数据丢失。
 /// 使用 SIMD 加速的余弦相似度计算。
 /// </remarks>
-public sealed class InMemoryVectorStore : IVectorStore
+public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
 {
     private readonly ConcurrentDictionary<string, DocumentChunk> _chunks = new();
     private readonly ILogger<InMemoryVectorStore> _logger;
@@ -190,5 +190,12 @@ public sealed class InMemoryVectorStore : IVectorStore
 
         // 余弦相似度范围是 [-1, 1]，归一化到 [0, 1]
         return (similarity + 1) / 2;
+    }
+
+    /// <inheritdoc />
+    public ValueTask DisposeAsync()
+    {
+        _chunks.Clear();
+        return ValueTask.CompletedTask;
     }
 }

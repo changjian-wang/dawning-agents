@@ -239,7 +239,8 @@ public sealed class HistogramMetric
             return 0;
         }
 
-        var index = (int)(percentile * (sorted.Length - 1));
+        var clamped = Math.Clamp(percentile, 0.0, 1.0);
+        var index = (int)(clamped * (sorted.Length - 1));
         return sorted[index];
     }
 }
