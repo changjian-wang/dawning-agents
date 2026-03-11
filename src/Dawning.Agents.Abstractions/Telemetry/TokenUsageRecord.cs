@@ -23,7 +23,7 @@ public record TokenUsageRecord(
     /// <summary>
     /// 总 Token 数
     /// </summary>
-    public int TotalTokens => PromptTokens + CompletionTokens;
+    public long TotalTokens => (long)PromptTokens + CompletionTokens;
 
     /// <summary>
     /// 创建一个新的 Token 使用记录
@@ -59,18 +59,18 @@ public record TokenUsageRecord(
 /// <param name="ByModel">按模型分组的统计</param>
 /// <param name="BySession">按会话分组的统计</param>
 public record TokenUsageSummary(
-    int TotalPromptTokens,
-    int TotalCompletionTokens,
+    long TotalPromptTokens,
+    long TotalCompletionTokens,
     int CallCount,
     IReadOnlyDictionary<string, SourceUsage> BySource,
-    IReadOnlyDictionary<string, int>? ByModel = null,
-    IReadOnlyDictionary<string, int>? BySession = null
+    IReadOnlyDictionary<string, long>? ByModel = null,
+    IReadOnlyDictionary<string, long>? BySession = null
 )
 {
     /// <summary>
     /// 总 Token 数
     /// </summary>
-    public int TotalTokens => TotalPromptTokens + TotalCompletionTokens;
+    public long TotalTokens => TotalPromptTokens + TotalCompletionTokens;
 
     /// <summary>
     /// 空统计
@@ -84,10 +84,10 @@ public record TokenUsageSummary(
 /// <param name="PromptTokens">输入 Token 数</param>
 /// <param name="CompletionTokens">输出 Token 数</param>
 /// <param name="CallCount">调用次数</param>
-public record SourceUsage(int PromptTokens, int CompletionTokens, int CallCount)
+public record SourceUsage(long PromptTokens, long CompletionTokens, int CallCount)
 {
     /// <summary>
     /// 总 Token 数
     /// </summary>
-    public int TotalTokens => PromptTokens + CompletionTokens;
+    public long TotalTokens => (long)PromptTokens + CompletionTokens;
 }

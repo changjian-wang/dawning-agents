@@ -17,11 +17,13 @@ public sealed class StdioTransport : IMCPTransport
     private readonly Stream _inputStream;
     private readonly Stream _outputStream;
     private readonly ILogger<StdioTransport> _logger;
+    private readonly object _stateLock = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly Pipe _pipe = new();
     private volatile bool _isConnected;
     private CancellationTokenSource? _readCts;
     private Task? _readTask;
+    private bool _disposed;
 
     public StdioTransport(ILogger<StdioTransport>? logger = null)
         : this(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger) { }
@@ -40,19 +42,49 @@ public sealed class StdioTransport : IMCPTransport
 
     public bool IsConnected => _isConnected;
 
-    public Task StartAsync(CancellationToken cancellationToken = default)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        var oldCts = _readCts;
-        _readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        oldCts?.Cancel();
-        oldCts?.Dispose();
-        _isConnected = true;
+        CancellationTokenSource? oldCts;
+        Task? oldTask;
+        CancellationTokenSource newCts;
 
-        // 启动后台读取任务（捕获引用以便关闭时等待）
-        _readTask = ReadInputAsync(_readCts.Token);
+        lock (_stateLock)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(StdioTransport));
+            }
+
+            oldCts = _readCts;
+            oldTask = _readTask;
+
+            newCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _readCts = newCts;
+            _isConnected = true;
+            _readTask = ReadInputAsync(newCts, newCts.Token);
+        }
+
+        if (oldCts != null)
+        {
+            await oldCts.CancelAsync().ConfigureAwait(false);
+            oldCts.Dispose();
+        }
+
+        if (oldTask != null)
+        {
+            try
+            {
+                await oldTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // 正常取消
+            }
+        }
+
+        // 后台读取任务已在状态锁内更新，防止并发 Start/Dispose 竞态
 
         _logger.LogDebug("Stdio transport started");
-        return Task.CompletedTask;
     }
 
     public async Task SendAsync(string message, CancellationToken cancellationToken = default)
@@ -119,7 +151,10 @@ public sealed class StdioTransport : IMCPTransport
     /// <summary>
     /// 后台读取输入流
     /// </summary>
-    private async Task ReadInputAsync(CancellationToken cancellationToken)
+    private async Task ReadInputAsync(
+        CancellationTokenSource source,
+        CancellationToken cancellationToken
+    )
     {
         var writer = _pipe.Writer;
         try
@@ -151,7 +186,14 @@ public sealed class StdioTransport : IMCPTransport
         finally
         {
             await writer.CompleteAsync().ConfigureAwait(false);
-            _isConnected = false;
+
+            lock (_stateLock)
+            {
+                if (ReferenceEquals(_readCts, source))
+                {
+                    _isConnected = false;
+                }
+            }
         }
     }
 
@@ -229,18 +271,34 @@ public sealed class StdioTransport : IMCPTransport
 
     public async ValueTask DisposeAsync()
     {
-        _isConnected = false;
+        CancellationTokenSource? readCts;
+        Task? readTask;
 
-        if (_readCts != null)
+        lock (_stateLock)
         {
-            await _readCts.CancelAsync().ConfigureAwait(false);
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _isConnected = false;
+            readCts = _readCts;
+            readTask = _readTask;
+            _readCts = null;
+            _readTask = null;
         }
 
-        if (_readTask != null)
+        if (readCts != null)
+        {
+            await readCts.CancelAsync().ConfigureAwait(false);
+        }
+
+        if (readTask != null)
         {
             try
             {
-                await _readTask.ConfigureAwait(false);
+                await readTask.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -248,7 +306,7 @@ public sealed class StdioTransport : IMCPTransport
             }
         }
 
-        _readCts?.Dispose();
+        readCts?.Dispose();
         _writeLock.Dispose();
         await _pipe.Reader.CompleteAsync().ConfigureAwait(false);
         await _pipe.Writer.CompleteAsync().ConfigureAwait(false);

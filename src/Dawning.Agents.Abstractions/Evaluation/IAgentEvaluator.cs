@@ -172,7 +172,7 @@ public record TokenUsage
     /// <summary>
     /// 总 Token 数
     /// </summary>
-    public int TotalTokens => InputTokens + OutputTokens;
+    public long TotalTokens => (long)InputTokens + OutputTokens;
 
     /// <summary>
     /// 估算成本（美元）
@@ -253,7 +253,7 @@ public record EvaluationReport
     /// <summary>
     /// 总 Token 使用量
     /// </summary>
-    public int TotalTokens =>
+    public long TotalTokens =>
         Results.Where(r => r.TokenUsage != null).Sum(r => r.TokenUsage!.TotalTokens);
 
     /// <summary>
@@ -281,6 +281,14 @@ public record EvaluationReport
 
     private static double CalculatePercentile(IEnumerable<double> values, int percentile)
     {
+        if (percentile is < 0 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(percentile),
+                "Percentile must be between 0 and 100."
+            );
+        }
+
         var sorted = values.OrderBy(v => v).ToList();
         if (sorted.Count == 0)
         {

@@ -14,18 +14,18 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
 {
     private readonly ConcurrentBag<TokenUsageRecord> _records = [];
     private readonly Lock _resetLock = new();
-    private int _totalPromptTokens;
-    private int _totalCompletionTokens;
+    private long _totalPromptTokens;
+    private long _totalCompletionTokens;
     private int _callCount;
 
     /// <inheritdoc />
-    public int TotalPromptTokens => Volatile.Read(ref _totalPromptTokens);
+    public long TotalPromptTokens => Volatile.Read(ref _totalPromptTokens);
 
     /// <inheritdoc />
-    public int TotalCompletionTokens => Volatile.Read(ref _totalCompletionTokens);
+    public long TotalCompletionTokens => Volatile.Read(ref _totalCompletionTokens);
 
     /// <inheritdoc />
-    public int TotalTokens =>
+    public long TotalTokens =>
         Volatile.Read(ref _totalPromptTokens) + Volatile.Read(ref _totalCompletionTokens);
 
     /// <inheritdoc />
@@ -35,8 +35,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     public void Record(TokenUsageRecord record)
     {
         _records.Add(record);
-        Interlocked.Add(ref _totalPromptTokens, record.PromptTokens);
-        Interlocked.Add(ref _totalCompletionTokens, record.CompletionTokens);
+        Interlocked.Add(ref _totalPromptTokens, (long)record.PromptTokens);
+        Interlocked.Add(ref _totalCompletionTokens, (long)record.CompletionTokens);
         Interlocked.Increment(ref _callCount);
     }
 
@@ -62,8 +62,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
             return TokenUsageSummary.Empty;
         }
 
-        var totalPrompt = filteredRecords.Sum(r => r.PromptTokens);
-        var totalCompletion = filteredRecords.Sum(r => r.CompletionTokens);
+        var totalPrompt = filteredRecords.Sum(r => (long)r.PromptTokens);
+        var totalCompletion = filteredRecords.Sum(r => (long)r.CompletionTokens);
         var callCount = filteredRecords.Count;
 
         // 按来源分组
@@ -72,8 +72,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
             .ToDictionary(
                 g => g.Key,
                 g => new SourceUsage(
-                    g.Sum(r => r.PromptTokens),
-                    g.Sum(r => r.CompletionTokens),
+                    g.Sum(r => (long)r.PromptTokens),
+                    g.Sum(r => (long)r.CompletionTokens),
                     g.Count()
                 )
             );
@@ -118,8 +118,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
             {
                 // 全部重置
                 _records.Clear();
-                Interlocked.Exchange(ref _totalPromptTokens, 0);
-                Interlocked.Exchange(ref _totalCompletionTokens, 0);
+                Interlocked.Exchange(ref _totalPromptTokens, 0L);
+                Interlocked.Exchange(ref _totalCompletionTokens, 0L);
                 Interlocked.Exchange(ref _callCount, 0);
             }
             else
@@ -139,10 +139,13 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
                 }
 
                 // 重新计算总数
-                Interlocked.Exchange(ref _totalPromptTokens, remaining.Sum(r => r.PromptTokens));
+                Interlocked.Exchange(
+                    ref _totalPromptTokens,
+                    remaining.Sum(r => (long)r.PromptTokens)
+                );
                 Interlocked.Exchange(
                     ref _totalCompletionTokens,
-                    remaining.Sum(r => r.CompletionTokens)
+                    remaining.Sum(r => (long)r.CompletionTokens)
                 );
                 Interlocked.Exchange(ref _callCount, remaining.Count);
             }

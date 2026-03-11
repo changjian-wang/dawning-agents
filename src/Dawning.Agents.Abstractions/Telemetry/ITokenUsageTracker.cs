@@ -67,17 +67,17 @@ public interface ITokenUsageTracker
     /// <summary>
     /// 总输入 Token 数
     /// </summary>
-    int TotalPromptTokens { get; }
+    long TotalPromptTokens { get; }
 
     /// <summary>
     /// 总输出 Token 数
     /// </summary>
-    int TotalCompletionTokens { get; }
+    long TotalCompletionTokens { get; }
 
     /// <summary>
     /// 总 Token 数
     /// </summary>
-    int TotalTokens { get; }
+    long TotalTokens { get; }
 
     /// <summary>
     /// 总调用次数
