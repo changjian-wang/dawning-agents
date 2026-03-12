@@ -46,7 +46,7 @@ Dawning.Agents 是一个 .NET 企业级 AI Agent 框架，设计灵感来自 Ope
 | code-update | 编码模式、模板、命名空间规则、禁止事项 | 写代码, implement, fix bug, refactor |
 | code-review | 代码审查清单、架构合规、质量门禁 | 审查, review, check code |
 | build-project | 构建命令、常见编译错误 | 构建, build, compile |
-| run-tests | 测试执行、覆盖率、2225 tests | 测试, test, coverage |
+| run-tests | 测试执行、覆盖率、2253 tests | 测试, test, coverage |
 | csharpier | CSharpier 格式化规则 | 格式化, format, code style |
 | git-workflow | 提交规范、scope 列表、pre-commit | git, commit, push, tag |
 | markdown | Markdown/XML 文档规范 | markdown, 写文档, API docs |

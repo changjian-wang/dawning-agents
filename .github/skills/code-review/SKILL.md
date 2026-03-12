@@ -72,6 +72,7 @@ description: |
 - ❌ public 方法缺少 `ArgumentNullException.ThrowIfNull()` — 同类中部分有部分无
 - ❌ Singleton 持有 Scoped 依赖（captive dependency）
 - ❌ `Options.Create()` 绕过 Options 管线
+- ❌ `ConcurrentDictionary.GetOrAdd` 在 lock 外获取引用后再 lock 操作 — TOCTOU 竞态
 
 ### 7. 线程安全与原子性
 

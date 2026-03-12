@@ -21,7 +21,7 @@ description: |
 - **全量审计**（首轮）：逐项目逐文件阅读所有 .cs 文件
 - **增量审计**（后续轮次）：基于新颖扫描角度的定向扫描
 
-> **经验数据**：经过 38+ 轮审计共修复 ~190 个 bug，简单 bug 在前 10 轮已耗尽。后续轮次必须使用创新的扫描角度才能发现新问题。
+> **经验数据**：经过 48+ 轮审计共修复 ~210 个 bug，简单 bug 在前 10 轮已耗尽。后续轮次必须使用创新的扫描角度才能发现新问题。
 
 ---
 
@@ -83,8 +83,18 @@ description: |
 | Polly/Resilience 交互 | 内部 CT 与外部 CT 绑定、策略覆盖范围 | ResilientLLMProvider 绑定 Polly 内部 CT |
 | 装饰器/代理模式 | 包装层信息丢失、元数据未透传 | HumanInLoopAgent metadata 丢失 |
 | 进程管理 | Process.Start 未 Kill/Dispose、shell 注入 | ToolSandbox 进程泄漏 |
-| 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态 | DefaultToolApprovalHandler HashSet 竞态 |
+| 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态、GetOrAdd+lock 顺序 | InMemorySharedState OnChange TOCTOU |
 | 环形缓冲区/滑动窗口 | 模数运算溢出、负索引 | HistogramMetric ring buffer 语义 |
+
+**R39-R48 新增验证角度（已扫描，发现率低但值得复查）：**
+
+| 角度 | 描述 | 典型 Bug 示例 |
+|------|------|--------------|
+| Regex CultureInvariant | Regex 操作缺少 CultureInvariant 标志 | 6 处 Regex 缺少 RegexOptions.CultureInvariant |
+| Task.Run CancellationToken | Task.Run 未传递 CT 导致无法及时取消 | 4 处 Task.Run 缺少 CT 参数 |
+| IAsyncDisposable 缺失 | 仅实现 IDisposable 但使用异步资源 | HotReloadableLLMProvider 需要 IAsyncDisposable |
+| 数值精度与溢出 | 整数除法截断、Math.Clamp 缺失 | AgentAutoScaler 整数除法截断 |
+| 集合操作竞态与 TOCTOU | ConcurrentDictionary GetOrAdd+lock 顺序错误 | InMemorySharedState OnChange 竞态 |
 
 ### 子代理 Prompt 模板
 
@@ -152,6 +162,7 @@ description: |
 - 属于设计选择而非 bug（如 WeightedRoundRobin 实际是加权随机）
 - 修复风险大于收益（如改 Singleton 为 Scoped 影响所有消费者）
 - 理论极端场景（如 double 精度 >2^53）
+- 架构级延迟项已修复：`_disposed` volatile、ValidateOnStart、public API 参数验证、Options 验证增强
 
 ---
 
@@ -174,7 +185,7 @@ description: |
 # 1. 构建（必须 0 warnings, 0 errors）
 dotnet build --nologo -v q
 
-# 2. 测试（必须全部通过，当前基线 2225）
+# 2. 测试（必须全部通过，当前基线 2253）
 dotnet test --nologo -v q
 
 # 3. 格式化
