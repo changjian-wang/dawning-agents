@@ -46,7 +46,10 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
     )
     {
         return await _pipeline
-            .ExecuteAsync(async token => await operation(token), cancellationToken)
+            .ExecuteAsync(
+                async token => await operation(token).ConfigureAwait(false),
+                cancellationToken
+            )
             .ConfigureAwait(false);
     }
 
