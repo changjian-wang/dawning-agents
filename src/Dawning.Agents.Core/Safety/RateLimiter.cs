@@ -30,7 +30,17 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         // Auto-evict idle buckets every 60 seconds
         _evictionTimer = new Timer(
-            _ => EvictIdleBuckets(),
+            _ =>
+            {
+                try
+                {
+                    EvictIdleBuckets();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "清理空闲速率限制桶时发生错误");
+                }
+            },
             null,
             TimeSpan.FromSeconds(60),
             TimeSpan.FromSeconds(60)
