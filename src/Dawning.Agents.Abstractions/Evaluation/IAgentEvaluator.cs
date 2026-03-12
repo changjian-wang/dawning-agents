@@ -146,7 +146,7 @@ public record EvaluationResult
     /// <summary>
     /// 评估时间
     /// </summary>
-    public DateTime EvaluatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset EvaluatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 元数据
@@ -267,7 +267,7 @@ public record EvaluationReport
     /// <summary>
     /// 生成时间
     /// </summary>
-    public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset GeneratedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 持续时间（毫秒）

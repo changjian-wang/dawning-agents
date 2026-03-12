@@ -28,7 +28,7 @@ public record ConfirmationResponse
     /// <summary>
     /// 响应时间
     /// </summary>
-    public DateTime RespondedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset RespondedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 响应人

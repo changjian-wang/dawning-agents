@@ -22,7 +22,7 @@ public class ScalingComponentsInterfaceTests
         item.Input.Should().Be("Test input");
         item.CompletionSource.Task.Should().BeSameAs(tcs.Task);
         item.Priority.Should().Be(1);
-        item.EnqueuedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        item.EnqueuedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]

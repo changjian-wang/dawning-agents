@@ -15,10 +15,10 @@ namespace Dawning.Agents.Core.Multimodal;
 /// 使用 OpenAI Whisper API 将音频转录为文本。
 /// 支持 mp3, mp4, mpeg, mpga, m4a, wav, webm 格式。
 /// </remarks>
-public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
+public class OpenAIWhisperProvider : IAudioTranscriptionProvider
 {
     private readonly HttpClient _httpClient;
-    private readonly HttpClient _downloadClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _apiKey;
     private readonly string _baseUrl;
     private readonly string _defaultModel;
@@ -57,6 +57,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
 
     public OpenAIWhisperProvider(
         HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         string apiKey,
         string baseUrl = "https://api.openai.com/v1",
         string defaultModel = "whisper-1",
@@ -64,7 +65,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
     )
     {
         _httpClient = httpClient;
-        _downloadClient = new HttpClient(); // Separate client without auth headers for external URLs
+        _httpClientFactory = httpClientFactory;
         _apiKey = apiKey;
         _baseUrl = baseUrl.TrimEnd('/');
         _defaultModel = defaultModel;
@@ -96,7 +97,8 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
             // 从 URL 下载
             try
             {
-                audioData = await _downloadClient
+                using var downloadClient = _httpClientFactory.CreateClient("WhisperDownload");
+                audioData = await downloadClient
                     .GetByteArrayAsync(audio.Url, cancellationToken)
                     .ConfigureAwait(false);
                 fileName = Path.GetFileName(new Uri(audio.Url!).LocalPath);
@@ -377,14 +379,5 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider, IDisposable
             "mpeg" or "mpga" => "audio/mpeg",
             _ => "application/octet-stream",
         };
-    }
-
-    /// <summary>
-    /// 释放下载客户端资源
-    /// </summary>
-    public void Dispose()
-    {
-        _downloadClient.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

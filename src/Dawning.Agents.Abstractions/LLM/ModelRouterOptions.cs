@@ -198,12 +198,30 @@ public class ModelStatistics
     /// <summary>
     /// 总输入 Token 数
     /// </summary>
-    public long TotalInputTokens => Interlocked.Read(ref _totalInputTokens);
+    public long TotalInputTokens
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _totalInputTokens;
+            }
+        }
+    }
 
     /// <summary>
     /// 总输出 Token 数
     /// </summary>
-    public long TotalOutputTokens => Interlocked.Read(ref _totalOutputTokens);
+    public long TotalOutputTokens
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _totalOutputTokens;
+            }
+        }
+    }
 
     private decimal _totalCost;
     private double _averageLatencyMs;
@@ -290,10 +308,10 @@ public class ModelStatistics
     /// </summary>
     public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
     {
-        Interlocked.Add(ref _totalInputTokens, inputTokens);
-        Interlocked.Add(ref _totalOutputTokens, outputTokens);
         lock (_lock)
         {
+            _totalInputTokens += inputTokens;
+            _totalOutputTokens += outputTokens;
             _totalRequests++;
             _successfulRequests++;
             var successCount = _successfulRequests;

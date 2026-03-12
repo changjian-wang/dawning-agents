@@ -44,7 +44,7 @@ public record ConfirmationRequest
     /// <summary>
     /// 请求创建时间
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 确认超时时间

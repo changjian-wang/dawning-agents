@@ -41,7 +41,7 @@ public class LLMOptions : IValidatableOptions
     public string? ApiKey { get; set; }
 
     /// <summary>端点 URL（Ollama/Azure OpenAI）</summary>
-    public string? Endpoint { get; set; }
+    public string? Endpoint { get; set; } = "http://localhost:11434";
 
     /// <summary>
     /// 验证配置是否有效
@@ -69,7 +69,10 @@ public class LLMOptions : IValidatableOptions
                 break;
 
             case LLMProviderType.Ollama:
-                Endpoint ??= "http://localhost:11434";
+                if (string.IsNullOrWhiteSpace(Endpoint))
+                {
+                    throw new InvalidOperationException("Ollama 需要配置 Endpoint");
+                }
                 break;
         }
 

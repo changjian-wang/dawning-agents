@@ -52,7 +52,7 @@ public class AgentModelsTests
         step.Action.Should().BeNull();
         step.ActionInput.Should().BeNull();
         step.Observation.Should().BeNull();
-        step.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        step.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]

@@ -123,7 +123,7 @@ public record ABTestResult
     /// <summary>
     /// 比较时间
     /// </summary>
-    public DateTime ComparedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset ComparedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>

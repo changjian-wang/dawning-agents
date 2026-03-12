@@ -44,7 +44,7 @@ public class DiagnosticsInfo
     /// <summary>
     /// 采集时间戳
     /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 内存信息
@@ -263,7 +263,7 @@ public class ProcessInfo
     /// <summary>
     /// 启动时间
     /// </summary>
-    public DateTime StartTime { get; set; }
+    public DateTimeOffset StartTime { get; set; }
 
     /// <summary>
     /// 运行时长

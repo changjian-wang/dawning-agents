@@ -64,7 +64,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
     )
     {
         var requestId = Guid.NewGuid().ToString("N")[..8];
-        var startTime = DateTime.UtcNow;
+        var startTime = DateTimeOffset.UtcNow;
 
         // 启动追踪 span
         using var span = _tracer.StartSpan($"{_innerAgent.Name}.Run", SpanKind.Internal);
@@ -88,7 +88,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
             var response = await _innerAgent
                 .RunAsync(context, cancellationToken)
                 .ConfigureAwait(false);
-            var duration = DateTime.UtcNow - startTime;
+            var duration = DateTimeOffset.UtcNow - startTime;
 
             // 记录成功指标
             _telemetry.RecordRequest(
@@ -123,7 +123,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = DateTimeOffset.UtcNow - startTime;
 
             _telemetry.RecordRequest(_innerAgent.Name, false, duration.TotalMilliseconds);
             _metrics.IncrementCounter(

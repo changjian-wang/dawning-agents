@@ -171,11 +171,11 @@ public class AgentHealthCheckTests
     {
         // Arrange
         var healthCheck = new AgentHealthCheck();
-        var before = DateTime.UtcNow;
+        var before = DateTimeOffset.UtcNow;
 
         // Act
         var result = await healthCheck.CheckHealthAsync();
-        var after = DateTime.UtcNow;
+        var after = DateTimeOffset.UtcNow;
 
         // Assert
         result.Timestamp.Should().BeOnOrAfter(before);

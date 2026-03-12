@@ -53,7 +53,7 @@ public class MultimodalTests
             var testData = new byte[] { 0x89, 0x50, 0x4E, 0x47 }; // PNG 魔数
             await File.WriteAllBytesAsync(tempFile, testData);
 
-            var content = await ImageContent.FromFileAsync(tempFile);
+            var content = await ImageContentExtensions.FromFileAsync(tempFile);
 
             content.Type.Should().Be(ContentType.Image);
             content.Base64Data.Should().Be(Convert.ToBase64String(testData));
@@ -89,7 +89,7 @@ public class MultimodalTests
             File.Move(tempFile, targetFile);
             await File.WriteAllBytesAsync(targetFile, [1, 2, 3]);
 
-            var content = await ImageContent.FromFileAsync(targetFile);
+            var content = await ImageContentExtensions.FromFileAsync(targetFile);
 
             content.MimeType.Should().Be(expectedMimeType);
         }

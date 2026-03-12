@@ -99,7 +99,7 @@ public record DistributedQueueMessage
     /// <summary>
     /// 入队时间
     /// </summary>
-    public DateTime EnqueuedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset EnqueuedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 重试次数

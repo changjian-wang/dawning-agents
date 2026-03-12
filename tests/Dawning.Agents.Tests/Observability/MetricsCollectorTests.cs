@@ -84,7 +84,7 @@ public class MetricsCollectorTests
         var snapshot = _collector.GetSnapshot();
 
         // Assert
-        snapshot.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        snapshot.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
         snapshot.Counters.Should().HaveCount(2);
         snapshot.Histograms.Should().HaveCount(1);
         snapshot.Gauges.Should().HaveCount(1);

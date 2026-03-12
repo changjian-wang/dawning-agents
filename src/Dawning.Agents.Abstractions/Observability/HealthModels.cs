@@ -13,7 +13,7 @@ public record HealthCheckResult
     /// <summary>
     /// 检查时间
     /// </summary>
-    public DateTime Timestamp { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
     /// 各组件健康状态

@@ -7,7 +7,7 @@ namespace Dawning.Agents.Abstractions.Tools;
 /// <para>工具解析顺序: Core → Session → User → Global → MCP</para>
 /// <para>Session 工具存储在内存中，随会话销毁</para>
 /// </remarks>
-public interface IToolSession : IDisposable
+public interface IToolSession : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// 创建并注册一个动态脚本工具到当前 session

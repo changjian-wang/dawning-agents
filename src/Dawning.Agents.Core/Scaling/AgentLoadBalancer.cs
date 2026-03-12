@@ -148,7 +148,7 @@ public sealed class AgentLoadBalancer : IAgentLoadBalancer
             if (instance != null)
             {
                 instance.IsHealthy = isHealthy;
-                instance.LastHealthCheck = DateTime.UtcNow;
+                instance.LastHealthCheck = DateTimeOffset.UtcNow;
                 _logger.LogDebug(
                     "更新实例 {InstanceId} 健康状态: {IsHealthy}",
                     instanceId,

@@ -64,7 +64,7 @@ public class OperationTrace
     /// <summary>
     /// 开始时间
     /// </summary>
-    public DateTime StartTime { get; set; }
+    public DateTimeOffset StartTime { get; set; }
 
     /// <summary>
     /// 耗时
@@ -146,7 +146,7 @@ public class OperationStatistics
     /// <summary>
     /// 最后一次调用时间
     /// </summary>
-    public DateTime LastCallTime { get; set; }
+    public DateTimeOffset LastCallTime { get; set; }
 }
 
 /// <summary>

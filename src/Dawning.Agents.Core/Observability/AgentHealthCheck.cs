@@ -57,7 +57,7 @@ public sealed class AgentHealthCheck
         return new HealthCheckResult
         {
             Status = overallHealthy ? HealthStatus.Healthy : HealthStatus.Unhealthy,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Components = results,
         };
     }

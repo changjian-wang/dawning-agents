@@ -65,7 +65,7 @@ public class MetricsModelsTests
     public void MetricsSnapshot_ShouldHaveCorrectDefaults()
     {
         // Act
-        var snapshot = new MetricsSnapshot { Timestamp = DateTime.UtcNow };
+        var snapshot = new MetricsSnapshot { Timestamp = DateTimeOffset.UtcNow };
 
         // Assert
         snapshot.Counters.Should().BeEmpty();
@@ -77,7 +77,7 @@ public class MetricsModelsTests
     public void MetricsSnapshot_ShouldStoreAllMetrics()
     {
         // Arrange
-        var timestamp = DateTime.UtcNow;
+        var timestamp = DateTimeOffset.UtcNow;
         var counters = new List<MetricData>
         {
             new() { Name = "c1", Type = "counter" },

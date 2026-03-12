@@ -18,7 +18,7 @@ public class ConfirmationRequestTests
         request.RiskLevel.Should().Be(RiskLevel.Medium);
         request.Options.Should().BeEmpty();
         request.Context.Should().BeEmpty();
-        request.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        request.CreatedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
         request.Timeout.Should().BeNull();
         request.DefaultOnTimeout.Should().BeNull();
     }
@@ -81,7 +81,7 @@ public class ConfirmationResponseTests
         // Assert
         response.RequestId.Should().Be("req-1");
         response.SelectedOption.Should().Be("yes");
-        response.RespondedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        response.RespondedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

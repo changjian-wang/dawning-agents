@@ -144,7 +144,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         {
             MessageId = item.Id,
             WorkItem = item,
-            EnqueuedAt = DateTime.UtcNow,
+            EnqueuedAt = DateTimeOffset.UtcNow,
             RetryCount = 0,
             MaxRetries = _options.MaxRetries,
         };
@@ -429,7 +429,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             {
                 MessageId = messageId,
                 Reason = reason,
-                MovedAt = DateTime.UtcNow,
+                MovedAt = DateTimeOffset.UtcNow,
             };
 
             await _database

@@ -25,7 +25,7 @@ public class ConfigurationChangedEventArgs<TOptions> : EventArgs
     /// <summary>
     /// 变更时间戳
     /// </summary>
-    public DateTime Timestamp { get; }
+    public DateTimeOffset Timestamp { get; }
 
     /// <summary>
     /// 创建配置变更事件参数
@@ -35,7 +35,7 @@ public class ConfigurationChangedEventArgs<TOptions> : EventArgs
         OldValue = oldValue;
         NewValue = newValue;
         Name = name;
-        Timestamp = DateTime.UtcNow;
+        Timestamp = DateTimeOffset.UtcNow;
     }
 }
 

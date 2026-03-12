@@ -199,7 +199,7 @@ public class ObservableAgentTests
 
         // Assert
         metrics.Should().NotBeNull();
-        metrics.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        metrics.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]

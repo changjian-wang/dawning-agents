@@ -153,4 +153,11 @@ public sealed class ToolSession : IToolSession
         _disposed = true;
         _logger.LogDebug("Tool session disposed");
     }
+
+    /// <inheritdoc />
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return ValueTask.CompletedTask;
+    }
 }

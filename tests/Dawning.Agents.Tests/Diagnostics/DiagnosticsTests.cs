@@ -17,7 +17,7 @@ public class DiagnosticsProviderTests
 
         // Assert
         info.Should().NotBeNull();
-        info.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        info.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
         info.Memory.Should().NotBeNull();
         info.GC.Should().NotBeNull();
         info.ThreadPool.Should().NotBeNull();
@@ -85,7 +85,7 @@ public class DiagnosticsProviderTests
         // Assert
         processInfo.ProcessId.Should().BeGreaterThan(0);
         processInfo.ProcessName.Should().NotBeNullOrEmpty();
-        processInfo.StartTime.Should().BeBefore(DateTime.UtcNow);
+        processInfo.StartTime.Should().BeBefore(DateTimeOffset.UtcNow);
         processInfo.Uptime.Should().BeGreaterThan(TimeSpan.Zero);
     }
 

@@ -23,7 +23,7 @@ public abstract record AgentMessage
     /// <summary>
     /// 消息时间戳
     /// </summary>
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 消息元数据

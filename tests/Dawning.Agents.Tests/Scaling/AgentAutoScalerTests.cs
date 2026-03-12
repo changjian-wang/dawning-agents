@@ -243,7 +243,7 @@ public class AgentAutoScalerTests
         await scaler.EvaluateAsync();
 
         scaler.LastScaleUpTime.Should().NotBeNull();
-        scaler.LastScaleUpTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        scaler.LastScaleUpTime.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     private static AgentAutoScaler CreateScaler(

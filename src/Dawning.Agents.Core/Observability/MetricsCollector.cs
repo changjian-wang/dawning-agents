@@ -79,7 +79,7 @@ public sealed class MetricsCollector
     {
         return new MetricsSnapshot
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Counters = _counters.Values.Select(c => c.ToData()).ToList(),
             Histograms = _histograms.Values.Select(h => h.ToData()).ToList(),
             Gauges = _gauges.Values.Select(g => g.ToData()).ToList(),

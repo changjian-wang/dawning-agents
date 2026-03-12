@@ -22,7 +22,7 @@ public class EscalationRequestTests
         request.TaskId.Should().BeNull();
         request.Context.Should().BeEmpty();
         request.AttemptedSolutions.Should().BeEmpty();
-        request.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        request.CreatedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class EscalationResultTests
         // Assert
         result.RequestId.Should().Be("req-1");
         result.Action.Should().Be(EscalationAction.Resolved); // Default
-        result.ResolvedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.ResolvedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

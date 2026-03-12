@@ -37,7 +37,7 @@ public class DiagnosticsProvider : IDiagnosticsProvider
     {
         var info = new DiagnosticsInfo
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
             Memory = GetMemoryInfo(),
             GC = GetGCInfo(),
             ThreadPool = GetThreadPoolInfo(),
@@ -117,8 +117,10 @@ public class DiagnosticsProvider : IDiagnosticsProvider
         {
             ProcessId = process.Id,
             ProcessName = process.ProcessName,
-            StartTime = process.StartTime.ToUniversalTime(),
-            Uptime = DateTime.UtcNow - process.StartTime.ToUniversalTime(),
+            StartTime = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero),
+            Uptime =
+                DateTimeOffset.UtcNow
+                - new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero),
             TotalProcessorTime = process.TotalProcessorTime,
             UserProcessorTime = process.UserProcessorTime,
             HandleCount = process.HandleCount,

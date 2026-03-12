@@ -49,7 +49,7 @@ public record EscalationRequest
     /// <summary>
     /// 创建时间
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
@@ -111,7 +111,7 @@ public record EscalationResult
     /// <summary>
     /// 解决时间
     /// </summary>
-    public DateTime ResolvedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset ResolvedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>

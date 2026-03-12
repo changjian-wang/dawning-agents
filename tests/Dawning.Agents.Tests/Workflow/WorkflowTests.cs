@@ -496,7 +496,7 @@ public class WorkflowTests
             {
                 NodeId = "node1",
                 NodeName = "节点1",
-                StartedAt = DateTime.UtcNow,
+                StartedAt = DateTimeOffset.UtcNow,
             }
         );
 

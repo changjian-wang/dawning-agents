@@ -311,12 +311,12 @@ public class VectorMemory : IConversationMemory
                     Id = r.Chunk.Id,
                     Role = r.Chunk.Metadata.GetValueOrDefault("role", "user"),
                     Content = r.Chunk.Content,
-                    Timestamp = DateTime.TryParse(
+                    Timestamp = DateTimeOffset.TryParse(
                         r.Chunk.Metadata.GetValueOrDefault("timestamp", ""),
                         out var ts
                     )
                         ? ts
-                        : DateTime.MinValue,
+                        : DateTimeOffset.MinValue,
                     Metadata = new Dictionary<string, object> { ["relevanceScore"] = r.Score },
                 })
                 .OrderBy(m => m.Timestamp)

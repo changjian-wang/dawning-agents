@@ -54,7 +54,7 @@ public class HealthModelsTests
     public void HealthCheckResult_ShouldStoreValues()
     {
         // Arrange
-        var timestamp = DateTime.UtcNow;
+        var timestamp = DateTimeOffset.UtcNow;
         var components = new List<ComponentHealth>
         {
             new() { Name = "LLM", Status = HealthStatus.Healthy },
@@ -82,7 +82,7 @@ public class HealthModelsTests
         var result = new HealthCheckResult
         {
             Status = HealthStatus.Healthy,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTimeOffset.UtcNow,
         };
 
         // Assert

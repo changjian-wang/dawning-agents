@@ -151,7 +151,7 @@ public record ScalingMetrics
     /// <summary>
     /// 采集时间
     /// </summary>
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
@@ -177,7 +177,7 @@ public record ScalingDecision
     /// <summary>
     /// 决策时间
     /// </summary>
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 创建无操作决策

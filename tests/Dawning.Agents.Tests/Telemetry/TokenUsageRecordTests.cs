@@ -9,7 +9,7 @@ public class TokenUsageRecordTests
     public void Constructor_ShouldSetAllProperties()
     {
         // Arrange
-        var timestamp = DateTime.UtcNow;
+        var timestamp = DateTimeOffset.UtcNow;
         var metadata = new Dictionary<string, object> { ["key"] = "value" };
 
         // Act
@@ -37,7 +37,7 @@ public class TokenUsageRecordTests
     public void TotalTokens_ShouldReturnSumOfPromptAndCompletion()
     {
         // Arrange
-        var record = new TokenUsageRecord("TestAgent", 100, 50, DateTime.UtcNow);
+        var record = new TokenUsageRecord("TestAgent", 100, 50, DateTimeOffset.UtcNow);
 
         // Act & Assert
         record.TotalTokens.Should().Be(150);
@@ -47,11 +47,11 @@ public class TokenUsageRecordTests
     public void Create_ShouldCreateRecordWithCurrentTimestamp()
     {
         // Arrange
-        var before = DateTime.UtcNow;
+        var before = DateTimeOffset.UtcNow;
 
         // Act
         var record = TokenUsageRecord.Create("TestAgent", 100, 50, "gpt-4", "session-1");
-        var after = DateTime.UtcNow;
+        var after = DateTimeOffset.UtcNow;
 
         // Assert
         record.Source.Should().Be("TestAgent");

@@ -18,7 +18,7 @@ public class AgentMessageTests
 
         // Assert
         message.Id.Should().NotBeNullOrEmpty();
-        message.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        message.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
         message.ReceiverId.Should().BeNull();
         message.Metadata.Should().BeEmpty();
     }

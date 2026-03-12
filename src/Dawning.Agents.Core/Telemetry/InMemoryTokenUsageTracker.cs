@@ -19,17 +19,52 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     private int _callCount;
 
     /// <inheritdoc />
-    public long TotalPromptTokens => Volatile.Read(ref _totalPromptTokens);
+    public long TotalPromptTokens
+    {
+        get
+        {
+            lock (_resetLock)
+            {
+                return _totalPromptTokens;
+            }
+        }
+    }
 
     /// <inheritdoc />
-    public long TotalCompletionTokens => Volatile.Read(ref _totalCompletionTokens);
+    public long TotalCompletionTokens
+    {
+        get
+        {
+            lock (_resetLock)
+            {
+                return _totalCompletionTokens;
+            }
+        }
+    }
 
     /// <inheritdoc />
-    public long TotalTokens =>
-        Volatile.Read(ref _totalPromptTokens) + Volatile.Read(ref _totalCompletionTokens);
+    public long TotalTokens
+    {
+        get
+        {
+            lock (_resetLock)
+            {
+                return _totalPromptTokens + _totalCompletionTokens;
+            }
+        }
+    }
 
     /// <inheritdoc />
-    public int CallCount => _callCount;
+    public int CallCount
+    {
+        get
+        {
+            lock (_resetLock)
+            {
+                return _callCount;
+            }
+        }
+    }
 
     /// <inheritdoc />
     public void Record(TokenUsageRecord record)
@@ -39,9 +74,9 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
         lock (_resetLock)
         {
             _records.Add(record);
-            Interlocked.Add(ref _totalPromptTokens, (long)record.PromptTokens);
-            Interlocked.Add(ref _totalCompletionTokens, (long)record.CompletionTokens);
-            Interlocked.Increment(ref _callCount);
+            _totalPromptTokens += record.PromptTokens;
+            _totalCompletionTokens += record.CompletionTokens;
+            _callCount++;
         }
     }
 
@@ -125,9 +160,9 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
             {
                 // 全部重置
                 _records.Clear();
-                Interlocked.Exchange(ref _totalPromptTokens, 0L);
-                Interlocked.Exchange(ref _totalCompletionTokens, 0L);
-                Interlocked.Exchange(ref _callCount, 0);
+                _totalPromptTokens = 0;
+                _totalCompletionTokens = 0;
+                _callCount = 0;
             }
             else
             {
@@ -146,15 +181,9 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
                 }
 
                 // 重新计算总数
-                Interlocked.Exchange(
-                    ref _totalPromptTokens,
-                    remaining.Sum(r => (long)r.PromptTokens)
-                );
-                Interlocked.Exchange(
-                    ref _totalCompletionTokens,
-                    remaining.Sum(r => (long)r.CompletionTokens)
-                );
-                Interlocked.Exchange(ref _callCount, remaining.Count);
+                _totalPromptTokens = remaining.Sum(r => (long)r.PromptTokens);
+                _totalCompletionTokens = remaining.Sum(r => (long)r.CompletionTokens);
+                _callCount = remaining.Count;
             }
         }
     }

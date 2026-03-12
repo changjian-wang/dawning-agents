@@ -145,7 +145,7 @@ public class ConfigurationChangeNotifierTests
         var newOptions = new TestOptions { Value = "new" };
 
         Action<TestOptions, string?>? capturedCallback = null;
-        var beforeChange = DateTime.UtcNow;
+        var beforeChange = DateTimeOffset.UtcNow;
 
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(initialOptions);
         _optionsMonitorMock
@@ -160,7 +160,7 @@ public class ConfigurationChangeNotifierTests
 
         // Act
         capturedCallback?.Invoke(newOptions, null);
-        var afterChange = DateTime.UtcNow;
+        var afterChange = DateTimeOffset.UtcNow;
 
         // Assert
         receivedEventArgs.Should().NotBeNull();

@@ -186,6 +186,7 @@ public class LLMOptionsTests
             ProviderType = LLMProviderType.AzureOpenAI,
             Model = "gpt-4o",
             ApiKey = "fake-key",
+            Endpoint = null,
         };
 
         var act = () => options.Validate();

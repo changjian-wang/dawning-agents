@@ -25,7 +25,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     private Timer? _renewalTimer;
     private volatile bool _disposed;
     private volatile bool _isAcquired;
-    private long _expiresAtTicks; // 0 = null, otherwise DateTime.Ticks
+    private long _expiresAtTicks; // 0 = null, otherwise DateTimeOffset.Ticks
 
     /// <inheritdoc />
     public string Resource => _resource;
@@ -41,12 +41,12 @@ public sealed class RedisDistributedLock : IDistributedLock
     }
 
     /// <inheritdoc />
-    public DateTime? ExpiresAt
+    public DateTimeOffset? ExpiresAt
     {
         get
         {
             var ticks = Volatile.Read(ref _expiresAtTicks);
-            return ticks == 0 ? null : new DateTime(ticks, DateTimeKind.Utc);
+            return ticks == 0 ? null : new DateTimeOffset(ticks, TimeSpan.Zero);
         }
         private set => Volatile.Write(ref _expiresAtTicks, value?.Ticks ?? 0);
     }
@@ -84,10 +84,10 @@ public sealed class RedisDistributedLock : IDistributedLock
             return true;
         }
 
-        var startTime = DateTime.UtcNow;
+        var startTime = DateTimeOffset.UtcNow;
         var retryInterval = TimeSpan.FromMilliseconds(_options.RetryInterval);
 
-        while (DateTime.UtcNow - startTime < timeout)
+        while (DateTimeOffset.UtcNow - startTime < timeout)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -98,7 +98,7 @@ public sealed class RedisDistributedLock : IDistributedLock
             if (acquired)
             {
                 IsAcquired = true;
-                ExpiresAt = DateTime.UtcNow.Add(_expiry);
+                ExpiresAt = DateTimeOffset.UtcNow.Add(_expiry);
 
                 if (_options.EnableAutoRenewal)
                 {
@@ -224,7 +224,7 @@ public sealed class RedisDistributedLock : IDistributedLock
 
             if ((int)result == 1)
             {
-                ExpiresAt = (ExpiresAt ?? DateTime.UtcNow).Add(extension);
+                ExpiresAt = (ExpiresAt ?? DateTimeOffset.UtcNow).Add(extension);
                 _logger.LogDebug(
                     "Extended lock {Resource} by {Extension}, new expiry: {ExpiresAt}",
                     _resource,

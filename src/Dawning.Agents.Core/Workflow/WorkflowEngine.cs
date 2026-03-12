@@ -92,7 +92,7 @@ public class WorkflowEngine : IWorkflowEngine
                     NodeId = nodeDefinition.Id,
                     NodeName = nodeDefinition.Name,
                     NodeType = nodeDefinition.Type,
-                    StartedAt = DateTime.UtcNow,
+                    StartedAt = DateTimeOffset.UtcNow,
                 };
 
                 _logger.LogDebug(
@@ -111,7 +111,7 @@ public class WorkflowEngine : IWorkflowEngine
                 context.AddExecutionStep(
                     step with
                     {
-                        CompletedAt = DateTime.UtcNow,
+                        CompletedAt = DateTimeOffset.UtcNow,
                         Success = result.Success,
                     }
                 );

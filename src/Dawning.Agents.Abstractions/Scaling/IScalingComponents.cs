@@ -30,7 +30,7 @@ public record AgentWorkItem
     /// <summary>
     /// 入队时间
     /// </summary>
-    public DateTime EnqueuedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset EnqueuedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 优先级
@@ -46,7 +46,7 @@ public record AgentWorkItem
 /// <summary>
 /// Agent 实例信息
 /// </summary>
-public record AgentInstance
+public class AgentInstance
 {
     /// <summary>
     /// 实例 ID
@@ -108,7 +108,7 @@ public record AgentInstance
     /// <summary>
     /// 最后健康检查时间
     /// </summary>
-    public DateTime LastHealthCheck { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset LastHealthCheck { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 标签
@@ -254,10 +254,10 @@ public interface IAgentAutoScaler
     /// <summary>
     /// 上次扩容时间
     /// </summary>
-    DateTime? LastScaleUpTime { get; }
+    DateTimeOffset? LastScaleUpTime { get; }
 
     /// <summary>
     /// 上次缩容时间
     /// </summary>
-    DateTime? LastScaleDownTime { get; }
+    DateTimeOffset? LastScaleDownTime { get; }
 }

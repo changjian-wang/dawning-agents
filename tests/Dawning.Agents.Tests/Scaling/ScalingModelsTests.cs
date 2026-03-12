@@ -107,7 +107,7 @@ public class ScalingModelsTests
         metrics.QueueLength.Should().Be(100);
         metrics.ActiveRequests.Should().Be(50);
         metrics.AvgLatencyMs.Should().Be(150.5);
-        metrics.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        metrics.Timestamp.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]

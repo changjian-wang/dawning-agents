@@ -65,7 +65,7 @@ public class PerformanceProfiler : IPerformanceProfiler
         {
             OperationName = operationName,
             Category = category,
-            StartTime = DateTime.UtcNow - duration,
+            StartTime = DateTimeOffset.UtcNow - duration,
             Duration = duration,
             IsSuccess = isSuccess,
             ErrorMessage = errorMessage,
@@ -137,7 +137,7 @@ public class PerformanceProfiler : IPerformanceProfiler
                 TotalDuration = duration,
                 MinDuration = duration,
                 MaxDuration = duration,
-                LastCallTime = DateTime.UtcNow,
+                LastCallTime = DateTimeOffset.UtcNow,
             },
             (_, existing) =>
             {
@@ -164,7 +164,7 @@ public class PerformanceProfiler : IPerformanceProfiler
                         existing.MaxDuration = duration;
                     }
 
-                    existing.LastCallTime = DateTime.UtcNow;
+                    existing.LastCallTime = DateTimeOffset.UtcNow;
                     return existing;
                 }
             }

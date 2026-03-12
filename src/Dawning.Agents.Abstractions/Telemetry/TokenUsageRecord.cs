@@ -14,7 +14,7 @@ public record TokenUsageRecord(
     string Source,
     int PromptTokens,
     int CompletionTokens,
-    DateTime Timestamp,
+    DateTimeOffset Timestamp,
     string? Model = null,
     string? SessionId = null,
     IReadOnlyDictionary<string, object>? Metadata = null
@@ -41,7 +41,7 @@ public record TokenUsageRecord(
             source,
             promptTokens,
             completionTokens,
-            DateTime.UtcNow,
+            DateTimeOffset.UtcNow,
             model,
             sessionId,
             metadata

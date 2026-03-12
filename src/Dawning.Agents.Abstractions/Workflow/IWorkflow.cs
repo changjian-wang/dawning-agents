@@ -130,7 +130,7 @@ public enum WorkflowNodeType
 }
 
 /// <summary>
-/// 工作流上下文
+/// 工作流上下文（线程安全）
 /// </summary>
 public class WorkflowContext
 {
@@ -138,6 +138,7 @@ public class WorkflowContext
     private readonly Dictionary<string, NodeExecutionResult> _nodeResults = new();
     private readonly List<WorkflowExecutionStep> _executionHistory = [];
     private readonly Dictionary<string, object?> _metadata = new();
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// 输入数据
@@ -145,35 +146,74 @@ public class WorkflowContext
     public string Input { get; set; } = string.Empty;
 
     /// <summary>
-    /// 共享状态（只读视图）
+    /// 共享状态（只读快照）
     /// </summary>
-    public IReadOnlyDictionary<string, object?> State => _state;
+    public IReadOnlyDictionary<string, object?> State
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, object?>(_state);
+            }
+        }
+    }
 
     /// <summary>
-    /// 节点执行结果（只读视图）
+    /// 节点执行结果（只读快照）
     /// </summary>
-    public IReadOnlyDictionary<string, NodeExecutionResult> NodeResults => _nodeResults;
+    public IReadOnlyDictionary<string, NodeExecutionResult> NodeResults
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, NodeExecutionResult>(_nodeResults);
+            }
+        }
+    }
 
     /// <summary>
-    /// 执行历史（只读视图）
+    /// 执行历史（只读快照）
     /// </summary>
-    public IReadOnlyList<WorkflowExecutionStep> ExecutionHistory => _executionHistory;
+    public IReadOnlyList<WorkflowExecutionStep> ExecutionHistory
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _executionHistory.ToList();
+            }
+        }
+    }
 
     /// <summary>
-    /// 元数据（只读视图）
+    /// 元数据（只读快照）
     /// </summary>
-    public IReadOnlyDictionary<string, object?> Metadata => _metadata;
+    public IReadOnlyDictionary<string, object?> Metadata
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, object?>(_metadata);
+            }
+        }
+    }
 
     /// <summary>
     /// 获取状态值
     /// </summary>
     public T? GetState<T>(string key)
     {
-        if (_state.TryGetValue(key, out var value) && value is T typedValue)
+        lock (_lock)
         {
-            return typedValue;
+            if (_state.TryGetValue(key, out var value) && value is T typedValue)
+            {
+                return typedValue;
+            }
+            return default;
         }
-        return default;
     }
 
     /// <summary>
@@ -181,7 +221,10 @@ public class WorkflowContext
     /// </summary>
     public void SetState<T>(string key, T value)
     {
-        _state[key] = value;
+        lock (_lock)
+        {
+            _state[key] = value;
+        }
     }
 
     /// <summary>
@@ -189,7 +232,10 @@ public class WorkflowContext
     /// </summary>
     public void AddNodeResult(string nodeId, NodeExecutionResult result)
     {
-        _nodeResults[nodeId] = result;
+        lock (_lock)
+        {
+            _nodeResults[nodeId] = result;
+        }
     }
 
     /// <summary>
@@ -197,7 +243,10 @@ public class WorkflowContext
     /// </summary>
     public void AddExecutionStep(WorkflowExecutionStep step)
     {
-        _executionHistory.Add(step);
+        lock (_lock)
+        {
+            _executionHistory.Add(step);
+        }
     }
 
     /// <summary>
@@ -205,7 +254,10 @@ public class WorkflowContext
     /// </summary>
     public void SetMetadata(string key, object? value)
     {
-        _metadata[key] = value;
+        lock (_lock)
+        {
+            _metadata[key] = value;
+        }
     }
 
     /// <summary>
@@ -213,9 +265,12 @@ public class WorkflowContext
     /// </summary>
     public NodeExecutionResult? GetLastResult()
     {
-        return _executionHistory.Count > 0
-            ? _nodeResults.GetValueOrDefault(_executionHistory[^1].NodeId)
-            : null;
+        lock (_lock)
+        {
+            return _executionHistory.Count > 0
+                ? _nodeResults.GetValueOrDefault(_executionHistory[^1].NodeId)
+                : null;
+        }
     }
 }
 
@@ -310,12 +365,12 @@ public record WorkflowExecutionStep
     /// <summary>
     /// 开始时间
     /// </summary>
-    public DateTime StartedAt { get; init; }
+    public DateTimeOffset StartedAt { get; init; }
 
     /// <summary>
     /// 结束时间
     /// </summary>
-    public DateTime? CompletedAt { get; init; }
+    public DateTimeOffset? CompletedAt { get; init; }
 
     /// <summary>
     /// 是否成功

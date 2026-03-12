@@ -420,7 +420,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             if (instance != null)
             {
                 instance.IsHealthy = isHealthy;
-                instance.LastHealthCheck = DateTime.UtcNow;
+                instance.LastHealthCheck = DateTimeOffset.UtcNow;
             }
         }
         finally

@@ -3,12 +3,21 @@ using Dawning.Agents.Core;
 using Dawning.Agents.Core.Multimodal;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Dawning.Agents.Tests.Multimodal;
 
 public class AudioTests
 {
+    private static OpenAIWhisperProvider CreateWhisperProvider(HttpClient? httpClient = null)
+    {
+        var client = httpClient ?? new HttpClient();
+        var factoryMock = new Mock<IHttpClientFactory>();
+        factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+        return new OpenAIWhisperProvider(client, factoryMock.Object, "test-key");
+    }
+
     #region TranscriptionOptions Tests
 
     [Fact]
@@ -252,8 +261,7 @@ public class AudioTests
     [Fact]
     public void OpenAIWhisperProvider_Name_IsCorrect()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         provider.Name.Should().Be("OpenAI-Whisper");
     }
@@ -261,8 +269,7 @@ public class AudioTests
     [Fact]
     public void OpenAIWhisperProvider_SupportedFormats_ContainsCommonFormats()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         provider.SupportedFormats.Should().Contain("mp3");
         provider.SupportedFormats.Should().Contain("mp4");
@@ -274,8 +281,7 @@ public class AudioTests
     [Fact]
     public void OpenAIWhisperProvider_MaxFileSize_Is25MB()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         provider.MaxFileSize.Should().Be(25 * 1024 * 1024);
     }
@@ -283,8 +289,7 @@ public class AudioTests
     [Fact]
     public void OpenAIWhisperProvider_MaxDurationSeconds_Is2Hours()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         provider.MaxDurationSeconds.Should().Be(7200);
     }
@@ -292,8 +297,7 @@ public class AudioTests
     [Fact]
     public async Task OpenAIWhisperProvider_TranscribeAsync_WithEmptyAudio_ReturnsFailed()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         var emptyAudio = new AudioContent();
         var result = await provider.TranscribeAsync(emptyAudio);
@@ -305,8 +309,7 @@ public class AudioTests
     [Fact]
     public async Task OpenAIWhisperProvider_TranscribeFileAsync_WithNonexistentFile_ReturnsFailed()
     {
-        var httpClient = new HttpClient();
-        var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+        var provider = CreateWhisperProvider();
 
         var result = await provider.TranscribeFileAsync("/nonexistent/file.mp3");
 
@@ -322,8 +325,7 @@ public class AudioTests
         {
             await File.WriteAllBytesAsync(tempFile, [1, 2, 3]);
 
-            var httpClient = new HttpClient();
-            var provider = new OpenAIWhisperProvider(httpClient, "test-key");
+            var provider = CreateWhisperProvider();
 
             var result = await provider.TranscribeFileAsync(tempFile);
 

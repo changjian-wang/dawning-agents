@@ -15,8 +15,8 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private readonly ILogger<AgentAutoScaler> _logger;
 
     private int _currentInstances;
-    private DateTime? _lastScaleUp;
-    private DateTime? _lastScaleDown;
+    private DateTimeOffset? _lastScaleUp;
+    private DateTimeOffset? _lastScaleDown;
     private readonly SemaphoreSlim _evaluateLock = new(1, 1);
     private readonly Lock _stateLock = new();
     private volatile bool _disposed;
@@ -49,7 +49,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     }
 
     /// <inheritdoc />
-    public DateTime? LastScaleUpTime
+    public DateTimeOffset? LastScaleUpTime
     {
         get
         {
@@ -61,7 +61,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     }
 
     /// <inheritdoc />
-    public DateTime? LastScaleDownTime
+    public DateTimeOffset? LastScaleDownTime
     {
         get
         {
@@ -124,7 +124,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 
     private ScalingDecision MakeScalingDecision(ScalingMetrics metrics, int currentInstances)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         // 检查是否需要扩容
         if (ShouldScaleUp(metrics, currentInstances))
@@ -205,11 +205,11 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
             {
                 if (decision.Action == ScalingAction.ScaleUp)
                 {
-                    _lastScaleUp = DateTime.UtcNow;
+                    _lastScaleUp = DateTimeOffset.UtcNow;
                 }
                 else
                 {
-                    _lastScaleDown = DateTime.UtcNow;
+                    _lastScaleDown = DateTimeOffset.UtcNow;
                 }
                 _currentInstances = newCount;
             }

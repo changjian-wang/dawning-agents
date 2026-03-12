@@ -69,7 +69,7 @@ public record MetricsSnapshot
     /// <summary>
     /// 时间戳
     /// </summary>
-    public DateTime Timestamp { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
     /// 计数器指标

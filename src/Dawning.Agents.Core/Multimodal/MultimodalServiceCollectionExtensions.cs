@@ -163,6 +163,7 @@ public static class MultimodalServiceCollectionExtensions
 
             return new OpenAIWhisperProvider(
                 httpClient,
+                httpClientFactory,
                 apiKey,
                 baseUrl ?? "https://api.openai.com/v1",
                 model ?? "whisper-1",
@@ -219,6 +220,7 @@ public static class MultimodalServiceCollectionExtensions
 
             return new OpenAIWhisperProvider(
                 httpClient,
+                httpClientFactory,
                 apiKey: "",
                 baseUrl: endpoint,
                 defaultModel: "",

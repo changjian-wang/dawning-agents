@@ -27,7 +27,7 @@ public interface IDistributedLock : IAsyncDisposable
     /// <summary>
     /// 锁的过期时间
     /// </summary>
-    DateTime? ExpiresAt { get; }
+    DateTimeOffset? ExpiresAt { get; }
 
     /// <summary>
     /// 尝试获取锁

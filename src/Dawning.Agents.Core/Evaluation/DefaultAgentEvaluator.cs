@@ -212,7 +212,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
         var report = new EvaluationReport
         {
-            Name = $"Evaluation_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
+            Name = $"Evaluation_{DateTimeOffset.UtcNow:yyyyMMdd_HHmmss}",
             AgentName = _agent.Name,
             Results = results,
             DurationMs = overallStopwatch.ElapsedMilliseconds,

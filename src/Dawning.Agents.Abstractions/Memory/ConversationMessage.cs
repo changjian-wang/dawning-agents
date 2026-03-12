@@ -23,7 +23,7 @@ public record ConversationMessage
     /// <summary>
     /// 消息创建时间
     /// </summary>
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 可选的元数据（例如工具调用、token 数量）
