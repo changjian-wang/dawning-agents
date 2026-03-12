@@ -310,6 +310,8 @@ public sealed class StdioTransport : IMCPTransport
 
         readCts?.Dispose();
         _writeLock.Dispose();
+        // CompleteAsync is idempotent — safe even if ReadInputAsync already completed the writer
+        await _pipe.Writer.CompleteAsync().ConfigureAwait(false);
         await _pipe.Reader.CompleteAsync().ConfigureAwait(false);
     }
 }

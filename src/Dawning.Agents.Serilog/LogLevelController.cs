@@ -115,7 +115,9 @@ public class LogLevelController : ILogLevelController
                             catch (ObjectDisposedException) { }
                         }
                     },
-                    TaskContinuationOptions.OnlyOnRanToCompletion
+                    CancellationToken.None,
+                    TaskContinuationOptions.OnlyOnRanToCompletion,
+                    TaskScheduler.Default
                 );
         }
 

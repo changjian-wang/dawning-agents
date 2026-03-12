@@ -59,15 +59,8 @@ public static class RedisServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(RedisOptions)} configuration"
             )
@@ -130,15 +123,8 @@ public static class RedisServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(DistributedQueueOptions)} configuration"
             )
@@ -167,15 +153,8 @@ public static class RedisServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(DistributedLockOptions)} configuration"
             )
@@ -204,15 +183,8 @@ public static class RedisServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(DistributedSessionOptions)} configuration"
             )

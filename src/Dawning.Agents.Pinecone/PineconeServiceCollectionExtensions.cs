@@ -49,15 +49,8 @@ public static class PineconeServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(PineconeOptions)} configuration"
             )
@@ -86,15 +79,8 @@ public static class PineconeServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(PineconeOptions)} configuration"
             )

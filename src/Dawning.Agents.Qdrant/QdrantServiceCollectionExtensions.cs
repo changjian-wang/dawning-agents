@@ -39,15 +39,8 @@ public static class QdrantServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(QdrantOptions)} configuration"
             )
@@ -71,15 +64,8 @@ public static class QdrantServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(QdrantOptions)} configuration"
             )

@@ -29,15 +29,8 @@ public static class ChromaServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(ChromaOptions)} configuration"
             )
@@ -90,15 +83,8 @@ public static class ChromaServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(ChromaOptions)} configuration"
             )

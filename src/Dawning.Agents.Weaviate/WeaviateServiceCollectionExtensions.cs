@@ -29,15 +29,8 @@ public static class WeaviateServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(WeaviateOptions)} configuration"
             )
@@ -89,15 +82,8 @@ public static class WeaviateServiceCollectionExtensions
             .Validate(
                 options =>
                 {
-                    try
-                    {
-                        options.Validate();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    options.Validate();
+                    return true;
                 },
                 $"Invalid {nameof(WeaviateOptions)} configuration"
             )

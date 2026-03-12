@@ -71,19 +71,19 @@ public static class AgentInstrumentation
     // 仪表盘
     public static readonly ObservableGauge<int> QueueDepth = Meter.CreateObservableGauge(
         "agent_queue_depth",
-        () => _queueDepthCallback?.Invoke() ?? 0,
+        () => Volatile.Read(ref _queueDepthCallback)?.Invoke() ?? 0,
         description: "Current depth of the agent request queue"
     );
 
     public static readonly ObservableGauge<int> ActiveRequests = Meter.CreateObservableGauge(
         "agent_active_requests",
-        () => _activeRequestsCallback?.Invoke() ?? 0,
+        () => Volatile.Read(ref _activeRequestsCallback)?.Invoke() ?? 0,
         description: "Number of currently active agent requests"
     );
 
     public static readonly ObservableGauge<int> HealthyInstances = Meter.CreateObservableGauge(
         "agent_healthy_instances",
-        () => _healthyInstancesCallback?.Invoke() ?? 0,
+        () => Volatile.Read(ref _healthyInstancesCallback)?.Invoke() ?? 0,
         description: "Number of healthy agent instances"
     );
 
@@ -94,19 +94,20 @@ public static class AgentInstrumentation
     /// <summary>
     /// 设置队列深度回调
     /// </summary>
-    public static void SetQueueDepthCallback(Func<int> callback) => _queueDepthCallback = callback;
+    public static void SetQueueDepthCallback(Func<int> callback) =>
+        Volatile.Write(ref _queueDepthCallback, callback);
 
     /// <summary>
     /// 设置活跃请求数回调
     /// </summary>
     public static void SetActiveRequestsCallback(Func<int> callback) =>
-        _activeRequestsCallback = callback;
+        Volatile.Write(ref _activeRequestsCallback, callback);
 
     /// <summary>
     /// 设置健康实例数回调
     /// </summary>
     public static void SetHealthyInstancesCallback(Func<int> callback) =>
-        _healthyInstancesCallback = callback;
+        Volatile.Write(ref _healthyInstancesCallback, callback);
 
     /// <summary>
     /// 开始 Agent 请求追踪

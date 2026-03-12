@@ -25,6 +25,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     private Timer? _renewalTimer;
     private volatile bool _disposed;
     private volatile bool _isAcquired;
+    private int _renewing; // 0 = idle, 1 = renewing (guards concurrent timer callbacks)
     private long _expiresAtTicks; // 0 = null, otherwise DateTimeOffset.Ticks
 
     /// <inheritdoc />
@@ -272,6 +273,12 @@ public sealed class RedisDistributedLock : IDistributedLock
 
     private async Task RenewAsync()
     {
+        // Prevent overlapping renewals from concurrent timer callbacks
+        if (Interlocked.CompareExchange(ref _renewing, 1, 0) != 0)
+        {
+            return;
+        }
+
         try
         {
             if (IsAcquired)
@@ -290,6 +297,10 @@ public sealed class RedisDistributedLock : IDistributedLock
         catch (Exception ex)
         {
             _logger.LogError(ex, "Auto-renewal failed for lock {Resource}", _resource);
+        }
+        finally
+        {
+            Volatile.Write(ref _renewing, 0);
         }
     }
 
