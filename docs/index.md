@@ -4,7 +4,8 @@ Welcome to the **Dawning.Agents** documentation - a minimalist .NET AI Agent fra
 
 ## Quick Links
 
-- [Getting Started](articles/getting-started.md)
+- [Getting Started](guides/getting-started.md)
+- [Architecture](architecture.md)
 - [API Reference](api/index.md)
 - [GitHub Repository](https://github.com/changjian-wang/dawning-agents)
 
@@ -12,12 +13,12 @@ Welcome to the **Dawning.Agents** documentation - a minimalist .NET AI Agent fra
 
 Dawning.Agents is an enterprise-grade AI Agent framework for .NET that provides:
 
-- 🤖 **Multiple LLM Providers** - Ollama, OpenAI, Azure OpenAI
-- 🧠 **Memory Systems** - Buffer, Window, Summary memory
-- 🛠️ **Tools/Skills** - 64+ built-in tools, custom tool support
-- 🔄 **Multi-Agent** - Agent orchestration, handoffs, communication
-- 📚 **RAG** - Vector stores (Qdrant, Pinecone), embeddings
-- 🛡️ **Enterprise Features** - Guardrails, observability, resilience
+- **Multiple LLM Providers** - Ollama, OpenAI, Azure OpenAI
+- **Memory Systems** - Buffer, Window, Summary memory
+- **Tools/Skills** - Built-in tools, custom tool support
+- **Multi-Agent** - Agent orchestration, handoffs, communication
+- **RAG** - Vector stores (Qdrant, Pinecone), embeddings
+- **Enterprise Features** - Guardrails, observability, resilience
 
 ## Installation
 
@@ -46,17 +47,31 @@ var response = await agent.RunAsync("What's the weather in Beijing?");
 Console.WriteLine(response.Output);
 ```
 
-## Documentation Sections
+## Guides
 
-| Section | Description |
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](guides/getting-started.md) | Installation and first steps |
+| [LLM Providers](guides/llm-providers.md) | Configure Ollama, OpenAI, Azure |
+| [Tools & Skills](guides/tools.md) | Built-in and custom tools |
+| [Memory](guides/memory.md) | Conversation memory systems |
+| [RAG](guides/rag.md) | Vector stores and retrieval |
+| [Multi-Agent](guides/multi-agent.md) | Agent orchestration |
+| [Security](guides/security.md) | Security hardening |
+| [Performance](guides/performance.md) | Performance tuning |
+| [Production](guides/production.md) | Production best practices |
+
+## Examples
+
+| Example | Description |
 |---------|-------------|
-| [Getting Started](articles/getting-started.md) | Installation and first steps |
-| [LLM Providers](articles/llm-providers.md) | Configure Ollama, OpenAI, Azure |
-| [Tools & Skills](articles/tools.md) | Built-in and custom tools |
-| [Memory](articles/memory.md) | Conversation memory systems |
-| [RAG](articles/rag.md) | Vector stores and retrieval |
-| [Multi-Agent](articles/multi-agent.md) | Agent orchestration |
-| [API Reference](api/index.md) | Complete API documentation |
+| [Code Review Agent](guides/code-review-agent.md) | Automated code review |
+| [Customer Service Bot](guides/customer-service-bot.md) | Multi-turn customer service |
+
+## Reference
+
+- [Architecture](architecture.md)
+- [API Reference](api/index.md)
 
 ## License
 

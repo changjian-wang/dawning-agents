@@ -277,11 +277,9 @@ dawning-agents/
 │   └── Dawning.Agents.Benchmarks/       # ⚡ 性能基准测试
 │
 ├── docs/                                # 📖 文档
-│   ├── QUICKSTART.md                    # 快速入门
-│   ├── API_REFERENCE.md                 # API 参考
-│   ├── performance-tuning.md            # 性能调优指南
-│   ├── security-hardening.md            # 安全加固指南
-│   └── readings/                        # 16 个主题的学习资料
+│   ├── architecture.md                  # 架构设计
+│   ├── guides/                          # 使用指南（11 篇）
+│   └── api/                             # API 参考
 │
 └── deploy/                              # 🚀 部署配置
     ├── docker/                          # Docker 配置
@@ -554,21 +552,21 @@ dotnet run
 ## 📖 文档
 
 ### 入门指南
-- [快速入门](docs/QUICKSTART.md) - 5 分钟运行第一个 Agent
-- [API 参考](docs/API_REFERENCE.md) - 核心接口和类
+- [快速入门](docs/guides/getting-started.md) - 5 分钟运行第一个 Agent
+- [架构设计](docs/architecture.md) - 源码架构解读
 - [API Sample](samples/Dawning.Agents.Api/) - Minimal API + SSE 示例
 
+### 功能指南
+- [LLM Providers](docs/guides/llm-providers.md) - Ollama、OpenAI、Azure OpenAI 配置
+- [Tools 工具](docs/guides/tools.md) - 内置工具与自定义工具
+- [Memory 记忆](docs/guides/memory.md) - 对话记忆系统
+- [RAG 检索增强](docs/guides/rag.md) - 向量存储与检索
+- [多 Agent 编排](docs/guides/multi-agent.md) - Agent 协作与 Handoff
+
 ### 生产部署
-- [性能调优指南](docs/performance-tuning.md) - Token 优化、并发控制、缓存策略
-- [安全加固指南](docs/security-hardening.md) - API 密钥安全、输入验证、输出过滤
-
-### 学习资料
-- [学习资源索引](docs/LEARNING_RESOURCES.md) - 整合的学习材料
-- [完整学习计划](docs/LEARNING_PLAN_FULL.md) - 12 周详细任务清单
-- [阅读材料](docs/readings/) - 16 个主题的详细资料
-
-### 企业规划
-- [企业路线图](docs/ENTERPRISE_ROADMAP.md) - 功能状态、评分、v0.2.0 规划
+- [性能调优](docs/guides/performance.md) - Token 优化、并发控制、缓存策略
+- [安全加固](docs/guides/security.md) - API 密钥安全、输入验证、输出过滤
+- [生产最佳实践](docs/guides/production.md) - 部署检查清单与配置示例
 
 ### 开发参考
 - [变更日志](CHANGELOG.md) - 版本更新记录
