@@ -91,12 +91,10 @@ public class ReActAgentTests
             NullLogger<ReActAgent>.Instance
         );
 
-        // Act
-        var response = await agent.RunAsync("test", cts.Token);
-
-        // Assert
-        response.Success.Should().BeFalse();
-        response.Error.Should().Contain("cancelled");
+        // Act & Assert — 用户取消应传播 OperationCanceledException
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            agent.RunAsync("test", cts.Token)
+        );
     }
 
     [Fact]
