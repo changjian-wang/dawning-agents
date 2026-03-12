@@ -316,5 +316,10 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
             tcs.TrySetCanceled();
         }
         _pendingInputs.Clear();
+
+        ConfirmationRequested = null;
+        EscalationRequested = null;
+        InputRequested = null;
+        NotificationSent = null;
     }
 }

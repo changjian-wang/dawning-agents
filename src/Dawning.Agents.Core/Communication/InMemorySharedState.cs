@@ -127,6 +127,11 @@ public partial class InMemorySharedState : ISharedState
             lock (keyLock)
             {
                 handlers.Remove(handler);
+                if (handlers.Count == 0)
+                {
+                    _watchers.TryRemove(key, out _);
+                    _watcherLocks.TryRemove(key, out _);
+                }
             }
             _logger.LogDebug("取消共享状态变更监听 {Key}", key);
         });

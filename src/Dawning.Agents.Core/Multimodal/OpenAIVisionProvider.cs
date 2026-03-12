@@ -155,44 +155,14 @@ public class OpenAIVisionProvider : IVisionProvider
             using var doc = JsonDocument.Parse(responseJson);
             var root = doc.RootElement;
 
-            if (
-                !root.TryGetProperty("choices", out var choices)
-                || choices.ValueKind != JsonValueKind.Array
-                || choices.GetArrayLength() == 0
-            )
-            {
-                return VisionChatResponse.Failed("API 返回空的 choices 数组");
-            }
+            var content = root.GetProperty("choices")[0]
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString();
 
-            var content = string.Empty;
-            if (
-                choices[0].TryGetProperty("message", out var message)
-                && message.TryGetProperty("content", out var contentElement)
-            )
-            {
-                content = contentElement.GetString() ?? string.Empty;
-            }
-
-            var promptTokens = 0;
-            var completionTokens = 0;
-            if (root.TryGetProperty("usage", out var usage))
-            {
-                if (
-                    usage.TryGetProperty("prompt_tokens", out var promptTokenElement)
-                    && promptTokenElement.TryGetInt32(out var parsedPromptTokens)
-                )
-                {
-                    promptTokens = parsedPromptTokens;
-                }
-
-                if (
-                    usage.TryGetProperty("completion_tokens", out var completionTokenElement)
-                    && completionTokenElement.TryGetInt32(out var parsedCompletionTokens)
-                )
-                {
-                    completionTokens = parsedCompletionTokens;
-                }
-            }
+            var usage = root.GetProperty("usage");
+            var promptTokens = usage.GetProperty("prompt_tokens").GetInt32();
+            var completionTokens = usage.GetProperty("completion_tokens").GetInt32();
 
             return new VisionChatResponse
             {
@@ -282,40 +252,15 @@ public class OpenAIVisionProvider : IVisionProvider
                 break;
             }
 
-            JsonDocument? doc;
-            try
-            {
-                doc = JsonDocument.Parse(data);
-            }
-            catch (JsonException)
-            {
-                continue;
-            }
+            using var doc = JsonDocument.Parse(data);
+            var delta = doc.RootElement.GetProperty("choices")[0].GetProperty("delta");
 
-            using (doc)
+            if (delta.TryGetProperty("content", out var contentElement))
             {
-                var root = doc.RootElement;
-                if (
-                    !root.TryGetProperty("choices", out var choices)
-                    || choices.ValueKind != JsonValueKind.Array
-                    || choices.GetArrayLength() == 0
-                )
+                var content = contentElement.GetString();
+                if (!string.IsNullOrEmpty(content))
                 {
-                    continue;
-                }
-
-                if (!choices[0].TryGetProperty("delta", out var delta))
-                {
-                    continue;
-                }
-
-                if (delta.TryGetProperty("content", out var contentElement))
-                {
-                    var content = contentElement.GetString();
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        yield return content;
-                    }
+                    yield return content;
                 }
             }
         }

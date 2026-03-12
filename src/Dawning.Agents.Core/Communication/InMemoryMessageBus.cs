@@ -126,6 +126,12 @@ public sealed class InMemoryMessageBus : IMessageBus
                 _ => ImmutableList<Action<AgentMessage>>.Empty,
                 (_, list) => list.Remove(handler)
             );
+            _subscribers.TryRemove(
+                new KeyValuePair<string, ImmutableList<Action<AgentMessage>>>(
+                    agentId,
+                    ImmutableList<Action<AgentMessage>>.Empty
+                )
+            );
             _logger.LogDebug("Agent {AgentId} 取消了订阅", agentId);
         });
     }
@@ -149,6 +155,12 @@ public sealed class InMemoryMessageBus : IMessageBus
                 topic,
                 _ => ImmutableList<(string AgentId, Action<EventMessage> Handler)>.Empty,
                 (_, list) => list.Remove(subscription)
+            );
+            _topicSubscribers.TryRemove(
+                new KeyValuePair<
+                    string,
+                    ImmutableList<(string AgentId, Action<EventMessage> Handler)>
+                >(topic, ImmutableList<(string AgentId, Action<EventMessage> Handler)>.Empty)
             );
             _logger.LogDebug("Agent {AgentId} 取消订阅主题 {Topic}", agentId, topic);
         });
