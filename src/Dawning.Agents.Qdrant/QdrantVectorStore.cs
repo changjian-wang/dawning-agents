@@ -27,7 +27,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     private volatile bool _collectionInitialized;
     private int _count;
     private readonly SemaphoreSlim _initLock = new(1, 1);
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public string Name => "Qdrant";
 

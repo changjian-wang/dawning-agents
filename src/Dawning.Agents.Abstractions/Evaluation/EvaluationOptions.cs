@@ -169,6 +169,20 @@ public sealed class LLMJudgeOptions : IValidatableOptions
         {
             throw new InvalidOperationException("LLMJudge Temperature must be between 0.0 and 2.0");
         }
+
+        if (ScoringDimensions == null || ScoringDimensions.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "LLMJudge ScoringDimensions must contain at least one dimension"
+            );
+        }
+
+        if (ScoringDimensions.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new InvalidOperationException(
+                "LLMJudge ScoringDimensions must not contain empty items"
+            );
+        }
     }
 }
 

@@ -180,7 +180,7 @@ public class PerformanceProfiler : IPerformanceProfiler
         private readonly string _operationName;
         private readonly string? _category;
         private readonly Stopwatch _stopwatch;
-        private bool _disposed;
+        private volatile bool _disposed;
         private string? _errorMessage;
 
         public OperationScope(PerformanceProfiler profiler, string operationName, string? category)

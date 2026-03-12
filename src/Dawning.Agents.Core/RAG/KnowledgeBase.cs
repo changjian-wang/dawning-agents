@@ -208,6 +208,8 @@ public sealed class KnowledgeBase
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
+
         return _vectorStore.DeleteByDocumentIdAsync(documentId, cancellationToken);
     }
 

@@ -23,7 +23,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
     private readonly ServiceRegistryOptions _options;
     private readonly ILogger<InMemoryServiceRegistry> _logger;
     private readonly Timer _cleanupTimer;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public InMemoryServiceRegistry(
         IOptions<ServiceRegistryOptions>? options = null,
@@ -45,6 +45,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(instance);
+
         _instances[instance.Id] = instance;
         _logger.LogInformation(
             "服务注册: {ServiceName}@{Host}:{Port} (ID={Id})",
@@ -59,6 +61,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     public Task DeregisterAsync(string instanceId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(instanceId);
+
         if (_instances.TryRemove(instanceId, out var instance))
         {
             _logger.LogInformation(
@@ -73,6 +77,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
     public Task HeartbeatAsync(string instanceId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(instanceId);
+
         if (_instances.TryGetValue(instanceId, out var instance))
         {
             instance.LastHeartbeat = DateTimeOffset.UtcNow;
@@ -87,6 +93,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serviceName);
+
         var instances = _instances
             .Values.Where(i => i.ServiceName == serviceName && i.IsHealthy)
             .ToList();
@@ -106,6 +114,8 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serviceName);
+
         var channel = Channel.CreateUnbounded<ServiceInstance[]>();
         var watcherId = $"{serviceName}:{Guid.NewGuid():N}";
         _watchers[watcherId] = channel;

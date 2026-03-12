@@ -126,6 +126,11 @@ public class LoggingOptions : IValidatableOptions
             );
         }
 
+        if (string.IsNullOrWhiteSpace(OutputTemplate))
+        {
+            throw new InvalidOperationException("OutputTemplate is required");
+        }
+
         Elasticsearch?.Validate();
         Seq?.Validate();
     }
@@ -189,6 +194,11 @@ public class ElasticsearchLoggingOptions : IValidatableOptions
             throw new InvalidOperationException(
                 "Elasticsearch NodeUris must contain at least one URI when enabled"
             );
+        }
+
+        if (string.IsNullOrWhiteSpace(IndexFormat))
+        {
+            throw new InvalidOperationException("Elasticsearch IndexFormat is required");
         }
 
         if (BatchSize <= 0)

@@ -23,7 +23,7 @@ public sealed class StdioTransport : IMCPTransport
     private volatile bool _isConnected;
     private CancellationTokenSource? _readCts;
     private Task? _readTask;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public StdioTransport(ILogger<StdioTransport>? logger = null)
         : this(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger) { }

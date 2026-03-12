@@ -25,7 +25,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
     private readonly Lock _lock = new();
     private readonly SemaphoreSlim _summarySemaphore = new(1, 1);
     private readonly ILogger<SummaryMemory> _logger;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 获取消息数量（包括摘要系统消息和最近消息）

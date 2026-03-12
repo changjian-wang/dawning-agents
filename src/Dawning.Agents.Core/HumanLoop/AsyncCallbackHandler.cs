@@ -56,6 +56,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         var tcs = new TaskCompletionSource<ConfirmationResponse>(
             TaskCreationOptions.RunContinuationsAsynchronously
         );
@@ -112,6 +114,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+
         var requestId = Guid.NewGuid().ToString();
         var tcs = new TaskCompletionSource<string>(
             TaskCreationOptions.RunContinuationsAsynchronously
@@ -147,6 +151,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
         _logger.LogDebug("发送通知：{Level} - {Message}", level, message);
         try
         {
@@ -165,6 +171,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         var tcs = new TaskCompletionSource<EscalationResult>(
             TaskCreationOptions.RunContinuationsAsynchronously
         );
@@ -199,6 +207,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// <returns>是否成功完成</returns>
     public bool CompleteConfirmation(ConfirmationResponse response)
     {
+        ArgumentNullException.ThrowIfNull(response);
+
         if (_pendingConfirmations.TryGetValue(response.RequestId, out var tcs))
         {
             _logger.LogDebug("完成确认请求 {RequestId}", response.RequestId);
@@ -215,6 +225,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// <returns>是否成功完成</returns>
     public bool CompleteEscalation(EscalationResult result)
     {
+        ArgumentNullException.ThrowIfNull(result);
+
         if (_pendingEscalations.TryGetValue(result.RequestId, out var tcs))
         {
             _logger.LogDebug("完成升级请求 {RequestId}", result.RequestId);
@@ -232,6 +244,9 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// <returns>是否成功完成</returns>
     public bool CompleteInput(string requestId, string input)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+        ArgumentNullException.ThrowIfNull(input);
+
         if (_pendingInputs.TryGetValue(requestId, out var tcs))
         {
             _logger.LogDebug("完成输入请求 {RequestId}", requestId);
@@ -263,6 +278,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// </summary>
     public bool CancelConfirmation(string requestId)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+
         if (_pendingConfirmations.TryRemove(requestId, out var tcs))
         {
             return tcs.TrySetCanceled();
@@ -275,6 +292,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// </summary>
     public bool CancelEscalation(string requestId)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+
         if (_pendingEscalations.TryRemove(requestId, out var tcs))
         {
             return tcs.TrySetCanceled();
@@ -287,6 +306,8 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// </summary>
     public bool CancelInput(string requestId)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+
         if (_pendingInputs.TryRemove(requestId, out var tcs))
         {
             return tcs.TrySetCanceled();

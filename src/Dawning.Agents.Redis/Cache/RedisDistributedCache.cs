@@ -21,7 +21,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     private readonly RedisOptions _options;
     private readonly ILogger<RedisDistributedCache> _logger;
     private readonly string _prefix;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 初始化 Redis 分布式缓存

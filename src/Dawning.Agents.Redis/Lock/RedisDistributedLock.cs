@@ -23,7 +23,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     private readonly string _lockKey;
     private readonly DistributedLockOptions _options;
     private Timer? _renewalTimer;
-    private bool _disposed;
+    private volatile bool _disposed;
     private volatile bool _isAcquired;
     private long _expiresAtTicks; // 0 = null, otherwise DateTime.Ticks
 

@@ -93,5 +93,15 @@ public class RAGOptions : IValidatableOptions
         {
             throw new InvalidOperationException("MinScore must be between 0 and 1");
         }
+
+        if (string.IsNullOrWhiteSpace(EmbeddingModel))
+        {
+            throw new InvalidOperationException("EmbeddingModel is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(ContextTemplate))
+        {
+            throw new InvalidOperationException("ContextTemplate is required");
+        }
     }
 }

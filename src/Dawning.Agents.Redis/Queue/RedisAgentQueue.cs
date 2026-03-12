@@ -29,7 +29,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     private readonly string _consumerName;
     private int _count;
     private volatile bool _initialized;
-    private bool _disposed;
+    private volatile bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
     private readonly ConcurrentDictionary<
         string,

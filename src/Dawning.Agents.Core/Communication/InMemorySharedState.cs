@@ -37,6 +37,8 @@ public partial class InMemorySharedState : ISharedState
     /// <inheritdoc />
     public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         if (_store.TryGetValue(key, out var json))
         {
             try
@@ -57,6 +59,8 @@ public partial class InMemorySharedState : ISharedState
     /// <inheritdoc />
     public Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         var json = JsonSerializer.Serialize(value);
         _store[key] = json;
 
@@ -71,6 +75,8 @@ public partial class InMemorySharedState : ISharedState
     /// <inheritdoc />
     public Task<bool> DeleteAsync(string key, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         var removed = _store.TryRemove(key, out _);
 
         if (removed)
@@ -85,6 +91,8 @@ public partial class InMemorySharedState : ISharedState
     /// <inheritdoc />
     public Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         return Task.FromResult(_store.ContainsKey(key));
     }
 
@@ -112,6 +120,9 @@ public partial class InMemorySharedState : ISharedState
     /// <inheritdoc />
     public IDisposable OnChange(string key, Action<string, object?> handler)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(handler);
+
         var handlers = _watchers.GetOrAdd(key, _ => new List<Action<string, object?>>());
         var keyLock = _watcherLocks.GetOrAdd(key, _ => new Lock());
 
@@ -201,7 +212,7 @@ public partial class InMemorySharedState : ISharedState
     private sealed class Subscription : IDisposable
     {
         private readonly Action _unsubscribe;
-        private bool _disposed;
+        private volatile bool _disposed;
 
         public Subscription(Action unsubscribe) => _unsubscribe = unsubscribe;
 

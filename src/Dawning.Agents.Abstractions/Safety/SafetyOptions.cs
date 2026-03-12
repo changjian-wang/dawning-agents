@@ -146,6 +146,25 @@ public class SafetyOptions : IValidatableOptions
 
         foreach (var pattern in SensitivePatterns)
         {
+            if (string.IsNullOrWhiteSpace(pattern.Name))
+            {
+                throw new InvalidOperationException("SensitivePattern Name is required");
+            }
+
+            if (pattern.KeepFirst < 0)
+            {
+                throw new InvalidOperationException(
+                    $"SensitivePattern '{pattern.Name}' KeepFirst must be non-negative"
+                );
+            }
+
+            if (pattern.KeepLast < 0)
+            {
+                throw new InvalidOperationException(
+                    $"SensitivePattern '{pattern.Name}' KeepLast must be non-negative"
+                );
+            }
+
             try
             {
                 _ = new Regex(pattern.Pattern, RegexOptions.None, TimeSpan.FromSeconds(1));

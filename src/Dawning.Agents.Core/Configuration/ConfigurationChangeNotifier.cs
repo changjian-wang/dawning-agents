@@ -18,7 +18,7 @@ public sealed class ConfigurationChangeNotifier<TOptions>
     private readonly ILogger<ConfigurationChangeNotifier<TOptions>> _logger;
     private readonly IDisposable? _changeListener;
     private TOptions _currentValue;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <inheritdoc />
     public event EventHandler<ConfigurationChangedEventArgs<TOptions>>? ConfigurationChanged;

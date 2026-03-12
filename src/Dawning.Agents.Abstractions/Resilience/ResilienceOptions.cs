@@ -66,6 +66,18 @@ public class ResilienceOptions : IValidatableOptions
             throw new InvalidOperationException("Retry.BaseDelayMs must be >= 0.");
         }
 
+        if (Retry.MaxDelayMs <= 0)
+        {
+            throw new InvalidOperationException("Retry.MaxDelayMs must be greater than 0.");
+        }
+
+        if (Retry.MaxDelayMs < Retry.BaseDelayMs)
+        {
+            throw new InvalidOperationException(
+                "Retry.MaxDelayMs must be greater than or equal to Retry.BaseDelayMs."
+            );
+        }
+
         if (CircuitBreaker.FailureRatio <= 0 || CircuitBreaker.FailureRatio > 1)
         {
             throw new InvalidOperationException(
@@ -84,6 +96,13 @@ public class ResilienceOptions : IValidatableOptions
         {
             throw new InvalidOperationException(
                 "CircuitBreaker.MinimumThroughput must be greater than 0."
+            );
+        }
+
+        if (CircuitBreaker.SamplingDurationSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreaker.SamplingDurationSeconds must be greater than 0."
             );
         }
 

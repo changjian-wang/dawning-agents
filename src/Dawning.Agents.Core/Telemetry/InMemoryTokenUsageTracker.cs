@@ -34,6 +34,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
     /// <inheritdoc />
     public void Record(TokenUsageRecord record)
     {
+        ArgumentNullException.ThrowIfNull(record);
+
         lock (_resetLock)
         {
             _records.Add(record);
@@ -52,6 +54,8 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
         string? sessionId = null
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+
         Record(TokenUsageRecord.Create(source, promptTokens, completionTokens, model, sessionId));
     }
 

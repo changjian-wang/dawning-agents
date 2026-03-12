@@ -127,6 +127,7 @@ public class ScalingServiceCollectionExtensionsTests
                 ["Agent:Name"] = "TestAgent",
                 ["LLM:Provider"] = "Azure",
                 ["Cache:Provider"] = "Redis",
+                ["Cache:ConnectionString"] = "localhost:6379",
                 ["Scaling:MinInstances"] = "5",
             }
         );

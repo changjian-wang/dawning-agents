@@ -631,7 +631,7 @@ public sealed class MCPServer : IAsyncDisposable
         await _transport.SendAsync(json, cancellationToken).ConfigureAwait(false);
     }
 
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public async ValueTask DisposeAsync()
     {

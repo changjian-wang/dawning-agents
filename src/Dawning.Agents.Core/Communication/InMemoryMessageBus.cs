@@ -111,6 +111,9 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public IDisposable Subscribe(string agentId, Action<AgentMessage> handler)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentId);
+        ArgumentNullException.ThrowIfNull(handler);
+
         _subscribers.AddOrUpdate(
             agentId,
             _ => ImmutableList.Create(handler),
@@ -139,6 +142,10 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public IDisposable Subscribe(string agentId, string topic, Action<EventMessage> handler)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(topic);
+        ArgumentNullException.ThrowIfNull(handler);
+
         var subscription = (agentId, handler);
 
         _topicSubscribers.AddOrUpdate(

@@ -46,6 +46,8 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(testCase);
+
         _logger.LogDebug("Evaluating test case: {TestCaseId}", testCase.Id);
 
         var stopwatch = Stopwatch.StartNew();

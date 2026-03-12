@@ -116,6 +116,8 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
         var removed = _chunks.TryRemove(id, out _);
         if (removed)
         {
@@ -131,6 +133,8 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
+
         var toRemove = _chunks
             .Values.Where(c => c.DocumentId == documentId)
             .Select(c => c.Id)
@@ -162,6 +166,8 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
     /// <inheritdoc />
     public Task<DocumentChunk?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
         _chunks.TryGetValue(id, out var chunk);
         return Task.FromResult(chunk);
     }

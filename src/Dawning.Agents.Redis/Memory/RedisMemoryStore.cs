@@ -28,7 +28,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     private readonly string _lockId;
     private readonly ITokenCounter? _tokenCounter;
     private volatile bool _hasLock;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <inheritdoc />
     public string SessionId { get; }

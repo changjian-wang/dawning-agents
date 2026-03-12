@@ -115,6 +115,11 @@ public class MemoryOptions : IValidatableOptions
         {
             throw new InvalidOperationException("MinRelevanceScore must be between 0 and 1.");
         }
+
+        if (string.IsNullOrWhiteSpace(ModelName))
+        {
+            throw new InvalidOperationException("ModelName is required.");
+        }
     }
 }
 

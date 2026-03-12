@@ -160,6 +160,11 @@ public record LLMDeploymentOptions : IValidatableOptions
         {
             throw new InvalidOperationException("MaxRetries must be non-negative");
         }
+
+        if (RetryDelay <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("RetryDelay must be positive");
+        }
     }
 }
 
@@ -228,6 +233,16 @@ public record CacheOptions : IValidatableOptions
         if (MaxCacheSize < 1)
         {
             throw new InvalidOperationException("MaxCacheSize must be at least 1");
+        }
+
+        if (
+            string.Equals(Provider, "Redis", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(ConnectionString)
+        )
+        {
+            throw new InvalidOperationException(
+                "ConnectionString is required when Provider is Redis"
+            );
         }
     }
 }

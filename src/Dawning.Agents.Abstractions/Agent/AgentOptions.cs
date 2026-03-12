@@ -62,9 +62,19 @@ public class AgentOptions : IValidatableOptions
             throw new InvalidOperationException("Agent Name is required");
         }
 
+        if (string.IsNullOrWhiteSpace(Instructions))
+        {
+            throw new InvalidOperationException("Agent Instructions is required");
+        }
+
         if (MaxSteps <= 0)
         {
             throw new InvalidOperationException("MaxSteps must be greater than 0");
+        }
+
+        if (MaxTokens <= 0)
+        {
+            throw new InvalidOperationException("MaxTokens must be greater than 0");
         }
 
         if (MaxCostPerRun is <= 0)

@@ -27,7 +27,7 @@ public sealed class MCPClient : IAsyncDisposable
     private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
     private CancellationTokenSource? _listenerCts;
     private Task? _listenerTask;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public MCPClient(IOptions<MCPClientOptions> options, ILogger<MCPClient>? logger = null)
     {

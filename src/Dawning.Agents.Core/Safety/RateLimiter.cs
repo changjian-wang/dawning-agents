@@ -16,7 +16,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     private readonly ConcurrentDictionary<string, RateLimitBucket> _buckets = new();
     private readonly TimeProvider _timeProvider;
     private readonly Timer _evictionTimer;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public SlidingWindowRateLimiter(
         IOptions<RateLimitOptions> options,
@@ -92,6 +92,8 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     /// <inheritdoc />
     public RateLimitStatus GetStatus(string key)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         var now = _timeProvider.GetUtcNow();
 
         if (_buckets.TryGetValue(key, out var bucket))
@@ -117,6 +119,8 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     /// <inheritdoc />
     public void Reset(string key)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         _buckets.TryRemove(key, out _);
         _logger.LogDebug("速率限制重置: Key={Key}", key);
     }

@@ -148,5 +148,10 @@ public class SemanticCacheOptions : IValidatableOptions
         {
             throw new InvalidOperationException("ExpirationMinutes must be greater than 0");
         }
+
+        if (string.IsNullOrWhiteSpace(Namespace))
+        {
+            throw new InvalidOperationException("Namespace is required");
+        }
     }
 }

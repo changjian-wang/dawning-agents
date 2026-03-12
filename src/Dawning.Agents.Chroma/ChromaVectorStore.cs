@@ -33,7 +33,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private volatile string? _collectionId;
     private int _count;
-    private bool _disposed;
+    private volatile bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     public string Name => "Chroma";

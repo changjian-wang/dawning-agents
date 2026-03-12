@@ -18,7 +18,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
     private readonly Lock _lock = new();
     private readonly int _workerCount;
     private bool _isRunning;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public AgentWorkerPool(
         IAgent agent,

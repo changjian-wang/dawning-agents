@@ -19,7 +19,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private DateTime? _lastScaleDown;
     private readonly SemaphoreSlim _evaluateLock = new(1, 1);
     private readonly Lock _stateLock = new();
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public AgentAutoScaler(
         ScalingOptions options,
@@ -176,8 +176,8 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private int CalculateScaleUpDelta(ScalingMetrics metrics, int currentInstances)
     {
         // 计算需要多少实例
-        var cpuRatio = metrics.CpuPercent / _options.TargetCpuPercent;
-        var memoryRatio = metrics.MemoryPercent / _options.TargetMemoryPercent;
+        var cpuRatio = (double)metrics.CpuPercent / _options.TargetCpuPercent;
+        var memoryRatio = (double)metrics.MemoryPercent / _options.TargetMemoryPercent;
         var targetRatio = Math.Max(cpuRatio, memoryRatio);
 
         var targetInstances = (int)Math.Ceiling(currentInstances * targetRatio);

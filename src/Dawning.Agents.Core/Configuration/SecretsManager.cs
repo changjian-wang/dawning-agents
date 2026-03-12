@@ -19,6 +19,8 @@ public class EnvironmentSecretsManager : ISecretsManager
     /// <inheritdoc />
     public Task<string?> GetSecretAsync(string name, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         var envName = NormalizeEnvName(name);
         var value = Environment.GetEnvironmentVariable(envName);
 
@@ -41,6 +43,9 @@ public class EnvironmentSecretsManager : ISecretsManager
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(value);
+
         var envName = NormalizeEnvName(name);
         Environment.SetEnvironmentVariable(envName, value);
         _logger.LogDebug("已设置环境变量: {Name}", name);
@@ -50,6 +55,8 @@ public class EnvironmentSecretsManager : ISecretsManager
     /// <inheritdoc />
     public Task DeleteSecretAsync(string name, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         var envName = NormalizeEnvName(name);
         Environment.SetEnvironmentVariable(envName, null);
         _logger.LogDebug("已删除环境变量: {Name}", name);

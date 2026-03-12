@@ -21,12 +21,16 @@ public class WorkflowSerializer : IWorkflowSerializer
     /// <inheritdoc />
     public string SerializeToJson(WorkflowDefinition definition)
     {
+        ArgumentNullException.ThrowIfNull(definition);
+
         return JsonSerializer.Serialize(definition, s_jsonOptions);
     }
 
     /// <inheritdoc />
     public WorkflowDefinition DeserializeFromJson(string json)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
         return JsonSerializer.Deserialize<WorkflowDefinition>(json, s_jsonOptions)
             ?? throw new InvalidOperationException("无法反序列化工作流定义");
     }
@@ -34,6 +38,8 @@ public class WorkflowSerializer : IWorkflowSerializer
     /// <inheritdoc />
     public string SerializeToYaml(WorkflowDefinition definition)
     {
+        ArgumentNullException.ThrowIfNull(definition);
+
         // 简化的 YAML 输出（不依赖外部库）
         var sb = new StringBuilder();
         sb.AppendLine($"id: {definition.Id}");
@@ -86,6 +92,8 @@ public class WorkflowSerializer : IWorkflowSerializer
     /// <inheritdoc />
     public WorkflowDefinition DeserializeFromYaml(string yaml)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(yaml);
+
         // 简化实现：解析基本 YAML 格式
         var lines = yaml.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
         var id = "";

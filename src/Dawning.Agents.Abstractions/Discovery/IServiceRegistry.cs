@@ -117,6 +117,11 @@ public sealed class ServiceRegistryOptions : IValidatableOptions
                 "ServiceExpireSeconds must be greater than HeartbeatIntervalSeconds"
             );
         }
+
+        if (HealthCheckIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException("HealthCheckIntervalSeconds must be positive");
+        }
     }
 }
 

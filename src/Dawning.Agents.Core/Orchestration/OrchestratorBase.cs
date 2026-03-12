@@ -81,6 +81,8 @@ public abstract class OrchestratorBase : IOrchestrator
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(input);
+
         var context = new OrchestrationContext { UserInput = input, CurrentInput = input };
 
         return await RunAsync(context, cancellationToken).ConfigureAwait(false);

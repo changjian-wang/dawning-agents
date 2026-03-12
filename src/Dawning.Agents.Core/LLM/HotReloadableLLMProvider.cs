@@ -37,7 +37,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     private readonly Lock _lock = new();
     private readonly List<IDisposable> _retiredProviders = [];
     private volatile ILLMProvider _innerProvider;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 配置变化时触发的事件

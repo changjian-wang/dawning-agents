@@ -28,7 +28,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private int _count;
     private volatile bool _classEnsured;
-    private bool _disposed;
+    private volatile bool _disposed;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]

@@ -85,6 +85,31 @@ public sealed class RedisOptions : IValidatableOptions
         {
             throw new InvalidOperationException("Redis DefaultDatabase must be between 0 and 15");
         }
+
+        if (string.IsNullOrWhiteSpace(InstanceName))
+        {
+            throw new InvalidOperationException("Redis InstanceName is required");
+        }
+
+        if (ConnectTimeout <= 0)
+        {
+            throw new InvalidOperationException("Redis ConnectTimeout must be greater than 0");
+        }
+
+        if (SyncTimeout <= 0)
+        {
+            throw new InvalidOperationException("Redis SyncTimeout must be greater than 0");
+        }
+
+        if (AsyncTimeout <= 0)
+        {
+            throw new InvalidOperationException("Redis AsyncTimeout must be greater than 0");
+        }
+
+        if (PoolSize < 1)
+        {
+            throw new InvalidOperationException("Redis PoolSize must be at least 1");
+        }
     }
 }
 
@@ -144,6 +169,21 @@ public sealed class DistributedQueueOptions : IValidatableOptions
         if (string.IsNullOrWhiteSpace(QueueName))
         {
             throw new InvalidOperationException("QueueName is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(ConsumerGroup))
+        {
+            throw new InvalidOperationException("ConsumerGroup is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(ConsumerNamePrefix))
+        {
+            throw new InvalidOperationException("ConsumerNamePrefix is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(DeadLetterQueue))
+        {
+            throw new InvalidOperationException("DeadLetterQueue is required");
         }
 
         if (MaxRetries < 0)
@@ -211,6 +251,11 @@ public sealed class DistributedLockOptions : IValidatableOptions
     /// <inheritdoc />
     public void Validate()
     {
+        if (string.IsNullOrWhiteSpace(KeyPrefix))
+        {
+            throw new InvalidOperationException("DistributedLock KeyPrefix is required");
+        }
+
         if (DefaultExpiry <= 0)
         {
             throw new InvalidOperationException("DefaultExpiry must be greater than 0");
@@ -268,6 +313,11 @@ public sealed class DistributedSessionOptions : IValidatableOptions
     /// <inheritdoc />
     public void Validate()
     {
+        if (string.IsNullOrWhiteSpace(KeyPrefix))
+        {
+            throw new InvalidOperationException("DistributedSession KeyPrefix is required");
+        }
+
         if (DefaultExpiry <= 0)
         {
             throw new InvalidOperationException("DefaultExpiry must be greater than 0");

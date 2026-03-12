@@ -158,6 +158,8 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     /// <returns>新的装饰器实例</returns>
     public TokenTrackingLLMProvider WithSource(string source)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+
         return new TokenTrackingLLMProvider(_innerProvider, _tracker, source, _sessionId);
     }
 
@@ -168,6 +170,8 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     /// <returns>新的装饰器实例</returns>
     public TokenTrackingLLMProvider WithSession(string sessionId)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+
         return new TokenTrackingLLMProvider(_innerProvider, _tracker, _source, sessionId);
     }
 }

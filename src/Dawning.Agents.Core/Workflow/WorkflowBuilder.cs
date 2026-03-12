@@ -37,6 +37,8 @@ public class WorkflowBuilder
     /// </summary>
     public WorkflowBuilder WithDescription(string description)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+
         _description = description;
         return this;
     }
@@ -46,6 +48,8 @@ public class WorkflowBuilder
     /// </summary>
     public WorkflowBuilder WithVersion(string version)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+
         _version = version;
         return this;
     }
@@ -55,6 +59,8 @@ public class WorkflowBuilder
     /// </summary>
     public WorkflowBuilder StartWith(string nodeId)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
+
         _startNodeId = nodeId;
         return this;
     }
@@ -71,6 +77,10 @@ public class WorkflowBuilder
         int? timeoutMs = null
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentName);
+
         var config = new Dictionary<string, object?>
         {
             ["agentName"] = agentName,
@@ -102,6 +112,10 @@ public class WorkflowBuilder
         int maxRetries = 0
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
+
         var config = new Dictionary<string, object?>
         {
             ["toolName"] = toolName,
@@ -130,6 +144,10 @@ public class WorkflowBuilder
         Action<ConditionNodeBuilder> configure
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(configure);
+
         var builder = new ConditionNodeBuilder();
         configure(builder);
         var config = builder.Build();
@@ -155,6 +173,10 @@ public class WorkflowBuilder
         Action<ParallelNodeBuilder> configure
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(configure);
+
         var builder = new ParallelNodeBuilder();
         configure(builder);
         var config = builder.Build();
@@ -292,6 +314,9 @@ public class WorkflowBuilder
     /// </summary>
     public WorkflowBuilder Connect(string fromNodeId, string toNodeId, string? label = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fromNodeId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(toNodeId);
+
         _edges.Add(
             new WorkflowEdgeDefinition
             {
@@ -308,6 +333,8 @@ public class WorkflowBuilder
     /// </summary>
     public WorkflowBuilder WithMetadata(string key, object? value)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         _metadata[key] = value;
         return this;
     }

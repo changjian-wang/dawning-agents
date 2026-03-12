@@ -70,6 +70,13 @@ public class OrchestratorOptions : IValidatableOptions
         {
             throw new InvalidOperationException("AgentTimeoutSeconds must be at least 1");
         }
+
+        if (AgentTimeoutSeconds > TimeoutSeconds)
+        {
+            throw new InvalidOperationException(
+                "AgentTimeoutSeconds must not exceed TimeoutSeconds"
+            );
+        }
     }
 }
 

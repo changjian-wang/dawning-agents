@@ -151,6 +151,8 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
     /// </summary>
     public void AddAutoApprovedUrl(string url)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+
         lock (_lock)
         {
             _autoApprovedUrls.Add(url);
@@ -162,6 +164,8 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
     /// </summary>
     public void AddAutoApprovedCommand(string command)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command);
+
         lock (_lock)
         {
             _autoApprovedCommands.Add(command);

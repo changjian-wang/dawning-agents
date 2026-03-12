@@ -56,6 +56,8 @@ public class HandoffHandler : IHandoffHandler
     /// <inheritdoc />
     public IAgent? GetAgent(string name)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         return _agents.TryGetValue(name, out var agent) ? agent : null;
     }
 
@@ -109,6 +111,9 @@ public class HandoffHandler : IHandoffHandler
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(entryAgentName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(input);
+
         var request = HandoffRequest.To(entryAgentName, input);
         return await ExecuteHandoffAsync(request, cancellationToken).ConfigureAwait(false);
     }

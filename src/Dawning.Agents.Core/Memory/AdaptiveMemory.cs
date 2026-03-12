@@ -25,7 +25,7 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
     private readonly ILogger<AdaptiveMemory> _logger;
     private readonly SemaphoreSlim _downgradeLock = new(1, 1);
     private bool _hasDowngraded;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 获取当前存储的消息数量

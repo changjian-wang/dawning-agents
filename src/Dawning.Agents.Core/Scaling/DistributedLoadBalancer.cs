@@ -94,7 +94,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     private int _roundRobinIndex;
     private CancellationTokenSource? _watchCts;
     private Task? _watchTask;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public DistributedLoadBalancer(
         IServiceRegistry? serviceRegistry = null,
