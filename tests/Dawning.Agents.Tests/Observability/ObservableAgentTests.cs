@@ -178,7 +178,7 @@ public class ObservableAgentTests
         {
             await agent.RunAsync("Test input");
         }
-        catch
+        catch (Exception)
         {
             // 忽略异常
         }

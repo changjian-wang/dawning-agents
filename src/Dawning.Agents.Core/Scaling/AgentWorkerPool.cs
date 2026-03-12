@@ -204,7 +204,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         {
             Task.WhenAll(snapshot).Wait(TimeSpan.FromSeconds(30));
         }
-        catch
+        catch (Exception)
         {
             // 忽略停止时的异常
         }
@@ -241,7 +241,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         {
             await Task.WhenAll(snapshot).WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
         }
-        catch
+        catch (Exception)
         {
             // 忽略停止时的异常
         }

@@ -329,9 +329,9 @@ public sealed class RedisDistributedLock : IDistributedLock
                 await ReleaseAsync().ConfigureAwait(false);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Best-effort release during disposal
+            _logger.LogWarning(ex, "Failed to release lock during disposal: {Resource}", _resource);
         }
         finally
         {

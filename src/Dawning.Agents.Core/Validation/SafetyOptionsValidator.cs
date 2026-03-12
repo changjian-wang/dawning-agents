@@ -53,7 +53,7 @@ public class SensitivePatternValidator : AbstractValidator<SensitivePattern>
             _ = new System.Text.RegularExpressions.Regex(pattern);
             return true;
         }
-        catch
+        catch (Exception)
         {
             return false;
         }

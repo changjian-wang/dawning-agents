@@ -109,7 +109,7 @@ public static class OpenTelemetryServiceCollectionExtensions
                         configured.Validate();
                         return true;
                     }
-                    catch
+                    catch (Exception)
                     {
                         return false;
                     }

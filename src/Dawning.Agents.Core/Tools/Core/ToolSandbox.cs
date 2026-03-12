@@ -115,7 +115,7 @@ public sealed class ToolSandbox : IToolSandbox
                 {
                     await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
                 }
-                catch
+                catch (Exception)
                 {
                     // Streams may throw after process kill — safe to ignore
                 }
@@ -147,7 +147,7 @@ public sealed class ToolSandbox : IToolSandbox
                 {
                     await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
                 }
-                catch
+                catch (Exception)
                 {
                     // Streams may already be faulted/cancelled — safe to ignore
                 }
@@ -192,7 +192,7 @@ public sealed class ToolSandbox : IToolSandbox
                 process.Kill(entireProcessTree: true);
             }
         }
-        catch
+        catch (Exception)
         {
             // Best effort
         }

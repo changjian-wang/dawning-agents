@@ -113,7 +113,7 @@ public sealed class MCPClient : IAsyncDisposable
             };
             _serverProcess.BeginErrorReadLine();
         }
-        catch
+        catch (Exception)
         {
             _serverProcess.Dispose();
             _serverProcess = null;
@@ -130,13 +130,13 @@ public sealed class MCPClient : IAsyncDisposable
         {
             await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (Exception)
         {
             try
             {
                 _serverProcess.Kill();
             }
-            catch
+            catch (InvalidOperationException)
             {
                 // Best effort - process may have already exited
             }
@@ -157,7 +157,7 @@ public sealed class MCPClient : IAsyncDisposable
         {
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (Exception)
         {
             await DisposeAsync().ConfigureAwait(false);
             throw;
@@ -198,7 +198,7 @@ public sealed class MCPClient : IAsyncDisposable
         {
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (Exception)
         {
             await DisposeAsync().ConfigureAwait(false);
             throw;
@@ -574,7 +574,14 @@ public sealed class MCPClient : IAsyncDisposable
 
         if (_listenerCts != null)
         {
-            await _listenerCts.CancelAsync().ConfigureAwait(false);
+            try
+            {
+                await _listenerCts.CancelAsync().ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Already disposed by concurrent ConnectAsync
+            }
         }
 
         if (_listenerTask != null)

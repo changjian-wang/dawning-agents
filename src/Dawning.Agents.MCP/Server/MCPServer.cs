@@ -127,7 +127,10 @@ public sealed class MCPServer : IAsyncDisposable
 
                 // 限制并发请求
                 await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
-                var task = ProcessAndReleaseAsync(message, linkedCts.Token);
+                // Use _cts.Token (not linkedCts.Token) for inflight tasks:
+                // linkedCts is using-scoped and will be disposed when StartAsync exits,
+                // but inflight tasks may still be running and creating linked CTS from this token.
+                var task = ProcessAndReleaseAsync(message, _cts.Token);
                 lock (_inflightLock)
                 {
                     _inflightTasks.Add(task);
@@ -657,7 +660,7 @@ public sealed class MCPServer : IAsyncDisposable
             {
                 await Task.WhenAll(snapshot).ConfigureAwait(false);
             }
-            catch
+            catch (Exception)
             {
                 // Errors already logged in ProcessAndReleaseAsync
             }

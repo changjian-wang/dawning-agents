@@ -259,7 +259,7 @@ public sealed class SearchTool : ITool
                     }
                 }
             }
-            catch
+            catch (Exception)
             {
                 // Skip files that can't be read (binary, locked, etc.)
             }

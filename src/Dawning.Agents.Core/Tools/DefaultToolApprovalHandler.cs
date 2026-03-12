@@ -202,7 +202,7 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
                 host == d || host.EndsWith("." + d, StringComparison.OrdinalIgnoreCase)
             );
         }
-        catch
+        catch (Exception)
         {
             return false;
         }
@@ -215,7 +215,7 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
             var uri = new Uri(url);
             return uri.Host == "localhost" || uri.Host == "127.0.0.1";
         }
-        catch
+        catch (Exception)
         {
             return false;
         }
