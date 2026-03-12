@@ -14,6 +14,7 @@ public sealed class SafeAgent : IAgent
     private readonly IAgent _innerAgent;
     private readonly IGuardrailPipeline? _guardrailPipeline;
     private readonly IRateLimiter? _rateLimiter;
+    private readonly ITokenRateLimiter? _tokenRateLimiter;
     private readonly IAuditLogger? _auditLogger;
     private readonly ILogger<SafeAgent> _logger;
 
@@ -21,6 +22,7 @@ public sealed class SafeAgent : IAgent
         IAgent innerAgent,
         IGuardrailPipeline? guardrailPipeline = null,
         IRateLimiter? rateLimiter = null,
+        ITokenRateLimiter? tokenRateLimiter = null,
         IAuditLogger? auditLogger = null,
         ILogger<SafeAgent>? logger = null
     )
@@ -28,6 +30,7 @@ public sealed class SafeAgent : IAgent
         _innerAgent = innerAgent ?? throw new ArgumentNullException(nameof(innerAgent));
         _guardrailPipeline = guardrailPipeline;
         _rateLimiter = rateLimiter;
+        _tokenRateLimiter = tokenRateLimiter;
         _auditLogger = auditLogger;
         _logger = logger ?? NullLogger<SafeAgent>.Instance;
     }
@@ -116,6 +119,35 @@ public sealed class SafeAgent : IAgent
 
                     return AgentResponse.Failed(
                         $"速率限制：请在 {rateLimitResult.RetryAfter?.TotalSeconds:F0} 秒后重试",
+                        [],
+                        stopwatch.Elapsed
+                    );
+                }
+            }
+
+            // 2.5 Token 预算检查
+            if (_tokenRateLimiter != null)
+            {
+                var usedTokens = _tokenRateLimiter.GetUsedTokens(rateLimitKey);
+                if (!_tokenRateLimiter.TryUseTokens(rateLimitKey, 1))
+                {
+                    _logger.LogWarning(
+                        "Agent {AgentName} Token 预算耗尽: SessionId={SessionId}, UsedTokens={UsedTokens}",
+                        Name,
+                        rateLimitKey,
+                        usedTokens
+                    );
+
+                    await LogAuditAsync(
+                            AuditEventType.RateLimited,
+                            rateLimitKey,
+                            AuditResultStatus.RateLimited,
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
+
+                    return AgentResponse.Failed(
+                        "Token 预算耗尽，请联系管理员或等待会话重置",
                         [],
                         stopwatch.Elapsed
                     );

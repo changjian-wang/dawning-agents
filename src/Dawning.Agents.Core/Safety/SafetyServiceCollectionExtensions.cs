@@ -220,7 +220,7 @@ public static class SafetyServiceCollectionExtensions
         }
 
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
-        services.TryAddSingleton<TokenRateLimiter>();
+        services.TryAddSingleton<ITokenRateLimiter, TokenRateLimiter>();
 
         return services;
     }
@@ -236,7 +236,7 @@ public static class SafetyServiceCollectionExtensions
         services.AddValidatedOptions<RateLimitOptions>(configuration, RateLimitOptions.SectionName);
 
         services.TryAddSingleton<IRateLimiter, SlidingWindowRateLimiter>();
-        services.TryAddSingleton<TokenRateLimiter>();
+        services.TryAddSingleton<ITokenRateLimiter, TokenRateLimiter>();
 
         return services;
     }

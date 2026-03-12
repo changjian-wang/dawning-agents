@@ -45,6 +45,7 @@ public class SafeAgentTests
     private SafeAgent CreateSafeAgent(
         IGuardrailPipeline? pipeline = null,
         IRateLimiter? rateLimiter = null,
+        ITokenRateLimiter? tokenRateLimiter = null,
         IAuditLogger? auditLogger = null
     )
     {
@@ -52,6 +53,7 @@ public class SafeAgentTests
             _mockAgent.Object,
             pipeline ?? _mockPipeline.Object,
             rateLimiter ?? _mockRateLimiter.Object,
+            tokenRateLimiter,
             auditLogger ?? _mockAuditLogger.Object,
             NullLogger<SafeAgent>.Instance
         );
@@ -381,5 +383,63 @@ public class SafeAgentTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task RunAsync_ShouldBlockRequest_WhenTokenBudgetExhausted()
+    {
+        // Arrange
+        var mockTokenLimiter = new Mock<ITokenRateLimiter>();
+        mockTokenLimiter
+            .Setup(t => t.GetUsedTokens(It.IsAny<string>()))
+            .Returns(100000);
+        mockTokenLimiter
+            .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
+            .Returns(false);
+
+        var expectedResponse = AgentResponse.Successful("Hello!", [], TimeSpan.FromSeconds(1));
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        var safeAgent = CreateSafeAgent(tokenRateLimiter: mockTokenLimiter.Object);
+
+        // Act
+        var response = await safeAgent.RunAsync("Hello", "user123");
+
+        // Assert
+        response.Success.Should().BeFalse();
+        response.Error.Should().Contain("Token 预算耗尽");
+        _mockAgent.Verify(
+            a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task RunAsync_ShouldProceed_WhenTokenBudgetAvailable()
+    {
+        // Arrange
+        var mockTokenLimiter = new Mock<ITokenRateLimiter>();
+        mockTokenLimiter
+            .Setup(t => t.GetUsedTokens(It.IsAny<string>()))
+            .Returns(5000);
+        mockTokenLimiter
+            .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
+            .Returns(true);
+
+        var expectedResponse = AgentResponse.Successful("Hello!", [], TimeSpan.FromSeconds(1));
+        _mockAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        var safeAgent = CreateSafeAgent(tokenRateLimiter: mockTokenLimiter.Object);
+
+        // Act
+        var response = await safeAgent.RunAsync("Hello", "user123");
+
+        // Assert
+        response.Success.Should().BeTrue();
+        response.FinalAnswer.Should().Be("Hello!");
     }
 }

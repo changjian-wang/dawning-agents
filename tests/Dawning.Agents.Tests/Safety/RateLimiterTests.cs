@@ -181,6 +181,116 @@ public class SlidingWindowRateLimiterTests
         status.CurrentCount.Should().Be(0);
         status.IsLimited.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task TryAcquireAsync_WhenMaxBucketsReached_ShouldDenyNewKeys()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 100);
+        options.Value.MaxBuckets = 2;
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Fill up buckets
+        await limiter.TryAcquireAsync("key1");
+        await limiter.TryAcquireAsync("key2");
+
+        // Act - Try a new key
+        var result = await limiter.TryAcquireAsync("key3");
+
+        // Assert
+        result.IsAllowed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_WithPolicy_ShouldUseNamedPolicyLimits()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 2);
+        options.Value.Policies = new Dictionary<string, RateLimitPolicy>
+        {
+            ["premium"] = new() { MaxRequestsPerWindow = 100, WindowSize = TimeSpan.FromMinutes(1) },
+        };
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Act - The default would deny at 3rd, but premium allows 100
+        for (int i = 0; i < 5; i++)
+        {
+            var result = await limiter.TryAcquireAsync("vip-user", "premium");
+            result.IsAllowed.Should().BeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_WithUnknownPolicy_ShouldUseDefaultLimits()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 2);
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        await limiter.TryAcquireAsync("key1", "nonexistent");
+        await limiter.TryAcquireAsync("key1", "nonexistent");
+
+        // Act
+        var result = await limiter.TryAcquireAsync("key1", "nonexistent");
+
+        // Assert - Falls back to default (max=2)
+        result.IsAllowed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_WithBackpressure_ShouldWaitAndRetry()
+    {
+        // Arrange
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions(maxRequests: 1, windowSize: TimeSpan.FromSeconds(2));
+        options.Value.EnableBackpressure = true;
+        options.Value.BackpressureTimeout = TimeSpan.FromSeconds(5);
+        var limiter = new SlidingWindowRateLimiter(options, timeProvider: fakeTime);
+
+        // Use up the limit
+        await limiter.TryAcquireAsync("key1");
+
+        // Act - Start backpressure acquire in background, then advance time
+        var acquireTask = Task.Run(async () =>
+        {
+            // This should block until time advances
+            return await limiter.TryAcquireAsync("key1");
+        });
+
+        // Give the task a moment to start waiting
+        await Task.Delay(50);
+
+        // Advance time past window — enough for the bucket to expire
+        fakeTime.Advance(TimeSpan.FromSeconds(3));
+
+        var result = await acquireTask;
+
+        // Assert
+        result.IsAllowed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_WithBackpressureTimeout_ShouldDenyAfterTimeout()
+    {
+        // Arrange
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions(maxRequests: 1, windowSize: TimeSpan.FromSeconds(60));
+        options.Value.EnableBackpressure = true;
+        options.Value.BackpressureTimeout = TimeSpan.FromSeconds(1);
+        var limiter = new SlidingWindowRateLimiter(options, timeProvider: fakeTime);
+
+        // Use up the limit
+        await limiter.TryAcquireAsync("key1");
+
+        // Advance time past backpressure timeout but not past window
+        fakeTime.Advance(TimeSpan.FromSeconds(2));
+
+        // Act - This should timeout immediately since time already past deadline
+        var result = await limiter.TryAcquireAsync("key1");
+
+        // Assert
+        result.IsAllowed.Should().BeFalse();
+    }
 }
 
 public class TokenRateLimiterTests
@@ -350,5 +460,24 @@ public class RateLimitOptionsTests
         var options = new RateLimitOptions { MaxTokensPerRequest = 0 };
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>().WithMessage("*MaxTokensPerRequest*");
+    }
+
+    [Fact]
+    public void Validate_ZeroMaxBuckets_Throws()
+    {
+        var options = new RateLimitOptions { MaxBuckets = 0 };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*MaxBuckets*");
+    }
+
+    [Fact]
+    public void Default_Options_Should_Include_NewProperties()
+    {
+        var options = new RateLimitOptions();
+
+        options.MaxBuckets.Should().Be(10_000);
+        options.EnableBackpressure.Should().BeFalse();
+        options.BackpressureTimeout.Should().Be(TimeSpan.FromSeconds(30));
+        options.Policies.Should().BeEmpty();
     }
 }

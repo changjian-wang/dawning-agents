@@ -19,6 +19,19 @@ public interface IRateLimiter
     );
 
     /// <summary>
+    /// 尝试获取许可（使用指定策略）
+    /// </summary>
+    /// <param name="key">限制键（如用户ID、会话ID）</param>
+    /// <param name="policyName">策略名称（null 则使用默认配置）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否允许执行</returns>
+    Task<RateLimitResult> TryAcquireAsync(
+        string key,
+        string? policyName,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// 获取当前状态
     /// </summary>
     /// <param name="key">限制键</param>
@@ -30,6 +43,33 @@ public interface IRateLimiter
     /// </summary>
     /// <param name="key">限制键</param>
     void Reset(string key);
+}
+
+/// <summary>
+/// Token 使用限制器接口
+/// </summary>
+public interface ITokenRateLimiter
+{
+    /// <summary>
+    /// 检查是否允许使用指定数量的 Token
+    /// </summary>
+    /// <param name="sessionId">会话 ID</param>
+    /// <param name="tokenCount">Token 数量</param>
+    /// <returns>是否允许</returns>
+    bool TryUseTokens(string sessionId, int tokenCount);
+
+    /// <summary>
+    /// 获取会话已使用的 Token 数
+    /// </summary>
+    /// <param name="sessionId">会话 ID</param>
+    /// <returns>已使用的 Token 数</returns>
+    int GetUsedTokens(string sessionId);
+
+    /// <summary>
+    /// 重置会话的 Token 计数
+    /// </summary>
+    /// <param name="sessionId">会话 ID</param>
+    void ResetSession(string sessionId);
 }
 
 /// <summary>
@@ -142,6 +182,26 @@ public class RateLimitOptions : IValidatableOptions
     /// </summary>
     public bool Enabled { get; set; } = true;
 
+    /// <summary>
+    /// 启用反压模式（被限制时等待而非直接拒绝）
+    /// </summary>
+    public bool EnableBackpressure { get; set; }
+
+    /// <summary>
+    /// 反压模式下的最大等待时间
+    /// </summary>
+    public TimeSpan BackpressureTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// 最大桶数（防止内存膨胀）
+    /// </summary>
+    public int MaxBuckets { get; set; } = 10_000;
+
+    /// <summary>
+    /// 命名策略（不同 key 可绑定不同限流参数）
+    /// </summary>
+    public Dictionary<string, RateLimitPolicy> Policies { get; set; } = [];
+
     /// <inheritdoc />
     public void Validate()
     {
@@ -164,5 +224,26 @@ public class RateLimitOptions : IValidatableOptions
         {
             throw new InvalidOperationException("MaxTokensPerRequest must be greater than 0.");
         }
+
+        if (MaxBuckets <= 0)
+        {
+            throw new InvalidOperationException("MaxBuckets must be greater than 0.");
+        }
     }
+}
+
+/// <summary>
+/// 命名速率限制策略（覆盖默认配置的 MaxRequestsPerWindow 和 WindowSize）
+/// </summary>
+public class RateLimitPolicy
+{
+    /// <summary>
+    /// 时间窗口内最大请求数
+    /// </summary>
+    public int MaxRequestsPerWindow { get; set; }
+
+    /// <summary>
+    /// 时间窗口大小
+    /// </summary>
+    public TimeSpan WindowSize { get; set; }
 }
