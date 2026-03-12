@@ -223,10 +223,11 @@ public sealed class InMemoryMessageBus : IMessageBus
             {
                 return await tcs.Task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
             }
-            catch (TimeoutException)
+            catch (TimeoutException ex)
             {
                 throw new TimeoutException(
-                    $"请求 {correlationId} 在 {timeout.TotalSeconds} 秒后超时"
+                    $"请求 {correlationId} 在 {timeout.TotalSeconds} 秒后超时",
+                    ex
                 );
             }
         }
