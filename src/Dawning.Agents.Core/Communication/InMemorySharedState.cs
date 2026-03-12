@@ -123,11 +123,11 @@ public partial class InMemorySharedState : ISharedState
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(handler);
 
-        var handlers = _watchers.GetOrAdd(key, _ => new List<Action<string, object?>>());
         var keyLock = _watcherLocks.GetOrAdd(key, _ => new Lock());
 
         lock (keyLock)
         {
+            var handlers = _watchers.GetOrAdd(key, _ => new List<Action<string, object?>>());
             handlers.Add(handler);
         }
 
@@ -137,11 +137,13 @@ public partial class InMemorySharedState : ISharedState
         {
             lock (keyLock)
             {
-                handlers.Remove(handler);
-                if (handlers.Count == 0)
+                if (_watchers.TryGetValue(key, out var handlers))
                 {
-                    _watchers.TryRemove(key, out _);
-                    _watcherLocks.TryRemove(key, out _);
+                    handlers.Remove(handler);
+                    if (handlers.Count == 0)
+                    {
+                        _watchers.TryRemove(key, out _);
+                    }
                 }
             }
             _logger.LogDebug("取消共享状态变更监听 {Key}", key);
