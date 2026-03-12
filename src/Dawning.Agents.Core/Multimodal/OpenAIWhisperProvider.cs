@@ -107,6 +107,10 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
                     fileName = "audio.mp3";
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "从 URL 下载音频失败: {Url}", audio.Url);
@@ -254,6 +258,10 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
             }
 
             return ParseTranscriptionResponse(responseText, options.ResponseFormat);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

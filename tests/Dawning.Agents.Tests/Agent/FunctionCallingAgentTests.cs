@@ -411,17 +411,17 @@ public class FunctionCallingAgentTests
     }
 
     [Fact]
-    public async Task RunAsync_Cancellation_ShouldReturnFailed()
+    public async Task RunAsync_Cancellation_ShouldThrowOperationCanceledException()
     {
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
         var agent = CreateAgent();
 
-        var response = await agent.RunAsync("test", cts.Token);
-
-        response.Success.Should().BeFalse();
-        response.Error.Should().Contain("cancelled");
+        // 用户取消应传播 OperationCanceledException
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            agent.RunAsync("test", cts.Token)
+        );
     }
 
     [Fact]

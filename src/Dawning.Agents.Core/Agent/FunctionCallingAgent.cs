@@ -252,6 +252,10 @@ public class FunctionCallingAgent : AgentBase
             );
             return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (OperationCanceledException)
         {
             stopwatch.Stop();

@@ -175,6 +175,10 @@ public class OpenAIVisionProvider : IVisionProvider
                 },
             };
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "视觉聊天请求失败");

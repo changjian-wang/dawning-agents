@@ -196,6 +196,10 @@ public class OpenAITTSProvider : ITextToSpeechProvider
                 CharacterCount = text.Length,
             };
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "语音合成请求失败");
@@ -239,6 +243,10 @@ public class OpenAITTSProvider : ITextToSpeechProvider
                 OutputPath = outputPath,
                 CharacterCount = text.Length,
             };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

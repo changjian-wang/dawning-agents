@@ -97,6 +97,10 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             _logger.LogDebug("内容审核通过");
             return GuardrailResult.Pass(content);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "内容审核发生异常");
