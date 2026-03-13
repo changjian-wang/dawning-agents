@@ -202,9 +202,9 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             {
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                // Expected — remaining tasks were cancelled
+                // Expected — remaining tasks were cancelled due to test failure
             }
         }
 

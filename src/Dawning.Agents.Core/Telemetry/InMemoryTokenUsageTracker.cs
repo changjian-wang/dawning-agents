@@ -190,18 +190,21 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
 
     private List<TokenUsageRecord> FilterRecords(string? source, string? sessionId)
     {
-        IEnumerable<TokenUsageRecord> records = _records;
-
-        if (source != null)
+        lock (_resetLock)
         {
-            records = records.Where(r => r.Source == source);
-        }
+            IEnumerable<TokenUsageRecord> records = _records;
 
-        if (sessionId != null)
-        {
-            records = records.Where(r => r.SessionId == sessionId);
-        }
+            if (source != null)
+            {
+                records = records.Where(r => r.Source == source);
+            }
 
-        return records.ToList();
+            if (sessionId != null)
+            {
+                records = records.Where(r => r.SessionId == sessionId);
+            }
+
+            return records.ToList();
+        }
     }
 }
