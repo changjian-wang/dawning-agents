@@ -208,7 +208,11 @@ public class SlidingWindowRateLimiterTests
         var options = CreateOptions(maxRequests: 2);
         options.Value.Policies = new Dictionary<string, RateLimitPolicy>
         {
-            ["premium"] = new() { MaxRequestsPerWindow = 100, WindowSize = TimeSpan.FromMinutes(1) },
+            ["premium"] = new()
+            {
+                MaxRequestsPerWindow = 100,
+                WindowSize = TimeSpan.FromMinutes(1),
+            },
         };
         var limiter = new SlidingWindowRateLimiter(options);
 

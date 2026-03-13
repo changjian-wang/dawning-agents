@@ -390,9 +390,7 @@ public class SafeAgentTests
     {
         // Arrange
         var mockTokenLimiter = new Mock<ITokenRateLimiter>();
-        mockTokenLimiter
-            .Setup(t => t.GetUsedTokens(It.IsAny<string>()))
-            .Returns(100000);
+        mockTokenLimiter.Setup(t => t.GetUsedTokens(It.IsAny<string>())).Returns(100000);
         mockTokenLimiter
             .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
             .Returns(false);
@@ -421,9 +419,7 @@ public class SafeAgentTests
     {
         // Arrange
         var mockTokenLimiter = new Mock<ITokenRateLimiter>();
-        mockTokenLimiter
-            .Setup(t => t.GetUsedTokens(It.IsAny<string>()))
-            .Returns(5000);
+        mockTokenLimiter.Setup(t => t.GetUsedTokens(It.IsAny<string>())).Returns(5000);
         mockTokenLimiter
             .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
             .Returns(true);

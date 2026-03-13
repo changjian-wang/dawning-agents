@@ -86,10 +86,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         var maxRequests = _options.MaxRequestsPerWindow;
         var windowSize = _options.WindowSize;
 
-        if (
-            policyName != null
-            && _options.Policies.TryGetValue(policyName, out var policy)
-        )
+        if (policyName != null && _options.Policies.TryGetValue(policyName, out var policy))
         {
             maxRequests = policy.MaxRequestsPerWindow;
             windowSize = policy.WindowSize;
@@ -170,11 +167,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 waitTime = _options.BackpressureTimeout;
             }
 
-            _logger.LogDebug(
-                "反压等待: Key={Key}, WaitTime={WaitTime}",
-                key,
-                waitTime
-            );
+            _logger.LogDebug("反压等待: Key={Key}, WaitTime={WaitTime}", key, waitTime);
 
             await Task.Delay(waitTime, _timeProvider, cancellationToken).ConfigureAwait(false);
         }
