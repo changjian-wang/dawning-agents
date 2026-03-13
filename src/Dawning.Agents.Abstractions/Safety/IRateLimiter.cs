@@ -39,6 +39,14 @@ public interface IRateLimiter
     RateLimitStatus GetStatus(string key);
 
     /// <summary>
+    /// 获取当前状态（使用指定策略的限额）
+    /// </summary>
+    /// <param name="key">限制键</param>
+    /// <param name="policyName">策略名称（null 则使用默认配置）</param>
+    /// <returns>当前限制状态</returns>
+    RateLimitStatus GetStatus(string key, string? policyName);
+
+    /// <summary>
     /// 重置指定键的计数器
     /// </summary>
     /// <param name="key">限制键</param>
@@ -73,6 +81,42 @@ public interface ITokenRateLimiter
 }
 
 /// <summary>
+/// 速率限制拒绝原因
+/// </summary>
+public enum RateLimitDenyReason
+{
+    /// <summary>
+    /// 未被拒绝
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// 滑动窗口速率超限
+    /// </summary>
+    RateLimitExceeded,
+
+    /// <summary>
+    /// 桶数达到上限（新 key 被拒绝）
+    /// </summary>
+    BucketCapReached,
+
+    /// <summary>
+    /// 单次请求 Token 超限
+    /// </summary>
+    TokenPerRequestExceeded,
+
+    /// <summary>
+    /// 会话 Token 总量超限
+    /// </summary>
+    TokenPerSessionExceeded,
+
+    /// <summary>
+    /// Token 桶数达到上限
+    /// </summary>
+    TokenBucketCapReached,
+}
+
+/// <summary>
 /// 速率限制结果
 /// </summary>
 public record RateLimitResult
@@ -98,6 +142,11 @@ public record RateLimitResult
     public TimeSpan? RetryAfter { get; init; }
 
     /// <summary>
+    /// 拒绝原因
+    /// </summary>
+    public RateLimitDenyReason DenyReason { get; init; }
+
+    /// <summary>
     /// 创建允许结果
     /// </summary>
     public static RateLimitResult Allow(int remaining, DateTimeOffset resetTime) =>
@@ -111,13 +160,18 @@ public record RateLimitResult
     /// <summary>
     /// 创建拒绝结果
     /// </summary>
-    public static RateLimitResult Deny(TimeSpan retryAfter, DateTimeOffset resetTime) =>
+    public static RateLimitResult Deny(
+        TimeSpan retryAfter,
+        DateTimeOffset resetTime,
+        RateLimitDenyReason reason = RateLimitDenyReason.RateLimitExceeded
+    ) =>
         new()
         {
             IsAllowed = false,
             RemainingRequests = 0,
             ResetTime = resetTime,
             RetryAfter = retryAfter,
+            DenyReason = reason,
         };
 }
 
@@ -228,6 +282,23 @@ public class RateLimitOptions : IValidatableOptions
         if (MaxBuckets <= 0)
         {
             throw new InvalidOperationException("MaxBuckets must be greater than 0.");
+        }
+
+        foreach (var (name, policy) in Policies)
+        {
+            if (policy.MaxRequestsPerWindow <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Policy '{name}': MaxRequestsPerWindow must be greater than 0."
+                );
+            }
+
+            if (policy.WindowSize <= TimeSpan.Zero)
+            {
+                throw new InvalidOperationException(
+                    $"Policy '{name}': WindowSize must be greater than zero."
+                );
+            }
         }
     }
 }

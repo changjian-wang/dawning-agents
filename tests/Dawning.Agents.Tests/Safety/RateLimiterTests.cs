@@ -300,6 +300,156 @@ public class SlidingWindowRateLimiterTests
         // Assert
         result.IsAllowed.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task TryAcquireAsync_ExceedingLimit_ShouldReturnRateLimitExceededReason()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 1);
+        var limiter = new SlidingWindowRateLimiter(options);
+        await limiter.TryAcquireAsync("key1");
+
+        // Act
+        var result = await limiter.TryAcquireAsync("key1");
+
+        // Assert
+        result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.RateLimitExceeded);
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_MaxBucketsReached_ShouldReturnBucketCapReachedReason()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 100);
+        options.Value.MaxBuckets = 1;
+        var limiter = new SlidingWindowRateLimiter(options);
+        await limiter.TryAcquireAsync("key1");
+
+        // Act
+        var result = await limiter.TryAcquireAsync("key2");
+
+        // Assert
+        result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.BucketCapReached);
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_Allowed_ShouldReturnNoneDenyReason()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 10);
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Act
+        var result = await limiter.TryAcquireAsync("key1");
+
+        // Assert
+        result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
+    }
+
+    [Fact]
+    public async Task GetStatus_WithPolicy_ShouldUseNamedPolicyMaxRequests()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 2);
+        options.Value.Policies = new Dictionary<string, RateLimitPolicy>
+        {
+            ["premium"] = new()
+            {
+                MaxRequestsPerWindow = 100,
+                WindowSize = TimeSpan.FromMinutes(5),
+            },
+        };
+        var limiter = new SlidingWindowRateLimiter(options);
+        await limiter.TryAcquireAsync("vip", "premium");
+
+        // Act
+        var status = limiter.GetStatus("vip", "premium");
+
+        // Assert
+        status.MaxRequests.Should().Be(100);
+        status.CurrentCount.Should().Be(1);
+        status.IsLimited.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetStatus_WithoutPolicy_ShouldUseDefaultMaxRequests()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 2);
+        options.Value.Policies = new Dictionary<string, RateLimitPolicy>
+        {
+            ["premium"] = new()
+            {
+                MaxRequestsPerWindow = 100,
+                WindowSize = TimeSpan.FromMinutes(5),
+            },
+        };
+        var limiter = new SlidingWindowRateLimiter(options);
+        await limiter.TryAcquireAsync("vip", "premium");
+
+        // Act - GetStatus without policy falls back to default
+        var status = limiter.GetStatus("vip");
+
+        // Assert
+        status.MaxRequests.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task EvictIdleBuckets_ShouldRemoveExpiredBuckets()
+    {
+        // Arrange
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions(maxRequests: 10, windowSize: TimeSpan.FromSeconds(5));
+        var limiter = new SlidingWindowRateLimiter(options, timeProvider: fakeTime);
+
+        // Add a request
+        await limiter.TryAcquireAsync("key1");
+
+        // Advance past window so the bucket is empty
+        fakeTime.Advance(TimeSpan.FromSeconds(10));
+
+        // Act
+        limiter.EvictIdleBuckets();
+
+        // Assert - bucket should be removed
+        var status = limiter.GetStatus("key1");
+        status.CurrentCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void Dispose_ShouldNotThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Act & Assert
+        var act = () => limiter.Dispose();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_ConcurrentAccess_ShouldRespectLimits()
+    {
+        // Arrange
+        var options = CreateOptions(maxRequests: 50);
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Act - Fire 100 concurrent requests
+        var tasks = Enumerable
+            .Range(0, 100)
+            .Select(_ => limiter.TryAcquireAsync("concurrent-key"))
+            .ToArray();
+
+        var results = await Task.WhenAll(tasks);
+
+        // Assert - Exactly 50 should be allowed
+        results.Count(r => r.IsAllowed).Should().Be(50);
+        results.Count(r => !r.IsAllowed).Should().Be(50);
+    }
 }
 
 public class TokenRateLimiterTests
@@ -414,6 +564,107 @@ public class TokenRateLimiterTests
         // Assert
         limiter.GetUsedTokens("session1").Should().Be(0);
     }
+
+    [Fact]
+    public void TryUseTokens_MaxBucketsReached_ShouldDenyNewSession()
+    {
+        // Arrange
+        var options = CreateOptions();
+        options.Value.MaxBuckets = 2;
+        var limiter = new TokenRateLimiter(options);
+
+        limiter.TryUseTokens("session1", 1);
+        limiter.TryUseTokens("session2", 1);
+
+        // Act - 3rd session exceeds MaxBuckets
+        var result = limiter.TryUseTokens("session3", 1);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryUseTokens_MaxBucketsReached_ShouldAllowExistingSession()
+    {
+        // Arrange
+        var options = CreateOptions();
+        options.Value.MaxBuckets = 2;
+        var limiter = new TokenRateLimiter(options);
+
+        limiter.TryUseTokens("session1", 1);
+        limiter.TryUseTokens("session2", 1);
+
+        // Act - existing session should still work
+        var result = limiter.TryUseTokens("session1", 1);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void EvictIdleBuckets_ShouldRemoveIdleSessions()
+    {
+        // Arrange
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options, timeProvider: fakeTime);
+
+        limiter.TryUseTokens("session1", 100);
+
+        // Advance past idle threshold (10 minutes)
+        fakeTime.Advance(TimeSpan.FromMinutes(11));
+
+        // Act
+        limiter.EvictIdleBuckets();
+
+        // Assert
+        limiter.GetUsedTokens("session1").Should().Be(0);
+    }
+
+    [Fact]
+    public void EvictIdleBuckets_ShouldKeepActiveSessions()
+    {
+        // Arrange
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options, timeProvider: fakeTime);
+
+        limiter.TryUseTokens("session1", 100);
+
+        // Advance only 5 minutes (under idle threshold)
+        fakeTime.Advance(TimeSpan.FromMinutes(5));
+
+        // Act
+        limiter.EvictIdleBuckets();
+
+        // Assert
+        limiter.GetUsedTokens("session1").Should().Be(100);
+    }
+
+    [Fact]
+    public void Dispose_ShouldNotThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert - single dispose
+        var act = () => limiter.Dispose();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Dispose_CalledTwice_ShouldNotThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert - double dispose
+        limiter.Dispose();
+        var act = () => limiter.Dispose();
+        act.Should().NotThrow();
+    }
 }
 
 public class RateLimitOptionsTests
@@ -477,6 +728,52 @@ public class RateLimitOptionsTests
         var options = new RateLimitOptions { MaxBuckets = 0 };
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>().WithMessage("*MaxBuckets*");
+    }
+
+    [Fact]
+    public void Validate_PolicyWithZeroMaxRequests_Throws()
+    {
+        var options = new RateLimitOptions
+        {
+            Policies = new Dictionary<string, RateLimitPolicy>
+            {
+                ["bad"] = new() { MaxRequestsPerWindow = 0, WindowSize = TimeSpan.FromMinutes(1) },
+            },
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*bad*MaxRequestsPerWindow*");
+    }
+
+    [Fact]
+    public void Validate_PolicyWithZeroWindowSize_Throws()
+    {
+        var options = new RateLimitOptions
+        {
+            Policies = new Dictionary<string, RateLimitPolicy>
+            {
+                ["bad"] = new() { MaxRequestsPerWindow = 10, WindowSize = TimeSpan.Zero },
+            },
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*bad*WindowSize*");
+    }
+
+    [Fact]
+    public void Validate_ValidPolicy_DoesNotThrow()
+    {
+        var options = new RateLimitOptions
+        {
+            Policies = new Dictionary<string, RateLimitPolicy>
+            {
+                ["premium"] = new()
+                {
+                    MaxRequestsPerWindow = 100,
+                    WindowSize = TimeSpan.FromMinutes(5),
+                },
+            },
+        };
+        var act = () => options.Validate();
+        act.Should().NotThrow();
     }
 
     [Fact]
