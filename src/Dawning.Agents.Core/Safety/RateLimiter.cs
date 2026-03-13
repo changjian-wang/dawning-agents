@@ -176,7 +176,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 waitTime
             );
 
-            await Task.Delay(waitTime, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(waitTime, _timeProvider, cancellationToken).ConfigureAwait(false);
         }
 
         // 超时后最后一次尝试

@@ -282,11 +282,16 @@ public class SlidingWindowRateLimiterTests
         // Use up the limit
         await limiter.TryAcquireAsync("key1");
 
-        // Advance time past backpressure timeout but not past window
+        // Act - Start backpressure acquire in background, then advance time past timeout
+        var acquireTask = Task.Run(async () => await limiter.TryAcquireAsync("key1"));
+
+        // Give the task a moment to enter WaitAndRetryAsync
+        await Task.Delay(50);
+
+        // Advance time past backpressure timeout (1s) but not past window (60s)
         fakeTime.Advance(TimeSpan.FromSeconds(2));
 
-        // Act - This should timeout immediately since time already past deadline
-        var result = await limiter.TryAcquireAsync("key1");
+        var result = await acquireTask;
 
         // Assert
         result.IsAllowed.Should().BeFalse();
