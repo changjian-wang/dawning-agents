@@ -16,6 +16,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     private readonly ConcurrentDictionary<string, RateLimitBucket> _buckets = new();
     private readonly TimeProvider _timeProvider;
     private readonly ITimer _evictionTimer;
+    private readonly Lock _addLock = new();
     private volatile bool _disposed;
 
     public SlidingWindowRateLimiter(
@@ -28,7 +29,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         _logger = logger ?? NullLogger<SlidingWindowRateLimiter>.Instance;
         _timeProvider = timeProvider ?? TimeProvider.System;
 
-        // Auto-evict idle buckets every 60 seconds
+        // Auto-evict idle buckets
         _evictionTimer = _timeProvider.CreateTimer(
             _ =>
             {
@@ -42,8 +43,8 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 }
             },
             null,
-            TimeSpan.FromSeconds(60),
-            TimeSpan.FromSeconds(60)
+            _options.EvictionInterval,
+            _options.EvictionInterval
         );
     }
 
@@ -63,6 +64,9 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
         if (!_options.Enabled)
         {
             return Task.FromResult(
@@ -94,24 +98,34 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         var now = _timeProvider.GetUtcNow();
 
-        // 桶数上限保护：超过限制时拒绝新 key
-        if (!_buckets.ContainsKey(key) && _buckets.Count >= _options.MaxBuckets)
+        // 桶数上限保护：double-checked locking 避免 TOCTOU
+        if (!_buckets.TryGetValue(key, out var bucket))
         {
-            _logger.LogWarning(
-                "速率限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, Key={Key}",
-                _buckets.Count,
-                _options.MaxBuckets,
-                key
-            );
+            lock (_addLock)
+            {
+                if (!_buckets.TryGetValue(key, out bucket))
+                {
+                    if (_buckets.Count >= _options.MaxBuckets)
+                    {
+                        _logger.LogWarning(
+                            "速率限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, Key={Key}",
+                            _buckets.Count,
+                            _options.MaxBuckets,
+                            key
+                        );
 
-            return RateLimitResult.Deny(
-                TimeSpan.FromSeconds(60),
-                now.Add(windowSize),
-                RateLimitDenyReason.BucketCapReached
-            );
+                        return RateLimitResult.Deny(
+                            TimeSpan.FromSeconds(60),
+                            now.Add(windowSize),
+                            RateLimitDenyReason.BucketCapReached
+                        );
+                    }
+
+                    bucket = new RateLimitBucket(windowSize);
+                    _buckets.TryAdd(key, bucket);
+                }
+            }
         }
-
-        var bucket = _buckets.GetOrAdd(key, _ => new RateLimitBucket(windowSize));
 
         var resetTime = now.Add(windowSize);
 
@@ -190,6 +204,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     /// <inheritdoc />
     public RateLimitStatus GetStatus(string key, string? policyName)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         var maxRequests = _options.MaxRequestsPerWindow;
@@ -226,6 +241,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     /// <inheritdoc />
     public void Reset(string key)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         _buckets.TryRemove(key, out _);
@@ -328,14 +344,6 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 _timestamps.RemoveAll(t => t < cutoff);
             }
         }
-
-        public DateTimeOffset GetOldestTimestamp()
-        {
-            lock (_lock)
-            {
-                return _timestamps.Count > 0 ? _timestamps[0] : DateTimeOffset.MinValue;
-            }
-        }
     }
 }
 
@@ -349,6 +357,7 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
     private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, TokenUsageBucket> _buckets = new();
     private readonly ITimer _evictionTimer;
+    private readonly Lock _addLock = new();
     private volatile bool _disposed;
 
     public TokenRateLimiter(
@@ -361,7 +370,7 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
         _logger = logger ?? NullLogger<TokenRateLimiter>.Instance;
         _timeProvider = timeProvider ?? TimeProvider.System;
 
-        // Auto-evict idle buckets every 60 seconds
+        // Auto-evict idle buckets
         _evictionTimer = _timeProvider.CreateTimer(
             _ =>
             {
@@ -375,19 +384,21 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
                 }
             },
             null,
-            TimeSpan.FromSeconds(60),
-            TimeSpan.FromSeconds(60)
+            _options.EvictionInterval,
+            _options.EvictionInterval
         );
     }
 
-    /// <summary>
-    /// 检查是否允许使用指定数量的 Token
-    /// </summary>
-    public bool TryUseTokens(string sessionId, int tokenCount)
+    /// <inheritdoc />
+    public TokenRateLimitResult TryUseTokens(string sessionId, int tokenCount)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(tokenCount);
+
         if (!_options.Enabled)
         {
-            return true;
+            return TokenRateLimitResult.Allow();
         }
 
         // 检查单次请求限制
@@ -399,25 +410,35 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
                 tokenCount,
                 _options.MaxTokensPerRequest
             );
-            return false;
+            return TokenRateLimitResult.Deny(RateLimitDenyReason.TokenPerRequestExceeded);
         }
 
-        // 桶数上限保护
-        if (!_buckets.ContainsKey(sessionId) && _buckets.Count >= _options.MaxBuckets)
+        // 桶数上限保护：double-checked locking 避免 TOCTOU
+        if (!_buckets.TryGetValue(sessionId, out var bucket))
         {
-            _logger.LogWarning(
-                "Token 限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, SessionId={SessionId}",
-                _buckets.Count,
-                _options.MaxBuckets,
-                sessionId
-            );
-            return false;
+            lock (_addLock)
+            {
+                if (!_buckets.TryGetValue(sessionId, out bucket))
+                {
+                    if (_buckets.Count >= _options.MaxBuckets)
+                    {
+                        _logger.LogWarning(
+                            "Token 限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, SessionId={SessionId}",
+                            _buckets.Count,
+                            _options.MaxBuckets,
+                            sessionId
+                        );
+                        return TokenRateLimitResult.Deny(RateLimitDenyReason.TokenBucketCapReached);
+                    }
+
+                    bucket = new TokenUsageBucket(_timeProvider.GetUtcNow());
+                    _buckets.TryAdd(sessionId, bucket);
+                }
+            }
         }
 
-        var bucket = _buckets.GetOrAdd(
-            sessionId,
-            _ => new TokenUsageBucket(_timeProvider.GetUtcNow())
-        );
+        // 无论成功还是失败，都标记访问时间（防止耗尽的会话因空闲超时被驱逐后重置预算）
+        bucket.LastAccessed = _timeProvider.GetUtcNow();
 
         // 原子检查并添加
         if (!bucket.TryAddTokens(tokenCount, _options.MaxTokensPerSession))
@@ -429,10 +450,8 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
                 tokenCount,
                 _options.MaxTokensPerSession
             );
-            return false;
+            return TokenRateLimitResult.Deny(RateLimitDenyReason.TokenPerSessionExceeded);
         }
-
-        bucket.LastAccessed = _timeProvider.GetUtcNow();
 
         _logger.LogDebug(
             "Token 使用: SessionId={SessionId}, Used={Used}, Total={Total}/{Max}",
@@ -442,14 +461,34 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
             _options.MaxTokensPerSession
         );
 
-        return true;
+        return TokenRateLimitResult.Allow();
     }
 
-    /// <summary>
-    /// 获取会话已使用的 Token 数
-    /// </summary>
+    /// <inheritdoc />
+    public bool HasBudget(string sessionId)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+
+        if (!_options.Enabled)
+        {
+            return true;
+        }
+
+        if (!_buckets.TryGetValue(sessionId, out var bucket))
+        {
+            return true; // 新会话，有预算
+        }
+
+        return bucket.TotalTokens < _options.MaxTokensPerSession;
+    }
+
+    /// <inheritdoc />
     public int GetUsedTokens(string sessionId)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+
         return _buckets.TryGetValue(sessionId, out var bucket) ? bucket.TotalTokens : 0;
     }
 
@@ -458,16 +497,19 @@ public class TokenRateLimiter : ITokenRateLimiter, IDisposable
     /// </summary>
     public void ResetSession(string sessionId)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+
         _buckets.TryRemove(sessionId, out _);
     }
 
     /// <summary>
-    /// 清理空闲桶（超过 10 分钟未访问的会话桶会被移除）
+    /// 清理空闲桶
     /// </summary>
     internal void EvictIdleBuckets()
     {
         var now = _timeProvider.GetUtcNow();
-        var idleThreshold = TimeSpan.FromMinutes(10);
+        var idleThreshold = _options.TokenIdleTimeout;
         var keysToRemove = new List<string>();
 
         foreach (var kvp in _buckets)

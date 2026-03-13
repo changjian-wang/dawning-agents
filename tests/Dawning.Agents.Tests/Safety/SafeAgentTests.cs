@@ -390,10 +390,8 @@ public class SafeAgentTests
     {
         // Arrange
         var mockTokenLimiter = new Mock<ITokenRateLimiter>();
+        mockTokenLimiter.Setup(t => t.HasBudget(It.IsAny<string>())).Returns(false);
         mockTokenLimiter.Setup(t => t.GetUsedTokens(It.IsAny<string>())).Returns(100000);
-        mockTokenLimiter
-            .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
-            .Returns(false);
 
         var expectedResponse = AgentResponse.Successful("Hello!", [], TimeSpan.FromSeconds(1));
         _mockAgent
@@ -419,10 +417,7 @@ public class SafeAgentTests
     {
         // Arrange
         var mockTokenLimiter = new Mock<ITokenRateLimiter>();
-        mockTokenLimiter.Setup(t => t.GetUsedTokens(It.IsAny<string>())).Returns(5000);
-        mockTokenLimiter
-            .Setup(t => t.TryUseTokens(It.IsAny<string>(), It.IsAny<int>()))
-            .Returns(true);
+        mockTokenLimiter.Setup(t => t.HasBudget(It.IsAny<string>())).Returns(true);
 
         var expectedResponse = AgentResponse.Successful("Hello!", [], TimeSpan.FromSeconds(1));
         _mockAgent
@@ -437,5 +432,30 @@ public class SafeAgentTests
         // Assert
         response.Success.Should().BeTrue();
         response.FinalAnswer.Should().Be("Hello!");
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenCancelled_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _mockAuditLogger
+            .Setup(l => l.LogAsync(It.IsAny<AuditEntry>(), It.IsAny<CancellationToken>()))
+            .Returns(
+                (AuditEntry _, CancellationToken ct) =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return Task.CompletedTask;
+                }
+            );
+
+        var safeAgent = CreateSafeAgent();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            safeAgent.RunAsync("Hello", "user123", cts.Token)
+        );
     }
 }

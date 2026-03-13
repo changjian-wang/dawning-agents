@@ -3,6 +3,7 @@ namespace Dawning.Agents.Tests.Scaling;
 using Dawning.Agents.Abstractions.Scaling;
 using Dawning.Agents.Core.Scaling;
 using FluentAssertions;
+using Microsoft.Extensions.Time.Testing;
 
 public class AgentAutoScalerTests
 {
@@ -246,10 +247,46 @@ public class AgentAutoScalerTests
         scaler.LastScaleUpTime.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
     }
 
+    [Fact]
+    public async Task EvaluateAsync_CooldownExpiresWithTimeProvider_AllowsScaleUp()
+    {
+        var fakeTime = new FakeTimeProvider();
+        var options = new ScalingOptions
+        {
+            MinInstances = 1,
+            MaxInstances = 10,
+            TargetCpuPercent = 70,
+            ScaleUpCooldownSeconds = 60,
+        };
+        var metrics = new ScalingMetrics
+        {
+            CpuPercent = 90,
+            MemoryPercent = 50,
+            QueueLength = 5,
+        };
+
+        var scaleCount = 0;
+        var scaler = CreateScaler(options, metrics, _ => scaleCount++, fakeTime);
+
+        await scaler.EvaluateAsync();
+        scaleCount.Should().Be(1);
+
+        // Still within cooldown
+        fakeTime.Advance(TimeSpan.FromSeconds(30));
+        await scaler.EvaluateAsync();
+        scaleCount.Should().Be(1);
+
+        // Past cooldown
+        fakeTime.Advance(TimeSpan.FromSeconds(31));
+        await scaler.EvaluateAsync();
+        scaleCount.Should().Be(2);
+    }
+
     private static AgentAutoScaler CreateScaler(
         ScalingOptions options,
         ScalingMetrics? metrics = null,
-        Action<int>? onScale = null
+        Action<int>? onScale = null,
+        TimeProvider? timeProvider = null
     )
     {
         var defaultMetrics =
@@ -268,7 +305,8 @@ public class AgentAutoScalerTests
             {
                 onScale?.Invoke(count);
                 return Task.CompletedTask;
-            }
+            },
+            timeProvider: timeProvider
         );
     }
 }

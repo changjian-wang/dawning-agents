@@ -124,6 +124,16 @@ public class AgentWorkerPoolTests : IDisposable
         pool.IsRunning.Should().BeTrue();
     }
 
+    [Fact]
+    public void Start_AfterDispose_ThrowsObjectDisposedException()
+    {
+        var pool = CreatePool();
+        pool.Dispose();
+
+        var act = () => pool.Start();
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
     #endregion
 
     #region StopAsync Tests

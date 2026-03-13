@@ -60,6 +60,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _runCts?.Dispose();
             _runCts = new CancellationTokenSource();
             runCts = _runCts;
+            _workers.Clear();
 
             for (int i = 0; i < _workerCount; i++)
             {

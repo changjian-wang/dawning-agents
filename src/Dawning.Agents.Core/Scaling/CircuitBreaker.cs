@@ -17,6 +17,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
     private int _failureCount;
     private DateTimeOffset _lastFailureTime;
     private CircuitState _state = CircuitState.Closed;
+    private bool _halfOpenTrialActive;
     private readonly Lock _lock = new();
 
     public CircuitBreaker(
@@ -26,6 +27,15 @@ public sealed class CircuitBreaker : ICircuitBreaker
         TimeProvider? timeProvider = null
     )
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(failureThreshold, 1);
+        if (resetTimeout.HasValue && resetTimeout.Value <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(resetTimeout),
+                "resetTimeout must be greater than zero."
+            );
+        }
+
         _failureThreshold = failureThreshold;
         _resetTimeout = resetTimeout ?? TimeSpan.FromSeconds(30);
         _logger = logger ?? NullLogger<CircuitBreaker>.Instance;
@@ -67,6 +77,19 @@ public sealed class CircuitBreaker : ICircuitBreaker
         {
             _logger.LogWarning("熔断器处于打开状态，拒绝请求");
             throw new CircuitBreakerOpenException("熔断器处于打开状态");
+        }
+
+        // HalfOpen 状态只允许一个试探请求通过，防止惊群效应
+        if (currentState == CircuitState.HalfOpen)
+        {
+            lock (_lock)
+            {
+                if (_halfOpenTrialActive)
+                {
+                    throw new CircuitBreakerOpenException("熔断器处于半开状态，试探请求进行中");
+                }
+                _halfOpenTrialActive = true;
+            }
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -127,6 +150,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
             )
             {
                 _state = CircuitState.HalfOpen;
+                _halfOpenTrialActive = false;
                 _logger.LogInformation("熔断器转换为半开状态");
             }
             return _state;
@@ -138,6 +162,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
         lock (_lock)
         {
             _failureCount = 0;
+            _halfOpenTrialActive = false;
             if (_state == CircuitState.HalfOpen)
             {
                 _state = CircuitState.Closed;
@@ -150,6 +175,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
     {
         lock (_lock)
         {
+            _halfOpenTrialActive = false;
             _failureCount++;
             _lastFailureTime = _timeProvider.GetUtcNow();
 
@@ -167,6 +193,8 @@ public sealed class CircuitBreaker : ICircuitBreaker
 /// </summary>
 public sealed class CircuitBreakerOpenException : Exception
 {
+    public CircuitBreakerOpenException() { }
+
     public CircuitBreakerOpenException(string message)
         : base(message) { }
 

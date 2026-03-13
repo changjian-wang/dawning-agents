@@ -15,6 +15,7 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
 
     public AgentRequestQueue(int capacity, ILogger<AgentRequestQueue>? logger = null)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         _channel = Channel.CreateBounded<AgentWorkItem>(
             new BoundedChannelOptions(capacity)
             {
@@ -32,6 +33,7 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(item);
         try
         {
             await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);

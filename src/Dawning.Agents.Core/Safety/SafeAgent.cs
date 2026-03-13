@@ -128,9 +128,9 @@ public sealed class SafeAgent : IAgent
             // 2.5 Token 预算检查
             if (_tokenRateLimiter != null)
             {
-                var usedTokens = _tokenRateLimiter.GetUsedTokens(rateLimitKey);
-                if (!_tokenRateLimiter.TryUseTokens(rateLimitKey, 1))
+                if (!_tokenRateLimiter.HasBudget(rateLimitKey))
                 {
+                    var usedTokens = _tokenRateLimiter.GetUsedTokens(rateLimitKey);
                     _logger.LogWarning(
                         "Agent {AgentName} Token 预算耗尽: SessionId={SessionId}, UsedTokens={UsedTokens}",
                         Name,

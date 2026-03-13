@@ -338,6 +338,78 @@ public class DistributedLoadBalancerTests : IDisposable
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("*没有可用的健康实例*");
     }
+
+    [Fact]
+    public void GetLeastLoadedInstance_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = () => balancer.GetLeastLoadedInstance();
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void GetAllInstances_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = () => balancer.GetAllInstances();
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void HealthyInstanceCount_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = () => balancer.HealthyInstanceCount;
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void StartWatching_AfterDispose_ShouldThrow()
+    {
+        var mockRegistry = new Mock<IServiceRegistry>();
+        var balancer = new DistributedLoadBalancer(serviceRegistry: mockRegistry.Object);
+        balancer.Dispose();
+
+        var act = () => balancer.StartWatching("test-service");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void UpdateInstanceHealth_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = () => balancer.UpdateInstanceHealth("1", true);
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void UpdateInstanceLoad_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = () => balancer.UpdateInstanceLoad("1", 5);
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public async Task ExecuteWithFailoverAsync_AfterDispose_ShouldThrow()
+    {
+        var balancer = new DistributedLoadBalancer();
+        balancer.Dispose();
+
+        var act = async () =>
+            await balancer.ExecuteWithFailoverAsync<string>(_ => Task.FromResult("ok"));
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
 }
 
 public class LoadBalancingStrategyTests

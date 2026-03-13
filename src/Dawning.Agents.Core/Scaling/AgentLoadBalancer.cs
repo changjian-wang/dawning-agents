@@ -69,9 +69,7 @@ public sealed class AgentLoadBalancer : IAgentLoadBalancer
                 return null;
             }
 
-            var index = (int)(
-                (uint)Interlocked.Increment(ref _roundRobinIndex) % (uint)healthyInstances.Count
-            );
+            var index = (int)((uint)(++_roundRobinIndex) % (uint)healthyInstances.Count);
             var instance = healthyInstances[index];
             _logger.LogDebug("选择实例 {InstanceId} (轮询索引: {Index})", instance.Id, index);
             return instance;

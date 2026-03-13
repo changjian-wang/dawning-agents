@@ -91,6 +91,29 @@ public class AgentRequestQueueTests
         queue.CanWrite.Should().BeFalse();
     }
 
+    [Fact]
+    public void Constructor_ZeroCapacity_Throws()
+    {
+        var act = () => new AgentRequestQueue(0);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_NegativeCapacity_Throws()
+    {
+        var act = () => new AgentRequestQueue(-1);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public async Task EnqueueAsync_NullItem_Throws()
+    {
+        var queue = new AgentRequestQueue(10);
+
+        var act = async () => await queue.EnqueueAsync(null!);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
     private static AgentWorkItem CreateWorkItem(string input)
     {
         return new AgentWorkItem

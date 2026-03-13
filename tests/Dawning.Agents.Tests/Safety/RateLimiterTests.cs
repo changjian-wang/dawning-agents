@@ -38,6 +38,7 @@ public class SlidingWindowRateLimiterTests
 
             // Assert
             result.IsAllowed.Should().BeTrue();
+            result.DenyReason.Should().Be(RateLimitDenyReason.None);
         }
     }
 
@@ -55,6 +56,7 @@ public class SlidingWindowRateLimiterTests
 
             // Assert
             result.IsAllowed.Should().BeTrue();
+            result.DenyReason.Should().Be(RateLimitDenyReason.None);
             result.RemainingRequests.Should().Be(5 - i - 1);
         }
     }
@@ -77,6 +79,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.RateLimitExceeded);
         result.RemainingRequests.Should().Be(0);
         result.RetryAfter.Should().NotBeNull();
     }
@@ -97,6 +100,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
         result.RemainingRequests.Should().Be(1);
     }
 
@@ -114,6 +118,7 @@ public class SlidingWindowRateLimiterTests
 
         var deniedResult = await limiter.TryAcquireAsync("test-key");
         deniedResult.IsAllowed.Should().BeFalse();
+        deniedResult.DenyReason.Should().Be(RateLimitDenyReason.RateLimitExceeded);
 
         // Advance time past window
         fakeTime.Advance(TimeSpan.FromSeconds(11));
@@ -123,6 +128,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
     }
 
     [Fact]
@@ -199,6 +205,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.BucketCapReached);
     }
 
     [Fact]
@@ -221,6 +228,7 @@ public class SlidingWindowRateLimiterTests
         {
             var result = await limiter.TryAcquireAsync("vip-user", "premium");
             result.IsAllowed.Should().BeTrue();
+            result.DenyReason.Should().Be(RateLimitDenyReason.None);
         }
     }
 
@@ -239,6 +247,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert - Falls back to default (max=2)
         result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.RateLimitExceeded);
     }
 
     [Fact]
@@ -271,6 +280,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
     }
 
     [Fact]
@@ -299,6 +309,7 @@ public class SlidingWindowRateLimiterTests
 
         // Assert
         result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.RateLimitExceeded);
     }
 
     [Fact]
@@ -432,6 +443,58 @@ public class SlidingWindowRateLimiterTests
     }
 
     [Fact]
+    public void Dispose_CalledTwice_ShouldNotThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new SlidingWindowRateLimiter(options);
+
+        // Act & Assert - double dispose
+        limiter.Dispose();
+        var act = () => limiter.Dispose();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task TryAcquireAsync_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new SlidingWindowRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.TryAcquireAsync("key1");
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void GetStatus_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new SlidingWindowRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.GetStatus("key1");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void Reset_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new SlidingWindowRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.Reset("key1");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
     public async Task TryAcquireAsync_ConcurrentAccess_ShouldRespectLimits()
     {
         // Arrange
@@ -481,7 +544,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session1", 100000);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
     }
 
     [Fact]
@@ -495,7 +559,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session1", 400);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
         limiter.GetUsedTokens("session1").Should().Be(400);
     }
 
@@ -510,7 +575,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session1", 600);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.TokenPerRequestExceeded);
         limiter.GetUsedTokens("session1").Should().Be(0);
     }
 
@@ -529,7 +595,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session1", 300);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.TokenPerSessionExceeded);
         limiter.GetUsedTokens("session1").Should().Be(800);
     }
 
@@ -580,7 +647,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session3", 1);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsAllowed.Should().BeFalse();
+        result.DenyReason.Should().Be(RateLimitDenyReason.TokenBucketCapReached);
     }
 
     [Fact]
@@ -598,7 +666,8 @@ public class TokenRateLimiterTests
         var result = limiter.TryUseTokens("session1", 1);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsAllowed.Should().BeTrue();
+        result.DenyReason.Should().Be(RateLimitDenyReason.None);
     }
 
     [Fact]
@@ -665,6 +734,197 @@ public class TokenRateLimiterTests
         var act = () => limiter.Dispose();
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void TryUseTokens_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.TryUseTokens("session1", 100);
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void GetUsedTokens_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.GetUsedTokens("session1");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void ResetSession_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.ResetSession("session1");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void HasBudget_AfterDispose_ShouldThrow()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+        limiter.Dispose();
+
+        // Act & Assert
+        var act = () => limiter.HasBudget("session1");
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public void HasBudget_NewSession_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        limiter.HasBudget("new-session").Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasBudget_WithinBudget_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = CreateOptions(maxPerSession: 1000);
+        var limiter = new TokenRateLimiter(options);
+        limiter.TryUseTokens("session1", 500);
+
+        // Act & Assert
+        limiter.HasBudget("session1").Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasBudget_Exhausted_ShouldReturnFalse()
+    {
+        // Arrange
+        var options = CreateOptions(maxPerRequest: 1000, maxPerSession: 1000);
+        var limiter = new TokenRateLimiter(options);
+        limiter.TryUseTokens("session1", 1000);
+
+        // Act & Assert
+        limiter.HasBudget("session1").Should().BeFalse();
+    }
+
+    [Fact]
+    public void HasBudget_WhenDisabled_ShouldAlwaysReturnTrue()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: false);
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        limiter.HasBudget("session1").Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryUseTokens_ConcurrentAccess_ShouldRespectLimits()
+    {
+        // Arrange
+        var options = CreateOptions(maxPerRequest: 1, maxPerSession: 50);
+        var limiter = new TokenRateLimiter(options);
+
+        // Act - Fire 100 concurrent tasks
+        var results = Enumerable
+            .Range(0, 100)
+            .AsParallel()
+            .Select(_ => limiter.TryUseTokens("session1", 1))
+            .ToArray();
+
+        // Assert - Exactly 50 should be allowed
+        results.Count(r => r.IsAllowed).Should().Be(50);
+        results.Count(r => !r.IsAllowed).Should().Be(50);
+    }
+
+    [Fact]
+    public void TryUseTokens_ZeroTokenCount_ShouldThrowArgumentOutOfRange()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        var act = () => limiter.TryUseTokens("session1", 0);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("tokenCount");
+    }
+
+    [Fact]
+    public void TryUseTokens_NegativeTokenCount_ShouldThrowArgumentOutOfRange()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        var act = () => limiter.TryUseTokens("session1", -5);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("tokenCount");
+    }
+
+    [Fact]
+    public void TryUseTokens_EmptySessionId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        var act = () => limiter.TryUseTokens("", 100);
+        act.Should().Throw<ArgumentException>().WithParameterName("sessionId");
+    }
+
+    [Fact]
+    public void TryUseTokens_WhitespaceSessionId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var options = CreateOptions();
+        var limiter = new TokenRateLimiter(options);
+
+        // Act & Assert
+        var act = () => limiter.TryUseTokens("   ", 100);
+        act.Should().Throw<ArgumentException>().WithParameterName("sessionId");
+    }
+
+    [Fact]
+    public void TryUseTokens_ExhaustedSession_ShouldNotResetAfterIdleEviction()
+    {
+        // Arrange — default TokenIdleTimeout is 10 minutes
+        var fakeTime = new FakeTimeProvider();
+        var options = CreateOptions(maxPerRequest: 1000, maxPerSession: 1000);
+        var limiter = new TokenRateLimiter(options, timeProvider: fakeTime);
+
+        // Exhaust the session at t=0
+        limiter.TryUseTokens("session1", 1000);
+
+        // Advance 9 minutes (just under idle timeout)
+        fakeTime.Advance(TimeSpan.FromMinutes(9));
+
+        // Denied attempt at t=9 updates LastAccessed
+        var denied = limiter.TryUseTokens("session1", 1);
+        denied.IsAllowed.Should().BeFalse();
+
+        // Advance another 9 minutes (t=18, but only 9 min since last access)
+        fakeTime.Advance(TimeSpan.FromMinutes(9));
+        limiter.EvictIdleBuckets();
+
+        // Bucket should NOT be evicted because LastAccessed was updated on denied attempt
+        limiter.GetUsedTokens("session1").Should().Be(1000);
+    }
 }
 
 public class RateLimitOptionsTests
@@ -679,6 +939,8 @@ public class RateLimitOptionsTests
         options.MaxTokensPerSession.Should().Be(100000);
         options.MaxTokensPerRequest.Should().Be(4000);
         options.Enabled.Should().BeTrue();
+        options.EvictionInterval.Should().Be(TimeSpan.FromSeconds(60));
+        options.TokenIdleTimeout.Should().Be(TimeSpan.FromMinutes(10));
         RateLimitOptions.SectionName.Should().Be("RateLimit");
     }
 
@@ -785,5 +1047,99 @@ public class RateLimitOptionsTests
         options.EnableBackpressure.Should().BeFalse();
         options.BackpressureTimeout.Should().Be(TimeSpan.FromSeconds(30));
         options.Policies.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Validate_ZeroEvictionInterval_Throws()
+    {
+        var options = new RateLimitOptions { EvictionInterval = TimeSpan.Zero };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*EvictionInterval*");
+    }
+
+    [Fact]
+    public void Validate_NegativeEvictionInterval_Throws()
+    {
+        var options = new RateLimitOptions { EvictionInterval = TimeSpan.FromSeconds(-1) };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*EvictionInterval*");
+    }
+
+    [Fact]
+    public void Validate_ZeroTokenIdleTimeout_Throws()
+    {
+        var options = new RateLimitOptions { TokenIdleTimeout = TimeSpan.Zero };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*TokenIdleTimeout*");
+    }
+
+    [Fact]
+    public void Validate_NegativeTokenIdleTimeout_Throws()
+    {
+        var options = new RateLimitOptions { TokenIdleTimeout = TimeSpan.FromSeconds(-1) };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*TokenIdleTimeout*");
+    }
+
+    [Fact]
+    public void Validate_ZeroBackpressureTimeout_WhenEnabled_Throws()
+    {
+        var options = new RateLimitOptions
+        {
+            EnableBackpressure = true,
+            BackpressureTimeout = TimeSpan.Zero,
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BackpressureTimeout*");
+    }
+
+    [Fact]
+    public void Validate_NegativeBackpressureTimeout_WhenEnabled_Throws()
+    {
+        var options = new RateLimitOptions
+        {
+            EnableBackpressure = true,
+            BackpressureTimeout = TimeSpan.FromSeconds(-1),
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*BackpressureTimeout*");
+    }
+
+    [Fact]
+    public void Validate_ZeroBackpressureTimeout_WhenDisabled_DoesNotThrow()
+    {
+        var options = new RateLimitOptions
+        {
+            EnableBackpressure = false,
+            BackpressureTimeout = TimeSpan.Zero,
+        };
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_MaxTokensPerRequestExceedsPerSession_Throws()
+    {
+        var options = new RateLimitOptions
+        {
+            MaxTokensPerRequest = 50000,
+            MaxTokensPerSession = 10000,
+        };
+        var act = () => options.Validate();
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("*MaxTokensPerRequest*MaxTokensPerSession*");
+    }
+
+    [Fact]
+    public void Validate_MaxTokensPerRequestEqualsPerSession_DoesNotThrow()
+    {
+        var options = new RateLimitOptions
+        {
+            MaxTokensPerRequest = 10000,
+            MaxTokensPerSession = 10000,
+        };
+        var act = () => options.Validate();
+        act.Should().NotThrow();
     }
 }

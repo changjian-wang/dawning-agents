@@ -13,6 +13,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     private readonly Func<Task<ScalingMetrics>> _metricsProvider;
     private readonly Func<int, Task> _scaleAction;
     private readonly ILogger<AgentAutoScaler> _logger;
+    private readonly TimeProvider _timeProvider;
 
     private int _currentInstances;
     private DateTimeOffset? _lastScaleUp;
@@ -25,7 +26,8 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
         ScalingOptions options,
         Func<Task<ScalingMetrics>> metricsProvider,
         Func<int, Task> scaleAction,
-        ILogger<AgentAutoScaler>? logger = null
+        ILogger<AgentAutoScaler>? logger = null,
+        TimeProvider? timeProvider = null
     )
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -33,6 +35,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
             metricsProvider ?? throw new ArgumentNullException(nameof(metricsProvider));
         _scaleAction = scaleAction ?? throw new ArgumentNullException(nameof(scaleAction));
         _logger = logger ?? NullLogger<AgentAutoScaler>.Instance;
+        _timeProvider = timeProvider ?? TimeProvider.System;
         _currentInstances = options.MinInstances;
     }
 
@@ -76,11 +79,12 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     public async Task<ScalingDecision> EvaluateAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var metrics = await _metricsProvider().ConfigureAwait(false);
 
         await _evaluateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            var metrics = await _metricsProvider().ConfigureAwait(false);
+
             int currentSnapshot;
             int newCount;
             ScalingDecision decision;
@@ -124,7 +128,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 
     private ScalingDecision MakeScalingDecision(ScalingMetrics metrics, int currentInstances)
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
 
         // 检查是否需要扩容
         if (ShouldScaleUp(metrics, currentInstances))
@@ -205,11 +209,11 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
             {
                 if (decision.Action == ScalingAction.ScaleUp)
                 {
-                    _lastScaleUp = DateTimeOffset.UtcNow;
+                    _lastScaleUp = _timeProvider.GetUtcNow();
                 }
                 else
                 {
-                    _lastScaleDown = DateTimeOffset.UtcNow;
+                    _lastScaleDown = _timeProvider.GetUtcNow();
                 }
                 _currentInstances = newCount;
             }

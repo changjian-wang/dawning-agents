@@ -174,4 +174,130 @@ public class CircuitBreakerTests
 
         breaker.FailureCount.Should().Be(0);
     }
+
+    [Fact]
+    public void CircuitBreakerOpenException_ParameterlessConstructor_Works()
+    {
+        var ex = new CircuitBreakerOpenException();
+
+        ex.Message.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void CircuitBreakerOpenException_InnerException_IsPreserved()
+    {
+        var inner = new InvalidOperationException("inner");
+        var ex = new CircuitBreakerOpenException("outer", inner);
+
+        ex.InnerException.Should().BeSameAs(inner);
+    }
+
+    [Fact]
+    public void Constructor_ZeroThreshold_Throws()
+    {
+        var act = () => new CircuitBreaker(failureThreshold: 0);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_NegativeThreshold_Throws()
+    {
+        var act = () => new CircuitBreaker(failureThreshold: -1);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_ZeroResetTimeout_Throws()
+    {
+        var act = () => new CircuitBreaker(resetTimeout: TimeSpan.Zero);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_NegativeResetTimeout_Throws()
+    {
+        var act = () => new CircuitBreaker(resetTimeout: TimeSpan.FromSeconds(-1));
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public async Task HalfOpen_OnlyAllowsOneTrialRequest()
+    {
+        var fakeTime = new FakeTimeProvider();
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromSeconds(10),
+            timeProvider: fakeTime
+        );
+
+        // Open the circuit
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        );
+        breaker.State.Should().Be(CircuitState.Open);
+
+        // Transition to HalfOpen
+        fakeTime.Advance(TimeSpan.FromSeconds(11));
+
+        // First request in HalfOpen: start a slow trial that we can control
+        var trialStarted = new TaskCompletionSource();
+        var trialGate = new TaskCompletionSource();
+        var trialTask = Task.Run(async () =>
+        {
+            await breaker.ExecuteAsync(async () =>
+            {
+                trialStarted.SetResult();
+                await trialGate.Task;
+                return 42;
+            });
+        });
+
+        // Wait for trial to actually enter ExecuteAsync
+        await trialStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        // Second concurrent request should be rejected
+        await Assert.ThrowsAsync<CircuitBreakerOpenException>(() =>
+            breaker.ExecuteAsync(() => Task.FromResult(99))
+        );
+
+        // Let the trial complete successfully
+        trialGate.SetResult();
+        await trialTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        // Circuit should be closed now
+        breaker.State.Should().Be(CircuitState.Closed);
+    }
+
+    [Fact]
+    public async Task HalfOpen_FailedTrial_AllowsRetryAfterTimeout()
+    {
+        var fakeTime = new FakeTimeProvider();
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromSeconds(10),
+            timeProvider: fakeTime
+        );
+
+        // Open the circuit
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        );
+
+        // Transition to HalfOpen
+        fakeTime.Advance(TimeSpan.FromSeconds(11));
+
+        // Trial request fails → circuit opens again
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("still bad"))
+        );
+        breaker.State.Should().Be(CircuitState.Open);
+
+        // Wait for another reset timeout
+        fakeTime.Advance(TimeSpan.FromSeconds(11));
+
+        // New trial should be allowed
+        var result = await breaker.ExecuteAsync(() => Task.FromResult(42));
+        result.Should().Be(42);
+        breaker.State.Should().Be(CircuitState.Closed);
+    }
 }

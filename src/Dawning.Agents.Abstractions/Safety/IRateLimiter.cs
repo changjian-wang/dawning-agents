@@ -63,8 +63,15 @@ public interface ITokenRateLimiter
     /// </summary>
     /// <param name="sessionId">会话 ID</param>
     /// <param name="tokenCount">Token 数量</param>
-    /// <returns>是否允许</returns>
-    bool TryUseTokens(string sessionId, int tokenCount);
+    /// <returns>限制结果</returns>
+    TokenRateLimitResult TryUseTokens(string sessionId, int tokenCount);
+
+    /// <summary>
+    /// 检查会话是否仍有 Token 预算（不消耗 Token）
+    /// </summary>
+    /// <param name="sessionId">会话 ID</param>
+    /// <returns>是否有剩余预算</returns>
+    bool HasBudget(string sessionId);
 
     /// <summary>
     /// 获取会话已使用的 Token 数
@@ -176,6 +183,33 @@ public record RateLimitResult
 }
 
 /// <summary>
+/// Token 速率限制结果
+/// </summary>
+public record TokenRateLimitResult
+{
+    /// <summary>
+    /// 是否允许
+    /// </summary>
+    public bool IsAllowed { get; init; }
+
+    /// <summary>
+    /// 拒绝原因
+    /// </summary>
+    public RateLimitDenyReason DenyReason { get; init; }
+
+    /// <summary>
+    /// 创建允许结果
+    /// </summary>
+    public static TokenRateLimitResult Allow() => new() { IsAllowed = true };
+
+    /// <summary>
+    /// 创建拒绝结果
+    /// </summary>
+    public static TokenRateLimitResult Deny(RateLimitDenyReason reason) =>
+        new() { IsAllowed = false, DenyReason = reason };
+}
+
+/// <summary>
 /// 速率限制状态
 /// </summary>
 public record RateLimitStatus
@@ -247,6 +281,16 @@ public class RateLimitOptions : IValidatableOptions
     public TimeSpan BackpressureTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
+    /// 空闲桶清理间隔
+    /// </summary>
+    public TimeSpan EvictionInterval { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Token 桶空闲超时（超过此时间未访问的 Token 桶将被清理）
+    /// </summary>
+    public TimeSpan TokenIdleTimeout { get; set; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
     /// 最大桶数（防止内存膨胀）
     /// </summary>
     public int MaxBuckets { get; set; } = 10_000;
@@ -284,21 +328,33 @@ public class RateLimitOptions : IValidatableOptions
             throw new InvalidOperationException("MaxBuckets must be greater than 0.");
         }
 
+        if (EvictionInterval <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("EvictionInterval must be greater than zero.");
+        }
+
+        if (TokenIdleTimeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("TokenIdleTimeout must be greater than zero.");
+        }
+
+        if (EnableBackpressure && BackpressureTimeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "BackpressureTimeout must be greater than zero when backpressure is enabled."
+            );
+        }
+
+        if (MaxTokensPerRequest > MaxTokensPerSession)
+        {
+            throw new InvalidOperationException(
+                "MaxTokensPerRequest must not exceed MaxTokensPerSession."
+            );
+        }
+
         foreach (var (name, policy) in Policies)
         {
-            if (policy.MaxRequestsPerWindow <= 0)
-            {
-                throw new InvalidOperationException(
-                    $"Policy '{name}': MaxRequestsPerWindow must be greater than 0."
-                );
-            }
-
-            if (policy.WindowSize <= TimeSpan.Zero)
-            {
-                throw new InvalidOperationException(
-                    $"Policy '{name}': WindowSize must be greater than zero."
-                );
-            }
+            policy.Validate(name);
         }
     }
 }
@@ -317,4 +373,25 @@ public class RateLimitPolicy
     /// 时间窗口大小
     /// </summary>
     public TimeSpan WindowSize { get; set; }
+
+    /// <summary>
+    /// 校验策略参数
+    /// </summary>
+    /// <param name="name">策略名称（用于错误消息）</param>
+    public void Validate(string name)
+    {
+        if (MaxRequestsPerWindow <= 0)
+        {
+            throw new InvalidOperationException(
+                $"Policy '{name}': MaxRequestsPerWindow must be greater than 0."
+            );
+        }
+
+        if (WindowSize <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                $"Policy '{name}': WindowSize must be greater than zero."
+            );
+        }
+    }
 }

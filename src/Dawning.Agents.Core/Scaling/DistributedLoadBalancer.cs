@@ -158,6 +158,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     /// </summary>
     public void StartWatching(string serviceName)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         if (_serviceRegistry == null)
         {
             return;
@@ -323,6 +324,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     /// <inheritdoc />
     public AgentInstance? GetLeastLoadedInstance()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterReadLock();
         try
         {
@@ -337,6 +339,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     /// <inheritdoc />
     public IReadOnlyList<AgentInstance> GetAllInstances()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterReadLock();
         try
         {
@@ -353,6 +356,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     {
         get
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _lock.EnterReadLock();
             try
             {
@@ -374,6 +378,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var triedInstances = new HashSet<string>();
 
         for (int i = 0; i <= _options.FailoverRetries; i++)
@@ -413,6 +418,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     /// </summary>
     public void UpdateInstanceHealth(string instanceId, bool isHealthy)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterWriteLock();
         try
         {
@@ -434,6 +440,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     /// </summary>
     public void UpdateInstanceLoad(string instanceId, int activeRequests)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _lock.EnterWriteLock();
         try
         {
