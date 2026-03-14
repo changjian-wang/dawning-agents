@@ -84,7 +84,6 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
         try
         {
             var metrics = await _metricsProvider().ConfigureAwait(false);
-
             int currentSnapshot;
             int newCount;
             ScalingDecision decision;
@@ -122,7 +121,14 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
         }
         finally
         {
-            _evaluateLock.Release();
+            try
+            {
+                _evaluateLock.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Dispose() was called concurrently — safe to ignore
+            }
         }
     }
 

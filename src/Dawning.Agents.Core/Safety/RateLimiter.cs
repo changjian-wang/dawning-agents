@@ -254,12 +254,24 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     internal void EvictIdleBuckets()
     {
         var now = _timeProvider.GetUtcNow();
-        var defaultWindowSize = _options.WindowSize;
+
+        // Use the maximum window size across default + all named policies.
+        // Using only the default window would prematurely evict timestamps
+        // for policies with larger windows, effectively bypassing their limits.
+        var maxWindowSize = _options.WindowSize;
+        foreach (var policy in _options.Policies.Values)
+        {
+            if (policy.WindowSize > maxWindowSize)
+            {
+                maxWindowSize = policy.WindowSize;
+            }
+        }
+
         var keysToRemove = new List<string>();
 
         foreach (var kvp in _buckets)
         {
-            kvp.Value.CleanupExpired(now, defaultWindowSize);
+            kvp.Value.CleanupExpired(now, maxWindowSize);
             if (kvp.Value.Count == 0)
             {
                 keysToRemove.Add(kvp.Key);

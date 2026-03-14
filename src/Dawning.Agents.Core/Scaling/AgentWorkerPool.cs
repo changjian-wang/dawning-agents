@@ -88,6 +88,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
             _isRunning = false;
             snapshot = [.. _workers];
+            _workers.Clear();
             runCts = _runCts;
             _runCts = null;
         }
@@ -112,11 +113,6 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         catch (OperationCanceledException)
         {
             _logger.LogWarning("工作池停止被取消");
-        }
-
-        lock (_lock)
-        {
-            _workers.Clear();
         }
 
         runCts?.Dispose();
