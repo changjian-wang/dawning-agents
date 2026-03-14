@@ -220,6 +220,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         try
         {
             _database.KeyDelete(fullKey);
+            _database.KeyDelete(GetSlidingMetadataKey(fullKey));
             _logger.LogDebug("Cache removed: {Key}", fullKey);
         }
         catch (Exception ex)
@@ -239,6 +240,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         try
         {
             await _database.KeyDeleteAsync(fullKey).ConfigureAwait(false);
+            await _database.KeyDeleteAsync(GetSlidingMetadataKey(fullKey)).ConfigureAwait(false);
             _logger.LogDebug("Cache removed: {Key}", fullKey);
         }
         catch (Exception ex)

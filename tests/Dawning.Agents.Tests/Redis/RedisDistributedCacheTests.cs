@@ -188,14 +188,14 @@ public sealed class RedisDistributedCacheTests
         // Act
         cache.Remove(key);
 
-        // Assert
+        // Assert — main key and sliding metadata key both deleted
         _databaseMock.Verify(
             d =>
                 d.KeyDelete(
                     It.Is<RedisKey>(k => k.ToString().Contains(key)),
                     It.IsAny<CommandFlags>()
                 ),
-            Times.Once
+            Times.Exactly(2)
         );
     }
 
@@ -213,14 +213,14 @@ public sealed class RedisDistributedCacheTests
         // Act
         await cache.RemoveAsync(key);
 
-        // Assert
+        // Assert — main key and sliding metadata key both deleted
         _databaseMock.Verify(
             d =>
                 d.KeyDeleteAsync(
                     It.Is<RedisKey>(k => k.ToString().Contains(key)),
                     It.IsAny<CommandFlags>()
                 ),
-            Times.Once
+            Times.Exactly(2)
         );
     }
 
