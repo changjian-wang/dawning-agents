@@ -245,26 +245,32 @@ public class RoutingLLMProvider : ILLMProvider
                 provider.Name
             );
 
-            try
-            {
-                var stream = provider.ChatStreamEventsAsync(
+            // 异步迭代器的 try/catch 无法捕获延迟执行的错误，
+            // 必须通过 TryGetEventStreamAsync 探测首个元素以检测实际错误
+            var (stream, error) = await TryGetEventStreamAsync(
+                    provider,
                     messageList,
                     options,
                     cancellationToken
-                );
+                )
+                .ConfigureAwait(false);
+
+            if (stream != null)
+            {
                 successfulStream = WrapEventStreamWithReporting(stream, provider, messageList);
                 break;
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+
+            if (error != null)
             {
                 _logger.LogWarning(
-                    ex,
+                    error,
                     "事件流提供者 {Provider} 初始化失败，尝试故障转移",
                     provider.Name
                 );
-                _router.ReportResult(provider, ModelCallResult.Failed(ex.Message, 0));
+                _router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
                 excludedProviders.Add(provider.Name);
-                lastException = ex;
+                lastException = error;
             }
         }
 
@@ -293,14 +299,95 @@ public class RoutingLLMProvider : ILLMProvider
     {
         try
         {
-            // 首先验证提供者是否可用（通过获取枚举器）
             var stream = provider.ChatStreamAsync(messages, options, cancellationToken);
-            return (stream, null);
+            // 异步迭代器方法在调用时不执行任何代码，错误延迟到首次 MoveNextAsync，
+            // 因此必须通过 ProbeStreamAsync 探测首个元素以检测连接/认证错误
+            return await ProbeStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return (null, ex);
         }
+    }
+
+    private async Task<(
+        IAsyncEnumerable<StreamingChatEvent>? Stream,
+        Exception? Error
+    )> TryGetEventStreamAsync(
+        ILLMProvider provider,
+        IReadOnlyList<ChatMessage> messages,
+        ChatCompletionOptions? options,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            var stream = provider.ChatStreamEventsAsync(messages, options, cancellationToken);
+            return await ProbeStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return (null, ex);
+        }
+    }
+
+    /// <summary>
+    /// 探测异步流的首个元素，用于在迭代前检测提供者连接/认证错误。
+    /// 成功时返回包含首个元素 + 剩余流的组合流；失败时返回异常。
+    /// </summary>
+    private static async Task<(IAsyncEnumerable<T>? Stream, Exception? Error)> ProbeStreamAsync<T>(
+        IAsyncEnumerable<T> source,
+        CancellationToken cancellationToken
+    )
+    {
+        var enumerator = source.GetAsyncEnumerator(cancellationToken);
+        var ownershipTransferred = false;
+        try
+        {
+            if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                return (EmptyAsyncEnumerable<T>(), null);
+            }
+
+            ownershipTransferred = true;
+            return (PrependAsync(enumerator.Current, enumerator), null);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return (null, ex);
+        }
+        finally
+        {
+            if (!ownershipTransferred)
+            {
+                await enumerator.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 将已获取的首个元素与剩余枚举器合并为单一异步流。
+    /// 调用方通过 ProbeStreamAsync 获取 first 后，所有权转移给本方法负责 Dispose。
+    /// </summary>
+    private static async IAsyncEnumerable<T> PrependAsync<T>(T first, IAsyncEnumerator<T> remaining)
+    {
+        try
+        {
+            yield return first;
+            while (await remaining.MoveNextAsync().ConfigureAwait(false))
+            {
+                yield return remaining.Current;
+            }
+        }
+        finally
+        {
+            await remaining.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    private static async IAsyncEnumerable<T> EmptyAsyncEnumerable<T>()
+    {
+        yield break;
     }
 
     private async IAsyncEnumerable<string> WrapStreamWithReporting(

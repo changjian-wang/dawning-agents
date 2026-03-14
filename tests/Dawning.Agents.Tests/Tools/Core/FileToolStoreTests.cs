@@ -264,4 +264,16 @@ public class FileToolStoreTests : IDisposable
             Script = "echo test",
         };
     }
+
+    [Theory]
+    [InlineData("../../../etc/passwd")]
+    [InlineData("foo/../../../bar")]
+    public async Task SaveToolAsync_PathTraversal_ShouldThrow(string maliciousName)
+    {
+        var definition = CreateDefinition(maliciousName);
+
+        var act = () => _store.SaveToolAsync(definition, ToolScope.Global);
+
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*path traversal*");
+    }
 }
