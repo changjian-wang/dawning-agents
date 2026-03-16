@@ -173,4 +173,59 @@ public class DefaultAgentEvaluatorCancellationTests
             return RunAsync(context.UserInput, cancellationToken);
         }
     }
+
+    /// <summary>
+    /// Agent that delays so we can test cancellation during batch evaluation.
+    /// </summary>
+    private sealed class DelayedAgent : IAgent
+    {
+        public string Name => "delayed-agent";
+
+        public string Instructions => "test";
+
+        public async Task<AgentResponse> RunAsync(
+            string input,
+            CancellationToken cancellationToken = default
+        )
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+            return AgentResponse.Successful("ok", [], TimeSpan.Zero);
+        }
+
+        public Task<AgentResponse> RunAsync(
+            AgentContext context,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return RunAsync(context.UserInput, cancellationToken);
+        }
+    }
+
+    [Fact]
+    public async Task EvaluateBatchAsync_ExternalCancellation_ShouldPropagate_NotSwallowed()
+    {
+        // Arrange: use a delayed agent so the batch is still running when we cancel
+        var evaluator = new DefaultAgentEvaluator(
+            new DelayedAgent(),
+            Options.Create(
+                new EvaluationOptions
+                {
+                    TestTimeoutSeconds = 30,
+                    ContinueOnFailure = false,
+                    MaxConcurrency = 2,
+                }
+            )
+        );
+
+        var testCases = Enumerable
+            .Range(0, 5)
+            .Select(i => new EvaluationTestCase { Id = $"batch-{i}", Input = $"input-{i}" });
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+        // Act & Assert: external cancellation must propagate as OperationCanceledException
+        var act = async () => await evaluator.EvaluateBatchAsync(testCases, cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
 }

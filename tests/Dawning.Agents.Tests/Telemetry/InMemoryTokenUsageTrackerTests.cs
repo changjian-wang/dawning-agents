@@ -181,4 +181,56 @@ public class InMemoryTokenUsageTrackerTests
         _tracker.TotalPromptTokens.Should().Be(expectedTotal * promptTokens);
         _tracker.TotalCompletionTokens.Should().Be(expectedTotal * completionTokens);
     }
+
+    [Fact]
+    public async Task ThreadSafety_GetRecordsDuringPartialReset_ShouldReturnConsistentSnapshot()
+    {
+        // Arrange: populate with two sources so partial reset rebuilds the bag
+        for (int i = 0; i < 200; i++)
+        {
+            _tracker.Record(TokenUsageRecord.Create("KeepMe", 10, 5, sessionId: "s1"));
+            _tracker.Record(TokenUsageRecord.Create("RemoveMe", 20, 10, sessionId: "s2"));
+        }
+
+        var exceptions = new System.Collections.Concurrent.ConcurrentBag<Exception>();
+
+        // Act: read GetRecords while Reset(source) is running concurrently
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var readerTask = Task.Run(() =>
+        {
+            while (!cts.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    var records = _tracker.GetRecords(source: "KeepMe");
+                    // Each record returned must belong to the requested source
+                    foreach (var r in records)
+                    {
+                        r.Source.Should().Be("KeepMe");
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+        });
+
+        var writerTask = Task.Run(() =>
+        {
+            while (!cts.Token.IsCancellationRequested)
+            {
+                // Partial reset removes "RemoveMe" and rebuilds the bag
+                _tracker.Reset(source: "RemoveMe");
+                // Re-add some records
+                _tracker.Record(TokenUsageRecord.Create("RemoveMe", 20, 10, sessionId: "s2"));
+            }
+        });
+
+        await Task.WhenAll(readerTask, writerTask);
+
+        // Assert: no exceptions during concurrent read+reset
+        exceptions.Should().BeEmpty();
+    }
 }

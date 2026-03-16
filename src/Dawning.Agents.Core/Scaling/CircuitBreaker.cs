@@ -101,7 +101,8 @@ public sealed class CircuitBreaker : ICircuitBreaker
         }
         catch (OperationCanceledException)
         {
-            // 取消操作不计入失败，但需要重置半开试探标识
+            // 取消操作不计入失败，但必须释放 HalfOpen 试探锁
+            // 否则 _halfOpenTrialActive 永远为 true，熔断器永久卡死
             lock (_lock)
             {
                 _halfOpenTrialActive = false;

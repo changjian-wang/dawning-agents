@@ -130,7 +130,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         var resetTime = now.Add(windowSize);
 
         // 原子操作：清理 + 检查 + 添加 在同一个锁内完成
-        var result = bucket.TryAcquire(now, maxRequests);
+        var result = bucket.TryAcquire(now, maxRequests, windowSize);
 
         if (!result.Allowed)
         {
@@ -220,7 +220,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         if (_buckets.TryGetValue(key, out var bucket))
         {
-            bucket.CleanupExpired(now);
+            bucket.CleanupExpired(now, windowSize);
 
             return new RateLimitStatus
             {
@@ -254,11 +254,24 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     internal void EvictIdleBuckets()
     {
         var now = _timeProvider.GetUtcNow();
+
+        // Use the maximum window size across default + all named policies.
+        // Using only the default window would prematurely evict timestamps
+        // for policies with larger windows, effectively bypassing their limits.
+        var maxWindowSize = _options.WindowSize;
+        foreach (var policy in _options.Policies.Values)
+        {
+            if (policy.WindowSize > maxWindowSize)
+            {
+                maxWindowSize = policy.WindowSize;
+            }
+        }
+
         var keysToRemove = new List<string>();
 
         foreach (var kvp in _buckets)
         {
-            kvp.Value.CleanupExpired(now);
+            kvp.Value.CleanupExpired(now, maxWindowSize);
             if (kvp.Value.Count == 0)
             {
                 keysToRemove.Add(kvp.Key);
@@ -291,13 +304,13 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     /// </summary>
     private class RateLimitBucket
     {
-        private readonly TimeSpan _windowSize;
         private readonly Lock _lock = new();
         private readonly List<DateTimeOffset> _timestamps = [];
 
         public RateLimitBucket(TimeSpan windowSize)
         {
-            _windowSize = windowSize;
+            // windowSize kept in constructor signature for API compat but not stored;
+            // callers pass the window per-call to handle multi-policy keys correctly.
         }
 
         public int Count
@@ -316,12 +329,13 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         /// </summary>
         public (bool Allowed, int Count, DateTimeOffset OldestTimestamp) TryAcquire(
             DateTimeOffset now,
-            int maxRequests
+            int maxRequests,
+            TimeSpan windowSize
         )
         {
             lock (_lock)
             {
-                var cutoff = now - _windowSize;
+                var cutoff = now - windowSize;
                 _timestamps.RemoveAll(t => t < cutoff);
 
                 if (_timestamps.Count >= maxRequests)
@@ -335,9 +349,9 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
             }
         }
 
-        public void CleanupExpired(DateTimeOffset now)
+        public void CleanupExpired(DateTimeOffset now, TimeSpan windowSize)
         {
-            var cutoff = now - _windowSize;
+            var cutoff = now - windowSize;
 
             lock (_lock)
             {

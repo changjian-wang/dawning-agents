@@ -172,7 +172,7 @@ public sealed class FileToolStore : IToolStore
     {
         var fullDir = Path.GetFullPath(directory);
         var filePath = Path.GetFullPath(Path.Combine(directory, $"{name}{ToolFileExtension}"));
-        if (!filePath.StartsWith(fullDir, StringComparison.OrdinalIgnoreCase))
+        if (!filePath.StartsWith(fullDir, StringComparison.Ordinal))
         {
             throw new ArgumentException("Invalid tool name: path traversal detected", nameof(name));
         }

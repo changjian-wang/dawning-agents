@@ -88,6 +88,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
             _isRunning = false;
             snapshot = [.. _workers];
+            _workers.Clear();
             runCts = _runCts;
             _runCts = null;
         }
