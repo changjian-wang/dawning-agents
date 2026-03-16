@@ -105,6 +105,9 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         _serviceRegistry = serviceRegistry;
         _options = options?.Value ?? new DistributedLoadBalancerOptions();
         _logger = logger ?? NullLogger<DistributedLoadBalancer>.Instance;
+
+        ArgumentOutOfRangeException.ThrowIfNegative(_options.FailoverRetries);
+        ArgumentOutOfRangeException.ThrowIfNegative(_options.VirtualNodeCount);
     }
 
     /// <summary>

@@ -114,11 +114,6 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _logger.LogWarning("工作池停止被取消");
         }
 
-        lock (_lock)
-        {
-            _workers.Clear();
-        }
-
         runCts?.Dispose();
 
         _logger.LogInformation("工作池已停止");

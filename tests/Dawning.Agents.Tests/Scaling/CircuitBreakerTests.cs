@@ -300,4 +300,61 @@ public class CircuitBreakerTests
         result.Should().Be(42);
         breaker.State.Should().Be(CircuitState.Closed);
     }
+
+    [Fact]
+    public async Task HalfOpen_CancelledTrial_AllowsNewTrial()
+    {
+        var fakeTime = new FakeTimeProvider();
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromSeconds(10),
+            timeProvider: fakeTime
+        );
+
+        // Open the circuit
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        );
+
+        // Transition to HalfOpen
+        fakeTime.Advance(TimeSpan.FromSeconds(11));
+
+        // Trial is cancelled
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            breaker.ExecuteAsync(() => Task.FromResult(42), cts.Token)
+        );
+
+        // _halfOpenTrialActive should be cleared, new trial should be allowed
+        breaker.State.Should().Be(CircuitState.HalfOpen);
+        var result = await breaker.ExecuteAsync(() => Task.FromResult(99));
+        result.Should().Be(99);
+        breaker.State.Should().Be(CircuitState.Closed);
+    }
+
+    [Fact]
+    public async Task Reset_ClearsHalfOpenTrialActive()
+    {
+        var fakeTime = new FakeTimeProvider();
+        var breaker = new CircuitBreaker(
+            failureThreshold: 1,
+            resetTimeout: TimeSpan.FromSeconds(10),
+            timeProvider: fakeTime
+        );
+
+        // Open → HalfOpen
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            breaker.ExecuteAsync<int>(() => throw new InvalidOperationException("fail"))
+        );
+        fakeTime.Advance(TimeSpan.FromSeconds(11));
+
+        // Reset while in HalfOpen
+        breaker.Reset();
+        breaker.State.Should().Be(CircuitState.Closed);
+
+        // Should work normally (no stale _halfOpenTrialActive blocking)
+        var result = await breaker.ExecuteAsync(() => Task.FromResult(42));
+        result.Should().Be(42);
+    }
 }

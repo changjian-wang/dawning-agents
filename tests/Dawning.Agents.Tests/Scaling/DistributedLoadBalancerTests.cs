@@ -611,4 +611,20 @@ public class DistributedLoadBalancerServiceRegistryIntegrationTests : IDisposabl
             await balancerWithoutRegistry.SyncFromServiceRegistryAsync("test-service");
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public void Constructor_NegativeFailoverRetries_Throws()
+    {
+        var options = Options.Create(new DistributedLoadBalancerOptions { FailoverRetries = -1 });
+        var act = () => new DistributedLoadBalancer(options: options);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_NegativeVirtualNodeCount_Throws()
+    {
+        var options = Options.Create(new DistributedLoadBalancerOptions { VirtualNodeCount = -1 });
+        var act = () => new DistributedLoadBalancer(options: options);
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
 }

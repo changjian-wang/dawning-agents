@@ -92,17 +92,20 @@ public sealed class CircuitBreaker : ICircuitBreaker
             }
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await action().ConfigureAwait(false);
             OnSuccess();
             return result;
         }
         catch (OperationCanceledException)
         {
-            // 取消操作不计入失败
+            // 取消操作不计入失败，但需要重置半开试探标识
+            lock (_lock)
+            {
+                _halfOpenTrialActive = false;
+            }
             throw;
         }
         catch (Exception ex) when (ex is not CircuitBreakerOpenException)
@@ -132,6 +135,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
         lock (_lock)
         {
             _failureCount = 0;
+            _halfOpenTrialActive = false;
             _state = CircuitState.Closed;
             _logger.LogInformation("熔断器已重置");
         }
