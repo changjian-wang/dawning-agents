@@ -23,7 +23,8 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         ILogger<DefaultAgentEvaluator>? logger = null
     )
     {
-        _agent = agent;
+        _agent = agent ?? throw new ArgumentNullException(nameof(agent));
+        ArgumentNullException.ThrowIfNull(options);
         _options = options.Value;
         _logger =
             logger

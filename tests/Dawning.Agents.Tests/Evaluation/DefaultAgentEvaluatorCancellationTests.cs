@@ -10,6 +10,22 @@ using Xunit;
 public class DefaultAgentEvaluatorCancellationTests
 {
     [Fact]
+    public void Constructor_NullAgent_Throws()
+    {
+        var act = () =>
+            new DefaultAgentEvaluator(null!, Options.Create(new EvaluationOptions()));
+        act.Should().Throw<ArgumentNullException>().WithParameterName("agent");
+    }
+
+    [Fact]
+    public void Constructor_NullOptions_Throws()
+    {
+        var act = () =>
+            new DefaultAgentEvaluator(new FastAgent(), null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("options");
+    }
+
+    [Fact]
     public async Task EvaluateAsync_Should_Propagate_External_Cancellation()
     {
         var evaluator = new DefaultAgentEvaluator(
