@@ -39,6 +39,9 @@ public sealed class MCPServer : IAsyncDisposable
         ILogger<MCPServer>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(toolRegistry);
+        ArgumentNullException.ThrowIfNull(transport);
         _options = options.Value;
         _toolRegistry = toolRegistry;
         _transport = transport;

@@ -8,6 +8,17 @@ public class FileSystemResourceProviderTests : IDisposable
 {
     private readonly string _testDir;
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Constructor_NullOrWhiteSpaceRootPath_Throws(string? rootPath)
+    {
+        var act = () => new FileSystemResourceProvider(rootPath!);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
     public FileSystemResourceProviderTests()
     {
         _testDir = Path.Combine(Path.GetTempPath(), $"mcp_test_{Guid.NewGuid():N}");

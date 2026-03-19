@@ -16,6 +16,14 @@ public class PollyResilienceProviderTests
     }
 
     [Fact]
+    public void Constructor_NullOptions_ThrowsArgumentNullException()
+    {
+        var act = () => new PollyResilienceProvider(null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("options");
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithSuccessfulOperation_ReturnsResult()
     {
         // Arrange

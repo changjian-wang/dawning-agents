@@ -34,6 +34,8 @@ public sealed class StdioTransport : IMCPTransport
         ILogger<StdioTransport>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(inputStream);
+        ArgumentNullException.ThrowIfNull(outputStream);
         _inputStream = inputStream;
         _outputStream = outputStream;
         _logger =

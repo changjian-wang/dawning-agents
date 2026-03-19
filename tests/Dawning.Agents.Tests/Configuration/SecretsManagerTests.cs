@@ -5,6 +5,14 @@ using FluentAssertions;
 
 public class SecretsManagerTests
 {
+    [Fact]
+    public void CompositeSecretsManager_NullManagers_ThrowsArgumentNullException()
+    {
+        var act = () => new CompositeSecretsManager(null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("managers");
+    }
+
     // 辅助方法：生成测试用的环境变量名（大写，与 NormalizeEnvName 一致）
     private static string GenerateTestKey() =>
         "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N").ToUpperInvariant();

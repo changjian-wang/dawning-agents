@@ -62,7 +62,9 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         }
         catch (ChannelClosedException)
         {
-            return null;
+            // 队列已关闭，抛出取消异常让调用方（worker loop）退出，
+            // 避免返回 null 导致 busy-loop
+            throw new OperationCanceledException("请求队列已关闭");
         }
     }
 

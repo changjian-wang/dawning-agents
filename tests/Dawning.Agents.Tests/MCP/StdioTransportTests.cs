@@ -7,6 +7,24 @@ using Microsoft.Extensions.Logging.Abstractions;
 public sealed class StdioTransportTests
 {
     [Fact]
+    public void Constructor_NullInputStream_ThrowsArgumentNullException()
+    {
+        using var output = new MemoryStream();
+        var act = () => new StdioTransport(null!, output);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("inputStream");
+    }
+
+    [Fact]
+    public void Constructor_NullOutputStream_ThrowsArgumentNullException()
+    {
+        using var input = new MemoryStream();
+        var act = () => new StdioTransport(input, null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("outputStream");
+    }
+
+    [Fact]
     public async Task StartAsync_WhenStartupTokenCanceledLater_ShouldRemainConnected()
     {
         using var input = new BlockingReadStream();

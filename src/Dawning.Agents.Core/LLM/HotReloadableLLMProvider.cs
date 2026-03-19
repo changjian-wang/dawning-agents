@@ -140,6 +140,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
                 if (oldProvider is IDisposable disposable)
                 {
                     _retiredProviders.Add(disposable);
+                    _ = DisposeAfterGracePeriodAsync(disposable);
                 }
             }
 
@@ -174,6 +175,33 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         var logger = _loggerFactory.CreateLogger<OllamaProvider>();
 
         return new OllamaProvider(httpClient, options.Model, logger);
+    }
+
+    private async Task DisposeAfterGracePeriodAsync(IDisposable disposable)
+    {
+        try
+        {
+            // 等待足够长的时间让正在进行的请求完成
+            await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+
+            lock (_lock)
+            {
+                if (_disposed)
+                {
+                    // 已通过 Dispose() 统一清理，无需重复释放
+                    return;
+                }
+
+                _retiredProviders.Remove(disposable);
+            }
+
+            disposable.Dispose();
+            _logger.LogDebug("已释放旧 LLM Provider 实例");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "释放旧 LLM Provider 实例时出错");
+        }
     }
 
     public void Dispose()

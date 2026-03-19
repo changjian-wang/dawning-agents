@@ -16,6 +16,7 @@ public class RedisHealthCheck : IHealthCheck
 
     public RedisHealthCheck(IConnectionMultiplexer redis, ILogger<RedisHealthCheck>? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(redis);
         _redis = redis;
         _logger =
             logger

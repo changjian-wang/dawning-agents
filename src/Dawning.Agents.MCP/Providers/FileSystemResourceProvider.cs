@@ -23,6 +23,7 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
         ILogger<FileSystemResourceProvider>? logger = null
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(rootPath);
         _rootPath = Path.GetFullPath(rootPath);
         // 确保以目录分隔符结尾，防止 StartsWith 匹配同前缀的其他目录
         if (!_rootPath.EndsWith(Path.DirectorySeparatorChar))

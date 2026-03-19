@@ -32,6 +32,7 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
         ILogger<PollyResilienceProvider>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(options);
         _logger = logger ?? NullLogger<PollyResilienceProvider>.Instance;
 
         var resilienceOptions = options.Value;

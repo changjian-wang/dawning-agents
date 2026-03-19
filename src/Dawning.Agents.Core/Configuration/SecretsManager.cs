@@ -176,6 +176,7 @@ public class CompositeSecretsManager : ISecretsManager
         ILogger<CompositeSecretsManager>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(managers);
         _managers = managers.ToList();
         _logger = logger ?? NullLogger<CompositeSecretsManager>.Instance;
     }

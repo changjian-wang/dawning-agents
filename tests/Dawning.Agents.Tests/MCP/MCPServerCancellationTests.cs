@@ -12,6 +12,29 @@ using Xunit;
 public class MCPServerCancellationTests
 {
     [Fact]
+    public void Constructor_NullOptions_ThrowsArgumentNullException()
+    {
+        var act = () => new MCPServer(null!, new StubToolReader([]), new NoopTransport());
+        act.Should().Throw<ArgumentNullException>().WithParameterName("options");
+    }
+
+    [Fact]
+    public void Constructor_NullToolRegistry_ThrowsArgumentNullException()
+    {
+        var options = Options.Create(new MCPServerOptions());
+        var act = () => new MCPServer(options, null!, new NoopTransport());
+        act.Should().Throw<ArgumentNullException>().WithParameterName("toolRegistry");
+    }
+
+    [Fact]
+    public void Constructor_NullTransport_ThrowsArgumentNullException()
+    {
+        var options = Options.Create(new MCPServerOptions());
+        var act = () => new MCPServer(options, new StubToolReader([]), null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("transport");
+    }
+
+    [Fact]
     public async Task HandleToolsCallAsync_Should_Return_Cancelled_When_External_Cancellation_Triggered()
     {
         var server = CreateServer(new DelayedTool(), toolTimeoutSeconds: 30);

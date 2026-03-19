@@ -92,6 +92,17 @@ public class AgentRequestQueueTests
     }
 
     [Fact]
+    public async Task DequeueAsync_AfterComplete_ThrowsOperationCanceled()
+    {
+        var queue = new AgentRequestQueue(10);
+        queue.Complete();
+
+        var act = async () => await queue.DequeueAsync();
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
     public void Constructor_ZeroCapacity_Throws()
     {
         var act = () => new AgentRequestQueue(0);
