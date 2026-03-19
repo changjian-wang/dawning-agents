@@ -25,8 +25,8 @@ public class ApprovalWorkflow
         ILogger<ApprovalWorkflow>? logger = null
     )
     {
-        _handler = handler;
-        _config = config;
+        _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
         _options = options?.Value ?? new HumanLoopOptions();
         _logger = logger ?? NullLogger<ApprovalWorkflow>.Instance;
     }

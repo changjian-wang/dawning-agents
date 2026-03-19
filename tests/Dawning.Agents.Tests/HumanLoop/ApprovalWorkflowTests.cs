@@ -367,4 +367,18 @@ public class ApprovalWorkflowTests
         result.IsApproved.Should().BeFalse();
         result.RejectionReason.Should().Contain("审批数量不足");
     }
+
+    [Fact]
+    public void Constructor_NullHandler_Throws()
+    {
+        var act = () => new ApprovalWorkflow(null!, _config);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("handler");
+    }
+
+    [Fact]
+    public void Constructor_NullConfig_Throws()
+    {
+        var act = () => new ApprovalWorkflow(_mockHandler.Object, null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("config");
+    }
 }
