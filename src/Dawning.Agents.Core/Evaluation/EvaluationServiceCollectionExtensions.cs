@@ -24,10 +24,18 @@ public static class EvaluationServiceCollectionExtensions
             EvaluationOptions.SectionName
         );
 
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, KeywordMatchEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, ToolCallAccuracyEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, LatencyEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, ExactMatchEvaluator>());
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, KeywordMatchEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, ToolCallAccuracyEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, LatencyEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, ExactMatchEvaluator>()
+        );
 
         services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();
@@ -53,10 +61,18 @@ public static class EvaluationServiceCollectionExtensions
             services.AddValidatedOptions<EvaluationOptions>(_ => { });
         }
 
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, KeywordMatchEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, ToolCallAccuracyEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, LatencyEvaluator>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, ExactMatchEvaluator>());
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, KeywordMatchEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, ToolCallAccuracyEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, LatencyEvaluator>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMetricEvaluator, ExactMatchEvaluator>()
+        );
 
         services.TryAddScoped<IAgentEvaluator, DefaultAgentEvaluator>();
         services.TryAddSingleton<ABTestRunner>();
@@ -73,9 +89,7 @@ public static class EvaluationServiceCollectionExtensions
     )
         where TEvaluator : class, IMetricEvaluator
     {
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IMetricEvaluator, TEvaluator>()
-        );
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMetricEvaluator, TEvaluator>());
         return services;
     }
 }
