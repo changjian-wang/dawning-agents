@@ -139,6 +139,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         finally
         {
             _watchers.TryRemove(watcherId, out _);
+            channel.Writer.TryComplete();
         }
     }
 

@@ -189,14 +189,23 @@ public sealed class StdioTransport : IMCPTransport
         }
         finally
         {
-            await writer.CompleteAsync().ConfigureAwait(false);
-
+            bool isCurrent;
             lock (_stateLock)
             {
-                if (ReferenceEquals(_readCts, source))
+                isCurrent = ReferenceEquals(_readCts, source);
+                if (isCurrent)
                 {
                     _isConnected = false;
                 }
+            }
+
+            // Only complete the pipe writer if this is still the active reader.
+            // A superseded reader must NOT complete the shared writer, otherwise
+            // the replacement reader's next write operation will throw.
+            // DisposeAsync always calls CompleteAsync as a final fallback.
+            if (isCurrent)
+            {
+                await writer.CompleteAsync().ConfigureAwait(false);
             }
         }
     }
