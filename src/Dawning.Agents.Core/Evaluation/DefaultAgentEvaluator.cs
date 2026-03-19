@@ -147,6 +147,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(testCases);
         var testCaseList = testCases.ToList();
         _logger.LogInformation(
             "Starting batch evaluation of {Count} test cases",

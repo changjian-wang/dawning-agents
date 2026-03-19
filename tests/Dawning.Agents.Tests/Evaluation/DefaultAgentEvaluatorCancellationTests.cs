@@ -24,6 +24,19 @@ public class DefaultAgentEvaluatorCancellationTests
     }
 
     [Fact]
+    public async Task EvaluateBatchAsync_NullTestCases_Throws()
+    {
+        var evaluator = new DefaultAgentEvaluator(
+            new FastAgent(),
+            Options.Create(new EvaluationOptions())
+        );
+
+        var act = async () => await evaluator.EvaluateBatchAsync(null!);
+
+        await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("testCases");
+    }
+
+    [Fact]
     public async Task EvaluateAsync_Should_Propagate_External_Cancellation()
     {
         var evaluator = new DefaultAgentEvaluator(
