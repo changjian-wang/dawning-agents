@@ -452,6 +452,14 @@ public class WorkflowTests
         action.Should().Throw<InvalidOperationException>().WithMessage("*无效*");
     }
 
+    [Fact]
+    public void WorkflowEngine_Constructor_NullServiceProvider_ThrowsArgumentNullException()
+    {
+        var act = () => new WorkflowEngine(null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("serviceProvider");
+    }
+
     #endregion
 
     #region WorkflowContext Tests

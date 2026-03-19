@@ -5,6 +5,7 @@ using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Core.Memory;
 
@@ -29,18 +30,14 @@ public static class MemoryServiceCollectionExtensions
         // 注册 Token 计数器
         services.TryAddSingleton<ITokenCounter>(sp =>
         {
-            var options =
-                configuration.GetSection(MemoryOptions.SectionName).Get<MemoryOptions>()
-                ?? new MemoryOptions();
+            var options = sp.GetRequiredService<IOptions<MemoryOptions>>().Value;
             return new SimpleTokenCounter(options.ModelName, options.MaxContextTokens);
         });
 
         // 根据配置注册 Memory
         services.TryAddScoped<IConversationMemory>(sp =>
         {
-            var options =
-                configuration.GetSection(MemoryOptions.SectionName).Get<MemoryOptions>()
-                ?? new MemoryOptions();
+            var options = sp.GetRequiredService<IOptions<MemoryOptions>>().Value;
             var tokenCounter = sp.GetRequiredService<ITokenCounter>();
 
             return options.Type switch

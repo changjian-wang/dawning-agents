@@ -114,4 +114,12 @@ public class DistributedTracerTests
         // Assert
         span.SpanId.Should().BeEmpty();
     }
+
+    [Fact]
+    public void Constructor_NullConfig_ThrowsArgumentNullException()
+    {
+        var act = () => new DistributedTracer(null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("config");
+    }
 }

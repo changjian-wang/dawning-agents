@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace Dawning.Agents.Redis;
@@ -68,9 +69,7 @@ public static class RedisServiceCollectionExtensions
 
         services.TryAddSingleton<IConnectionMultiplexer>(sp =>
         {
-            var options =
-                configuration.GetSection(RedisOptions.SectionName).Get<RedisOptions>()
-                ?? new RedisOptions();
+            var options = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
 
             options.Validate();
 

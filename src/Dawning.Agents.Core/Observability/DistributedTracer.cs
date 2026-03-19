@@ -16,6 +16,7 @@ public sealed class DistributedTracer : IDisposable
     /// </summary>
     public DistributedTracer(TelemetryConfig config)
     {
+        ArgumentNullException.ThrowIfNull(config);
         _config = config;
         _source = new ActivitySource(config.ServiceName, config.ServiceVersion);
     }

@@ -23,6 +23,7 @@ public class WorkflowEngine : IWorkflowEngine
         ILogger<WorkflowEngine>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         _serviceProvider = serviceProvider;
         _toolRegistry = toolRegistry;
         _logger = logger ?? NullLogger<WorkflowEngine>.Instance;

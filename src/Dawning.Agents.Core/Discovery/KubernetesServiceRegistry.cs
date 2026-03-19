@@ -30,6 +30,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         ILogger<KubernetesServiceRegistry>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
         _httpClient = httpClient;
         _options = options?.Value ?? new KubernetesOptions();
         _logger = logger ?? NullLogger<KubernetesServiceRegistry>.Instance;
