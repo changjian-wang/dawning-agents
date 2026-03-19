@@ -297,4 +297,15 @@ public class CreateToolToolTests
     }
 
     #endregion
+
+    #region Constructor Validation
+
+    [Fact]
+    public void Constructor_NullSession_Throws()
+    {
+        var act = () => new CreateToolTool(null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("session");
+    }
+
+    #endregion
 }

@@ -190,4 +190,11 @@ public class LLMProviderHealthCheckTests
         result.Status.Should().Be(HealthStatus.Unhealthy);
         result.Exception.Should().NotBeNull();
     }
+
+    [Fact]
+    public void Constructor_NullLLMProvider_Throws()
+    {
+        var act = () => new LLMProviderHealthCheck(null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("llmProvider");
+    }
 }

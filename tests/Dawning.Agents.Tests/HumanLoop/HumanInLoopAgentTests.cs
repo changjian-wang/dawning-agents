@@ -397,4 +397,43 @@ public class HumanInLoopAgentTests
             Times.Once
         );
     }
+
+    [Fact]
+    public void Constructor_NullInnerAgent_Throws()
+    {
+        var act = () => new HumanInLoopAgent(null!, _mockHandler.Object);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("innerAgent");
+    }
+
+    [Fact]
+    public void Constructor_NullHandler_Throws()
+    {
+        var act = () => new HumanInLoopAgent(_mockAgent.Object, (IHumanInteractionHandler)null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("handler");
+    }
+
+    [Fact]
+    public void ConstructorWithWorkflow_NullInnerAgent_Throws()
+    {
+        var workflow = new ApprovalWorkflow(_mockHandler.Object, new ApprovalConfig());
+        var act = () => new HumanInLoopAgent(null!, _mockHandler.Object, workflow);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("innerAgent");
+    }
+
+    [Fact]
+    public void ConstructorWithWorkflow_NullHandler_Throws()
+    {
+        var workflow = new ApprovalWorkflow(_mockHandler.Object, new ApprovalConfig());
+        var act = () =>
+            new HumanInLoopAgent(_mockAgent.Object, (IHumanInteractionHandler)null!, workflow);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("handler");
+    }
+
+    [Fact]
+    public void ConstructorWithWorkflow_NullWorkflow_Throws()
+    {
+        var act = () =>
+            new HumanInLoopAgent(_mockAgent.Object, _mockHandler.Object, (ApprovalWorkflow)null!);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("workflow");
+    }
 }

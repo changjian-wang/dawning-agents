@@ -22,6 +22,7 @@ public sealed class CreateToolTool : ITool
     /// </summary>
     public CreateToolTool(IToolSession session, ILogger<CreateToolTool>? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(session);
         _session = session;
         _logger = logger ?? NullLogger<CreateToolTool>.Instance;
     }

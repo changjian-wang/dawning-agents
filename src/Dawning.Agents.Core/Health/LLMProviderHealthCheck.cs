@@ -19,6 +19,7 @@ public class LLMProviderHealthCheck : IHealthCheck
         ILogger<LLMProviderHealthCheck>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(llmProvider);
         _llmProvider = llmProvider;
         _logger =
             logger

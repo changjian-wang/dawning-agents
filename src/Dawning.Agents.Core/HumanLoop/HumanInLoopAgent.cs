@@ -34,6 +34,8 @@ public class HumanInLoopAgent : IAgent
         ILogger<HumanInLoopAgent>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(innerAgent);
+        ArgumentNullException.ThrowIfNull(handler);
         _innerAgent = innerAgent;
         _handler = handler;
         _options = options?.Value ?? new HumanLoopOptions();
@@ -60,6 +62,9 @@ public class HumanInLoopAgent : IAgent
         ILogger<HumanInLoopAgent>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(innerAgent);
+        ArgumentNullException.ThrowIfNull(handler);
+        ArgumentNullException.ThrowIfNull(workflow);
         _innerAgent = innerAgent;
         _handler = handler;
         _workflow = workflow;
