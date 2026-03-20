@@ -111,6 +111,9 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         ILogger<OpenAITTSProvider>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+
         _httpClient = httpClient;
         _apiKey = apiKey;
         _baseUrl = baseUrl.TrimEnd('/');

@@ -11,9 +11,8 @@ public static class HealthServiceCollectionExtensions
     {
         var healthChecks = services.AddHealthChecks();
         healthChecks.AddCheck<AgentHealthCheck>("agent");
+        healthChecks.AddCheck<LLMProviderHealthCheck>("llm-provider");
 
-        services.AddSingleton<IHealthCheck, AgentHealthCheck>();
-        services.AddSingleton<IHealthCheck, LLMProviderHealthCheck>();
         return services;
     }
 }

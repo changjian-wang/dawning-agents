@@ -277,4 +277,30 @@ public class PerformanceProfilerTests
         // Assert
         stats.Should().ContainKey("Tool:web_search");
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void StartOperation_NullOrWhiteSpaceOperationName_ShouldThrow(string? operationName)
+    {
+        var profiler = new PerformanceProfiler();
+
+        var act = () => profiler.StartOperation(operationName!);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("operationName");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void RecordOperation_NullOrWhiteSpaceOperationName_ShouldThrow(string? operationName)
+    {
+        var profiler = new PerformanceProfiler();
+
+        var act = () => profiler.RecordOperation(operationName!, TimeSpan.FromMilliseconds(100));
+
+        act.Should().Throw<ArgumentException>().WithParameterName("operationName");
+    }
 }

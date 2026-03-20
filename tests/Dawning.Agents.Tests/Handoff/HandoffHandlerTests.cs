@@ -303,4 +303,14 @@ public class HandoffHandlerTests
             );
         return mock.Object;
     }
+
+    [Fact]
+    public async Task ExecuteHandoffAsync_NullRequest_ShouldThrow()
+    {
+        // Act
+        var act = () => _handler.ExecuteHandoffAsync(null!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("request");
+    }
 }

@@ -73,6 +73,8 @@ public class HandoffHandler : IHandoffHandler
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         var stopwatch = Stopwatch.StartNew();
         var chain = new List<HandoffRecord>();
 

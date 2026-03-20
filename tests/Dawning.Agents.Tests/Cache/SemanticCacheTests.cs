@@ -75,6 +75,14 @@ public class SemanticCacheTests
         action.Should().Throw<ArgumentNullException>().WithParameterName("embeddingProvider");
     }
 
+    [Fact]
+    public void Constructor_WithNullOptions_ThrowsArgumentNullException()
+    {
+        var action = () => new SemanticCache(_vectorStore, _mockEmbedding.Object, null!);
+
+        action.Should().Throw<ArgumentNullException>().WithParameterName("options");
+    }
+
     #endregion
 
     #region SetAsync Tests

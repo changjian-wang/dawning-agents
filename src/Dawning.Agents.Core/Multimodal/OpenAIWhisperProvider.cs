@@ -64,6 +64,10 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         ILogger<OpenAIWhisperProvider>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(httpClientFactory);
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
         _apiKey = apiKey;

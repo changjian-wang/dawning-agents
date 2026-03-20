@@ -44,7 +44,8 @@ public class SemanticCache : ISemanticCache
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _embeddingProvider =
             embeddingProvider ?? throw new ArgumentNullException(nameof(embeddingProvider));
-        _options = options?.Value ?? new SemanticCacheOptions();
+        ArgumentNullException.ThrowIfNull(options);
+        _options = options.Value;
         _logger = logger ?? NullLogger<SemanticCache>.Instance;
         _namespace = _options.Namespace;
 

@@ -259,6 +259,32 @@ public class AudioTests
     #region OpenAIWhisperProvider Tests
 
     [Fact]
+    public void OpenAIWhisperProvider_NullHttpClient_ShouldThrow()
+    {
+        var factoryMock = new Mock<IHttpClientFactory>();
+        var act = () => new OpenAIWhisperProvider(null!, factoryMock.Object, "test-key");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
+    }
+
+    [Fact]
+    public void OpenAIWhisperProvider_NullHttpClientFactory_ShouldThrow()
+    {
+        var act = () => new OpenAIWhisperProvider(new HttpClient(), null!, "test-key");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("httpClientFactory");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void OpenAIWhisperProvider_InvalidApiKey_ShouldThrow(string? apiKey)
+    {
+        var factoryMock = new Mock<IHttpClientFactory>();
+        var act = () => new OpenAIWhisperProvider(new HttpClient(), factoryMock.Object, apiKey!);
+        act.Should().Throw<ArgumentException>().WithParameterName("apiKey");
+    }
+
+    [Fact]
     public void OpenAIWhisperProvider_Name_IsCorrect()
     {
         var provider = CreateWhisperProvider();
@@ -344,6 +370,23 @@ public class AudioTests
     #endregion
 
     #region OpenAITTSProvider Tests
+
+    [Fact]
+    public void OpenAITTSProvider_NullHttpClient_ShouldThrow()
+    {
+        var act = () => new OpenAITTSProvider(null!, "test-key");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void OpenAITTSProvider_InvalidApiKey_ShouldThrow(string? apiKey)
+    {
+        var act = () => new OpenAITTSProvider(new HttpClient(), apiKey!);
+        act.Should().Throw<ArgumentException>().WithParameterName("apiKey");
+    }
 
     [Fact]
     public void OpenAITTSProvider_Name_IsCorrect()

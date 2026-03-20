@@ -252,6 +252,23 @@ public class MultimodalTests
     #region OpenAIVisionProvider Tests
 
     [Fact]
+    public void OpenAIVisionProvider_NullHttpClient_ShouldThrow()
+    {
+        var act = () => new OpenAIVisionProvider(null!, "test-key");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void OpenAIVisionProvider_InvalidApiKey_ShouldThrow(string? apiKey)
+    {
+        var act = () => new OpenAIVisionProvider(new HttpClient(), apiKey!);
+        act.Should().Throw<ArgumentException>().WithParameterName("apiKey");
+    }
+
+    [Fact]
     public void OpenAIVisionProvider_SupportsVision_ReturnsTrue()
     {
         var httpClient = new HttpClient();

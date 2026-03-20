@@ -66,6 +66,8 @@ public class EnvironmentSecretsManager : ISecretsManager
     /// <inheritdoc />
     public Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         var envName = NormalizeEnvName(name);
         var exists = Environment.GetEnvironmentVariable(envName) != null;
         return Task.FromResult(exists);
@@ -131,6 +133,8 @@ public class InMemorySecretsManager : ISecretsManager
     /// <inheritdoc />
     public Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         lock (_lock)
         {
             return Task.FromResult(_secrets.ContainsKey(name));

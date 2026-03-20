@@ -31,6 +31,8 @@ public class PerformanceProfiler : IPerformanceProfiler
     /// <inheritdoc />
     public IDisposable StartOperation(string operationName, string? category = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
+
         return new OperationScope(this, operationName, category);
     }
 
@@ -42,6 +44,8 @@ public class PerformanceProfiler : IPerformanceProfiler
         IReadOnlyDictionary<string, object>? metadata = null
     )
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
+
         RecordOperationInternal(
             operationName,
             duration,

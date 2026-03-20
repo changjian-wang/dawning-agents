@@ -176,7 +176,9 @@ public sealed class EphemeralTool : ITool
     private static string SubstituteParameters(string script, Dictionary<string, string> parameters)
     {
         var result = script;
-        foreach (var param in parameters)
+        // Sort by key length descending to prevent prefix collision
+        // e.g. $path_prefix must be replaced before $path
+        foreach (var param in parameters.OrderByDescending(p => p.Key.Length))
         {
             // Replace $param_name with the value (shell-escaped and quoted)
             result = result.Replace($"${param.Key}", $"'{EscapeForShell(param.Value)}'");

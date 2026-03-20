@@ -52,7 +52,7 @@ public class DiagnosticsProvider : IDiagnosticsProvider
     /// <inheritdoc />
     public MemoryInfo GetMemoryInfo()
     {
-        var process = Process.GetCurrentProcess();
+        using var process = Process.GetCurrentProcess();
         var gcMemoryInfo = GC.GetGCMemoryInfo();
 
         return new MemoryInfo
@@ -111,7 +111,7 @@ public class DiagnosticsProvider : IDiagnosticsProvider
     /// <inheritdoc />
     public ProcessInfo GetProcessInfo()
     {
-        var process = Process.GetCurrentProcess();
+        using var process = Process.GetCurrentProcess();
 
         return new ProcessInfo
         {
