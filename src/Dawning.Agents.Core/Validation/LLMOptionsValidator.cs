@@ -39,7 +39,9 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
             () =>
             {
                 RuleFor(x => x.Endpoint)
-                    .Must(BeValidUrlOrEmpty)
+                    .NotEmpty()
+                    .WithMessage("Ollama 需要配置 Endpoint")
+                    .Must(BeValidUrl)
                     .WithMessage("Endpoint 必须是有效的 URL");
             }
         );
@@ -50,10 +52,5 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
         return !string.IsNullOrWhiteSpace(url)
             && Uri.TryCreate(url, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-    }
-
-    private static bool BeValidUrlOrEmpty(string? url)
-    {
-        return string.IsNullOrWhiteSpace(url) || BeValidUrl(url);
     }
 }

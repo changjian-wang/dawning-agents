@@ -162,6 +162,19 @@ public class OptionsValidationTests
         act.Should().NotThrow();
     }
 
+    [Fact]
+    public void SafetyOptions_WithEmptyPattern_ShouldThrow()
+    {
+        var options = new SafetyOptions
+        {
+            SensitivePatterns = [new SensitivePattern { Name = "Test", Pattern = "" }],
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Pattern is required*");
+    }
+
     // ── Test helper ──
 
     private class TestValidOptions : IValidatableOptions

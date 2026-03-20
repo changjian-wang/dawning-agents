@@ -151,6 +151,13 @@ public class SafetyOptions : IValidatableOptions
                 throw new InvalidOperationException("SensitivePattern Name is required");
             }
 
+            if (string.IsNullOrWhiteSpace(pattern.Pattern))
+            {
+                throw new InvalidOperationException(
+                    $"SensitivePattern '{pattern.Name}' Pattern is required"
+                );
+            }
+
             if (pattern.KeepFirst < 0)
             {
                 throw new InvalidOperationException(

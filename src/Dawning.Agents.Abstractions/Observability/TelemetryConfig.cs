@@ -17,7 +17,7 @@ namespace Dawning.Agents.Abstractions.Observability;
 /// }
 /// </code>
 /// </remarks>
-public class TelemetryConfig
+public class TelemetryConfig : IValidatableOptions
 {
     /// <summary>
     /// 配置节名称
@@ -68,6 +68,20 @@ public class TelemetryConfig
     /// OTLP 端点（可选）
     /// </summary>
     public string? OtlpEndpoint { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(ServiceName))
+        {
+            throw new InvalidOperationException("ServiceName is required.");
+        }
+
+        if (TraceSampleRate < 0.0 || TraceSampleRate > 1.0)
+        {
+            throw new InvalidOperationException("TraceSampleRate must be between 0.0 and 1.0.");
+        }
+    }
 }
 
 /// <summary>

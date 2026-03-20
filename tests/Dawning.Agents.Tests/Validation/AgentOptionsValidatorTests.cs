@@ -130,4 +130,49 @@ public class AgentOptionsValidatorTests
         // Assert
         result.IsValid.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_WithInvalidMaxTokens_ShouldFail(int maxTokens)
+    {
+        // Arrange
+        var options = new AgentOptions { Name = "TestAgent", MaxTokens = maxTokens };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "MaxTokens");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_WithInvalidMaxCostPerRun_ShouldFail(int cost)
+    {
+        // Arrange
+        var options = new AgentOptions { Name = "TestAgent", MaxCostPerRun = cost };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "MaxCostPerRun");
+    }
+
+    [Fact]
+    public void Validate_WithNullMaxCostPerRun_ShouldPass()
+    {
+        // Arrange
+        var options = new AgentOptions { Name = "TestAgent", MaxCostPerRun = null };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
 }

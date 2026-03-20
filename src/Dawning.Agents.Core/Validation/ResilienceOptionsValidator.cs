@@ -31,12 +31,14 @@ public class RetryOptionsValidator : AbstractValidator<RetryOptions>
             .WithMessage("MaxRetryAttempts 不能超过 10");
 
         RuleFor(x => x.BaseDelayMs)
-            .GreaterThan(0)
-            .WithMessage("BaseDelayMs 必须大于 0")
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("BaseDelayMs 不能为负数")
             .LessThanOrEqualTo(60000)
             .WithMessage("BaseDelayMs 不能超过 60000");
 
         RuleFor(x => x.MaxDelayMs)
+            .GreaterThan(0)
+            .WithMessage("MaxDelayMs 必须大于 0")
             .GreaterThanOrEqualTo(x => x.BaseDelayMs)
             .WithMessage("MaxDelayMs 必须大于等于 BaseDelayMs");
     }
@@ -50,8 +52,10 @@ public class CircuitBreakerOptionsValidator : AbstractValidator<CircuitBreakerOp
     public CircuitBreakerOptionsValidator()
     {
         RuleFor(x => x.FailureRatio)
-            .InclusiveBetween(0.0, 1.0)
-            .WithMessage("FailureRatio 必须在 0.0 到 1.0 之间");
+            .GreaterThan(0.0)
+            .WithMessage("FailureRatio 必须大于 0")
+            .LessThanOrEqualTo(1.0)
+            .WithMessage("FailureRatio 不能超过 1.0");
 
         RuleFor(x => x.SamplingDurationSeconds)
             .GreaterThan(0)

@@ -50,17 +50,16 @@ public class ResilienceOptionsValidatorTests
     }
 
     [Fact]
-    public void Validate_WithZeroBaseDelayMs_ShouldFail()
+    public void Validate_WithZeroBaseDelayMs_ShouldPass()
     {
-        // Arrange
+        // Arrange - BaseDelayMs >= 0 is valid
         var options = new ResilienceOptions { Retry = new RetryOptions { BaseDelayMs = 0 } };
 
         // Act
         var result = _validator.Validate(options);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "Retry.BaseDelayMs");
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -81,6 +80,7 @@ public class ResilienceOptionsValidatorTests
     }
 
     [Theory]
+    [InlineData(0.0)]
     [InlineData(-0.1)]
     [InlineData(1.1)]
     public void Validate_WithInvalidFailureRatio_ShouldFail(double ratio)
@@ -100,7 +100,7 @@ public class ResilienceOptionsValidatorTests
     }
 
     [Theory]
-    [InlineData(0.0)]
+    [InlineData(0.01)]
     [InlineData(0.5)]
     [InlineData(1.0)]
     public void Validate_WithValidFailureRatio_ShouldPass(double ratio)
@@ -147,5 +147,36 @@ public class ResilienceOptionsValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "Timeout.TimeoutSeconds");
+    }
+
+    [Fact]
+    public void Validate_WithNegativeBaseDelayMs_ShouldFail()
+    {
+        // Arrange
+        var options = new ResilienceOptions { Retry = new RetryOptions { BaseDelayMs = -1 } };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Retry.BaseDelayMs");
+    }
+
+    [Fact]
+    public void Validate_WithZeroMaxDelayMs_ShouldFail()
+    {
+        // Arrange
+        var options = new ResilienceOptions
+        {
+            Retry = new RetryOptions { BaseDelayMs = 0, MaxDelayMs = 0 },
+        };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Retry.MaxDelayMs");
     }
 }

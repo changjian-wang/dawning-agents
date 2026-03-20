@@ -137,9 +137,9 @@ public class LLMOptionsValidatorTests
     }
 
     [Fact]
-    public void Validate_Ollama_WithEmptyEndpoint_ShouldPass()
+    public void Validate_Ollama_WithEmptyEndpoint_ShouldFail()
     {
-        // Arrange - Ollama 默认使用 localhost
+        // Arrange - Ollama 需要配置 Endpoint
         var options = new LLMOptions
         {
             ProviderType = LLMProviderType.Ollama,
@@ -151,6 +151,7 @@ public class LLMOptionsValidatorTests
         var result = _validator.Validate(options);
 
         // Assert
-        result.IsValid.Should().BeTrue();
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Endpoint");
     }
 }

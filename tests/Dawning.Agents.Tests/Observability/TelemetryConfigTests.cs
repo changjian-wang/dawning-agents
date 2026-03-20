@@ -73,4 +73,75 @@ public class TelemetryConfigTests
         config.TraceSampleRate.Should().Be(0.5);
         config.OtlpEndpoint.Should().Be("http://localhost:4317");
     }
+
+    [Fact]
+    public void Validate_WithDefaultValues_ShouldPass()
+    {
+        // Arrange
+        var config = new TelemetryConfig();
+
+        // Act
+        var act = () => config.Validate();
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Validate_WithEmptyServiceName_ShouldThrow(string? serviceName)
+    {
+        // Arrange
+        var config = new TelemetryConfig { ServiceName = serviceName! };
+
+        // Act
+        var act = () => config.Validate();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ServiceName*");
+    }
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(1.1)]
+    [InlineData(2.0)]
+    public void Validate_WithInvalidTraceSampleRate_ShouldThrow(double rate)
+    {
+        // Arrange
+        var config = new TelemetryConfig { TraceSampleRate = rate };
+
+        // Act
+        var act = () => config.Validate();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("*TraceSampleRate*");
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(0.5)]
+    [InlineData(1.0)]
+    public void Validate_WithValidTraceSampleRate_ShouldPass(double rate)
+    {
+        // Arrange
+        var config = new TelemetryConfig { TraceSampleRate = rate };
+
+        // Act
+        var act = () => config.Validate();
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void TelemetryConfig_ShouldImplementIValidatableOptions()
+    {
+        // Arrange
+        var config = new TelemetryConfig();
+
+        // Assert
+        config.Should().BeAssignableTo<Dawning.Agents.Abstractions.IValidatableOptions>();
+    }
 }

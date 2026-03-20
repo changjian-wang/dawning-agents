@@ -35,5 +35,15 @@ public class MemoryOptionsValidator : AbstractValidator<MemoryOptions>
             .WithMessage("MaxContextTokens 必须大于 0")
             .LessThanOrEqualTo(200000)
             .WithMessage("MaxContextTokens 不能超过 200000");
+
+        RuleFor(x => x.DowngradeThreshold)
+            .GreaterThan(0)
+            .WithMessage("DowngradeThreshold 必须大于 0");
+
+        RuleFor(x => x.RetrieveTopK).GreaterThan(0).WithMessage("RetrieveTopK 必须大于 0");
+
+        RuleFor(x => x.MinRelevanceScore)
+            .InclusiveBetween(0.0f, 1.0f)
+            .WithMessage("MinRelevanceScore 必须在 0.0 到 1.0 之间");
     }
 }

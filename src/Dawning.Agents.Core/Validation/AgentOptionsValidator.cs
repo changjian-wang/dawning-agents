@@ -27,5 +27,12 @@ public class AgentOptionsValidator : AbstractValidator<AgentOptions>
             .WithMessage("MaxSteps 必须大于 0")
             .LessThanOrEqualTo(100)
             .WithMessage("MaxSteps 不能超过 100");
+
+        RuleFor(x => x.MaxTokens).GreaterThan(0).WithMessage("MaxTokens 必须大于 0");
+
+        RuleFor(x => x.MaxCostPerRun)
+            .GreaterThan(0m)
+            .When(x => x.MaxCostPerRun.HasValue)
+            .WithMessage("MaxCostPerRun 必须大于 0");
     }
 }
