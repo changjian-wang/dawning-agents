@@ -24,6 +24,14 @@ description: |
 | `ToolRegistryBenchmarks` | `benchmarks/.../ToolRegistryBenchmarks.cs` | 工具查找和注册 |
 | `JsonSerializationBenchmarks` | `benchmarks/.../JsonSerializationBenchmarks.cs` | JSON 序列化/反序列化 |
 
+### 待新增 Benchmarks
+
+| Benchmark | 说明 |
+|-----------|------|
+| `ToolSessionBenchmarks` | IToolSession 创建/更新/解析工具性能 |
+| `FileToolStoreBenchmarks` | FileToolStore 文件 I/O、加载/保存/更新性能 |
+| `EphemeralToolBenchmarks` | 动态工具的参数解析、脚本替换、沙箱执行开销 |
+
 ### 运行命令
 
 ```bash
@@ -92,7 +100,8 @@ dotnet run -c Release --project benchmarks/Dawning.Agents.Benchmarks -- --filter
 | 检查项 | 说明 |
 |--------|------|
 | LLM 响应缓存 | 相同 prompt 是否命中语义缓存 |
-| Tool Schema 缓存 | 工具注册表是否缓存了 JSON Schema |
+| Tool Schema 缓存 | 工具注册表/IToolSession 是否缓存了 JSON Schema |
+| EphemeralToolMetadata 序列化 | 富化后的元数据（7 个新字段）序列化开销是否可接受 |
 | 反射缓存 | `PropertyInfo` / `MethodInfo` 是否缓存 |
 
 ### 6. 并发

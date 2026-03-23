@@ -111,6 +111,88 @@ public interface IToolRegistrar
 public interface IToolRegistry : IToolReader, IToolRegistrar { }
 ```
 
+### `IToolSession`（动态工具会话管理）
+
+```csharp
+public interface IToolSession : IDisposable, IAsyncDisposable
+{
+    ITool CreateTool(EphemeralToolDefinition definition);
+    IReadOnlyList<ITool> GetSessionTools();
+    Task PromoteToolAsync(string name, ToolScope targetScope, CancellationToken ct = default);
+    Task RemoveToolAsync(string name, ToolScope scope, CancellationToken ct = default);
+    Task<IReadOnlyList<EphemeralToolDefinition>> ListToolsAsync(ToolScope scope, CancellationToken ct = default);
+    ITool UpdateTool(string name, EphemeralToolDefinition definition);
+}
+```
+
+### `IToolStore`（持久化存储）
+
+```csharp
+public interface IToolStore
+{
+    Task<IReadOnlyList<EphemeralToolDefinition>> LoadToolsAsync(ToolScope scope, CancellationToken ct = default);
+    Task SaveToolAsync(EphemeralToolDefinition definition, ToolScope scope, CancellationToken ct = default);
+    Task DeleteToolAsync(string name, ToolScope scope, CancellationToken ct = default);
+    Task<bool> ExistsAsync(string name, ToolScope scope, CancellationToken ct = default);
+    Task UpdateToolAsync(EphemeralToolDefinition definition, ToolScope scope, CancellationToken ct = default);
+}
+```
+
+### `IToolSandbox`（沙箱执行）
+
+```csharp
+public interface IToolSandbox
+{
+    Task<ToolExecutionResult> ExecuteAsync(string command, ToolSandboxOptions? options = null, CancellationToken ct = default);
+}
+```
+
+### `EphemeralToolDefinition`（动态工具定义）
+
+```csharp
+public class EphemeralToolDefinition
+{
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public ScriptRuntime Runtime { get; set; } = ScriptRuntime.Bash;
+    public required string Script { get; set; }
+    public IList<ScriptParameter> Parameters { get; set; }
+    public ToolScope Scope { get; set; } = ToolScope.Session;
+    public EphemeralToolMetadata Metadata { get; set; }
+}
+
+public class EphemeralToolMetadata
+{
+    public string? Author { get; set; }
+    public DateTimeOffset Created { get; set; }
+    public IList<string> Tags { get; set; }
+    public int Version { get; set; } = 1;
+    public string? WhenToUse { get; set; }
+    public string? Limitations { get; set; }
+    public IList<string> FailurePatterns { get; set; }
+    public IList<string> RelatedSkills { get; set; }
+    public int RevisionCount { get; set; }
+    public DateTimeOffset? LastRevisedAt { get; set; }
+}
+
+public enum ScriptRuntime { Bash, PowerShell, Python }
+public enum ToolScope { Session, User, Global }
+```
+
+### `ToolResult`
+
+```csharp
+public record ToolResult
+{
+    public bool Success { get; init; }
+    public string Output { get; init; }
+    public string? Error { get; init; }
+    public bool RequiresConfirmation { get; init; }
+    public string? ConfirmationMessage { get; init; }
+    public TimeSpan Duration { get; init; }
+}
+```
+
 ### `ICostTracker`
 
 ```csharp
@@ -126,15 +208,33 @@ public interface ICostTracker
 ## DI Registration API
 
 ```csharp
+// 工具注册表
 services.AddToolRegistry();
+
+// 核心工具 + 基础设施（IToolSandbox, IToolSession, IToolStore）
 services.AddCoreTools();
+services.AddCoreTools(options => {
+    options.Runtime = ScriptRuntime.PowerShell;
+    options.Timeout = TimeSpan.FromSeconds(60);
+});
+
+// 单个工具
 services.AddTool(tool);
+
+// 扫描 [FunctionTool] 标记
 services.AddToolsFrom<T>();
 services.AddToolsFromAssembly(assembly);
+
+// 审批处理器
 services.AddToolApprovalHandler();
+services.AddToolApprovalHandler(ApprovalStrategy.AlwaysApprove);
 ```
 
 ## Built-in Core Tools
 
 `read_file`, `write_file`, `edit_file`, `search`, `bash`, `create_tool`
+
+## Tools 层级解析顺序
+
+`Core (IToolRegistry)` → `Session (IToolSession)` → `User (IToolStore)` → `Global (IToolStore)` → `MCP`
 

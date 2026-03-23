@@ -92,9 +92,12 @@ ollama pull qwen2.5:0.5b
 
 ### Function Calling Failures
 
-- Tool not found: check `IToolReader.GetAllAsync()`
+- Tool not found: check `IToolReader.GetAllTools()` and `IToolSession.GetSessionTools()`
 - Invalid arguments: enable verbose logging
 - Budget exceeded: increase `AgentOptions.MaxCostPerRun`
+- Runtime mismatch: verify `EphemeralToolDefinition.Runtime` matches installed runtime (Bash/PowerShell/Python)
+- Session tool update fails: check `IToolSession.UpdateTool` — tool must exist in session scope
+- FileToolStore path error: verify `~/.dawning/tools/` (User) or `{project}/.dawning/tools/` (Global) directory exists
 
 ## Performance
 

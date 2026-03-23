@@ -37,6 +37,11 @@ description: |
 - Read-only consumers depend on `IToolReader`
 - Registration/setup code depends on `IToolRegistrar`
 - `IToolRegistry` used only when both read/write are needed
+- Session-scoped dynamic tools managed via `IToolSession` (Scoped lifetime)
+- Persistent tool storage via `IToolStore` (Singleton, file-system backed)
+- Script execution via `IToolSandbox`; `ToolSandboxOptions.Runtime` matches `EphemeralToolDefinition.Runtime`
+- `IToolSession.UpdateTool` used for in-place skill revision (not Remove+Create)
+- `EphemeralToolMetadata` behavioral fields populated (WhenToUse, Limitations, FailurePatterns)
 
 ### 3. Options and Validation
 

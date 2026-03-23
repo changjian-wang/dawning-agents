@@ -22,6 +22,7 @@ description: |
 | SQL 注入 | 检查是否有字符串拼接 SQL（应使用参数化查询） |
 | GraphQL 注入 | Weaviate 等使用 GraphQL 的组件，检查变量拼接 |
 | Command 注入 | bash/process 工具是否过滤用户输入 |
+| ScriptRuntime 注入 | PowerShell/Python 运行时的命令参数注入（`ScriptRuntime.PowerShell` -Command 参数拼接、`ScriptRuntime.Python` -c 参数拼接） |
 | LDAP/XPath 注入 | 如有目录服务集成 |
 | Log 注入 | 用户输入直接写入日志可导致日志伪造 |
 
@@ -42,6 +43,7 @@ description: |
 | API 密钥验证 | LLM Provider 的 API Key 是否在 Options.Validate() 中校验 |
 | 权限边界 | MCP 工具是否有权限控制（文件系统、bash 执行） |
 | Tool Approval | 危险工具是否启用了 `IToolApprovalHandler` |
+| 动态工具沙箱 | `EphemeralTool` 的 `ScriptRuntime` 是否传递到 `ToolSandboxOptions.Runtime`；`IToolSession.UpdateTool` 是否校验工具名存在 |
 
 ### 4. 输入验证
 
@@ -49,7 +51,7 @@ description: |
 |--------|------|
 | Options 校验 | 所有 public Options 类是否实现 `IValidatableOptions` |
 | 参数守卫 | 公开方法是否有 `ArgumentNullException.ThrowIfNull()` |
-| 路径穿越 | 文件工具是否校验路径不超出允许范围 |
+| 路径穿越 | 文件工具是否校验路径不超出允许范围（含 `FileToolStore` 的 User/Global 存储路径） |
 | 大小限制 | 上传/输入是否有大小限制防止 DoS |
 
 ### 5. 依赖安全

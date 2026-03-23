@@ -8,7 +8,7 @@ description: |
     - Diagnosing non-test errors (use troubleshooting)
   Inputs: Test command or test failure to investigate
   Outputs: Test results with pass/fail counts, coverage report, or failure diagnosis
-  Success criteria: All 2253+ tests pass, no regressions introduced
+  Success criteria: All 2418+ tests pass, no regressions introduced
 ---
 
 # Run Tests Skill
@@ -38,7 +38,7 @@ dotnet test --filter "FullyQualifiedName~MethodName" -v detailed
 
 ## Current Test Status
 
-- Runtime total: **2253** tests passing
+- Runtime total: **2418** tests passing
 - Stack: xUnit + FluentAssertions + Moq
 
 ## Test Project Structure

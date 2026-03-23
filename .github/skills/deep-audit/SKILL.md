@@ -83,6 +83,8 @@ description: |
 | Polly/Resilience 交互 | 内部 CT 与外部 CT 绑定、策略覆盖范围 | ResilientLLMProvider 绑定 Polly 内部 CT |
 | 装饰器/代理模式 | 包装层信息丢失、元数据未透传 | HumanInLoopAgent metadata 丢失 |
 | 进程管理 | Process.Start 未 Kill/Dispose、shell 注入 | ToolSandbox 进程泄漏 |
+| 动态工具生命周期 | IToolSession/IToolStore 状态一致性、UpdateTool 版本递增、FileToolStore 路径穿越 | EphemeralTool Runtime 未传递到 Sandbox |
+| 多运行时注入 | ScriptRuntime.PowerShell/Python 命令注入、参数转义 | ToolSandbox GetShellForRuntime 注入风险 |
 | 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态、GetOrAdd+lock 顺序 | InMemorySharedState OnChange TOCTOU |
 | 环形缓冲区/滑动窗口 | 模数运算溢出、负索引 | HistogramMetric ring buffer 语义 |
 
@@ -185,7 +187,7 @@ description: |
 # 1. 构建（必须 0 warnings, 0 errors）
 dotnet build --nologo -v q
 
-# 2. 测试（必须全部通过，当前基线 2253）
+# 2. 测试（必须全部通过，当前基线 2418）
 dotnet test --nologo -v q
 
 # 3. 格式化

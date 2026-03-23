@@ -2,27 +2,27 @@
 
 > 当前状态：16 个 skills + 2 个 agents，覆盖开发全流程
 > 创建时间：2026-02-27
-> 最后更新：2026-03-11（R38 审计后全面更新）
+> 最后更新：2026-03-23（Skills 同步 RFC_SKILL_EVOLUTION Phase 1 & 2）
 
 ## 现有 Skills 清单
 
 | Skill | 用途 | 使用频率 | 状态 |
 |-------|------|---------|------|
-| architecture | 项目结构、模块边界、核心接口 | 中 | ✅ 完备 |
+| architecture | 项目结构、模块边界、核心接口 | 中 | ✅ 2026-03-23 更新 |
 | code-update | 编码模式、模板、禁止事项、安全编码模式 | 高 | ✅ R38 更新 |
-| code-review | 代码审查（10 维度 + 禁止事项 13 条） | 中 | ✅ R38 更新 |
-| deep-audit | 深度代码审计（18 维度、双模式、扫描角度库） | 高 | ✅ R38 重写 |
+| code-review | 代码审查（10 维度 + 禁止事项 14 条） | 中 | ✅ 2026-03-23 更新 |
+| deep-audit | 深度代码审计（18 维度、双模式、扫描角度库） | 高 | ✅ 2026-03-23 更新 |
 | build-project | 构建命令、编译错误 | 高 | ✅ 完备 |
-| run-tests | 测试执行、覆盖率（2225 tests） | 高 | ✅ 完备 |
+| run-tests | 测试执行、覆盖率（2418 tests） | 高 | ✅ 2026-03-23 更新 |
 | csharpier | 格式化规则 | 高 | ✅ R38 修正命令 |
 | git-workflow | 提交规范、scope 列表、pre-commit | 高 | ✅ R38 补充 scope |
 | markdown | Markdown/XML 文档规范 | 低 | ✅ 完备 |
 | nuget-release | 版本管理、打包发布 | 低 | ✅ 完备 |
 | deployment | Docker、K8s、可观测性 | 低 | ✅ 完备 |
 | changelog | CHANGELOG 格式、release notes | 低 | ✅ 完备 |
-| troubleshooting | 构建/测试/部署排错、analyzer 代码 | 中 | ✅ R38 补充 |
-| security-audit | OWASP Top 10、依赖漏洞、密钥泄露 | 低 | ✅ 完备 |
-| performance | BenchmarkDotNet、热路径、内存分配 | 低 | ✅ 完备 |
+| troubleshooting | 构建/测试/部署排错、analyzer 代码 | 中 | ✅ 2026-03-23 更新 |
+| security-audit | OWASP Top 10、依赖漏洞、密钥泄露 | 低 | ✅ 2026-03-23 更新 |
+| performance | BenchmarkDotNet、热路径、内存分配 | 低 | ✅ 2026-03-23 更新 |
 | dependency-update | NuGet 依赖升级、CVE 修补 | 低 | ✅ 完备 |
 
 ## Agents
