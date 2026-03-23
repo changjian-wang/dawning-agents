@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace Dawning.Agents.Core.Tools.Core;
@@ -167,7 +168,7 @@ public sealed partial class CommandAnalyzer
         foreach (var tool in NetworkTools)
         {
             // Check if the command starts with or contains the network tool as a command
-            if (NetworkToolRegex(tool).IsMatch(command))
+            if (GetNetworkToolRegex(tool).IsMatch(command))
             {
                 return tool;
             }
@@ -176,14 +177,23 @@ public sealed partial class CommandAnalyzer
         return null;
     }
 
-    private static Regex NetworkToolRegex(string tool)
+    private static readonly ConcurrentDictionary<string, Regex> NetworkToolRegexCache = new(
+        StringComparer.OrdinalIgnoreCase
+    );
+
+    private static Regex GetNetworkToolRegex(string tool)
     {
-        // Match the tool name as a standalone command (not part of a path/word)
-        var pattern = $@"(?:^|[;&|]\s*){Regex.Escape(tool)}\b";
-        return new Regex(
-            pattern,
-            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
-            TimeSpan.FromSeconds(1)
+        return NetworkToolRegexCache.GetOrAdd(
+            tool,
+            static t =>
+            {
+                var pattern = $@"(?:^|[;&|]\s*){Regex.Escape(t)}\b";
+                return new Regex(
+                    pattern,
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled,
+                    TimeSpan.FromSeconds(1)
+                );
+            }
         );
     }
 

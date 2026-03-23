@@ -63,6 +63,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        token.ThrowIfCancellationRequested();
 
         var fullKey = GetFullKey(key);
         try
@@ -123,6 +124,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(options);
+        token.ThrowIfCancellationRequested();
 
         var fullKey = GetFullKey(key);
         var expiry = GetExpiry(options);
@@ -185,6 +187,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        token.ThrowIfCancellationRequested();
 
         var fullKey = GetFullKey(key);
         try
@@ -235,6 +238,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        token.ThrowIfCancellationRequested();
 
         var fullKey = GetFullKey(key);
         try

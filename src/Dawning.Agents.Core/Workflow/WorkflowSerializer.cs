@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -42,23 +43,23 @@ public class WorkflowSerializer : IWorkflowSerializer
 
         // 简化的 YAML 输出（不依赖外部库）
         var sb = new StringBuilder();
-        sb.AppendLine($"id: {definition.Id}");
-        sb.AppendLine($"name: {definition.Name}");
+        sb.AppendLine($"id: {YamlEscape(definition.Id)}");
+        sb.AppendLine($"name: {YamlEscape(definition.Name)}");
 
         if (!string.IsNullOrEmpty(definition.Description))
         {
-            sb.AppendLine($"description: {definition.Description}");
+            sb.AppendLine($"description: {YamlEscape(definition.Description)}");
         }
 
-        sb.AppendLine($"version: {definition.Version}");
-        sb.AppendLine($"startNodeId: {definition.StartNodeId}");
+        sb.AppendLine($"version: {YamlEscape(definition.Version)}");
+        sb.AppendLine($"startNodeId: {YamlEscape(definition.StartNodeId)}");
         sb.AppendLine();
         sb.AppendLine("nodes:");
 
         foreach (var node in definition.Nodes)
         {
-            sb.AppendLine($"  - id: {node.Id}");
-            sb.AppendLine($"    name: {node.Name}");
+            sb.AppendLine($"  - id: {YamlEscape(node.Id)}");
+            sb.AppendLine($"    name: {YamlEscape(node.Name)}");
             sb.AppendLine($"    type: {node.Type}");
 
             if (node.Config != null && node.Config.Count > 0)
@@ -67,7 +68,7 @@ public class WorkflowSerializer : IWorkflowSerializer
                 foreach (var kvp in node.Config)
                 {
                     var value = kvp.Value?.ToString() ?? "null";
-                    sb.AppendLine($"      {kvp.Key}: {value}");
+                    sb.AppendLine($"      {kvp.Key}: {YamlEscape(value)}");
                 }
             }
         }
@@ -77,12 +78,12 @@ public class WorkflowSerializer : IWorkflowSerializer
 
         foreach (var edge in definition.Edges)
         {
-            sb.AppendLine($"  - from: {edge.FromNodeId}");
-            sb.AppendLine($"    to: {edge.ToNodeId}");
+            sb.AppendLine($"  - from: {YamlEscape(edge.FromNodeId)}");
+            sb.AppendLine($"    to: {YamlEscape(edge.ToNodeId)}");
 
             if (!string.IsNullOrEmpty(edge.Label))
             {
-                sb.AppendLine($"    label: {edge.Label}");
+                sb.AppendLine($"    label: {YamlEscape(edge.Label)}");
             }
         }
 
@@ -280,6 +281,29 @@ public class WorkflowSerializer : IWorkflowSerializer
             Nodes = nodes,
             Edges = edges,
         };
+    }
+
+    private static readonly SearchValues<char> s_yamlSpecialChars = SearchValues.Create(
+        ":#{'\"[]\n\r"
+    );
+
+    private static string YamlEscape(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "\"\"";
+        }
+
+        if (
+            value.AsSpan().ContainsAny(s_yamlSpecialChars)
+            || value.StartsWith(' ')
+            || value.EndsWith(' ')
+        )
+        {
+            return $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+        }
+
+        return value;
     }
 }
 

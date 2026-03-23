@@ -23,6 +23,8 @@ public partial class InMemorySharedState : ISharedState
     private readonly ConcurrentDictionary<string, string> _store = new();
     private readonly ConcurrentDictionary<string, List<Action<string, object?>>> _watchers = new();
     private static readonly ConcurrentDictionary<string, Regex> _regexCache = new();
+    private const int MaxRegexCacheSize = 1000;
+    private static int _regexCacheClearing;
     private readonly ILogger<InMemorySharedState> _logger;
     private readonly ConcurrentDictionary<string, Lock> _watcherLocks = new();
 
@@ -194,18 +196,34 @@ public partial class InMemorySharedState : ISharedState
     /// </summary>
     private static Regex PatternToRegex(string pattern)
     {
-        return _regexCache.GetOrAdd(
-            pattern,
-            p =>
+        if (_regexCache.TryGetValue(pattern, out var cached))
+        {
+            return cached;
+        }
+
+        if (
+            _regexCache.Count >= MaxRegexCacheSize
+            && Interlocked.CompareExchange(ref _regexCacheClearing, 1, 0) == 0
+        )
+        {
+            try
             {
-                var regexPattern = "^" + Regex.Escape(p).Replace("\\*", ".*") + "$";
-                return new Regex(
-                    regexPattern,
-                    RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
-                    TimeSpan.FromSeconds(1)
-                );
+                _regexCache.Clear();
             }
+            finally
+            {
+                Volatile.Write(ref _regexCacheClearing, 0);
+            }
+        }
+
+        var regexPattern = "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$";
+        var regex = new Regex(
+            regexPattern,
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            TimeSpan.FromSeconds(1)
         );
+        _regexCache.TryAdd(pattern, regex);
+        return regex;
     }
 
     /// <summary>

@@ -305,7 +305,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        _clientInfo = initParams.ClientInfo;
+        Volatile.Write(ref _clientInfo, initParams.ClientInfo);
         _initialized = true;
 
         _logger.LogInformation(
@@ -661,11 +661,13 @@ public sealed class MCPServer : IAsyncDisposable
         {
             try
             {
-                await Task.WhenAll(snapshot).ConfigureAwait(false);
+                await Task.WhenAll(snapshot)
+                    .WaitAsync(TimeSpan.FromSeconds(10))
+                    .ConfigureAwait(false);
             }
             catch (Exception)
             {
-                // Errors already logged in ProcessAndReleaseAsync
+                // Timeout or errors — already logged in ProcessAndReleaseAsync
             }
         }
 

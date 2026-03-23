@@ -263,6 +263,18 @@ public class WorkflowEngine : IWorkflowEngine
                     }
                 );
             }
+
+            // 检查未实现的节点类型
+            if (node.Type is WorkflowNodeType.Parallel or WorkflowNodeType.Loop)
+            {
+                errors.Add(
+                    new WorkflowValidationError
+                    {
+                        Code = "UNSUPPORTED_NODE_TYPE",
+                        Message = $"节点 '{node.Id}' 的类型 {node.Type} 尚未实现",
+                    }
+                );
+            }
         }
 
         return new WorkflowValidationResult

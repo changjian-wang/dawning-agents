@@ -301,7 +301,7 @@ public class AgentAutoScalerTests
         return new AgentAutoScaler(
             options,
             () => Task.FromResult(defaultMetrics),
-            count =>
+            (count, _) =>
             {
                 onScale?.Invoke(count);
                 return Task.CompletedTask;

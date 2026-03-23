@@ -235,6 +235,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                         cancellationToken
                     )
                     .ConfigureAwait(false);
+                Interlocked.Decrement(ref _count);
                 return null;
             }
 
@@ -251,6 +252,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                         cancellationToken
                     )
                     .ConfigureAwait(false);
+                Interlocked.Decrement(ref _count);
                 return null;
             }
 

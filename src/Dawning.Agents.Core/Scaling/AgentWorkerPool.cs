@@ -196,16 +196,6 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         }
 
         runCts?.Cancel();
-
-        try
-        {
-            Task.WhenAll(snapshot).Wait(TimeSpan.FromSeconds(30));
-        }
-        catch (Exception)
-        {
-            // 忽略停止时的异常
-        }
-
         runCts?.Dispose();
     }
 

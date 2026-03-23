@@ -112,12 +112,30 @@ public class PerformanceProfiler : IPerformanceProfiler
     {
         if (string.IsNullOrEmpty(category))
         {
-            return _statistics.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return _statistics.ToDictionary(kvp => kvp.Key, kvp => SnapshotStatistics(kvp.Value));
         }
 
         return _statistics
             .Where(kvp => kvp.Key.StartsWith($"{category}:", StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            .ToDictionary(kvp => kvp.Key, kvp => SnapshotStatistics(kvp.Value));
+    }
+
+    private static OperationStatistics SnapshotStatistics(OperationStatistics source)
+    {
+        lock (source)
+        {
+            return new OperationStatistics
+            {
+                OperationName = source.OperationName,
+                TotalCount = source.TotalCount,
+                SuccessCount = source.SuccessCount,
+                FailureCount = source.FailureCount,
+                TotalDuration = source.TotalDuration,
+                MinDuration = source.MinDuration,
+                MaxDuration = source.MaxDuration,
+                LastCallTime = source.LastCallTime,
+            };
+        }
     }
 
     /// <inheritdoc />
@@ -169,8 +187,9 @@ public class PerformanceProfiler : IPerformanceProfiler
                     }
 
                     existing.LastCallTime = DateTimeOffset.UtcNow;
-                    return existing;
                 }
+
+                return existing;
             }
         );
     }

@@ -62,6 +62,7 @@ public sealed class InMemoryMessageBus : IMessageBus
         {
             foreach (var handler in handlers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     handler(message);
@@ -94,6 +95,7 @@ public sealed class InMemoryMessageBus : IMessageBus
         {
             foreach (var handler in handlers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     handler(message);
@@ -188,6 +190,7 @@ public sealed class InMemoryMessageBus : IMessageBus
         {
             foreach (var (agentId, handler) in subscribers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     handler(message);

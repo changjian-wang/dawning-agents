@@ -164,11 +164,16 @@ public abstract class AgentBase : IAgent
         {
             throw;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             stopwatch.Stop();
-            Logger.LogWarning("Agent {AgentName} 任务被取消", Name);
-            return AgentResponse.Failed("Operation cancelled", context.Steps, stopwatch.Elapsed);
+            Logger.LogWarning(ex, "Agent {AgentName} 任务被取消", Name);
+            return AgentResponse.Failed(
+                "Operation cancelled",
+                context.Steps,
+                stopwatch.Elapsed,
+                ex
+            );
         }
         catch (Exception ex)
         {

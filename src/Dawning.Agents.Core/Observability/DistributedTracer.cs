@@ -182,7 +182,6 @@ internal class ActivitySpan : ITraceSpan
     public void Dispose()
     {
         _activity.Dispose();
-        GC.SuppressFinalize(this);
     }
 }
 

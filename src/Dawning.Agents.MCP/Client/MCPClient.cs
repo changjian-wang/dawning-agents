@@ -1,5 +1,6 @@
 namespace Dawning.Agents.MCP.Client;
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 using Dawning.Agents.MCP.Protocol;
@@ -24,7 +25,10 @@ public sealed class MCPClient : IAsyncDisposable
     private volatile bool _initialized;
     private MCPServerInfo? _serverInfo;
     private MCPServerCapabilities? _serverCapabilities;
-    private readonly Dictionary<long, TaskCompletionSource<MCPResponse>> _pendingRequests = new();
+    private readonly ConcurrentDictionary<
+        long,
+        TaskCompletionSource<MCPResponse>
+    > _pendingRequests = new();
     private CancellationTokenSource? _listenerCts;
     private Task? _listenerTask;
     private volatile bool _disposed;
@@ -265,8 +269,8 @@ public sealed class MCPClient : IAsyncDisposable
             )
             .ConfigureAwait(false);
 
-        _serverInfo = response.ServerInfo;
-        _serverCapabilities = response.Capabilities;
+        Volatile.Write(ref _serverInfo, response.ServerInfo);
+        Volatile.Write(ref _serverCapabilities, response.Capabilities);
         _initialized = true;
 
         // 发送 initialized 通知
@@ -423,10 +427,7 @@ public sealed class MCPClient : IAsyncDisposable
             TaskCreationOptions.RunContinuationsAsynchronously
         );
 
-        lock (_pendingRequests)
-        {
-            _pendingRequests[id] = tcs;
-        }
+        _pendingRequests[id] = tcs;
 
         try
         {
@@ -470,10 +471,7 @@ public sealed class MCPClient : IAsyncDisposable
         }
         finally
         {
-            lock (_pendingRequests)
-            {
-                _pendingRequests.Remove(id);
-            }
+            _pendingRequests.TryRemove(id, out _);
         }
     }
 
@@ -527,13 +525,10 @@ public sealed class MCPClient : IAsyncDisposable
                     continue;
                 }
 
-                TaskCompletionSource<MCPResponse>? tcs;
-                lock (_pendingRequests)
+                if (_pendingRequests.TryGetValue(id, out var tcs))
                 {
-                    _pendingRequests.TryGetValue(id, out tcs);
+                    tcs.TrySetResult(response);
                 }
-
-                tcs?.TrySetResult(response);
             }
             catch (OperationCanceledException)
             {
@@ -602,14 +597,11 @@ public sealed class MCPClient : IAsyncDisposable
         }
 
         // Cancel all in-flight requests so callers are not blocked until their timeouts expire
-        lock (_pendingRequests)
+        foreach (var tcs in _pendingRequests.Values)
         {
-            foreach (var tcs in _pendingRequests.Values)
-            {
-                tcs.TrySetCanceled();
-            }
-            _pendingRequests.Clear();
+            tcs.TrySetCanceled();
         }
+        _pendingRequests.Clear();
 
         if (_serverProcess != null)
         {

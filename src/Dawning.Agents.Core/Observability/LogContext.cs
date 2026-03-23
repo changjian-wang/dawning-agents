@@ -82,7 +82,6 @@ public sealed class LogContext : IDisposable
     public void Dispose()
     {
         s_current.Value = _parent;
-        GC.SuppressFinalize(this);
     }
 }
 

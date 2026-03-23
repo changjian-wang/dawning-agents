@@ -33,8 +33,10 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     /// <inheritdoc />
     public string SessionId { get; }
 
+    private int _messageCount;
+
     /// <inheritdoc />
-    public int MessageCount { get; private set; }
+    public int MessageCount => Volatile.Read(ref _messageCount);
 
     /// <summary>
     /// 初始化 Redis 会话记忆存储
@@ -143,7 +145,10 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
                 .ConfigureAwait(false);
         }
 
-        MessageCount = (int)Math.Min(currentLength, _sessionOptions.MaxMessages);
+        Volatile.Write(
+            ref _messageCount,
+            (int)Math.Min(currentLength, _sessionOptions.MaxMessages)
+        );
 
         if (_sessionOptions.EnableSlidingExpiry)
         {
@@ -177,7 +182,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
             }
         }
 
-        MessageCount = messages.Count;
+        Volatile.Write(ref _messageCount, messages.Count);
         return messages;
     }
 
@@ -219,7 +224,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         await _database.KeyDeleteAsync(_sessionKey).ConfigureAwait(false);
-        MessageCount = 0;
+        Volatile.Write(ref _messageCount, 0);
         _logger.LogDebug("Cleared session {SessionId}", SessionId);
     }
 

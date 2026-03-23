@@ -369,15 +369,8 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         }
 
         _disposed = true;
-
-        try
-        {
-            _initLock.Dispose();
-        }
-        catch (ObjectDisposedException)
-        {
-            // 已被释放，忽略
-        }
+        _initLock.Dispose();
+        _client.Dispose();
 
         return ValueTask.CompletedTask;
     }

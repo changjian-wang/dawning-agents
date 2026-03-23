@@ -11,7 +11,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 {
     private readonly ScalingOptions _options;
     private readonly Func<Task<ScalingMetrics>> _metricsProvider;
-    private readonly Func<int, Task> _scaleAction;
+    private readonly Func<int, CancellationToken, Task> _scaleAction;
     private readonly ILogger<AgentAutoScaler> _logger;
     private readonly TimeProvider _timeProvider;
 
@@ -25,7 +25,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     public AgentAutoScaler(
         ScalingOptions options,
         Func<Task<ScalingMetrics>> metricsProvider,
-        Func<int, Task> scaleAction,
+        Func<int, CancellationToken, Task> scaleAction,
         ILogger<AgentAutoScaler>? logger = null,
         TimeProvider? timeProvider = null
     )
@@ -209,7 +209,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 
         try
         {
-            await _scaleAction(newCount).ConfigureAwait(false);
+            await _scaleAction(newCount, cancellationToken).ConfigureAwait(false);
 
             lock (_stateLock)
             {

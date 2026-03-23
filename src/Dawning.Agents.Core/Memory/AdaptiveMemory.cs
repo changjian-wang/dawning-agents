@@ -159,8 +159,8 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
         }
 
         // 切换到 SummaryMemory
-        _currentMemory = summaryMemory;
-        _hasDowngraded = true;
+        Volatile.Write(ref _currentMemory, summaryMemory);
+        Volatile.Write(ref _hasDowngraded, true);
 
         _logger.LogInformation(
             "降级完成，新 token 数: {NewTokens}",
@@ -204,8 +204,8 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
             await oldMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
 
             // 重置为 BufferMemory
-            _currentMemory = new BufferMemory(_tokenCounter);
-            _hasDowngraded = false;
+            Volatile.Write(ref _currentMemory, new BufferMemory(_tokenCounter));
+            Volatile.Write(ref _hasDowngraded, false);
 
             // 不立即 Dispose 旧 memory，避免与并发读取路径竞态（让 GC 回收）
         }

@@ -140,7 +140,6 @@ public sealed class AgentTelemetry : IDisposable
     {
         _activitySource.Dispose();
         _meter.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private class NoOpDisposable : IDisposable

@@ -98,15 +98,8 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
 
     private ILLMProvider GetProvider()
     {
-        lock (_lock)
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(HotReloadableLLMProvider));
-            }
-
-            return _innerProvider;
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _innerProvider;
     }
 
     private void OnOptionsChanged(LLMOptions newOptions, string? name)
@@ -149,7 +142,14 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
                 _innerProvider.Name
             );
 
-            ConfigurationChanged?.Invoke(this, newOptions);
+            try
+            {
+                ConfigurationChanged?.Invoke(this, newOptions);
+            }
+            catch (Exception eventEx)
+            {
+                _logger.LogWarning(eventEx, "ConfigurationChanged 事件处理器抛出异常");
+            }
         }
         catch (Exception ex)
         {

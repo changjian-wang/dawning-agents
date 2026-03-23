@@ -149,8 +149,8 @@ public sealed class ToolSession : IToolSession
             return;
         }
 
-        _sessionTools.Clear();
         _disposed = true;
+        _sessionTools.Clear();
         _logger.LogDebug("Tool session disposed");
     }
 
