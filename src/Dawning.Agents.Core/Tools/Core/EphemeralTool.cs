@@ -88,6 +88,7 @@ public sealed class EphemeralTool : ITool
             WorkingDirectory = _defaultOptions.WorkingDirectory,
             Timeout = _defaultOptions.Timeout,
             Mode = _defaultOptions.Mode,
+            Runtime = _definition.Runtime,
             Environment = new Dictionary<string, string>(_defaultOptions.Environment),
         };
 

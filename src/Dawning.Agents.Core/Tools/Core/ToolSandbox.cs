@@ -47,7 +47,7 @@ public sealed class ToolSandbox : IToolSandbox
             TruncateForLog(command)
         );
 
-        var shell = GetShell();
+        var shell = GetShellForRuntime(options.Runtime);
         var psi = new ProcessStartInfo
         {
             FileName = shell.FileName,
@@ -177,14 +177,31 @@ public sealed class ToolSandbox : IToolSandbox
 
     private static ShellInfo GetShell()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return new ShellInfo("cmd.exe", args => ["/c", args]);
-        }
+        return GetShellForRuntime(ScriptRuntime.Bash);
+    }
 
-        // macOS / Linux
-        var shell = Environment.GetEnvironmentVariable("SHELL") ?? "/bin/bash";
-        return new ShellInfo(shell, args => ["-c", args]);
+    /// <summary>
+    /// 根据脚本运行时类型获取对应的 Shell 信息
+    /// </summary>
+    private static ShellInfo GetShellForRuntime(ScriptRuntime runtime)
+    {
+        return runtime switch
+        {
+            ScriptRuntime.PowerShell => new ShellInfo(
+                OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh",
+                args => ["-NoProfile", "-NonInteractive", "-Command", args]
+            ),
+            ScriptRuntime.Python => new ShellInfo(
+                OperatingSystem.IsWindows() ? "python" : "python3",
+                args => ["-c", args]
+            ),
+            _ => OperatingSystem.IsWindows()
+                ? new ShellInfo("cmd.exe", args => ["/c", args])
+                : new ShellInfo(
+                    Environment.GetEnvironmentVariable("SHELL") ?? "/bin/bash",
+                    args => ["-c", args]
+                ),
+        };
     }
 
     private static void TryKillProcess(Process process)

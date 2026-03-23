@@ -54,4 +54,12 @@ public interface IToolSession : IDisposable, IAsyncDisposable
         ToolScope scope,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// 更新 session 工具的定义（原地修订，用于反思修复）
+    /// </summary>
+    /// <param name="name">工具名称</param>
+    /// <param name="definition">修订后的工具定义</param>
+    /// <returns>更新后的工具实例</returns>
+    ITool UpdateTool(string name, EphemeralToolDefinition definition);
 }

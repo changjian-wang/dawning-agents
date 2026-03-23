@@ -158,6 +158,41 @@ public sealed class FileToolStore : IToolStore
         return Task.FromResult(File.Exists(filePath));
     }
 
+    /// <inheritdoc />
+    public async Task UpdateToolAsync(
+        EphemeralToolDefinition definition,
+        ToolScope scope,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ValidateScope(scope);
+        ArgumentNullException.ThrowIfNull(definition);
+
+        var dir = GetDirectoryForScope(scope);
+        var filePath = GetToolFilePath(dir, definition.Name);
+
+        if (!File.Exists(filePath))
+        {
+            throw new InvalidOperationException(
+                $"Tool '{definition.Name}' does not exist in {scope} scope"
+            );
+        }
+
+        // Auto-increment version metadata
+        definition.Metadata.RevisionCount++;
+        definition.Metadata.Version++;
+        definition.Metadata.LastRevisedAt = DateTimeOffset.UtcNow;
+
+        await SaveToolAsync(definition, scope, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "Updated tool '{Name}' in {Scope} (v{Version})",
+            definition.Name,
+            scope,
+            definition.Metadata.Version
+        );
+    }
+
     private string GetDirectoryForScope(ToolScope scope)
     {
         return scope switch

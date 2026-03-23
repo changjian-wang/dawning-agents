@@ -142,6 +142,36 @@ public sealed class ToolSession : IToolSession
     }
 
     /// <inheritdoc />
+    public ITool UpdateTool(string name, EphemeralToolDefinition definition)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(definition);
+
+        if (!_sessionTools.ContainsKey(name))
+        {
+            throw new InvalidOperationException($"Tool '{name}' not found in current session");
+        }
+
+        // Increment revision metadata
+        definition.Metadata.RevisionCount++;
+        definition.Metadata.Version++;
+        definition.Metadata.LastRevisedAt = DateTimeOffset.UtcNow;
+
+        var updatedTool = new EphemeralTool(definition, _sandbox, _defaultOptions, _logger);
+        _sessionTools[name] = updatedTool;
+
+        _logger.LogInformation(
+            "Updated session tool: {Name} (v{Version}, revision #{Revision})",
+            name,
+            definition.Metadata.Version,
+            definition.Metadata.RevisionCount
+        );
+
+        return updatedTool;
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposed)

@@ -40,6 +40,11 @@ public class ToolSandboxOptions
     public SandboxMode Mode { get; set; } = SandboxMode.Trust;
 
     /// <summary>
+    /// 脚本运行时类型
+    /// </summary>
+    public ScriptRuntime Runtime { get; set; } = ScriptRuntime.Bash;
+
+    /// <summary>
     /// 环境变量
     /// </summary>
     public IDictionary<string, string> Environment { get; set; } = new Dictionary<string, string>();

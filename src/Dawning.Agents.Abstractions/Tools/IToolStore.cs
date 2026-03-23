@@ -55,4 +55,16 @@ public interface IToolStore
         ToolScope scope,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// 更新工具定义（自动递增版本号和修订时间）
+    /// </summary>
+    /// <param name="definition">修订后的工具定义</param>
+    /// <param name="scope">工具范围（User 或 Global）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task UpdateToolAsync(
+        EphemeralToolDefinition definition,
+        ToolScope scope,
+        CancellationToken cancellationToken = default
+    );
 }

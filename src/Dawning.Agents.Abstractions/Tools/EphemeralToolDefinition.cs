@@ -73,7 +73,7 @@ public record ScriptParameter
 }
 
 /// <summary>
-/// 动态工具元数据
+/// 动态工具元数据（含行为上下文，供路由和反思引擎使用）
 /// </summary>
 public class EphemeralToolMetadata
 {
@@ -91,6 +91,41 @@ public class EphemeralToolMetadata
     /// 标签
     /// </summary>
     public IList<string> Tags { get; set; } = new List<string>();
+
+    /// <summary>
+    /// 版本号（每次修复 +1）
+    /// </summary>
+    public int Version { get; set; } = 1;
+
+    /// <summary>
+    /// 适用场景描述（供技能路由器理解何时使用此工具）
+    /// </summary>
+    public string? WhenToUse { get; set; }
+
+    /// <summary>
+    /// 已知限制
+    /// </summary>
+    public string? Limitations { get; set; }
+
+    /// <summary>
+    /// 历史失败模式（供反思引擎参考诊断）
+    /// </summary>
+    public IList<string> FailurePatterns { get; set; } = new List<string>();
+
+    /// <summary>
+    /// 相关技能名称（供路由器做关联推荐）
+    /// </summary>
+    public IList<string> RelatedSkills { get; set; } = new List<string>();
+
+    /// <summary>
+    /// 修订次数
+    /// </summary>
+    public int RevisionCount { get; set; }
+
+    /// <summary>
+    /// 最后修订时间
+    /// </summary>
+    public DateTimeOffset? LastRevisedAt { get; set; }
 }
 
 /// <summary>
@@ -99,9 +134,19 @@ public class EphemeralToolMetadata
 public enum ScriptRuntime
 {
     /// <summary>
-    /// Bash / sh
+    /// Bash / sh（Linux / macOS 默认）
     /// </summary>
     Bash,
+
+    /// <summary>
+    /// PowerShell（Windows 默认，跨平台可用）
+    /// </summary>
+    PowerShell,
+
+    /// <summary>
+    /// Python 3
+    /// </summary>
+    Python,
 }
 
 /// <summary>

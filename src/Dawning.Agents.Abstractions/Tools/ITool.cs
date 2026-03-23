@@ -31,6 +31,11 @@ public record ToolResult
     public string? ConfirmationMessage { get; init; }
 
     /// <summary>
+    /// 执行耗时
+    /// </summary>
+    public TimeSpan Duration { get; init; }
+
+    /// <summary>
     /// 创建成功结果
     /// </summary>
     public static ToolResult Ok(string output) => new() { Success = true, Output = output };
