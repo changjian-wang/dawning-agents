@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.Multimodal;
 /// <summary>
 /// OpenAI Vision 提供者
 /// </summary>
-public class OpenAIVisionProvider : IVisionProvider
+public sealed class OpenAIVisionProvider : IVisionProvider
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;

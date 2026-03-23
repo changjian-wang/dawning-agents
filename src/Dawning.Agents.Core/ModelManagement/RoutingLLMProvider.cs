@@ -18,7 +18,7 @@ namespace Dawning.Agents.Core.ModelManagement;
 ///   <item>调用统计</item>
 /// </list>
 /// </remarks>
-public class RoutingLLMProvider : ILLMProvider
+public sealed class RoutingLLMProvider : ILLMProvider
 {
     private readonly IModelRouter _router;
     private readonly ModelRouterOptions _options;

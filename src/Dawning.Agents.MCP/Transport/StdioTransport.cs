@@ -17,7 +17,7 @@ public sealed class StdioTransport : IMCPTransport
     private readonly Stream _inputStream;
     private readonly Stream _outputStream;
     private readonly ILogger<StdioTransport> _logger;
-    private readonly object _stateLock = new();
+    private readonly Lock _stateLock = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private Pipe _pipe = new();
     private volatile bool _isConnected;

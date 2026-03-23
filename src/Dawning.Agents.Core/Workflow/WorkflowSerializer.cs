@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Workflow;
 /// <summary>
 /// 工作流序列化器
 /// </summary>
-public class WorkflowSerializer : IWorkflowSerializer
+public sealed class WorkflowSerializer : IWorkflowSerializer
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -140,11 +140,11 @@ public class WorkflowSerializer : IWorkflowSerializer
             {
                 startNodeId = trimmed["startNodeId:".Length..].Trim();
             }
-            else if (trimmed == "nodes:")
+            else if (string.Equals(trimmed, "nodes:", StringComparison.Ordinal))
             {
                 currentSection = "nodes";
             }
-            else if (trimmed == "edges:")
+            else if (string.Equals(trimmed, "edges:", StringComparison.Ordinal))
             {
                 currentSection = "edges";
                 // 完成最后一个节点
@@ -310,7 +310,7 @@ public class WorkflowSerializer : IWorkflowSerializer
 /// <summary>
 /// 工作流可视化器
 /// </summary>
-public class WorkflowVisualizer : IWorkflowVisualizer
+public sealed class WorkflowVisualizer : IWorkflowVisualizer
 {
     /// <inheritdoc />
     public string GenerateMermaid(WorkflowDefinition definition)

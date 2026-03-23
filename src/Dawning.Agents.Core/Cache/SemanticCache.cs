@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Cache;
 /// <para>当新查询与缓存中的查询相似度超过阈值时，直接返回缓存响应</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class SemanticCache : ISemanticCache
+public sealed class SemanticCache : ISemanticCache
 {
     private readonly IVectorStore _vectorStore;
     private readonly IEmbeddingProvider _embeddingProvider;

@@ -259,7 +259,7 @@ public sealed class MethodTool : ITool
             _ when targetType == typeof(float) => element.GetSingle(),
             _ when targetType == typeof(bool) => element.GetBoolean(),
             _ when targetType == typeof(decimal) => element.GetDecimal(),
-            _ => JsonSerializer.Deserialize(element.GetRawText(), targetType),
+            _ => element.Deserialize(targetType),
         };
     }
 

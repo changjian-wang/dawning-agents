@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.HumanLoop;
 /// <summary>
 /// 用于 Web/API 交互的异步回调处理器
 /// </summary>
-public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
+public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
 {
     private readonly ConcurrentDictionary<
         string,

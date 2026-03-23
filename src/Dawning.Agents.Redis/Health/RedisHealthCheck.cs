@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -9,7 +10,7 @@ namespace Dawning.Agents.Redis;
 /// <summary>
 /// Redis 连接健康检查
 /// </summary>
-public class RedisHealthCheck : IHealthCheck
+public sealed class RedisHealthCheck : IHealthCheck
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<RedisHealthCheck> _logger;
@@ -33,7 +34,12 @@ public class RedisHealthCheck : IHealthCheck
             var db = _redis.GetDatabase();
             var pong = await db.PingAsync().ConfigureAwait(false);
             _logger.LogDebug("RedisHealthCheck: Ping={PingMs}ms", pong.TotalMilliseconds);
-            return HealthCheckResult.Healthy($"Redis 正常, Ping={pong.TotalMilliseconds}ms");
+            return HealthCheckResult.Healthy(
+                string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Redis 正常, Ping={pong.TotalMilliseconds}ms"
+                )
+            );
         }
         catch (RedisConnectionException ex)
         {

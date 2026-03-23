@@ -15,7 +15,7 @@ namespace Dawning.Agents.Core.Multimodal;
 /// 使用 OpenAI TTS API 将文本转换为语音。
 /// 支持 tts-1 和 tts-1-hd 模型。
 /// </remarks>
-public class OpenAITTSProvider : ITextToSpeechProvider
+public sealed class OpenAITTSProvider : ITextToSpeechProvider
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;

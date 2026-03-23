@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -129,7 +130,10 @@ public sealed class ToolSandbox : IToolSandbox
                 return new ToolExecutionResult
                 {
                     ExitCode = -1,
-                    Stderr = $"Command timed out after {options.Timeout.TotalSeconds}s",
+                    Stderr = string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"Command timed out after {options.Timeout.TotalSeconds}s"
+                    ),
                     Duration = sw.Elapsed,
                     TimedOut = true,
                 };

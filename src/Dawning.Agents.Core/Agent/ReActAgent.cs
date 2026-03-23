@@ -82,7 +82,7 @@ public partial class ReActAgent : AgentBase
         var prompt = BuildPrompt(context);
 
         // 调用 LLM
-        var messages = new List<ChatMessage>
+        var messages = new List<ChatMessage>(2)
         {
             new("system", BuildSystemPrompt()),
             new("user", prompt),

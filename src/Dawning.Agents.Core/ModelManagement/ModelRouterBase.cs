@@ -19,7 +19,7 @@ namespace Dawning.Agents.Core.ModelManagement;
 /// </remarks>
 public abstract class ModelRouterBase : IModelRouter
 {
-    protected readonly List<ILLMProvider> _providers;
+    protected readonly IReadOnlyList<ILLMProvider> _providers;
     protected readonly ConcurrentDictionary<string, ModelStatistics> _statistics = new();
     protected readonly ConcurrentDictionary<string, ProviderHealth> _healthStatus = new();
     protected readonly ModelRouterOptions _options;

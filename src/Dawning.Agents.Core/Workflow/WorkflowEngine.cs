@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.Workflow;
 /// <summary>
 /// 工作流引擎
 /// </summary>
-public class WorkflowEngine : IWorkflowEngine
+public sealed class WorkflowEngine : IWorkflowEngine
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IToolReader? _toolRegistry;

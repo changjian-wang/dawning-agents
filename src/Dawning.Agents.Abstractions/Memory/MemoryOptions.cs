@@ -120,6 +120,16 @@ public class MemoryOptions : IValidatableOptions
         {
             throw new InvalidOperationException("ModelName is required.");
         }
+
+        if (
+            Type is MemoryType.Summary or MemoryType.Adaptive
+            && SummaryThreshold <= MaxRecentMessages
+        )
+        {
+            throw new InvalidOperationException(
+                "SummaryThreshold must be greater than MaxRecentMessages."
+            );
+        }
     }
 }
 

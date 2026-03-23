@@ -21,7 +21,7 @@ namespace Dawning.Agents.Core.Resilience;
 /// 3. 重试 (Retry) - 失败后重试
 /// 4. 断路器 (CircuitBreaker) - 防止级联故障
 /// </remarks>
-public class PollyResilienceProvider : IResilienceProvider, IDisposable
+public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
 {
     private readonly ResiliencePipeline _pipeline;
     private readonly ILogger<PollyResilienceProvider> _logger;
@@ -137,9 +137,12 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
                 new RetryStrategyOptions
                 {
                     MaxRetryAttempts = options.Retry.MaxRetryAttempts,
-                    BackoffType = options.Retry.UseJitter
-                        ? DelayBackoffType.Exponential
-                        : DelayBackoffType.Constant,
+                    BackoffType = options.Retry.BackoffType switch
+                    {
+                        RetryBackoffType.Exponential => DelayBackoffType.Exponential,
+                        RetryBackoffType.Linear => DelayBackoffType.Linear,
+                        _ => DelayBackoffType.Constant,
+                    },
                     Delay = TimeSpan.FromMilliseconds(options.Retry.BaseDelayMs),
                     MaxDelay = TimeSpan.FromMilliseconds(options.Retry.MaxDelayMs),
                     UseJitter = options.Retry.UseJitter,
@@ -174,7 +177,9 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
                     BreakDuration = TimeSpan.FromSeconds(
                         options.CircuitBreaker.BreakDurationSeconds
                     ),
-                    ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>(),
+                    ShouldHandle = new PredicateBuilder()
+                        .Handle<HttpRequestException>()
+                        .Handle<TimeoutRejectedException>(),
                     OnOpened = args =>
                     {
                         _logger.LogError(
@@ -202,7 +207,7 @@ public class PollyResilienceProvider : IResilienceProvider, IDisposable
     }
 
     /// <summary>
-    /// 释放 ConcurrencyLimiter 资源
+    /// 释放资源
     /// </summary>
     public void Dispose()
     {

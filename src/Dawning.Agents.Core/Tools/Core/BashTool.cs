@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Dawning.Agents.Abstractions.Tools;
@@ -189,8 +190,10 @@ public sealed class BashTool : ITool
         if (result.TimedOut)
         {
             return ToolResult.Fail(
-                $"Command timed out after {result.Duration.TotalSeconds:F1}s. "
-                    + (sb.Length > 0 ? $"Partial output:\n{sb}" : "No output captured.")
+                string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Command timed out after {result.Duration.TotalSeconds:F1}s. "
+                ) + (sb.Length > 0 ? $"Partial output:\n{sb}" : "No output captured.")
             );
         }
 

@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.Tools;
 /// <summary>
 /// 工具扫描器 - 从类型或程序集中扫描并注册 [FunctionTool] 标记的方法
 /// </summary>
-public class ToolScanner
+public sealed class ToolScanner
 {
     private readonly ILogger<ToolScanner> _logger;
 

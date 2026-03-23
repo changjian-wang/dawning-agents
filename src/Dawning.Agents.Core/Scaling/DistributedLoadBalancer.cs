@@ -598,6 +598,17 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         _disposed = true;
         var cts = Interlocked.Exchange(ref _watchCts, null);
         cts?.Cancel();
+
+        // Best-effort wait for the watch task to exit before disposing the lock
+        try
+        {
+            _watchTask?.Wait(TimeSpan.FromSeconds(2));
+        }
+        catch
+        {
+            // Timeout or AggregateException — safe to ignore during disposal
+        }
+
         cts?.Dispose();
         _lock.Dispose();
     }

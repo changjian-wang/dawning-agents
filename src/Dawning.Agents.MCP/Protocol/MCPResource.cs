@@ -53,10 +53,10 @@ public sealed class ListResourcesParams
 public sealed class ListResourcesResult
 {
     [JsonPropertyName("resources")]
-    public required List<MCPResource> Resources { get; set; }
+    public required List<MCPResource> Resources { get; init; }
 
     [JsonPropertyName("nextCursor")]
-    public string? NextCursor { get; set; }
+    public string? NextCursor { get; init; }
 }
 
 /// <summary>

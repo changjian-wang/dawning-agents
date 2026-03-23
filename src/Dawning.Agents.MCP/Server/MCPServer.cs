@@ -291,8 +291,7 @@ public sealed class MCPServer : IAsyncDisposable
         CancellationToken cancellationToken
     )
     {
-        var paramsJson = JsonSerializer.Serialize(request.Params);
-        var initParams = JsonSerializer.Deserialize<InitializeParams>(paramsJson);
+        var initParams = DeserializeParams<InitializeParams>(request.Params);
 
         if (initParams == null)
         {
@@ -374,8 +373,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        var paramsJson = JsonSerializer.Serialize(request.Params);
-        var callParams = JsonSerializer.Deserialize<CallToolParams>(paramsJson);
+        var callParams = DeserializeParams<CallToolParams>(request.Params);
 
         if (callParams == null)
         {
@@ -476,8 +474,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        var paramsJson = JsonSerializer.Serialize(request.Params);
-        var readParams = JsonSerializer.Deserialize<ReadResourceParams>(paramsJson);
+        var readParams = DeserializeParams<ReadResourceParams>(request.Params);
 
         if (readParams == null || string.IsNullOrEmpty(readParams.Uri))
         {
@@ -541,8 +538,7 @@ public sealed class MCPServer : IAsyncDisposable
             );
         }
 
-        var paramsJson = JsonSerializer.Serialize(request.Params);
-        var getParams = JsonSerializer.Deserialize<GetPromptParams>(paramsJson);
+        var getParams = DeserializeParams<GetPromptParams>(request.Params);
 
         if (getParams == null || string.IsNullOrEmpty(getParams.Name))
         {
@@ -674,5 +670,16 @@ public sealed class MCPServer : IAsyncDisposable
         _requestSemaphore.Dispose();
         _cts.Dispose();
         await _transport.DisposeAsync().ConfigureAwait(false);
+    }
+
+    private static T? DeserializeParams<T>(object? @params)
+        where T : class
+    {
+        return @params switch
+        {
+            JsonElement element => element.Deserialize<T>(),
+            T typed => typed,
+            _ => null,
+        };
     }
 }

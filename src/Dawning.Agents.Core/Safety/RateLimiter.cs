@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Safety;
 /// <summary>
 /// 滑动窗口速率限制器
 /// </summary>
-public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
+public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 {
     private readonly RateLimitOptions _options;
     private readonly ILogger<SlidingWindowRateLimiter> _logger;
@@ -364,7 +364,7 @@ public class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 /// <summary>
 /// Token 使用限制器
 /// </summary>
-public class TokenRateLimiter : ITokenRateLimiter, IDisposable
+public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
 {
     private readonly RateLimitOptions _options;
     private readonly ILogger<TokenRateLimiter> _logger;

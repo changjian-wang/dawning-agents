@@ -26,6 +26,16 @@ namespace Dawning.Agents.Abstractions.Logging;
 /// </remarks>
 public class LoggingOptions : IValidatableOptions
 {
+    private static readonly string[] s_validLevels =
+    [
+        "Verbose",
+        "Debug",
+        "Information",
+        "Warning",
+        "Error",
+        "Fatal",
+    ];
+
     /// <summary>
     /// 配置节名称
     /// </summary>
@@ -106,11 +116,10 @@ public class LoggingOptions : IValidatableOptions
     /// <inheritdoc />
     public void Validate()
     {
-        var validLevels = new[] { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
-        if (!validLevels.Contains(MinimumLevel, StringComparer.OrdinalIgnoreCase))
+        if (!s_validLevels.Contains(MinimumLevel, StringComparer.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
-                $"MinimumLevel '{MinimumLevel}' is not valid. Must be one of: {string.Join(", ", validLevels)}"
+                $"MinimumLevel '{MinimumLevel}' is not valid. Must be one of: {string.Join(", ", s_validLevels)}"
             );
         }
 

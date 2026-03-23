@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.Diagnostics;
 /// <summary>
 /// 诊断信息提供者实现
 /// </summary>
-public class DiagnosticsProvider : IDiagnosticsProvider
+public sealed class DiagnosticsProvider : IDiagnosticsProvider
 {
     private readonly IToolReader? _toolRegistry;
     private readonly ILogger<DiagnosticsProvider> _logger;

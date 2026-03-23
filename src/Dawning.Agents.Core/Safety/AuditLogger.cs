@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using Dawning.Agents.Abstractions.Safety;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -271,7 +272,10 @@ public static class AuditLoggerExtensions
             new AuditEntry
             {
                 EventType = AuditEventType.RateLimited,
-                ErrorMessage = $"Rate limited for {retryAfter.TotalSeconds:F1} seconds",
+                ErrorMessage = string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Rate limited for {retryAfter.TotalSeconds:F1} seconds"
+                ),
                 Status = AuditResultStatus.RateLimited,
                 SessionId = sessionId,
                 Metadata = new Dictionary<string, object>

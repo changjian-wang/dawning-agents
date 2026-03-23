@@ -8,13 +8,57 @@ namespace Dawning.Agents.Core.Tools;
 /// <summary>
 /// 默认工具审批处理器 - 基于策略的审批实现
 /// </summary>
-public class DefaultToolApprovalHandler : IToolApprovalHandler
+public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
 {
     private readonly ILogger<DefaultToolApprovalHandler> _logger;
     private readonly ApprovalStrategy _strategy;
     private readonly HashSet<string> _autoApprovedUrls;
     private readonly HashSet<string> _autoApprovedCommands;
     private readonly Lock _lock = new();
+
+    private static readonly string[] s_trustedDomains =
+    [
+        "localhost",
+        "127.0.0.1",
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "microsoft.com",
+        "azure.com",
+        "nuget.org",
+    ];
+
+    private static readonly string[] s_dangerousCommands =
+    [
+        "rm -rf /",
+        "rm -rf ~",
+        "del /s /q c:\\",
+        "format",
+        "mkfs",
+        ":(){:|:&};:",
+        "dd if=/dev/zero",
+        "chmod -R 777 /",
+        "shutdown",
+        "reboot",
+    ];
+
+    private static readonly string[] s_safeCommands =
+    [
+        "ls",
+        "dir",
+        "pwd",
+        "cd",
+        "cat",
+        "type",
+        "echo",
+        "git status",
+        "git log",
+        "git diff",
+        "git branch",
+        "dotnet --version",
+        "node --version",
+        "python --version",
+    ];
 
     /// <summary>
     /// 创建默认审批处理器
@@ -185,20 +229,7 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
             var uri = new Uri(url);
             var host = uri.Host.ToLowerInvariant();
 
-            // 常见可信域名
-            var trustedDomains = new[]
-            {
-                "localhost",
-                "127.0.0.1",
-                "github.com",
-                "api.github.com",
-                "raw.githubusercontent.com",
-                "microsoft.com",
-                "azure.com",
-                "nuget.org",
-            };
-
-            return trustedDomains.Any(d =>
+            return s_trustedDomains.Any(d =>
                 host == d || host.EndsWith("." + d, StringComparison.OrdinalIgnoreCase)
             );
         }
@@ -223,49 +254,17 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
 
     private static bool IsDangerousCommand(string command)
     {
-        var dangerous = new[]
-        {
-            "rm -rf /",
-            "rm -rf ~",
-            "del /s /q c:\\",
-            "format",
-            "mkfs",
-            ":(){:|:&};:",
-            "dd if=/dev/zero",
-            "chmod -R 777 /",
-            "shutdown",
-            "reboot",
-        };
-
         var normalized = Regex
             .Replace(command, @"\s+", " ", RegexOptions.None, TimeSpan.FromSeconds(1))
             .ToLowerInvariant()
             .Trim();
-        return dangerous.Any(d => normalized.Contains(d, StringComparison.Ordinal));
+        return s_dangerousCommands.Any(d => normalized.Contains(d, StringComparison.Ordinal));
     }
 
     private static bool IsSafeCommand(string command)
     {
-        var safeCommands = new[]
-        {
-            "ls",
-            "dir",
-            "pwd",
-            "cd",
-            "cat",
-            "type",
-            "echo",
-            "git status",
-            "git log",
-            "git diff",
-            "git branch",
-            "dotnet --version",
-            "node --version",
-            "python --version",
-        };
-
         var cmdLower = command.ToLowerInvariant().Trim();
-        return safeCommands.Any(s =>
+        return s_safeCommands.Any(s =>
             cmdLower == s || cmdLower.StartsWith(s + " ", StringComparison.Ordinal)
         );
     }

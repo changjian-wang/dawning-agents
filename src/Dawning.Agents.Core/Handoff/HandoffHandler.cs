@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.Handoff;
 /// <summary>
 /// Handoff 处理器实现 - 管理 Agent 间的任务转交
 /// </summary>
-public class HandoffHandler : IHandoffHandler
+public sealed class HandoffHandler : IHandoffHandler
 {
     private readonly ConcurrentDictionary<string, IAgent> _agents = new(
         StringComparer.OrdinalIgnoreCase

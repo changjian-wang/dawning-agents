@@ -65,10 +65,10 @@ public sealed class ListToolsParams
 public sealed class ListToolsResult
 {
     [JsonPropertyName("tools")]
-    public required List<MCPToolDefinition> Tools { get; set; }
+    public required List<MCPToolDefinition> Tools { get; init; }
 
     [JsonPropertyName("nextCursor")]
-    public string? NextCursor { get; set; }
+    public string? NextCursor { get; init; }
 }
 
 /// <summary>

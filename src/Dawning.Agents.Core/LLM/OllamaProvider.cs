@@ -13,7 +13,7 @@ namespace Dawning.Agents.Core.LLM;
 /// <summary>
 /// Ollama 本地模型提供者实现（支持 Native Function Calling）
 /// </summary>
-public class OllamaProvider : ILLMProvider
+public sealed class OllamaProvider : ILLMProvider
 {
     private readonly HttpClient _httpClient;
     private readonly string _model;

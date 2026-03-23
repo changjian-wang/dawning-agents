@@ -47,10 +47,10 @@ public sealed class ListPromptsParams
 public sealed class ListPromptsResult
 {
     [JsonPropertyName("prompts")]
-    public required List<MCPPrompt> Prompts { get; set; }
+    public required List<MCPPrompt> Prompts { get; init; }
 
     [JsonPropertyName("nextCursor")]
-    public string? NextCursor { get; set; }
+    public string? NextCursor { get; init; }
 }
 
 /// <summary>

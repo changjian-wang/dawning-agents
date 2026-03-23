@@ -15,6 +15,10 @@ public sealed class ObservableAgent : IAgent, IDisposable
     private readonly AgentLogger _agentLogger;
     private readonly DistributedTracer _tracer;
     private readonly MetricsCollector _metrics;
+    private readonly Dictionary<string, string> _agentTag;
+    private readonly Dictionary<string, string> _agentSuccessTag;
+    private readonly Dictionary<string, string> _agentFailureTag;
+    private volatile bool _disposed;
 
     /// <inheritdoc />
     public string Name => $"Observable({_innerAgent.Name})";
@@ -45,6 +49,17 @@ public sealed class ObservableAgent : IAgent, IDisposable
         _agentLogger = new AgentLogger(logger ?? NullLogger.Instance, innerAgent.Name, config);
         _tracer = new DistributedTracer(config);
         _metrics = new MetricsCollector();
+        _agentTag = new Dictionary<string, string> { ["agent"] = innerAgent.Name };
+        _agentSuccessTag = new Dictionary<string, string>
+        {
+            ["agent"] = innerAgent.Name,
+            ["success"] = "true",
+        };
+        _agentFailureTag = new Dictionary<string, string>
+        {
+            ["agent"] = innerAgent.Name,
+            ["success"] = "false",
+        };
     }
 
     /// <inheritdoc />
@@ -63,6 +78,8 @@ public sealed class ObservableAgent : IAgent, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var requestId = Guid.NewGuid().ToString("N")[..8];
         var startTime = DateTimeOffset.UtcNow;
 
@@ -100,18 +117,10 @@ public sealed class ObservableAgent : IAgent, IDisposable
             _metrics.IncrementCounter(
                 "agent.requests",
                 1,
-                new Dictionary<string, string>
-                {
-                    ["agent"] = _innerAgent.Name,
-                    ["success"] = response.Success.ToString().ToLowerInvariant(),
-                }
+                response.Success ? _agentSuccessTag : _agentFailureTag
             );
 
-            _metrics.RecordHistogram(
-                "agent.latency_ms",
-                duration.TotalMilliseconds,
-                new Dictionary<string, string> { ["agent"] = _innerAgent.Name }
-            );
+            _metrics.RecordHistogram("agent.latency_ms", duration.TotalMilliseconds, _agentTag);
 
             _agentLogger.LogRequestComplete(requestId, response.Success, duration);
 
@@ -158,6 +167,12 @@ public sealed class ObservableAgent : IAgent, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         _tracer.Dispose();
         _telemetry.Dispose();
         (_innerAgent as IDisposable)?.Dispose();

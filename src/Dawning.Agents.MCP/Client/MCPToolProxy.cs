@@ -25,6 +25,7 @@ public sealed class MCPToolProxy : ITool
         ILogger<MCPToolProxy>? logger = null
     )
     {
+        ArgumentNullException.ThrowIfNull(definition);
         _client = client;
         _definition = definition;
         _logger = logger ?? NullLogger<MCPToolProxy>.Instance;

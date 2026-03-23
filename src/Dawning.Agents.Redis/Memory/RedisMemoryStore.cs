@@ -134,21 +134,20 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(message);
 
         var serialized = JsonSerializer.Serialize(message);
-        await _database.ListRightPushAsync(_sessionKey, serialized).ConfigureAwait(false);
+        var currentLength = await _database
+            .ListRightPushAsync(_sessionKey, serialized)
+            .ConfigureAwait(false);
 
         // 如果超过最大消息数，删除最旧的消息
-        var currentLength = await _database.ListLengthAsync(_sessionKey).ConfigureAwait(false);
         if (currentLength > _sessionOptions.MaxMessages)
         {
             await _database
                 .ListTrimAsync(_sessionKey, -_sessionOptions.MaxMessages, -1)
                 .ConfigureAwait(false);
+            currentLength = _sessionOptions.MaxMessages;
         }
 
-        Volatile.Write(
-            ref _messageCount,
-            (int)Math.Min(currentLength, _sessionOptions.MaxMessages)
-        );
+        Volatile.Write(ref _messageCount, (int)currentLength);
 
         if (_sessionOptions.EnableSlidingExpiry)
         {

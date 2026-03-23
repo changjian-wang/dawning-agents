@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Dawning.Agents.Abstractions.Tools;
@@ -102,7 +103,12 @@ public sealed class EphemeralTool : ITool
 
         if (result.TimedOut)
         {
-            return ToolResult.Fail($"Script timed out after {result.Duration.TotalSeconds:F1}s");
+            return ToolResult.Fail(
+                string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Script timed out after {result.Duration.TotalSeconds:F1}s"
+                )
+            );
         }
 
         if (!result.IsSuccess)

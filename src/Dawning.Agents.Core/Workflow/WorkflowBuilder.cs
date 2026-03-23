@@ -5,7 +5,7 @@ namespace Dawning.Agents.Core.Workflow;
 /// <summary>
 /// 工作流构建器（Fluent API）
 /// </summary>
-public class WorkflowBuilder
+public sealed class WorkflowBuilder
 {
     private readonly string _id;
     private string _name;
@@ -366,7 +366,7 @@ public class WorkflowBuilder
 /// <summary>
 /// 条件节点构建器
 /// </summary>
-public class ConditionNodeBuilder
+public sealed class ConditionNodeBuilder
 {
     private string? _inputSource;
     private readonly List<Dictionary<string, object?>> _branches = [];
@@ -411,7 +411,7 @@ public class ConditionNodeBuilder
 /// <summary>
 /// 并行节点构建器
 /// </summary>
-public class ParallelNodeBuilder
+public sealed class ParallelNodeBuilder
 {
     private readonly List<Dictionary<string, object?>> _branches = [];
     private ParallelWaitStrategy _waitStrategy = ParallelWaitStrategy.WaitAll;

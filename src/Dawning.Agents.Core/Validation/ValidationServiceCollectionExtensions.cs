@@ -78,12 +78,21 @@ internal class FluentValidationValidateOptions<TOptions> : IValidateOptions<TOpt
 /// </summary>
 public class OptionsValidationException : Exception
 {
-    public IEnumerable<ValidationFailure> Errors { get; }
+    public IReadOnlyList<ValidationFailure> Errors { get; }
 
     public OptionsValidationException(IEnumerable<ValidationFailure> errors)
         : base(FormatMessage(errors))
     {
-        Errors = errors;
+        Errors = errors.ToList();
+    }
+
+    public OptionsValidationException(
+        IEnumerable<ValidationFailure> errors,
+        Exception innerException
+    )
+        : base(FormatMessage(errors), innerException)
+    {
+        Errors = errors.ToList();
     }
 
     private static string FormatMessage(IEnumerable<ValidationFailure> errors)

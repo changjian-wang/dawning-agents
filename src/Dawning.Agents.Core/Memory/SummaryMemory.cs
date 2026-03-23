@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Memory;
 /// <para>需要 LLM 提供者来生成摘要</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class SummaryMemory : IConversationMemory, IDisposable
+public sealed class SummaryMemory : IConversationMemory, IDisposable
 {
     private readonly List<ConversationMessage> _recentMessages = [];
     private string _summary = string.Empty;

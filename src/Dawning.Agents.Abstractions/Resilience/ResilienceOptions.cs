@@ -149,6 +149,11 @@ public class RetryOptions
     public bool UseJitter { get; set; } = true;
 
     /// <summary>
+    /// 退避策略类型（Constant=固定延迟, Exponential=指数退避, Linear=线性递增）
+    /// </summary>
+    public RetryBackoffType BackoffType { get; set; } = RetryBackoffType.Constant;
+
+    /// <summary>
     /// 最大延迟时间（毫秒）
     /// </summary>
     public int MaxDelayMs { get; set; } = 30000;
@@ -223,4 +228,19 @@ public class BulkheadOptions
     /// 最大排队等待数
     /// </summary>
     public int MaxQueuedActions { get; set; } = 20;
+}
+
+/// <summary>
+/// 重试退避策略类型
+/// </summary>
+public enum RetryBackoffType
+{
+    /// <summary>固定延迟</summary>
+    Constant = 0,
+
+    /// <summary>线性递增</summary>
+    Linear = 1,
+
+    /// <summary>指数退避</summary>
+    Exponential = 2,
 }

@@ -14,7 +14,7 @@ namespace Dawning.Agents.Core.Memory;
 /// <para>切换时会将已有消息迁移到 SummaryMemory 并触发摘要</para>
 /// <para>线程安全</para>
 /// </remarks>
-public class AdaptiveMemory : IConversationMemory, IDisposable
+public sealed class AdaptiveMemory : IConversationMemory, IDisposable
 {
     private IConversationMemory _currentMemory;
     private readonly ILLMProvider _llm;

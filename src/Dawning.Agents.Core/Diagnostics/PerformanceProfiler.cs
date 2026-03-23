@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Diagnostics;
 /// <summary>
 /// 性能分析器实现
 /// </summary>
-public class PerformanceProfiler : IPerformanceProfiler
+public sealed class PerformanceProfiler : IPerformanceProfiler
 {
     private readonly ConcurrentQueue<OperationTrace> _traces = new();
     private readonly ConcurrentDictionary<string, OperationStatistics> _statistics = new();

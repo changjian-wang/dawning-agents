@@ -7,7 +7,7 @@ namespace Dawning.Agents.Serilog;
 /// <summary>
 /// 日志级别控制器实现
 /// </summary>
-public class LogLevelController : ILogLevelController
+public sealed class LogLevelController : ILogLevelController
 {
     private readonly LoggingLevelSwitch _levelSwitch;
     private readonly Lock _lock = new();

@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Health;
 /// <summary>
 /// LLMProvider 健康检查
 /// </summary>
-public class LLMProviderHealthCheck : IHealthCheck
+public sealed class LLMProviderHealthCheck : IHealthCheck
 {
     private readonly ILLMProvider _llmProvider;
     private readonly ILogger<LLMProviderHealthCheck> _logger;

@@ -281,7 +281,7 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取可用工具列表
     /// </summary>
-    public async Task<List<MCPToolDefinition>> ListToolsAsync(
+    public async Task<IReadOnlyList<MCPToolDefinition>> ListToolsAsync(
         CancellationToken cancellationToken = default
     )
     {
@@ -323,7 +323,7 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取资源列表
     /// </summary>
-    public async Task<List<MCPResource>> ListResourcesAsync(
+    public async Task<IReadOnlyList<MCPResource>> ListResourcesAsync(
         CancellationToken cancellationToken = default
     )
     {
@@ -364,7 +364,7 @@ public sealed class MCPClient : IAsyncDisposable
     /// <summary>
     /// 获取提示词列表
     /// </summary>
-    public async Task<List<MCPPrompt>> ListPromptsAsync(
+    public async Task<IReadOnlyList<MCPPrompt>> ListPromptsAsync(
         CancellationToken cancellationToken = default
     )
     {
@@ -632,6 +632,12 @@ public class MCPException : Exception
 
     public MCPException(int errorCode, string message)
         : base(message)
+    {
+        ErrorCode = errorCode;
+    }
+
+    public MCPException(int errorCode, string message, Exception innerException)
+        : base(message, innerException)
     {
         ErrorCode = errorCode;
     }
