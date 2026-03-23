@@ -21,7 +21,7 @@ public sealed class FileToolStore : IToolStore
     private readonly string _globalToolsPath;
     private readonly ILogger<FileToolStore> _logger;
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -76,7 +76,7 @@ public sealed class FileToolStore : IToolStore
                 var json = File.ReadAllText(file);
                 var definition = JsonSerializer.Deserialize<EphemeralToolDefinition>(
                     json,
-                    JsonOptions
+                    s_jsonOptions
                 );
 
                 if (definition != null)
@@ -109,7 +109,7 @@ public sealed class FileToolStore : IToolStore
         Directory.CreateDirectory(dir);
 
         var filePath = GetToolFilePath(dir, definition.Name);
-        var json = JsonSerializer.Serialize(definition, JsonOptions);
+        var json = JsonSerializer.Serialize(definition, s_jsonOptions);
         File.WriteAllText(filePath, json);
 
         _logger.LogInformation(

@@ -36,6 +36,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     private readonly IDisposable? _changeTokenRegistration;
     private readonly Lock _lock = new();
     private readonly List<IDisposable> _retiredProviders = [];
+    private readonly CancellationTokenSource _gracePeriodCts = new();
     private volatile ILLMProvider _innerProvider;
     private volatile bool _disposed;
 
@@ -182,7 +183,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         try
         {
             // 等待足够长的时间让正在进行的请求完成
-            await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(30), _gracePeriodCts.Token).ConfigureAwait(false);
 
             lock (_lock)
             {
@@ -197,6 +198,10 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
 
             disposable.Dispose();
             _logger.LogDebug("已释放旧 LLM Provider 实例");
+        }
+        catch (OperationCanceledException)
+        {
+            // Grace period cancelled during Dispose — expected
         }
         catch (Exception ex)
         {
@@ -219,6 +224,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             }
 
             _disposed = true;
+            _gracePeriodCts.Cancel();
             _changeTokenRegistration?.Dispose();
 
             if (_innerProvider is IDisposable disposable)
@@ -231,6 +237,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
                 retired.Dispose();
             }
             _retiredProviders.Clear();
+            _gracePeriodCts.Dispose();
 
             _logger.LogDebug("HotReloadableLLMProvider 已释放");
         }

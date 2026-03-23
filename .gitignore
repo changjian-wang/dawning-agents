@@ -73,3 +73,8 @@ nunit-*.xml
 **/appsettings.json
 **/appsettings.*.json
 !**/appsettings.example.json
+
+# Environment files (use .env.example as template)
+.env
+.env.*
+!.env.example

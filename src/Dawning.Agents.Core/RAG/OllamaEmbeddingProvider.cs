@@ -45,7 +45,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 模型维度映射
     /// </summary>
-    private static readonly Dictionary<string, int> ModelDimensions = new(
+    private static readonly Dictionary<string, int> s_modelDimensions = new(
         StringComparer.OrdinalIgnoreCase
     )
     {
@@ -223,7 +223,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         // 移除版本标签（如 nomic-embed-text:latest）
         var baseName = model.Split(':')[0];
 
-        if (ModelDimensions.TryGetValue(baseName, out var dimensions))
+        if (s_modelDimensions.TryGetValue(baseName, out var dimensions))
         {
             return dimensions;
         }

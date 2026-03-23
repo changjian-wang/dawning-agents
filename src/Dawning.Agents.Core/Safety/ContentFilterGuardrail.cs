@@ -108,7 +108,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 /// </summary>
 public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 {
-    private static readonly Regex UrlRegex = new(
+    private static readonly Regex s_urlRegex = new(
         @"https?://([^/\s]+)",
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
         TimeSpan.FromSeconds(1)
@@ -155,7 +155,7 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 
         try
         {
-            var matches = UrlRegex.Matches(content);
+            var matches = s_urlRegex.Matches(content);
 
             foreach (Match match in matches)
             {

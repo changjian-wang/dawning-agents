@@ -40,7 +40,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// <summary>
     /// 模型维度映射
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, int> ModelDimensions = new Dictionary<
+    private static readonly IReadOnlyDictionary<string, int> s_modelDimensions = new Dictionary<
         string,
         int
     >(StringComparer.OrdinalIgnoreCase)
@@ -169,7 +169,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     /// </summary>
     private static int GetModelDimensions(string model)
     {
-        if (ModelDimensions.TryGetValue(model, out var dimensions))
+        if (s_modelDimensions.TryGetValue(model, out var dimensions))
         {
             return dimensions;
         }

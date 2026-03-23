@@ -22,9 +22,9 @@ public partial class InMemorySharedState : ISharedState
 {
     private readonly ConcurrentDictionary<string, string> _store = new();
     private readonly ConcurrentDictionary<string, List<Action<string, object?>>> _watchers = new();
-    private static readonly ConcurrentDictionary<string, Regex> _regexCache = new();
+    private static readonly ConcurrentDictionary<string, Regex> s_regexCache = new();
     private const int MaxRegexCacheSize = 1000;
-    private static int _regexCacheClearing;
+    private static int s_regexCacheClearing;
     private readonly ILogger<InMemorySharedState> _logger;
     private readonly ConcurrentDictionary<string, Lock> _watcherLocks = new();
 
@@ -196,23 +196,23 @@ public partial class InMemorySharedState : ISharedState
     /// </summary>
     private static Regex PatternToRegex(string pattern)
     {
-        if (_regexCache.TryGetValue(pattern, out var cached))
+        if (s_regexCache.TryGetValue(pattern, out var cached))
         {
             return cached;
         }
 
         if (
-            _regexCache.Count >= MaxRegexCacheSize
-            && Interlocked.CompareExchange(ref _regexCacheClearing, 1, 0) == 0
+            s_regexCache.Count >= MaxRegexCacheSize
+            && Interlocked.CompareExchange(ref s_regexCacheClearing, 1, 0) == 0
         )
         {
             try
             {
-                _regexCache.Clear();
+                s_regexCache.Clear();
             }
             finally
             {
-                Volatile.Write(ref _regexCacheClearing, 0);
+                Volatile.Write(ref s_regexCacheClearing, 0);
             }
         }
 
@@ -222,7 +222,7 @@ public partial class InMemorySharedState : ISharedState
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
             TimeSpan.FromSeconds(1)
         );
-        _regexCache.TryAdd(pattern, regex);
+        s_regexCache.TryAdd(pattern, regex);
         return regex;
     }
 

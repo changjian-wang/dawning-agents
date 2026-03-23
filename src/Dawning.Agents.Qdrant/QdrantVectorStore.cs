@@ -473,11 +473,11 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             return guid;
         }
 
-        // 使用稳定的哈希算法生成 UUID
-        var hash = System.Security.Cryptography.MD5.HashData(
+        // 使用稳定的哈希算法生成 UUID（SHA256 截断为 16 字节）
+        var hash = System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(id)
         );
-        return new Guid(hash);
+        return new Guid(hash.AsSpan(0, 16));
     }
 
     private static DocumentChunk? PointToChunk(ScoredPoint point)

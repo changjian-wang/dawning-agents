@@ -5,15 +5,15 @@ namespace Dawning.Agents.Abstractions.Logging;
 /// </summary>
 public class AgentLogContext
 {
-    private static readonly AsyncLocal<AgentLogContext?> _current = new();
+    private static readonly AsyncLocal<AgentLogContext?> s_current = new();
 
     /// <summary>
     /// 当前日志上下文
     /// </summary>
     public static AgentLogContext? Current
     {
-        get => _current.Value;
-        set => _current.Value = value;
+        get => s_current.Value;
+        set => s_current.Value = value;
     }
 
     /// <summary>

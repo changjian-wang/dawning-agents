@@ -1,6 +1,7 @@
 using Dawning.Agents.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Core;
@@ -27,7 +28,7 @@ public static class OptionsValidationExtensions
     {
         services.AddOptions<T>().Bind(configuration.GetSection(sectionName)).ValidateOnStart();
 
-        services.AddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
+        services.TryAddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
 
         return services;
     }
@@ -47,7 +48,7 @@ public static class OptionsValidationExtensions
     {
         services.AddOptions<T>().Configure(configure).ValidateOnStart();
 
-        services.AddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
+        services.TryAddSingleton<IValidateOptions<T>, ValidatableOptionsValidator<T>>();
 
         return services;
     }

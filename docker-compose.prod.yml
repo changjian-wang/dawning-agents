@@ -6,7 +6,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Redis__ConnectionString: redis:6379
-      PostgreSQL__ConnectionString: Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=agents
+      PostgreSQL__ConnectionString: Host=postgres;Port=5432;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD};Database=${POSTGRES_DB:-agents}
     ports:
       - "80:8080"
     depends_on:
@@ -31,9 +31,9 @@ services:
     image: postgres:16-alpine
     container_name: dawning-postgres-prod
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: agents
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-agents}
     ports:
       - "5432:5432"
     volumes:

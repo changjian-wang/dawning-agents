@@ -23,7 +23,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
     private readonly string _defaultModel;
     private readonly ILogger<OpenAITTSProvider> _logger;
 
-    private static readonly VoiceInfo[] _availableVoices =
+    private static readonly VoiceInfo[] s_availableVoices =
     [
         new VoiceInfo
         {
@@ -75,7 +75,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         },
     ];
 
-    private static readonly string[] _supportedFormats =
+    private static readonly string[] s_supportedFormats =
     [
         "mp3",
         "opus",
@@ -85,7 +85,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
         "pcm",
     ];
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -95,10 +95,10 @@ public class OpenAITTSProvider : ITextToSpeechProvider
     public string Name => "OpenAI-TTS";
 
     /// <inheritdoc />
-    public IReadOnlyList<VoiceInfo> AvailableVoices => _availableVoices;
+    public IReadOnlyList<VoiceInfo> AvailableVoices => s_availableVoices;
 
     /// <inheritdoc />
-    public IReadOnlyList<string> SupportedOutputFormats => _supportedFormats;
+    public IReadOnlyList<string> SupportedOutputFormats => s_supportedFormats;
 
     /// <inheritdoc />
     public int MaxTextLength => 4096;
@@ -162,7 +162,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/audio/speech");
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
-        request.Content = JsonContent.Create(requestBody, options: _jsonOptions);
+        request.Content = JsonContent.Create(requestBody, options: s_jsonOptions);
 
         try
         {
@@ -286,7 +286,7 @@ public class OpenAITTSProvider : ITextToSpeechProvider
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/audio/speech");
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
-        request.Content = JsonContent.Create(requestBody, options: _jsonOptions);
+        request.Content = JsonContent.Create(requestBody, options: s_jsonOptions);
 
         using var response = await _httpClient
             .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)

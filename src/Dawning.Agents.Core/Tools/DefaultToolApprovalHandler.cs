@@ -237,7 +237,10 @@ public class DefaultToolApprovalHandler : IToolApprovalHandler
             "reboot",
         };
 
-        var normalized = Regex.Replace(command, @"\s+", " ").ToLowerInvariant().Trim();
+        var normalized = Regex
+            .Replace(command, @"\s+", " ", RegexOptions.None, TimeSpan.FromSeconds(1))
+            .ToLowerInvariant()
+            .Trim();
         return dangerous.Any(d => normalized.Contains(d, StringComparison.Ordinal));
     }
 

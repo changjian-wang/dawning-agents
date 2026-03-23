@@ -105,7 +105,7 @@ public sealed partial class CommandAnalyzer
 
     private static string? CheckDestructivePatterns(string command)
     {
-        foreach (var pattern in DestructivePatterns)
+        foreach (var pattern in s_destructivePatterns)
         {
             if (command.Contains(pattern, StringComparison.OrdinalIgnoreCase))
             {
@@ -129,7 +129,7 @@ public sealed partial class CommandAnalyzer
 
     private static string? CheckPrivilegeEscalation(string command)
     {
-        foreach (var pattern in PrivilegeEscalationPatterns)
+        foreach (var pattern in s_privilegeEscalationPatterns)
         {
             if (command.Contains(pattern, StringComparison.OrdinalIgnoreCase))
             {
@@ -165,7 +165,7 @@ public sealed partial class CommandAnalyzer
 
     private static string? CheckNetworkActivity(string command)
     {
-        foreach (var tool in NetworkTools)
+        foreach (var tool in s_networkTools)
         {
             // Check if the command starts with or contains the network tool as a command
             if (GetNetworkToolRegex(tool).IsMatch(command))
@@ -177,13 +177,13 @@ public sealed partial class CommandAnalyzer
         return null;
     }
 
-    private static readonly ConcurrentDictionary<string, Regex> NetworkToolRegexCache = new(
+    private static readonly ConcurrentDictionary<string, Regex> s_networkToolRegexCache = new(
         StringComparer.OrdinalIgnoreCase
     );
 
     private static Regex GetNetworkToolRegex(string tool)
     {
-        return NetworkToolRegexCache.GetOrAdd(
+        return s_networkToolRegexCache.GetOrAdd(
             tool,
             static t =>
             {
@@ -202,7 +202,7 @@ public sealed partial class CommandAnalyzer
     /// <summary>
     /// 破坏性命令模式
     /// </summary>
-    private static readonly string[] DestructivePatterns =
+    private static readonly string[] s_destructivePatterns =
     [
         "rm -rf /",
         "rm -rf /*",
@@ -223,7 +223,7 @@ public sealed partial class CommandAnalyzer
     /// <summary>
     /// 权限升级模式
     /// </summary>
-    private static readonly string[] PrivilegeEscalationPatterns =
+    private static readonly string[] s_privilegeEscalationPatterns =
     [
         "sudo ",
         "sudo\t",
@@ -236,7 +236,7 @@ public sealed partial class CommandAnalyzer
     /// <summary>
     /// 网络工具
     /// </summary>
-    private static readonly string[] NetworkTools =
+    private static readonly string[] s_networkTools =
     [
         "curl",
         "wget",

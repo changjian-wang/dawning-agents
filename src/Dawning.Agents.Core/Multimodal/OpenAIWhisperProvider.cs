@@ -24,7 +24,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     private readonly string _defaultModel;
     private readonly ILogger<OpenAIWhisperProvider> _logger;
 
-    private static readonly string[] _supportedFormats =
+    private static readonly string[] s_supportedFormats =
     [
         "mp3",
         "mp4",
@@ -37,7 +37,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         "ogg",
     ];
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -47,7 +47,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
     public string Name => "OpenAI-Whisper";
 
     /// <inheritdoc />
-    public IReadOnlyList<string> SupportedFormats => _supportedFormats;
+    public IReadOnlyList<string> SupportedFormats => s_supportedFormats;
 
     /// <inheritdoc />
     public long MaxFileSize => 25 * 1024 * 1024; // 25 MB
@@ -98,12 +98,20 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
         else
         {
-            // 从 URL 下载
+            // 从 URL 下载（验证 URL 方案防止 SSRF）
+            if (
+                !Uri.TryCreate(audio.Url, UriKind.Absolute, out var audioUri)
+                || (audioUri.Scheme != Uri.UriSchemeHttps && audioUri.Scheme != Uri.UriSchemeHttp)
+            )
+            {
+                return TranscriptionResult.Failed("不支持的音频 URL 方案，仅允许 http/https");
+            }
+
             try
             {
                 using var downloadClient = _httpClientFactory.CreateClient("WhisperDownload");
                 audioData = await downloadClient
-                    .GetByteArrayAsync(audio.Url, cancellationToken)
+                    .GetByteArrayAsync(audioUri, cancellationToken)
                     .ConfigureAwait(false);
                 fileName = Path.GetFileName(new Uri(audio.Url!).LocalPath);
                 if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
@@ -148,7 +156,7 @@ public class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
 
         var extension = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
-        if (!_supportedFormats.Contains(extension))
+        if (!s_supportedFormats.Contains(extension))
         {
             return TranscriptionResult.Failed($"不支持的格式: {extension}");
         }

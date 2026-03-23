@@ -21,7 +21,7 @@ namespace Dawning.Agents.Weaviate;
 /// </remarks>
 public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 {
-    private static readonly Regex ValidClassNameRegex = ClassNameRegex();
+    private static readonly Regex s_validClassNameRegex = ClassNameRegex();
     private readonly HttpClient _httpClient;
     private readonly WeaviateOptions _options;
     private readonly ILogger<WeaviateVectorStore> _logger;
@@ -63,7 +63,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        if (!ValidClassNameRegex.IsMatch(_options.ClassName))
+        if (!s_validClassNameRegex.IsMatch(_options.ClassName))
         {
             throw new ArgumentException(
                 $"Invalid Weaviate ClassName '{_options.ClassName}'. Must match ^[a-zA-Z][a-zA-Z0-9_]*$",

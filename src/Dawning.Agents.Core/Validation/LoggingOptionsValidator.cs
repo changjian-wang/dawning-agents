@@ -8,7 +8,7 @@ namespace Dawning.Agents.Core.Validation;
 /// </summary>
 public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
 {
-    private static readonly string[] ValidLogLevels =
+    private static readonly string[] s_validLogLevels =
     [
         "Verbose",
         "Debug",
@@ -24,7 +24,9 @@ public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
             .NotEmpty()
             .WithMessage("MinimumLevel 不能为空")
             .Must(BeValidLogLevel)
-            .WithMessage($"MinimumLevel 必须是有效的日志级别: {string.Join(", ", ValidLogLevels)}");
+            .WithMessage(
+                $"MinimumLevel 必须是有效的日志级别: {string.Join(", ", s_validLogLevels)}"
+            );
 
         When(
             x => x.EnableFile,
@@ -91,7 +93,7 @@ public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
 
     private static bool BeValidLogLevel(string level)
     {
-        return ValidLogLevels.Contains(level, StringComparer.OrdinalIgnoreCase);
+        return s_validLogLevels.Contains(level, StringComparer.OrdinalIgnoreCase);
     }
 
     private static bool BeValidUrl(string? url)

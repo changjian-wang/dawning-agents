@@ -35,7 +35,7 @@ public class HumanLoopOptionsValidator : AbstractValidator<HumanLoopOptions>
 /// </summary>
 public class ApprovalConfigValidator : AbstractValidator<ApprovalConfig>
 {
-    private static readonly string[] ValidTimeoutActions = ["approve", "reject"];
+    private static readonly string[] s_validTimeoutActions = ["approve", "reject"];
 
     public ApprovalConfigValidator()
     {
@@ -48,7 +48,9 @@ public class ApprovalConfigValidator : AbstractValidator<ApprovalConfig>
         RuleFor(x => x.DefaultOnTimeout)
             .NotEmpty()
             .WithMessage("DefaultOnTimeout 不能为空")
-            .Must(action => ValidTimeoutActions.Contains(action, StringComparer.OrdinalIgnoreCase))
+            .Must(action =>
+                s_validTimeoutActions.Contains(action, StringComparer.OrdinalIgnoreCase)
+            )
             .WithMessage("DefaultOnTimeout 必须是 'approve' 或 'reject'");
     }
 }
