@@ -21,6 +21,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingInputs =
         new();
     private readonly ILogger<AsyncCallbackHandler> _logger;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 当请求确认时触发
@@ -56,6 +57,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(request);
 
         var tcs = new TaskCompletionSource<ConfirmationResponse>(
@@ -114,6 +116,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
 
         var requestId = Guid.NewGuid().ToString();
@@ -171,6 +174,7 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(request);
 
         var tcs = new TaskCompletionSource<EscalationResult>(
@@ -320,6 +324,13 @@ public class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         foreach (var tcs in _pendingConfirmations.Values)
         {
             tcs.TrySetCanceled();

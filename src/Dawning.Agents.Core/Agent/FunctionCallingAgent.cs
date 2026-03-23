@@ -256,11 +256,16 @@ public class FunctionCallingAgent : AgentBase
         {
             throw;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             stopwatch.Stop();
-            Logger.LogWarning("FunctionCallingAgent {AgentName} 任务被取消", Name);
-            return AgentResponse.Failed("Operation cancelled", context.Steps, stopwatch.Elapsed);
+            Logger.LogWarning(ex, "FunctionCallingAgent {AgentName} 任务被取消", Name);
+            return AgentResponse.Failed(
+                "Operation cancelled",
+                context.Steps,
+                stopwatch.Elapsed,
+                ex
+            );
         }
         catch (Exception ex)
         {

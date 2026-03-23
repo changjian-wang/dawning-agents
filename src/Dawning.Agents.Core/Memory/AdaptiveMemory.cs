@@ -236,14 +236,8 @@ public class AdaptiveMemory : IConversationMemory, IDisposable
             return;
         }
 
-        try
-        {
-            _downgradeLock.Dispose();
-            (_currentMemory as IDisposable)?.Dispose();
-        }
-        finally
-        {
-            _disposed = true;
-        }
+        _disposed = true;
+        _downgradeLock.Dispose();
+        (_currentMemory as IDisposable)?.Dispose();
     }
 }

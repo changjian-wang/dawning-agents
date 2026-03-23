@@ -96,7 +96,7 @@ public abstract class OrchestratorBase : IOrchestrator
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        if (_agents.Count == 0)
+        if (Volatile.Read(ref _agents).Count == 0)
         {
             return OrchestrationResult.Failed("编排器中没有 Agent", [], TimeSpan.Zero);
         }
@@ -116,7 +116,7 @@ public abstract class OrchestratorBase : IOrchestrator
             Logger.LogInformation(
                 "编排器 {OrchestratorName} 开始执行，共 {AgentCount} 个 Agent",
                 Name,
-                _agents.Count
+                Volatile.Read(ref _agents).Count
             );
 
             var result = await ExecuteOrchestratedAsync(context, linkedCts.Token)

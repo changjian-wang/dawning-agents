@@ -82,13 +82,22 @@ public sealed class DistributedTracer : IDisposable
             return new NoOpSpan();
         }
 
-        var traceId = ActivityTraceId.CreateFromString(context.TraceId.AsSpan());
-        var spanId = ActivitySpanId.CreateFromString(context.SpanId.AsSpan());
-        var traceFlags = Enum.TryParse<ActivityTraceFlags>(context.TraceFlags, out var flags)
-            ? flags
-            : ActivityTraceFlags.None;
+        ActivityContext parentContext;
+        try
+        {
+            var traceId = ActivityTraceId.CreateFromString(context.TraceId.AsSpan());
+            var spanId = ActivitySpanId.CreateFromString(context.SpanId.AsSpan());
+            var traceFlags = Enum.TryParse<ActivityTraceFlags>(context.TraceFlags, out var flags)
+                ? flags
+                : ActivityTraceFlags.None;
 
-        var parentContext = new ActivityContext(traceId, spanId, traceFlags);
+            parentContext = new ActivityContext(traceId, spanId, traceFlags);
+        }
+        catch (FormatException)
+        {
+            // Malformed trace context — fall back to root span
+            return StartSpan(name, kind);
+        }
 
         var activity = _source.StartActivity(
             name,

@@ -156,8 +156,14 @@ public class SemanticCache : ISemanticCache
             // 检查是否需要淘汰旧条目
             if (_vectorStore.Count >= _options.MaxEntries)
             {
+                // 尝试清理过期条目
+                await EvictExpiredEntriesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (_vectorStore.Count >= _options.MaxEntries)
+            {
                 _logger.LogWarning(
-                    "缓存已满 ({Count}/{Max})，跳过添加",
+                    "缓存已满（淘汰后仍满）({Count}/{Max})，跳过添加",
                     _vectorStore.Count,
                     _options.MaxEntries
                 );
@@ -247,6 +253,40 @@ public class SemanticCache : ISemanticCache
         }
 
         return DateTimeOffset.UtcNow > expiresAt;
+    }
+
+    /// <summary>
+    /// 淘汰过期的缓存条目
+    /// </summary>
+    private async Task EvictExpiredEntriesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Search with a zero vector to get entries by metadata; topK = MaxEntries
+            var zeroEmbedding = new float[1];
+            var results = await _vectorStore
+                .SearchAsync(
+                    zeroEmbedding,
+                    topK: _options.MaxEntries,
+                    minScore: 0.0f,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+
+            foreach (var result in results)
+            {
+                if (IsExpired(result.Chunk))
+                {
+                    await _vectorStore
+                        .DeleteAsync(result.Chunk.Id, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "淘汰过期缓存条目时出错");
+        }
     }
 
     /// <summary>

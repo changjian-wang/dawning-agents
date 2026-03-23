@@ -56,8 +56,7 @@ public sealed class ConfigurationChangeNotifier<TOptions>
             return;
         }
 
-        var oldValue = Volatile.Read(ref _currentValue);
-        Volatile.Write(ref _currentValue, newValue);
+        var oldValue = Interlocked.Exchange(ref _currentValue, newValue);
 
         _logger.LogInformation(
             "Configuration changed for {OptionsType}, Name={Name}",

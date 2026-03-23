@@ -60,7 +60,7 @@ public sealed class SequentialOrchestrator : OrchestratorBase
     )
     {
         var currentInput = context.CurrentInput;
-        var agents = _agents;
+        var agents = Volatile.Read(ref _agents);
 
         for (var i = 0; i < agents.Count; i++)
         {

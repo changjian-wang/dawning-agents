@@ -175,9 +175,29 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         // 简化实现: 轮询模式
         while (!cancellationToken.IsCancellationRequested)
         {
-            var instances = await GetInstancesAsync(serviceName, cancellationToken)
-                .ConfigureAwait(false);
-            yield return instances.ToArray();
+            ServiceInstance[] snapshot;
+            try
+            {
+                var instances = await GetInstancesAsync(serviceName, cancellationToken)
+                    .ConfigureAwait(false);
+                snapshot = instances.ToArray();
+            }
+            catch (OperationCanceledException)
+            {
+                yield break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Watch error for {ServiceName}, retrying...", serviceName);
+                await Task.Delay(
+                        TimeSpan.FromSeconds(_options.WatchIntervalSeconds * 2),
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
+                continue;
+            }
+
+            yield return snapshot;
             await Task.Delay(TimeSpan.FromSeconds(_options.WatchIntervalSeconds), cancellationToken)
                 .ConfigureAwait(false);
         }

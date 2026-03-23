@@ -70,7 +70,8 @@ public sealed class ParallelOrchestrator : OrchestratorBase
         // 使用 SemaphoreSlim 控制并发度
         using var semaphore = new SemaphoreSlim(Options.MaxConcurrency);
 
-        var tasks = _agents
+        var agents = Volatile.Read(ref _agents);
+        var tasks = agents
             .Select(
                 async (agent, index) =>
                 {

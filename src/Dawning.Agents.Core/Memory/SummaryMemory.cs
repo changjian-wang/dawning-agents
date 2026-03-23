@@ -333,13 +333,7 @@ public class SummaryMemory : IConversationMemory, IDisposable
             return;
         }
 
-        try
-        {
-            _summarySemaphore.Dispose();
-        }
-        finally
-        {
-            _disposed = true;
-        }
+        _disposed = true;
+        _summarySemaphore.Dispose();
     }
 }
