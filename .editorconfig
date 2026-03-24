@@ -47,7 +47,28 @@ dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-# 私有字段使用下划线前缀
+# 私有常量使用 _camelCase 前缀
+dotnet_naming_rule.private_const_fields_should_have_underscore_prefix.severity = warning
+dotnet_naming_rule.private_const_fields_should_have_underscore_prefix.symbols = private_const_fields
+dotnet_naming_rule.private_const_fields_should_have_underscore_prefix.style = camel_case_underscore
+
+dotnet_naming_symbols.private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.private_const_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_const_fields.required_modifiers = const
+
+# 私有静态字段使用 s_ 前缀（.NET 惯例）
+dotnet_naming_rule.private_static_fields_should_have_s_prefix.severity = warning
+dotnet_naming_rule.private_static_fields_should_have_s_prefix.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_should_have_s_prefix.style = static_field_style
+
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+dotnet_naming_style.static_field_style.required_prefix = s_
+dotnet_naming_style.static_field_style.capitalization = camel_case
+
+# 私有实例字段使用下划线前缀
 dotnet_naming_rule.private_fields_should_be_camel_case.severity = warning
 dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case_underscore
