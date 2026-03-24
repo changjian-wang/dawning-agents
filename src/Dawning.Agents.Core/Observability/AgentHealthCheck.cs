@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Dawning.Agents.Core.Observability;
 
 using Dawning.Agents.Abstractions.Observability;
@@ -7,14 +9,15 @@ using Dawning.Agents.Abstractions.Observability;
 /// </summary>
 public sealed class AgentHealthCheck
 {
-    private readonly List<IHealthCheckProvider> _providers = [];
+    private ImmutableList<IHealthCheckProvider> _providers =
+        ImmutableList<IHealthCheckProvider>.Empty;
 
     /// <summary>
     /// 添加健康检查提供者
     /// </summary>
     public void AddProvider(IHealthCheckProvider provider)
     {
-        _providers.Add(provider);
+        ImmutableInterlocked.Update(ref _providers, list => list.Add(provider));
     }
 
     /// <summary>

@@ -174,7 +174,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
 
         _disposed = true;
         _tracer.Dispose();
-        _telemetry.Dispose();
+        // _telemetry 是共享单例，由 DI 容器管理生命周期，不在此处 Dispose
         (_innerAgent as IDisposable)?.Dispose();
     }
 }

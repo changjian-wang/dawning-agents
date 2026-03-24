@@ -60,21 +60,24 @@ public static class ToolServiceCollectionExtensions
             // 1. read_file
             registry.Register(
                 new ReadFileTool(
-                    sp.GetService<Microsoft.Extensions.Logging.ILogger<ReadFileTool>>()
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<ReadFileTool>>(),
+                    options.WorkingDirectory
                 )
             );
 
             // 2. write_file
             registry.Register(
                 new WriteFileTool(
-                    sp.GetService<Microsoft.Extensions.Logging.ILogger<WriteFileTool>>()
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<WriteFileTool>>(),
+                    options.WorkingDirectory
                 )
             );
 
             // 3. edit_file
             registry.Register(
                 new EditFileTool(
-                    sp.GetService<Microsoft.Extensions.Logging.ILogger<EditFileTool>>()
+                    sp.GetService<Microsoft.Extensions.Logging.ILogger<EditFileTool>>(),
+                    options.WorkingDirectory
                 )
             );
 

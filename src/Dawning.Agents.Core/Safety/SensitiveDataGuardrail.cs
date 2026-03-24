@@ -60,11 +60,12 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
         var issues = new List<GuardrailIssue>();
         var processedContent = content;
 
+        // 第一遍：在原始内容上检测所有敏感数据（确保 Position 与原始内容对齐）
         foreach (var compiled in _compiledPatterns)
         {
             try
             {
-                var matches = compiled.Regex.Matches(processedContent);
+                var matches = compiled.Regex.Matches(content);
 
                 foreach (Match match in matches)
                 {
@@ -90,15 +91,6 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
                         match.Index
                     );
                 }
-
-                // 如果配置了自动脱敏，替换原始内容
-                if (_options.AutoMaskSensitiveData && matches.Count > 0)
-                {
-                    processedContent = compiled.Regex.Replace(
-                        processedContent,
-                        m => MaskValue(m.Value, compiled.Config)
-                    );
-                }
             }
             catch (RegexMatchTimeoutException ex)
             {
@@ -110,6 +102,18 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
                         Description = $"正则匹配超时，无法完成 {compiled.Config.Name} 检测",
                         Severity = IssueSeverity.Error,
                     }
+                );
+            }
+        }
+
+        // 第二遍：如果配置了自动脱敏，在 processedContent 上执行替换
+        if (_options.AutoMaskSensitiveData && issues.Count > 0)
+        {
+            foreach (var compiled in _compiledPatterns)
+            {
+                processedContent = compiled.Regex.Replace(
+                    processedContent,
+                    m => MaskValue(m.Value, compiled.Config)
                 );
             }
         }
