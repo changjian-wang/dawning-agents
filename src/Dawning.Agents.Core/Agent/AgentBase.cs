@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
+using Dawning.Agents.Abstractions.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -38,6 +39,11 @@ public abstract class AgentBase : IAgent
     protected readonly IConversationMemory? Memory;
 
     /// <summary>
+    /// 工具使用追踪器（可选），用于记录工具执行统计
+    /// </summary>
+    protected readonly IToolUsageTracker? UsageTracker;
+
+    /// <summary>
     /// Agent 名称
     /// </summary>
     public virtual string Name => Options.Name;
@@ -59,13 +65,15 @@ public abstract class AgentBase : IAgent
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
         IConversationMemory? memory = null,
-        ILogger? logger = null
+        ILogger? logger = null,
+        IToolUsageTracker? usageTracker = null
     )
     {
         LLMProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
         Options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         Memory = memory;
         Logger = logger ?? NullLogger.Instance;
+        UsageTracker = usageTracker;
     }
 
     /// <summary>
@@ -117,6 +125,9 @@ public abstract class AgentBase : IAgent
                 var step = await ExecuteStepAsync(context, stepNumber, cancellationToken)
                     .ConfigureAwait(false);
                 context.AddStep(step);
+
+                // 记录工具使用
+                await RecordToolUsageAsync(step, cancellationToken).ConfigureAwait(false);
 
                 // 累加成本并检查预算
                 costTracker?.Add(step.Cost);
@@ -225,6 +236,38 @@ public abstract class AgentBase : IAgent
     protected CostTracker? CreateCostTracker()
     {
         return Options.MaxCostPerRun.HasValue ? new CostTracker(Options.MaxCostPerRun.Value) : null;
+    }
+
+    /// <summary>
+    /// 记录工具使用到追踪器（如果已配置且步骤包含 Action）
+    /// </summary>
+    private async Task RecordToolUsageAsync(AgentStep step, CancellationToken cancellationToken)
+    {
+        if (UsageTracker == null || string.IsNullOrEmpty(step.Action))
+        {
+            return;
+        }
+
+        try
+        {
+            var isSuccess =
+                step.Observation != null
+                && !step.Observation.StartsWith("Tool error:", StringComparison.OrdinalIgnoreCase);
+            var record = new ToolUsageRecord
+            {
+                ToolName = step.Action,
+                Success = isSuccess,
+                Duration = TimeSpan.Zero,
+                ErrorMessage = isSuccess ? null : step.Observation,
+                TaskContext = step.Thought,
+            };
+
+            await UsageTracker.RecordUsageAsync(record, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to record tool usage for '{ToolName}'", step.Action);
+        }
     }
 
     /// <summary>

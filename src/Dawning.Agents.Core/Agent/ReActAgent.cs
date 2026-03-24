@@ -20,6 +20,8 @@ namespace Dawning.Agents.Core.Agent;
 public partial class ReActAgent : AgentBase
 {
     private readonly IToolReader? _toolRegistry;
+    private readonly ISkillRouter? _skillRouter;
+    private readonly IReflectionEngine? _reflectionEngine;
 
     /// <summary>
     /// 匹配 "Thought: ..." 部分，提取 Agent 的思考过程
@@ -58,11 +60,16 @@ public partial class ReActAgent : AgentBase
         IOptions<AgentOptions> options,
         IToolReader? toolRegistry = null,
         IConversationMemory? memory = null,
-        ILogger<ReActAgent>? logger = null
+        ILogger<ReActAgent>? logger = null,
+        IToolUsageTracker? usageTracker = null,
+        ISkillRouter? skillRouter = null,
+        IReflectionEngine? reflectionEngine = null
     )
-        : base(llmProvider, options, memory, logger)
+        : base(llmProvider, options, memory, logger, usageTracker)
     {
         _toolRegistry = toolRegistry;
+        _skillRouter = skillRouter;
+        _reflectionEngine = reflectionEngine;
     }
 
     /// <summary>
@@ -208,10 +215,52 @@ public partial class ReActAgent : AgentBase
             return "No tools available. Answer the question directly using your knowledge.";
         }
 
+        var tools = _toolRegistry.GetAllTools();
+
         var sb = new StringBuilder();
         sb.AppendLine("Available actions:");
 
-        foreach (var tool in _toolRegistry.GetAllTools())
+        foreach (var tool in tools)
+        {
+            sb.AppendLine($"- {tool.Name}: {tool.Description}");
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// 构建可用动作列表（支持语义路由）
+    /// </summary>
+    protected virtual async Task<string> BuildAvailableActionsPromptAsync(
+        string taskDescription,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (_toolRegistry == null || _toolRegistry.Count == 0)
+        {
+            return "No tools available. Answer the question directly using your knowledge.";
+        }
+
+        IEnumerable<ITool> tools;
+
+        // 如果已注册 SkillRouter 且工具数达到阈值，用语义路由检索 top-K
+        if (_skillRouter != null)
+        {
+            var scored = await _skillRouter
+                .RouteAsync(taskDescription, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            tools = scored.Select(s => s.Tool);
+            Logger.LogDebug("SkillRouter selected {Count} tools for task", scored.Count);
+        }
+        else
+        {
+            tools = _toolRegistry.GetAllTools();
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Available actions:");
+
+        foreach (var tool in tools)
         {
             sb.AppendLine($"- {tool.Name}: {tool.Description}");
         }
@@ -303,10 +352,25 @@ public partial class ReActAgent : AgentBase
                 {
                     return result.Output;
                 }
-                else
+
+                // 工具执行失败 — 尝试反思修复
+                if (_reflectionEngine != null)
                 {
-                    return $"Tool error: {result.Error}";
+                    var repaired = await TryReflectAndRepairAsync(
+                            tool,
+                            actionInput ?? string.Empty,
+                            result,
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
+
+                    if (repaired != null)
+                    {
+                        return repaired;
+                    }
                 }
+
+                return $"Tool error: {result.Error}";
             }
 
             // 工具不存在，返回错误信息和可用工具列表
@@ -322,6 +386,68 @@ public partial class ReActAgent : AgentBase
         // 没有注册任何工具
         Logger.LogWarning("没有注册任何工具，无法执行动作: {Action}", action);
         return $"Error: No tools registered. Cannot execute action '{action}'. Please register tools using AddBuiltInTools() or AddToolsFrom<T>().";
+    }
+
+    /// <summary>
+    /// 尝试通过反思引擎修复失败的工具执行
+    /// </summary>
+    private async Task<string?> TryReflectAndRepairAsync(
+        ITool failedTool,
+        string input,
+        ToolResult failedResult,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            var context = new ReflectionContext
+            {
+                FailedTool = failedTool,
+                Input = input,
+                FailedResult = failedResult,
+                TaskDescription = "Tool execution failed",
+                UsageStats =
+                    UsageTracker != null
+                        ? await UsageTracker
+                            .GetStatsAsync(failedTool.Name, cancellationToken)
+                            .ConfigureAwait(false)
+                        : null,
+            };
+
+            var reflection = await _reflectionEngine!
+                .ReflectAsync(context, cancellationToken)
+                .ConfigureAwait(false);
+
+            Logger.LogInformation(
+                "Reflection on '{ToolName}': Action={Action}, Confidence={Confidence:F2}, Diagnosis={Diagnosis}",
+                failedTool.Name,
+                reflection.Action,
+                reflection.Confidence,
+                reflection.Diagnosis
+            );
+
+            if (reflection.Action == ReflectionAction.Retry)
+            {
+                // 简单重试
+                var retryResult = await failedTool
+                    .ExecuteAsync(input, cancellationToken)
+                    .ConfigureAwait(false);
+
+                return retryResult.Success ? retryResult.Output : null;
+            }
+
+            // ReviseAndRetry、Abandon、CreateNew、Escalate — 返回诊断信息给 LLM 决策
+            if (reflection.Diagnosis != null)
+            {
+                return $"Tool error: {failedResult.Error} (Reflection: {reflection.Diagnosis})";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Reflection failed for tool '{ToolName}'", failedTool.Name);
+        }
+
+        return null;
     }
 
     /// <summary>

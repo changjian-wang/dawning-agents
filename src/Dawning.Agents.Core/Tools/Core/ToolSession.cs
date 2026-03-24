@@ -14,6 +14,8 @@ public sealed class ToolSession : IToolSession
     private readonly IToolStore _store;
     private readonly ToolSandboxOptions _defaultOptions;
     private readonly ILogger<ToolSession> _logger;
+    private readonly ISkillEvolutionPolicy? _evolutionPolicy;
+    private readonly IToolUsageTracker? _usageTracker;
     private readonly ConcurrentDictionary<string, EphemeralTool> _sessionTools = new(
         StringComparer.OrdinalIgnoreCase
     );
@@ -27,7 +29,9 @@ public sealed class ToolSession : IToolSession
         IToolSandbox sandbox,
         IToolStore store,
         ToolSandboxOptions? defaultOptions = null,
-        ILogger<ToolSession>? logger = null
+        ILogger<ToolSession>? logger = null,
+        ISkillEvolutionPolicy? evolutionPolicy = null,
+        IToolUsageTracker? usageTracker = null
     )
     {
         ArgumentNullException.ThrowIfNull(sandbox);
@@ -36,6 +40,8 @@ public sealed class ToolSession : IToolSession
         _store = store;
         _defaultOptions = defaultOptions ?? new ToolSandboxOptions();
         _logger = logger ?? NullLogger<ToolSession>.Instance;
+        _evolutionPolicy = evolutionPolicy;
+        _usageTracker = usageTracker;
     }
 
     /// <inheritdoc />
@@ -185,9 +191,75 @@ public sealed class ToolSession : IToolSession
     }
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        // 会话结束前评估工具演化
+        if (_evolutionPolicy != null && _usageTracker != null && _sessionTools.Count > 0)
+        {
+            await EvaluateToolEvolutionAsync().ConfigureAwait(false);
+        }
+
         Dispose();
-        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// 评估所有 session 工具的演化（提升/淘汰）
+    /// </summary>
+    private async Task EvaluateToolEvolutionAsync()
+    {
+        foreach (var (name, tool) in _sessionTools)
+        {
+            try
+            {
+                var stats = await _usageTracker!.GetStatsAsync(name).ConfigureAwait(false);
+
+                if (stats.TotalCalls == 0)
+                {
+                    continue;
+                }
+
+                // 评估是否应淘汰
+                var shouldRetire = await _evolutionPolicy!
+                    .ShouldRetireAsync(name, stats)
+                    .ConfigureAwait(false);
+
+                if (shouldRetire)
+                {
+                    _logger.LogInformation(
+                        "Tool '{Name}' marked for retirement (success rate: {Rate:P0}, calls: {Calls})",
+                        name,
+                        stats.SuccessRate,
+                        stats.TotalCalls
+                    );
+                    continue;
+                }
+
+                // 评估是否应提升
+                var decision = await _evolutionPolicy
+                    .EvaluatePromotionAsync(name, stats)
+                    .ConfigureAwait(false);
+
+                if (decision.ShouldPromote)
+                {
+                    _logger.LogInformation(
+                        "Auto-promoting tool '{Name}' to {Scope}: {Reason}",
+                        name,
+                        decision.TargetScope,
+                        decision.Reason
+                    );
+
+                    await PromoteToolAsync(name, decision.TargetScope).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to evaluate evolution for tool '{Name}'", name);
+            }
+        }
     }
 }
