@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Dawning.Agents.Abstractions.Discovery;
 using Dawning.Agents.Abstractions.Scaling;
 using Microsoft.Extensions.Logging;
@@ -88,7 +83,6 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
 
     private readonly List<AgentInstance> _instances = [];
     private readonly SortedDictionary<int, string> _hashRing = [];
-    private readonly Dictionary<string, int> _weightedCounters = [];
     private readonly ReaderWriterLockSlim _lock = new();
 
     private int _roundRobinIndex;
@@ -276,7 +270,6 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             {
                 _instances.Remove(instance);
                 RemoveFromHashRing(instance);
-                _weightedCounters.Remove(instanceId);
                 _logger.LogInformation("注销实例 {InstanceId}", instanceId);
             }
         }

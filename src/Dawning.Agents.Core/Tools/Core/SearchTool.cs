@@ -17,8 +17,8 @@ namespace Dawning.Agents.Core.Tools.Core;
 /// </remarks>
 public sealed class SearchTool : ITool
 {
-    private const int DefaultMaxResults = 50;
-    private const int MaxResultsLimit = 500;
+    private const int _defaultMaxResults = 50;
+    private const int _maxResultsLimit = 500;
     private readonly ILogger<SearchTool> _logger;
 
     /// <summary>
@@ -95,7 +95,7 @@ public sealed class SearchTool : ITool
         var searchPath = ".";
         var isRegex = false;
         string? includePattern = null;
-        var maxResults = DefaultMaxResults;
+        var maxResults = _defaultMaxResults;
 
         try
         {
@@ -137,7 +137,7 @@ public sealed class SearchTool : ITool
                 && maxProp.ValueKind == JsonValueKind.Number
             )
             {
-                maxResults = Math.Clamp(maxProp.GetInt32(), 1, MaxResultsLimit);
+                maxResults = Math.Clamp(maxProp.GetInt32(), 1, _maxResultsLimit);
             }
         }
         catch (JsonException)

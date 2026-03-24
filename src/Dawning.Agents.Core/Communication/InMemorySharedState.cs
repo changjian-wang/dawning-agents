@@ -23,7 +23,7 @@ public partial class InMemorySharedState : ISharedState
     private readonly ConcurrentDictionary<string, string> _store = new();
     private readonly ConcurrentDictionary<string, List<Action<string, object?>>> _watchers = new();
     private static readonly ConcurrentDictionary<string, Regex> s_regexCache = new();
-    private const int MaxRegexCacheSize = 1000;
+    private const int _maxRegexCacheSize = 1000;
     private static int s_regexCacheClearing;
     private readonly ILogger<InMemorySharedState> _logger;
     private readonly ConcurrentDictionary<string, Lock> _watcherLocks = new();
@@ -202,7 +202,7 @@ public partial class InMemorySharedState : ISharedState
         }
 
         if (
-            s_regexCache.Count >= MaxRegexCacheSize
+            s_regexCache.Count >= _maxRegexCacheSize
             && Interlocked.CompareExchange(ref s_regexCacheClearing, 1, 0) == 0
         )
         {

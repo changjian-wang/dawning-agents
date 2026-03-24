@@ -165,8 +165,8 @@ public sealed class CounterMetric
 /// </summary>
 public sealed class HistogramMetric
 {
-    private const int MaxValues = 10_000;
-    private readonly double[] _values = new double[MaxValues];
+    private const int _maxValues = 10_000;
+    private readonly double[] _values = new double[_maxValues];
     private readonly Lock _lock = new();
     private int _count;
     private int _writeIndex;
@@ -198,8 +198,8 @@ public sealed class HistogramMetric
         lock (_lock)
         {
             _values[_writeIndex] = value;
-            _writeIndex = (_writeIndex + 1) % MaxValues;
-            if (_count < MaxValues)
+            _writeIndex = (_writeIndex + 1) % _maxValues;
+            if (_count < _maxValues)
             {
                 _count++;
             }

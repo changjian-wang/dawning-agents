@@ -15,8 +15,8 @@ namespace Dawning.Agents.Core.Tools.Core;
 /// </remarks>
 public sealed class ReadFileTool : ITool
 {
-    private const int DefaultLimit = 2000;
-    private const int MaxLimit = 10000;
+    private const int _defaultLimit = 2000;
+    private const int _maxLimit = 10000;
     private readonly ILogger<ReadFileTool> _logger;
     private readonly string? _workingDirectory;
 
@@ -84,7 +84,7 @@ public sealed class ReadFileTool : ITool
     {
         string path;
         int offset = 1;
-        int limit = DefaultLimit;
+        int limit = _defaultLimit;
 
         try
         {
@@ -114,7 +114,7 @@ public sealed class ReadFileTool : ITool
                 && limitProp.ValueKind == JsonValueKind.Number
             )
             {
-                limit = Math.Clamp(limitProp.GetInt32(), 1, MaxLimit);
+                limit = Math.Clamp(limitProp.GetInt32(), 1, _maxLimit);
             }
         }
         catch (JsonException)

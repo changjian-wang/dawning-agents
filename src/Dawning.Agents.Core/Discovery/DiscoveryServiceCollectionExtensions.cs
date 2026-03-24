@@ -1,4 +1,3 @@
-using System;
 using Dawning.Agents.Abstractions.Discovery;
 using Dawning.Agents.Core;
 using Microsoft.Extensions.Configuration;

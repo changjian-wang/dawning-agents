@@ -1,4 +1,3 @@
-using System;
 using Dawning.Agents.Abstractions;
 using Dawning.Agents.Core.Observability;
 using Microsoft.Extensions.Configuration;

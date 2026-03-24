@@ -16,7 +16,7 @@ namespace Dawning.Agents.Core.Tools.Core;
 /// </remarks>
 public sealed class FileToolStore : IToolStore
 {
-    private const string ToolFileExtension = ".tool.json";
+    private const string _toolFileExtension = ".tool.json";
     private readonly string _userToolsPath;
     private readonly string _globalToolsPath;
     private readonly ILogger<FileToolStore> _logger;
@@ -69,7 +69,7 @@ public sealed class FileToolStore : IToolStore
 
         var tools = new List<EphemeralToolDefinition>();
 
-        foreach (var file in Directory.EnumerateFiles(dir, $"*{ToolFileExtension}"))
+        foreach (var file in Directory.EnumerateFiles(dir, $"*{_toolFileExtension}"))
         {
             try
             {
@@ -206,7 +206,7 @@ public sealed class FileToolStore : IToolStore
     private static string GetToolFilePath(string directory, string name)
     {
         var fullDir = Path.GetFullPath(directory);
-        var filePath = Path.GetFullPath(Path.Combine(directory, $"{name}{ToolFileExtension}"));
+        var filePath = Path.GetFullPath(Path.Combine(directory, $"{name}{_toolFileExtension}"));
         if (!filePath.StartsWith(fullDir, StringComparison.Ordinal))
         {
             throw new ArgumentException("Invalid tool name: path traversal detected", nameof(name));
