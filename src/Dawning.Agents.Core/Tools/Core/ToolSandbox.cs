@@ -175,11 +175,6 @@ public sealed class ToolSandbox : IToolSandbox
         }
     }
 
-    private static ShellInfo GetShell()
-    {
-        return GetShellForRuntime(ScriptRuntime.Bash);
-    }
-
     /// <summary>
     /// 根据脚本运行时类型获取对应的 Shell 信息
     /// </summary>

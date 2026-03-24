@@ -14,7 +14,6 @@ namespace Dawning.Agents.Core.Diagnostics;
 public sealed class DiagnosticsProvider : IDiagnosticsProvider
 {
     private readonly IToolReader? _toolRegistry;
-    private readonly ILogger<DiagnosticsProvider> _logger;
 
     // 运行时统计（简单计数）
     private static long _totalRequestCount;
@@ -29,7 +28,6 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     )
     {
         _toolRegistry = toolRegistry;
-        _logger = logger ?? NullLogger<DiagnosticsProvider>.Instance;
     }
 
     /// <inheritdoc />

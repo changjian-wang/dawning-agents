@@ -11,7 +11,7 @@ namespace Dawning.Agents.Core.Tools;
 /// </summary>
 public sealed class SemanticSkillRouter : ISkillRouter
 {
-    private const string ToolCollectionPrefix = "dawning-skill-router-";
+    private const string _toolCollectionPrefix = "dawning-skill-router-";
     private readonly IToolReader _toolReader;
     private readonly IEmbeddingProvider _embeddingProvider;
     private readonly IVectorStore _vectorStore;
@@ -121,7 +121,7 @@ public sealed class SemanticSkillRouter : ISkillRouter
                 (pair, i) =>
                     new DocumentChunk
                     {
-                        Id = $"{ToolCollectionPrefix}{pair.First.Name}",
+                        Id = $"{_toolCollectionPrefix}{pair.First.Name}",
                         Content = texts[i],
                         Embedding = pair.Second,
                         Metadata = new Dictionary<string, string>

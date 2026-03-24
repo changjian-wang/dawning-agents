@@ -29,7 +29,6 @@ namespace Dawning.Agents.Core.LLM;
 /// </example>
 public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
 {
-    private readonly IOptionsMonitor<LLMOptions> _optionsMonitor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<HotReloadableLLMProvider> _logger;
@@ -56,7 +55,6 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         ArgumentNullException.ThrowIfNull(optionsMonitor);
         ArgumentNullException.ThrowIfNull(httpClientFactory);
 
-        _optionsMonitor = optionsMonitor;
         _httpClientFactory = httpClientFactory;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<HotReloadableLLMProvider>();

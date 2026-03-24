@@ -15,14 +15,7 @@ namespace Dawning.Agents.Core.Agent;
 public sealed class LLMReflectionEngine : IReflectionEngine
 {
     private readonly ILLMProvider _llmProvider;
-    private readonly ReflectionOptions _options;
     private readonly ILogger<LLMReflectionEngine> _logger;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
 
     /// <summary>
     /// 创建 LLM 反思引擎
@@ -37,7 +30,6 @@ public sealed class LLMReflectionEngine : IReflectionEngine
         ArgumentNullException.ThrowIfNull(options);
 
         _llmProvider = llmProvider;
-        _options = options.Value;
         _logger = logger ?? NullLogger<LLMReflectionEngine>.Instance;
     }
 

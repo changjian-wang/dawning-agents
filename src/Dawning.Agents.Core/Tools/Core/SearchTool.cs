@@ -19,7 +19,6 @@ public sealed class SearchTool : ITool
 {
     private const int DefaultMaxResults = 50;
     private const int MaxResultsLimit = 500;
-    private const int ContextLines = 0;
     private readonly ILogger<SearchTool> _logger;
 
     /// <summary>
