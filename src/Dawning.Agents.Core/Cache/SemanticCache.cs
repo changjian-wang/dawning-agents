@@ -153,11 +153,17 @@ public sealed class SemanticCache : ISemanticCache
 
         try
         {
+            // 生成查询嵌入
+            var queryEmbedding = await _embeddingProvider
+                .EmbedAsync(query, cancellationToken)
+                .ConfigureAwait(false);
+
             // 检查是否需要淘汰旧条目
             if (_vectorStore.Count >= _options.MaxEntries)
             {
                 // 尝试清理过期条目
-                await EvictExpiredEntriesAsync(cancellationToken).ConfigureAwait(false);
+                await EvictExpiredEntriesAsync(queryEmbedding.Length, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             if (_vectorStore.Count >= _options.MaxEntries)
@@ -169,11 +175,6 @@ public sealed class SemanticCache : ISemanticCache
                 );
                 return;
             }
-
-            // 生成查询嵌入
-            var queryEmbedding = await _embeddingProvider
-                .EmbedAsync(query, cancellationToken)
-                .ConfigureAwait(false);
 
             // 构建元数据
             var chunkMetadata = new Dictionary<string, string>
@@ -258,12 +259,15 @@ public sealed class SemanticCache : ISemanticCache
     /// <summary>
     /// 淘汰过期的缓存条目
     /// </summary>
-    private async Task EvictExpiredEntriesAsync(CancellationToken cancellationToken)
+    private async Task EvictExpiredEntriesAsync(
+        int embeddingDimension,
+        CancellationToken cancellationToken
+    )
     {
         try
         {
-            // Search with a zero vector to get entries by metadata; topK = MaxEntries
-            var zeroEmbedding = new float[1];
+            // Search with a zero vector to get all entries; dimension must match stored embeddings
+            var zeroEmbedding = new float[embeddingDimension];
             var results = await _vectorStore
                 .SearchAsync(
                     zeroEmbedding,

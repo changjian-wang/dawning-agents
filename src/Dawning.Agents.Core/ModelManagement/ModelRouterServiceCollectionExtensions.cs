@@ -168,7 +168,8 @@ public static class ModelRouterServiceCollectionExtensions
     /// 使用路由 LLM Provider 替换默认的 ILLMProvider
     /// </summary>
     /// <remarks>
-    /// 调用此方法后，注入 ILLMProvider 将获得带路由功能的 Provider
+    /// 调用此方法后，注入 ILLMProvider 将获得带路由功能的 Provider。
+    /// 内部使用延迟解析打破 IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter 循环依赖。
     /// </remarks>
     public static IServiceCollection UseRoutingLLMProvider(this IServiceCollection services)
     {
@@ -189,16 +190,13 @@ public static class ModelRouterServiceCollectionExtensions
             );
         }
 
-        // 注册 RoutingLLMProvider 为主 ILLMProvider
-        services.AddSingleton<ILLMProvider>(sp =>
-        {
-            var router = sp.GetRequiredService<IModelRouter>();
-            var options = sp.GetRequiredService<IOptions<ModelRouterOptions>>();
-            var logger = sp.GetRequiredService<ILogger<RoutingLLMProvider>>();
-            var tokenCounter = sp.GetService<ITokenCounter>();
-
-            return new RoutingLLMProvider(router, options, logger, tokenCounter);
-        });
+        // 注册 RoutingLLMProvider 为主 ILLMProvider，使用 Lazy<IModelRouter> 打破循环依赖
+        services.AddSingleton<ILLMProvider>(sp => new RoutingLLMProvider(
+            new Lazy<IModelRouter>(() => sp.GetRequiredService<IModelRouter>()),
+            sp.GetRequiredService<IOptions<ModelRouterOptions>>(),
+            sp.GetRequiredService<ILogger<RoutingLLMProvider>>(),
+            sp.GetService<ITokenCounter>()
+        ));
 
         return services;
     }

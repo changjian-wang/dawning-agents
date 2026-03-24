@@ -20,12 +20,14 @@ namespace Dawning.Agents.Core.ModelManagement;
 /// </remarks>
 public sealed class RoutingLLMProvider : ILLMProvider
 {
-    private readonly IModelRouter _router;
+    private readonly Lazy<IModelRouter> _lazyRouter;
     private readonly ModelRouterOptions _options;
     private readonly ILogger<RoutingLLMProvider> _logger;
     private readonly ITokenCounter? _tokenCounter;
 
-    public string Name => $"Routing({_router.Name})";
+    private IModelRouter Router => _lazyRouter.Value;
+
+    public string Name => $"Routing({Router.Name})";
 
     public RoutingLLMProvider(
         IModelRouter router,
@@ -33,8 +35,25 @@ public sealed class RoutingLLMProvider : ILLMProvider
         ILogger<RoutingLLMProvider>? logger = null,
         ITokenCounter? tokenCounter = null
     )
+        : this(
+            new Lazy<IModelRouter>(router ?? throw new ArgumentNullException(nameof(router))),
+            options,
+            logger,
+            tokenCounter
+        ) { }
+
+    /// <summary>
+    /// 延迟解析构造函数 — 用于 DI 注册，打破
+    /// IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter 循环依赖
+    /// </summary>
+    internal RoutingLLMProvider(
+        Lazy<IModelRouter> lazyRouter,
+        IOptions<ModelRouterOptions> options,
+        ILogger<RoutingLLMProvider>? logger = null,
+        ITokenCounter? tokenCounter = null
+    )
     {
-        _router = router ?? throw new ArgumentNullException(nameof(router));
+        _lazyRouter = lazyRouter ?? throw new ArgumentNullException(nameof(lazyRouter));
         _options = options?.Value ?? new ModelRouterOptions();
         _logger = logger ?? NullLogger<RoutingLLMProvider>.Instance;
         _tokenCounter = tokenCounter;
@@ -58,7 +77,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             ILLMProvider provider;
             try
             {
-                provider = await _router
+                provider = await Router
                     .SelectProviderAsync(context, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -90,7 +109,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
                     response.PromptTokens,
                     response.CompletionTokens
                 );
-                _router.ReportResult(
+                Router.ReportResult(
                     provider,
                     ModelCallResult.Succeeded(
                         sw.ElapsedMilliseconds,
@@ -112,7 +131,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
                 _logger.LogWarning(ex, "提供者 {Provider} 调用失败，尝试故障转移", provider.Name);
 
                 // 报告失败
-                _router.ReportResult(
+                Router.ReportResult(
                     provider,
                     ModelCallResult.Failed(ex.Message, sw.ElapsedMilliseconds)
                 );
@@ -144,7 +163,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             ILLMProvider provider;
             try
             {
-                provider = await _router
+                provider = await Router
                     .SelectProviderAsync(context, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -184,7 +203,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
                     "流式提供者 {Provider} 初始化失败，尝试故障转移",
                     provider.Name
                 );
-                _router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
+                Router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
                 excludedProviders.Add(provider.Name);
                 lastException = error;
             }
@@ -227,7 +246,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             ILLMProvider provider;
             try
             {
-                provider = await _router
+                provider = await Router
                     .SelectProviderAsync(context, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -268,7 +287,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
                     "事件流提供者 {Provider} 初始化失败，尝试故障转移",
                     provider.Name
                 );
-                _router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
+                Router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
                 excludedProviders.Add(provider.Name);
                 lastException = error;
             }
@@ -414,7 +433,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
         var outputTokens = totalChars / 4;
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
-        _router.ReportResult(
+        Router.ReportResult(
             provider,
             ModelCallResult.Succeeded(sw.ElapsedMilliseconds, inputTokens, outputTokens, cost)
         );
@@ -441,7 +460,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
         var outputTokens = totalChars / 4;
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
-        _router.ReportResult(
+        Router.ReportResult(
             provider,
             ModelCallResult.Succeeded(sw.ElapsedMilliseconds, inputTokens, outputTokens, cost)
         );
