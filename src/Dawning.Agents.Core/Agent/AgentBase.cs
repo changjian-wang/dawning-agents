@@ -60,6 +60,7 @@ public abstract class AgentBase : IAgent
     /// <param name="options">Agent 配置选项</param>
     /// <param name="memory">对话记忆（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="usageTracker">工具使用追踪器（可选）</param>
     /// <exception cref="ArgumentNullException">当 llmProvider 或 options 为 null 时抛出</exception>
     protected AgentBase(
         ILLMProvider llmProvider,

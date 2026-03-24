@@ -17,7 +17,7 @@ public sealed class SemanticSkillRouter : ISkillRouter
     private readonly IVectorStore _vectorStore;
     private readonly SkillRouterOptions _options;
     private readonly ILogger<SemanticSkillRouter> _logger;
-    private bool _indexBuilt;
+    private volatile bool _indexBuilt;
 
     /// <summary>
     /// 创建语义技能路由器

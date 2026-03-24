@@ -15,6 +15,7 @@ namespace Dawning.Agents.Core.Agent;
 public sealed class LLMReflectionEngine : IReflectionEngine
 {
     private readonly ILLMProvider _llmProvider;
+    private readonly ReflectionOptions _options;
     private readonly ILogger<LLMReflectionEngine> _logger;
 
     /// <summary>
@@ -30,6 +31,7 @@ public sealed class LLMReflectionEngine : IReflectionEngine
         ArgumentNullException.ThrowIfNull(options);
 
         _llmProvider = llmProvider;
+        _options = options.Value;
         _logger = logger ?? NullLogger<LLMReflectionEngine>.Instance;
     }
 
@@ -40,6 +42,17 @@ public sealed class LLMReflectionEngine : IReflectionEngine
     )
     {
         ArgumentNullException.ThrowIfNull(context);
+
+        if (!_options.Enabled)
+        {
+            _logger.LogDebug("Reflection engine is disabled, defaulting to Retry");
+            return new ReflectionResult
+            {
+                Action = ReflectionAction.Retry,
+                Diagnosis = "Reflection disabled",
+                Confidence = 0.0f,
+            };
+        }
 
         _logger.LogInformation(
             "Reflecting on failed tool '{ToolName}' with error: {Error}",

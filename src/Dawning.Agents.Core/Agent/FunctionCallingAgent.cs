@@ -34,15 +34,17 @@ public class FunctionCallingAgent : AgentBase
     /// <param name="memory">对话记忆（可选）</param>
     /// <param name="toolSession">工具会话（可选，启用动态工具创建）</param>
     /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="usageTracker">工具使用追踪器（可选）</param>
     public FunctionCallingAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
         IToolReader toolRegistry,
         IConversationMemory? memory = null,
         IToolSession? toolSession = null,
-        ILogger<FunctionCallingAgent>? logger = null
+        ILogger<FunctionCallingAgent>? logger = null,
+        IToolUsageTracker? usageTracker = null
     )
-        : base(llmProvider, options, memory, logger)
+        : base(llmProvider, options, memory, logger, usageTracker)
     {
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
         _toolSession = toolSession;
@@ -301,6 +303,14 @@ public class FunctionCallingAgent : AgentBase
             var result = await tool.ExecuteAsync(toolCall.Arguments ?? "{}", cancellationToken)
                 .ConfigureAwait(false);
 
+            await RecordToolCallUsageAsync(
+                    toolCall.FunctionName,
+                    result.Success,
+                    result.Error,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+
             return result.Success ? result.Output : $"Tool error: {result.Error}";
         }
         catch (OperationCanceledException)
@@ -310,7 +320,46 @@ public class FunctionCallingAgent : AgentBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "工具 {ToolName} 执行失败", toolCall.FunctionName);
+            await RecordToolCallUsageAsync(
+                    toolCall.FunctionName,
+                    false,
+                    ex.Message,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
             return $"Tool execution failed: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 记录工具调用到追踪器
+    /// </summary>
+    private async Task RecordToolCallUsageAsync(
+        string toolName,
+        bool success,
+        string? error,
+        CancellationToken cancellationToken
+    )
+    {
+        if (UsageTracker == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var record = new ToolUsageRecord
+            {
+                ToolName = toolName,
+                Success = success,
+                Duration = TimeSpan.Zero,
+                ErrorMessage = success ? null : error,
+            };
+            await UsageTracker.RecordUsageAsync(record, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to record tool usage for '{ToolName}'", toolName);
         }
     }
 

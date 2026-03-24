@@ -55,6 +55,9 @@ public partial class ReActAgent : AgentBase
     /// <param name="toolRegistry">工具只读查询（可选）</param>
     /// <param name="memory">对话记忆（可选）</param>
     /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="usageTracker">工具使用追踪器（可选）</param>
+    /// <param name="skillRouter">语义技能路由（可选）</param>
+    /// <param name="reflectionEngine">反思引擎（可选）</param>
     public ReActAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
@@ -88,10 +91,26 @@ public partial class ReActAgent : AgentBase
         // 构建提示词
         var prompt = BuildPrompt(context);
 
+        // 构建系统提示词（当有 SkillRouter 时使用异步语义路由）
+        string systemPrompt;
+        if (_skillRouter != null)
+        {
+            var availableActions = await BuildAvailableActionsPromptAsync(
+                    context.UserInput,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+            systemPrompt = FormatSystemPrompt(availableActions);
+        }
+        else
+        {
+            systemPrompt = BuildSystemPrompt();
+        }
+
         // 调用 LLM
         var messages = new List<ChatMessage>(2)
         {
-            new("system", BuildSystemPrompt()),
+            new("system", systemPrompt),
             new("user", prompt),
         };
 
@@ -181,7 +200,14 @@ public partial class ReActAgent : AgentBase
     protected virtual string BuildSystemPrompt()
     {
         var availableActions = BuildAvailableActionsPrompt();
+        return FormatSystemPrompt(availableActions);
+    }
 
+    /// <summary>
+    /// 将可用动作列表格式化为完整的系统提示词
+    /// </summary>
+    private string FormatSystemPrompt(string availableActions)
+    {
         return $"""
             {Instructions}
 
