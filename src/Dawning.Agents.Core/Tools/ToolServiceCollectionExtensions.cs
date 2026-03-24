@@ -206,6 +206,48 @@ public static class ToolServiceCollectionExtensions
         _ = serviceProvider.GetServices<IToolRegistration>().ToList();
         return serviceProvider;
     }
+
+    /// <summary>
+    /// 添加工具使用追踪器（内存实现，单例）
+    /// </summary>
+    public static IServiceCollection AddToolUsageTracking(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IToolUsageTracker, InMemoryToolUsageTracker>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加语义技能路由器
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configure">路由器配置（可选）</param>
+    public static IServiceCollection AddSkillRouter(
+        this IServiceCollection services,
+        Action<SkillRouterOptions>? configure = null
+    )
+    {
+        if (configure != null)
+        {
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<SkillRouterOptions>(_ => { });
+        }
+
+        services.TryAddSingleton<ISkillRouter, SemanticSkillRouter>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加技能演化策略（默认实现）
+    /// </summary>
+    public static IServiceCollection AddSkillEvolution(this IServiceCollection services)
+    {
+        services.AddToolUsageTracking();
+        services.TryAddSingleton<ISkillEvolutionPolicy, DefaultSkillEvolutionPolicy>();
+        return services;
+    }
 }
 
 /// <summary>

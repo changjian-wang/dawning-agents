@@ -97,4 +97,27 @@ public static class AgentServiceCollectionExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// 添加反思引擎（基于 LLM 的工具失败诊断与修复）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configure">反思配置（可选）</param>
+    public static IServiceCollection AddReflectionEngine(
+        this IServiceCollection services,
+        Action<ReflectionOptions>? configure = null
+    )
+    {
+        if (configure != null)
+        {
+            services.AddValidatedOptions(configure);
+        }
+        else
+        {
+            services.AddValidatedOptions<ReflectionOptions>(o => o.Enabled = true);
+        }
+
+        services.TryAddSingleton<IReflectionEngine, LLMReflectionEngine>();
+        return services;
+    }
 }
