@@ -398,27 +398,31 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 从 IToolRegistry + IToolSession 构建 ToolDefinition 列表
+    /// 从 IToolRegistry + IToolSession 构建 ToolDefinition 列表（按名称去重，Registry 优先）
     /// </summary>
     private List<ToolDefinition> BuildToolDefinitions()
     {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var definitions = new List<ToolDefinition>();
 
-        // 1. Registry tools (core + user-registered)
+        // 1. Registry tools (core + user-registered) — highest priority
         foreach (var tool in _toolRegistry.GetAllTools())
         {
-            definitions.Add(
-                new ToolDefinition
-                {
-                    Name = tool.Name,
-                    Description = tool.Description,
-                    ParametersSchema = tool.ParametersSchema,
-                }
-            );
+            if (seen.Add(tool.Name))
+            {
+                definitions.Add(
+                    new ToolDefinition
+                    {
+                        Name = tool.Name,
+                        Description = tool.Description,
+                        ParametersSchema = tool.ParametersSchema,
+                    }
+                );
+            }
         }
 
         // 2. create_tool (if session available)
-        if (_createToolTool != null)
+        if (_createToolTool != null && seen.Add(_createToolTool.Name))
         {
             definitions.Add(
                 new ToolDefinition
@@ -430,19 +434,22 @@ public class FunctionCallingAgent : AgentBase
             );
         }
 
-        // 3. Session tools (dynamically created ephemeral tools)
+        // 3. Session tools (dynamically created ephemeral tools) — only add if not shadowed
         if (_toolSession != null)
         {
             foreach (var tool in _toolSession.GetSessionTools())
             {
-                definitions.Add(
-                    new ToolDefinition
-                    {
-                        Name = tool.Name,
-                        Description = tool.Description,
-                        ParametersSchema = tool.ParametersSchema,
-                    }
-                );
+                if (seen.Add(tool.Name))
+                {
+                    definitions.Add(
+                        new ToolDefinition
+                        {
+                            Name = tool.Name,
+                            Description = tool.Description,
+                            ParametersSchema = tool.ParametersSchema,
+                        }
+                    );
+                }
             }
         }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Dawning.Agents.Abstractions.Agent;
 using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Abstractions.Workflow;
@@ -144,10 +145,8 @@ public sealed class WorkflowEngine : IWorkflowEngine
 
             stopwatch.Stop();
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return CreateFailedResult(definition.Id, "工作流执行被取消", stopwatch, context);
-            }
+            // 统一取消语义：始终抛出 OperationCanceledException
+            cancellationToken.ThrowIfCancellationRequested();
 
             var finalOutput = context.GetLastResult()?.Output;
 
@@ -386,10 +385,8 @@ public sealed class WorkflowEngine : IWorkflowEngine
 
         // 构建输入
         var input = context.GetLastResult()?.Output ?? context.Input;
-        if (
-            config.TryGetValue("inputTemplate", out var templateObj)
-            && templateObj is string template
-        )
+        var template = GetConfigString(config, "inputTemplate");
+        if (template != null)
         {
             input = ReplaceVariables(template, context);
         }
@@ -412,15 +409,15 @@ public sealed class WorkflowEngine : IWorkflowEngine
     )
     {
         var config = nodeDefinition.Config;
-        if (config == null || !config.TryGetValue("toolName", out var toolNameObj))
+        if (config == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具节点缺少 toolName 配置");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具节点缺少配置");
         }
 
-        var toolName = toolNameObj?.ToString();
+        var toolName = GetConfigString(config, "toolName");
         if (string.IsNullOrEmpty(toolName))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具名称不能为空");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具节点缺少 toolName 配置");
         }
 
         if (_toolRegistry == null)
@@ -436,10 +433,8 @@ public sealed class WorkflowEngine : IWorkflowEngine
 
         // 构建输入
         var input = context.GetLastResult()?.Output ?? context.Input;
-        if (
-            config.TryGetValue("inputTemplate", out var templateObj)
-            && templateObj is string template
-        )
+        var template = GetConfigString(config, "inputTemplate");
+        if (template != null)
         {
             input = ReplaceVariables(template, context);
         }
@@ -470,46 +465,34 @@ public sealed class WorkflowEngine : IWorkflowEngine
 
         // 获取输入值
         var inputValue = context.GetLastResult()?.Output ?? context.Input;
-        if (
-            config.TryGetValue("inputSource", out var inputSourceObj)
-            && inputSourceObj is string inputSource
-        )
+        var inputSource = GetConfigString(config, "inputSource");
+        if (inputSource != null)
         {
             inputValue = context.GetState<string>(inputSource) ?? inputValue;
         }
 
         // 检查分支条件
-        if (
-            config.TryGetValue("branches", out var branchesObj)
-            && branchesObj is List<Dictionary<string, object?>> branches
-        )
+        var branches = GetConfigBranches(config, "branches");
+        if (branches != null)
         {
             foreach (var branch in branches)
             {
                 if (
-                    branch.TryGetValue("condition", out var conditionObj)
-                    && conditionObj is string condition
+                    branch.TryGetValue("condition", out var condition)
+                    && EvaluateCondition(condition, inputValue, context)
                 )
                 {
-                    if (EvaluateCondition(condition, inputValue, context))
+                    if (branch.TryGetValue("targetNodeId", out var targetNodeId))
                     {
-                        if (
-                            branch.TryGetValue("targetNodeId", out var targetObj)
-                            && targetObj is string targetNodeId
-                        )
-                        {
-                            return NodeExecutionResult.Branch(nodeDefinition.Id, targetNodeId);
-                        }
+                        return NodeExecutionResult.Branch(nodeDefinition.Id, targetNodeId);
                     }
                 }
             }
         }
 
         // 默认分支
-        if (
-            config.TryGetValue("defaultBranchNodeId", out var defaultObj)
-            && defaultObj is string defaultNodeId
-        )
+        var defaultNodeId = GetConfigString(config, "defaultBranchNodeId");
+        if (defaultNodeId != null)
         {
             return NodeExecutionResult.Branch(nodeDefinition.Id, defaultNodeId);
         }
@@ -523,19 +506,9 @@ public sealed class WorkflowEngine : IWorkflowEngine
     )
     {
         var config = nodeDefinition.Config;
-        var delayMs = 1000;
+        var delayMs = GetConfigInt(config ?? new Dictionary<string, object?>(), "delayMs") ?? 1000;
 
-        if (config?.TryGetValue("delayMs", out var delayObj) == true)
-        {
-            delayMs = delayObj switch
-            {
-                int i => Math.Max(0, i),
-                long l => (int)Math.Clamp(l, 0, int.MaxValue),
-                double d => (int)Math.Clamp(d, 0, int.MaxValue),
-                string s when int.TryParse(s, out var parsed) => Math.Max(0, parsed),
-                _ => delayMs,
-            };
-        }
+        delayMs = Math.Max(0, delayMs);
 
         await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
         return NodeExecutionResult.Ok(nodeDefinition.Id);
@@ -650,6 +623,107 @@ public sealed class WorkflowEngine : IWorkflowEngine
             ExecutionHistory = context.ExecutionHistory,
             FinalState = context.State,
         };
+    }
+
+    /// <summary>
+    /// 从 Config 字典中安全读取字符串值（兼容 JsonElement 和 CLR 类型）
+    /// </summary>
+    private static string? GetConfigString(IReadOnlyDictionary<string, object?> config, string key)
+    {
+        if (!config.TryGetValue(key, out var value) || value is null)
+        {
+            return null;
+        }
+
+        if (value is string s)
+        {
+            return s;
+        }
+
+        if (value is JsonElement je && je.ValueKind == JsonValueKind.String)
+        {
+            return je.GetString();
+        }
+
+        return value.ToString();
+    }
+
+    /// <summary>
+    /// 从 Config 字典中安全读取整数值（兼容 JsonElement 和 CLR 类型）
+    /// </summary>
+    private static int? GetConfigInt(IReadOnlyDictionary<string, object?> config, string key)
+    {
+        if (!config.TryGetValue(key, out var value) || value is null)
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            int i => i,
+            long l => (int)Math.Clamp(l, int.MinValue, int.MaxValue),
+            double d => (int)Math.Clamp(d, int.MinValue, int.MaxValue),
+            string s when int.TryParse(s, out var parsed) => parsed,
+            JsonElement je when je.ValueKind == JsonValueKind.Number && je.TryGetInt32(out var i) =>
+                i,
+            JsonElement je
+                when je.ValueKind == JsonValueKind.String
+                    && int.TryParse(je.GetString(), out var parsed) => parsed,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// 从 Config 字典中安全读取条件分支列表（兼容 JsonElement 和 CLR 类型）
+    /// </summary>
+    private static List<Dictionary<string, string>>? GetConfigBranches(
+        IReadOnlyDictionary<string, object?> config,
+        string key
+    )
+    {
+        if (!config.TryGetValue(key, out var value) || value is null)
+        {
+            return null;
+        }
+
+        // CLR 类型：List<Dictionary<string, object?>>
+        if (value is List<Dictionary<string, object?>> clrBranches)
+        {
+            return clrBranches
+                .Select(b =>
+                    b.Where(kv => kv.Value != null)
+                        .ToDictionary(kv => kv.Key, kv => kv.Value!.ToString()!)
+                )
+                .ToList();
+        }
+
+        // JSON 反序列化后：JsonElement (Array)
+        if (value is JsonElement je && je.ValueKind == JsonValueKind.Array)
+        {
+            var branches = new List<Dictionary<string, string>>();
+            foreach (var item in je.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var branch = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var prop in item.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind == JsonValueKind.String)
+                    {
+                        branch[prop.Name] = prop.Value.GetString()!;
+                    }
+                }
+
+                branches.Add(branch);
+            }
+
+            return branches;
+        }
+
+        return null;
     }
 }
 

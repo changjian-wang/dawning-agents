@@ -247,13 +247,13 @@ public sealed class HandoffHandler : IHandoffHandler
                         }
                     );
 
-                    // 递归执行下一个 Agent
+                    // 递归执行下一个 Agent（传递 linkedCts.Token 保持超时约束）
                     return await ExecuteHandoffChainAsync(
                             handoffRequest.TargetAgentName,
                             handoffRequest.Input,
                             chain,
                             visitedAgents,
-                            cancellationToken
+                            linkedCts.Token
                         )
                         .ConfigureAwait(false);
                 }
