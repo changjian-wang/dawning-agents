@@ -1,6 +1,6 @@
-# 🏭 生产环境最佳实践
+# 生产环境部署指南
 
-> Dawning.Agents 生产部署指南
+> Dawning.Agents 安全加固与生产部署的完整指南
 
 ---
 
@@ -8,13 +8,13 @@
 
 ### 必须完成
 
+- [ ] 配置 API 密钥（环境变量 / Key Vault）
+- [ ] 配置安全护栏（内容过滤、PII 脱敏、注入防护）
 - [ ] 配置结构化日志（Serilog）
 - [ ] 启用健康检查端点
 - [ ] 配置熔断器和重试策略
 - [ ] 设置合理的超时时间
 - [ ] 启用指标收集（OpenTelemetry）
-- [ ] 配置安全护栏
-- [ ] 设置 API 密钥环境变量
 - [ ] 配置速率限制
 
 ### 推荐完成
@@ -76,6 +76,238 @@
 
 ---
 
+## 🔐 安全加固
+
+### API Key 安全
+
+#### 1. 永不硬编码
+
+```csharp
+// ❌ 极度危险
+var options = new LLMOptions
+{
+    ApiKey = "sk-xxx123..."  // 永远不要这样做！
+};
+
+// ✅ 使用配置
+services.AddLLMProvider(configuration);  // 从 appsettings 或环境变量读取
+```
+
+#### 2. 使用 Secret Manager（开发环境）
+
+```bash
+# 初始化
+dotnet user-secrets init
+
+# 设置密钥
+dotnet user-secrets set "LLM:ApiKey" "sk-xxx..."
+dotnet user-secrets set "VectorStore:ApiKey" "qdrant-key..."
+```
+
+#### 3. 使用环境变量（生产环境）
+
+```bash
+# Linux/macOS
+export LLM__ApiKey="sk-xxx..."
+export LLM__Endpoint="https://api.openai.com"
+
+# Docker
+docker run -e LLM__ApiKey="sk-xxx..." myapp
+```
+
+#### 4. 使用 Azure Key Vault
+
+```csharp
+builder.Configuration.AddAzureKeyVault(
+    new Uri("https://myvault.vault.azure.net/"),
+    new DefaultAzureCredential()
+);
+```
+
+#### 5. Key 轮换策略
+
+```csharp
+// 使用 IOptionsMonitor 支持热更新
+public class LLMService
+{
+    private readonly IOptionsMonitor<LLMOptions> _options;
+    
+    public LLMService(IOptionsMonitor<LLMOptions> options)
+    {
+        _options = options;
+        _options.OnChange(newOptions =>
+        {
+            // Key 轮换时自动生效
+            _logger.LogInformation("LLM API Key 已更新");
+        });
+    }
+}
+```
+
+#### 6. Kubernetes Secrets
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: agent-secrets
+type: Opaque
+stringData:
+  AZURE_OPENAI_API_KEY: "your-key"
+  AZURE_OPENAI_ENDPOINT: "https://..."
+```
+
+### 输入验证与注入防护
+
+#### 长度和频率限制
+
+```csharp
+services.AddRateLimiter(options =>
+{
+    options.MaxRequestsPerMinute = 30;        // 防止滥用
+    options.MaxTokensPerRequest = 4000;       // 防止超大输入
+    options.MaxTokensPerSession = 100000;     // 会话级限制
+});
+```
+
+#### 提示注入防护
+
+```csharp
+public class PromptInjectionGuard : IInputGuardrail
+{
+    public async Task<GuardrailResult> CheckAsync(string input, CancellationToken ct)
+    {
+        var injectionPatterns = new[]
+        {
+            @"ignore\s+(all\s+)?(previous|above)\s+instructions",
+            @"disregard\s+(all\s+)?rules",
+            @"你(现在)?是\s*\w+\s*(而不是|不是)",
+            @"以下是(你的)?新指令",
+            @"system\s*:\s*",
+        };
+        
+        foreach (var pattern in injectionPatterns)
+        {
+            if (Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase))
+            {
+                return GuardrailResult.Block("检测到潜在的提示注入攻击");
+            }
+        }
+        
+        return GuardrailResult.Pass();
+    }
+}
+```
+
+### 输出过滤
+
+#### PII 脱敏
+
+```csharp
+services.AddSafetyGuardrails(options =>
+{
+    options.EnableSensitiveDataFilter = true;
+    options.SensitivePatterns =
+    [
+        @"\b\d{16}\b",           // 信用卡号
+        @"\b\d{11}\b",           // 手机号
+        @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  // 邮箱
+        @"\b\d{18}|\d{15}\b",    // 身份证号
+    ];
+});
+```
+
+### 工具安全
+
+#### 工具风险等级
+
+```csharp
+[FunctionTool("执行命令", RiskLevel = ToolRiskLevel.High, RequiresConfirmation = true)]
+public string ExecuteCommand(string command)
+{
+    // 高风险工具需要确认
+}
+
+[FunctionTool("查询天气", RiskLevel = ToolRiskLevel.Low)]
+public string GetWeather(string city)
+{
+    // 低风险工具无需确认
+}
+```
+
+#### 工具审批策略
+
+```csharp
+services.AddToolApprovalHandler(ApprovalStrategy.RiskBased);
+
+public class CustomApprovalHandler : IToolApprovalHandler
+{
+    public async Task<bool> RequestApprovalAsync(ITool tool, string input, CancellationToken ct)
+    {
+        if (tool.RiskLevel == ToolRiskLevel.High)
+        {
+            return await RequestHumanApprovalAsync(tool, input);
+        }
+        return true;
+    }
+}
+```
+
+### 日志脱敏
+
+```csharp
+services.AddSerilog((sp, config) =>
+{
+    config
+        .Enrich.WithProperty("Application", "Dawning.Agents")
+        .Destructure.ByTransforming<AgentInput>(input => new
+        {
+            SessionId = input.SessionId,
+            MessageLength = input.Message?.Length ?? 0,
+            // 不记录完整消息内容
+        })
+        .WriteTo.Console();
+});
+```
+
+### 网络安全
+
+```csharp
+app.UseHttpsRedirection();
+app.UseHsts();
+
+services.AddCors(options =>
+{
+    options.AddPolicy("Production", builder =>
+    {
+        builder
+            .WithOrigins("https://myapp.com")
+            .WithMethods("POST")
+            .WithHeaders("Content-Type", "Authorization");
+    });
+});
+```
+
+### 审计追踪
+
+```csharp
+// 普通日志
+_logger.LogInformation("Agent 处理请求，会话: {SessionId}", sessionId);
+
+// 审计日志（单独存储）
+_auditLogger.LogAudit(new AuditEvent
+{
+    Type = "AgentExecution",
+    SessionId = sessionId,
+    UserId = userId,
+    Action = "RunAgent",
+    Timestamp = DateTimeOffset.UtcNow,
+    Result = "Success",
+});
+```
+
+---
+
 ## 📊 监控指标
 
 ### 关键指标
@@ -128,51 +360,9 @@ scrape_configs:
 
 ---
 
-## 🔐 安全配置
-
-### 环境变量
-
-```bash
-# 必须使用环境变量，不要硬编码
-export AZURE_OPENAI_API_KEY="your-key"
-export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
-export OPENAI_API_KEY="sk-..."
-```
-
-### Kubernetes Secrets
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: agent-secrets
-type: Opaque
-stringData:
-  AZURE_OPENAI_API_KEY: "your-key"
-  AZURE_OPENAI_ENDPOINT: "https://..."
-```
-
-### 敏感数据过滤
-
-```csharp
-services.AddSafetyGuardrails(options =>
-{
-    options.EnableSensitiveDataFilter = true;
-    options.SensitivePatterns =
-    [
-        @"\b\d{16}\b",           // 信用卡号
-        @"\b\d{11}\b",           // 手机号
-        @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  // 邮箱
-        @"\b\d{18}|\d{15}\b",    // 身份证号
-    ];
-});
-```
-
----
-
 ## ⚡ 性能优化
 
-### 1. Token 优化
+### Token 优化
 
 ```csharp
 // 使用更小的模型处理简单任务
@@ -187,10 +377,9 @@ services.AddModelRouter(options =>
 });
 ```
 
-### 2. 缓存策略
+### 缓存策略
 
 ```csharp
-// 缓存 Embedding 结果
 services.AddEmbeddingCache(options =>
 {
     options.CacheType = "Redis";
@@ -199,17 +388,9 @@ services.AddEmbeddingCache(options =>
 });
 ```
 
-### 3. 批量处理
+### 连接池
 
 ```csharp
-// 批量 Embedding
-var embeddings = await embeddingProvider.EmbedBatchAsync(texts, batchSize: 100);
-```
-
-### 4. 连接池
-
-```csharp
-// HttpClient 连接池
 services.AddHttpClient("OpenAI")
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
     {
@@ -269,7 +450,6 @@ spec:
 ### 健康检查端点
 
 ```csharp
-// Program.cs
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
@@ -311,7 +491,6 @@ services.AddResiliencePipeline("llm-pipeline", builder =>
 ### 降级策略
 
 ```csharp
-// 当主模型不可用时降级到备用模型
 services.AddModelRouter(options =>
 {
     options.EnableFailover = true;
@@ -330,70 +509,9 @@ services.AddModelRouter(options =>
 services.Configure<LLMOptions>(options =>
 {
     options.MaxTokensPerRequest = 4096;
-    options.DailyTokenBudget = 1_000_000;
-    options.MonthlyBudgetUSD = 100;
+    options.MaxTokensPerDay = 1000000;
 });
+
+// Token 用量追踪
+services.AddTokenTracking();
 ```
-
-### 成本追踪
-
-```csharp
-// 在每次调用后记录成本
-router.ReportResult(provider, ModelCallResult.Succeeded(
-    latencyMs: 500,
-    inputTokens: 1000,
-    outputTokens: 450,
-    cost: 0.005m
-));
-
-// 查询统计
-var stats = router.GetStatistics("gpt-4o");
-Console.WriteLine($"总成本: ${stats.TotalCost}");
-Console.WriteLine($"总请求: {stats.TotalRequests}");
-```
-
----
-
-## 📝 日志最佳实践
-
-### 结构化日志配置
-
-```csharp
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .Enrich.WithProperty("Application", "DawningAgent")
-    .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
-    .WriteTo.Console(new JsonFormatter())
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
-    {
-        IndexFormat = "dawning-agent-{0:yyyy.MM}",
-        AutoRegisterTemplate = true,
-    })
-    .CreateLogger();
-```
-
-### 关键日志点
-
-```csharp
-// Agent 执行开始
-_logger.LogInformation("Agent {AgentName} 开始执行，输入长度: {InputLength}",
-    agent.Name, input.Length);
-
-// 工具调用
-_logger.LogInformation("调用工具 {ToolName}，参数: {Parameters}",
-    tool.Name, parameters);
-
-// 执行完成
-_logger.LogInformation("Agent {AgentName} 执行完成，步骤数: {Steps}，耗时: {Duration}ms",
-    agent.Name, response.Steps.Count, stopwatch.ElapsedMilliseconds);
-
-// 错误处理
-_logger.LogError(ex, "Agent {AgentName} 执行失败: {Error}",
-    agent.Name, ex.Message);
-```
-
----
-
-> 📌 **更多资源**: 查看 [API 参考](../API_REFERENCE.md) 了解详细接口

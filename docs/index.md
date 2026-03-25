@@ -57,16 +57,9 @@ Console.WriteLine(response.Output);
 | [Memory](guides/memory.md) | Conversation memory systems |
 | [RAG](guides/rag.md) | Vector stores and retrieval |
 | [Multi-Agent](guides/multi-agent.md) | Agent orchestration |
-| [Security](guides/security.md) | Security hardening |
 | [Performance](guides/performance.md) | Performance tuning |
-| [Production](guides/production.md) | Production best practices |
-
-## Examples
-
-| Example | Description |
-|---------|-------------|
-| [Code Review Agent](guides/code-review-agent.md) | Automated code review |
-| [Customer Service Bot](guides/customer-service-bot.md) | Multi-turn customer service |
+| [Production](guides/production.md) | Production & security best practices |
+| [Examples](guides/examples.md) | Code review agent, customer service bot |
 
 ## Reference
 

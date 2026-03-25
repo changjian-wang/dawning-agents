@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/changjian-wang/dawning-agents/actions/workflows/build.yml/badge.svg)](https://github.com/changjian-wang/dawning-agents/actions)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-2225%20passing-brightgreen)](https://github.com/changjian-wang/dawning-agents)
+[![Tests](https://img.shields.io/badge/Tests-2482%20passing-brightgreen)](https://github.com/changjian-wang/dawning-agents)
 [![codecov](https://codecov.io/gh/changjian-wang/dawning-agents/branch/main/graph/badge.svg)](https://codecov.io/gh/changjian-wang/dawning-agents)
 
 ## 🎯 为什么选择 Dawning.Agents？
