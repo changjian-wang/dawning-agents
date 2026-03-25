@@ -173,23 +173,6 @@ public static class ModelRouterServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection UseRoutingLLMProvider(this IServiceCollection services)
     {
-        // 移除现有的 ILLMProvider 注册
-        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ILLMProvider));
-        if (descriptor != null)
-        {
-            services.Remove(descriptor);
-            // 重新注册为具名服务，供路由器使用
-            services.Add(
-                new ServiceDescriptor(
-                    typeof(ILLMProvider),
-                    descriptor.ImplementationType
-                        ?? descriptor.ImplementationFactory
-                        ?? descriptor.ImplementationInstance!,
-                    descriptor.Lifetime
-                )
-            );
-        }
-
         // 注册 RoutingLLMProvider 为主 ILLMProvider，使用 Lazy<IModelRouter> 打破循环依赖
         services.AddSingleton<ILLMProvider>(sp => new RoutingLLMProvider(
             new Lazy<IModelRouter>(() => sp.GetRequiredService<IModelRouter>()),

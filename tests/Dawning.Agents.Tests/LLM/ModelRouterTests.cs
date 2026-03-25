@@ -504,6 +504,39 @@ public class ModelPricingTests
 
 public class ModelRouterDITests
 {
+    private sealed class TestProvider(string name = "test-provider") : ILLMProvider
+    {
+        public string Name => name;
+
+        public Task<ChatCompletionResponse> ChatAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult(new ChatCompletionResponse { Content = "ok" });
+
+        public async IAsyncEnumerable<string> ChatStreamAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation]
+                CancellationToken cancellationToken = default
+        )
+        {
+            yield return "ok";
+            await Task.CompletedTask;
+        }
+
+        public async IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatCompletionOptions? options = null,
+            [System.Runtime.CompilerServices.EnumeratorCancellation]
+                CancellationToken cancellationToken = default
+        )
+        {
+            yield return new StreamingChatEvent { ContentDelta = "ok" };
+            await Task.CompletedTask;
+        }
+    }
+
     private static Mock<ILLMProvider> CreateMockProvider(string name = "test-provider")
     {
         var mock = new Mock<ILLMProvider>();
@@ -577,6 +610,42 @@ public class ModelRouterDITests
         var router = provider.GetRequiredService<IModelRouter>();
 
         router.Should().BeOfType<LatencyOptimizedRouter>();
+    }
+
+    [Fact]
+    public void UseRoutingLLMProvider_WithImplementationTypeRegistration_UsesRoutingProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddOptions();
+        services.AddSingleton<ILLMProvider, TestProvider>();
+        services.AddModelRouter(ModelRoutingStrategy.CostOptimized);
+
+        var act = () => services.UseRoutingLLMProvider();
+
+        act.Should().NotThrow();
+
+        var provider = services.BuildServiceProvider();
+        provider.GetRequiredService<ILLMProvider>().Should().BeOfType<RoutingLLMProvider>();
+        provider.GetServices<ILLMProvider>().Should().Contain(p => p is TestProvider);
+    }
+
+    [Fact]
+    public void UseRoutingLLMProvider_WithImplementationFactoryRegistration_UsesRoutingProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddOptions();
+        services.AddSingleton<ILLMProvider>(_ => new TestProvider("factory-provider"));
+        services.AddModelRouter(ModelRoutingStrategy.CostOptimized);
+
+        var act = () => services.UseRoutingLLMProvider();
+
+        act.Should().NotThrow();
+
+        var provider = services.BuildServiceProvider();
+        provider.GetRequiredService<ILLMProvider>().Should().BeOfType<RoutingLLMProvider>();
+        provider.GetServices<ILLMProvider>().Should().Contain(p => p.Name == "factory-provider");
     }
 }
 
