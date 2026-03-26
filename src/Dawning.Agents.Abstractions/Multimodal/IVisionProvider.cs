@@ -97,7 +97,7 @@ public record VisionChatResponse
 /// <summary>
 /// 视觉分析配置选项
 /// </summary>
-public class VisionOptions
+public class VisionOptions : IValidatableOptions
 {
     /// <summary>
     /// 模型名称（默认使用支持视觉的模型）
@@ -123,6 +123,22 @@ public class VisionOptions
     /// 系统提示词
     /// </summary>
     public string? SystemPrompt { get; set; }
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (MaxTokens <= 0)
+        {
+            throw new InvalidOperationException("VisionOptions.MaxTokens must be greater than 0.");
+        }
+
+        if (Temperature < 0.0 || Temperature > 2.0)
+        {
+            throw new InvalidOperationException(
+                "VisionOptions.Temperature must be between 0.0 and 2.0."
+            );
+        }
+    }
 }
 
 /// <summary>

@@ -128,7 +128,8 @@ public sealed class ParallelOrchestrator : OrchestratorBase
                 );
             }
 
-            results = [];
+            // Preserve partial results from tasks that completed successfully
+            results = tasks.Where(t => t.IsCompletedSuccessfully).Select(t => t.Result).ToArray();
         }
 
         // 添加到执行历史

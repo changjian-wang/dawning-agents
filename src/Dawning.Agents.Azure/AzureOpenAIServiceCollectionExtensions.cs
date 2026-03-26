@@ -2,6 +2,7 @@ using Azure.Core;
 using Dawning.Agents.Abstractions;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -112,6 +113,39 @@ public static class AzureOpenAIServiceCollectionExtensions
     {
         var options = new AzureOpenAIProviderOptions();
         configure(options);
+        options.Validate();
+
+        return services.AddAzureOpenAIProvider(
+            options.Endpoint!,
+            options.ApiKey!,
+            options.DeploymentName!
+        );
+    }
+
+    /// <summary>
+    /// 添加 Azure OpenAI Provider（使用 IConfiguration 配置节）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">包含 Endpoint、ApiKey 和 DeploymentName 的配置节</param>
+    /// <returns>服务集合</returns>
+    /// <example>
+    /// <code>
+    /// services.AddAzureOpenAIProvider(configuration.GetSection("AzureOpenAI"));
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddAzureOpenAIProvider(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var options = new AzureOpenAIProviderOptions
+        {
+            Endpoint = configuration[nameof(AzureOpenAIProviderOptions.Endpoint)],
+            ApiKey = configuration[nameof(AzureOpenAIProviderOptions.ApiKey)],
+            DeploymentName = configuration[nameof(AzureOpenAIProviderOptions.DeploymentName)],
+        };
         options.Validate();
 
         return services.AddAzureOpenAIProvider(

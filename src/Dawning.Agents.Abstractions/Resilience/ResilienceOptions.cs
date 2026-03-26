@@ -126,7 +126,7 @@ public class ResilienceOptions : IValidatableOptions
 /// <summary>
 /// 重试策略配置
 /// </summary>
-public class RetryOptions
+public class RetryOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用重试
@@ -157,12 +157,31 @@ public class RetryOptions
     /// 最大延迟时间（毫秒）
     /// </summary>
     public int MaxDelayMs { get; set; } = 30000;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (MaxRetryAttempts < 0)
+        {
+            throw new InvalidOperationException("RetryOptions.MaxRetryAttempts must be >= 0.");
+        }
+
+        if (BaseDelayMs < 0)
+        {
+            throw new InvalidOperationException("RetryOptions.BaseDelayMs must be >= 0.");
+        }
+
+        if (MaxDelayMs < BaseDelayMs)
+        {
+            throw new InvalidOperationException("RetryOptions.MaxDelayMs must be >= BaseDelayMs.");
+        }
+    }
 }
 
 /// <summary>
 /// 断路器策略配置
 /// </summary>
-public class CircuitBreakerOptions
+public class CircuitBreakerOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用断路器
@@ -188,12 +207,44 @@ public class CircuitBreakerOptions
     /// 断路持续时间（秒）
     /// </summary>
     public int BreakDurationSeconds { get; set; } = 30;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (FailureRatio is < 0.0 or > 1.0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreakerOptions.FailureRatio must be between 0.0 and 1.0."
+            );
+        }
+
+        if (SamplingDurationSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreakerOptions.SamplingDurationSeconds must be > 0."
+            );
+        }
+
+        if (MinimumThroughput <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreakerOptions.MinimumThroughput must be > 0."
+            );
+        }
+
+        if (BreakDurationSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "CircuitBreakerOptions.BreakDurationSeconds must be > 0."
+            );
+        }
+    }
 }
 
 /// <summary>
 /// 超时策略配置
 /// </summary>
-public class TimeoutOptions
+public class TimeoutOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用超时
@@ -204,6 +255,15 @@ public class TimeoutOptions
     /// 超时时间（秒）
     /// </summary>
     public int TimeoutSeconds { get; set; } = 120;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (TimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException("TimeoutOptions.TimeoutSeconds must be > 0.");
+        }
+    }
 }
 
 /// <summary>
@@ -212,7 +272,7 @@ public class TimeoutOptions
 /// <remarks>
 /// 舱壁隔离用于限制并发请求数，防止资源耗尽。
 /// </remarks>
-public class BulkheadOptions
+public class BulkheadOptions : IValidatableOptions
 {
     /// <summary>
     /// 是否启用舱壁隔离
@@ -228,6 +288,20 @@ public class BulkheadOptions
     /// 最大排队等待数
     /// </summary>
     public int MaxQueuedActions { get; set; } = 20;
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (MaxConcurrency <= 0)
+        {
+            throw new InvalidOperationException("BulkheadOptions.MaxConcurrency must be > 0.");
+        }
+
+        if (MaxQueuedActions < 0)
+        {
+            throw new InvalidOperationException("BulkheadOptions.MaxQueuedActions must be >= 0.");
+        }
+    }
 }
 
 /// <summary>

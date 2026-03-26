@@ -1,6 +1,7 @@
 using Dawning.Agents.Abstractions;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.RAG;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -64,6 +65,34 @@ public static class OpenAIServiceCollectionExtensions
     {
         var options = new OpenAIProviderOptions();
         configure(options);
+        options.Validate();
+
+        return services.AddOpenAIProvider(options.ApiKey!, options.Model);
+    }
+
+    /// <summary>
+    /// 添加 OpenAI Provider（使用 IConfiguration 配置节）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">包含 ApiKey 和 Model 的配置节</param>
+    /// <returns>服务集合</returns>
+    /// <example>
+    /// <code>
+    /// services.AddOpenAIProvider(configuration.GetSection("OpenAI"));
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddOpenAIProvider(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var options = new OpenAIProviderOptions
+        {
+            ApiKey = configuration[nameof(OpenAIProviderOptions.ApiKey)],
+            Model = configuration[nameof(OpenAIProviderOptions.Model)] ?? "gpt-4o",
+        };
         options.Validate();
 
         return services.AddOpenAIProvider(options.ApiKey!, options.Model);

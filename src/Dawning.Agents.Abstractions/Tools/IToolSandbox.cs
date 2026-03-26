@@ -22,7 +22,7 @@ public interface IToolSandbox
 /// <summary>
 /// 沙箱执行选项
 /// </summary>
-public class ToolSandboxOptions
+public class ToolSandboxOptions : IValidatableOptions
 {
     /// <summary>
     /// 工作目录
@@ -48,6 +48,20 @@ public class ToolSandboxOptions
     /// 环境变量
     /// </summary>
     public IDictionary<string, string> Environment { get; set; } = new Dictionary<string, string>();
+
+    /// <inheritdoc />
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(WorkingDirectory))
+        {
+            throw new InvalidOperationException("ToolSandboxOptions.WorkingDirectory is required.");
+        }
+
+        if (Timeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("ToolSandboxOptions.Timeout must be positive.");
+        }
+    }
 }
 
 /// <summary>

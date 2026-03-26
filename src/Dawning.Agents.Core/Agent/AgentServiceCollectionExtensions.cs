@@ -120,4 +120,15 @@ public static class AgentServiceCollectionExtensions
         services.TryAddSingleton<IReflectionEngine, LLMReflectionEngine>();
         return services;
     }
+
+    /// <summary>
+    /// 添加 Agent 检查点服务（内存实现，适用于开发和测试）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddAgentCheckpoint(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IAgentCheckpoint, InMemoryAgentCheckpoint>();
+        return services;
+    }
 }

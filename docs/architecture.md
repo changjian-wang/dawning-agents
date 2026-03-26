@@ -3583,7 +3583,7 @@ public class MyCustomMemory : IConversationMemory
 
 ## 已知架构问题与改进计划
 
-> **评估日期**: 2026-02-10 | **最近更新**: 2026-02-12
+> **评估日期**: 2026-02-10 | **最近更新**: 2026-02-15
 
 ### P0 — 阻碍企业采用
 
@@ -3616,22 +3616,22 @@ public class MyCustomMemory : IConversationMemory
 
 | # | 问题 | 状态 |
 |---|---|---|
-| 4 | **Provider 缺少 ILogger/IOptions/IHttpClientFactory** | ⏳ 部分修复（OpenAI/Azure Provider 已改用 IHttpClientFactory） |
+| ~~4~~ | ~~**Provider 缺少 ILogger/IOptions/IHttpClientFactory**~~ | ✅ 已修复：ILogger 可选注入 + Options 模式 DI + `IConfiguration` 重载支持 `configuration.GetSection()` 绑定 |
 | ~~5~~ | ~~**Singleton Agent + Scoped Memory = Captive Dependency**~~ | ✅ 已修复：Agent 改为 `TryAddScoped` |
-| 6 | **流式 API 缺少结构化事件** | ✅ 已修复：新增 `ChatStreamEventsAsync` + `StreamingChatEvent` |
-| 7 | **无 Roslyn 分析器** | ⏳ 未修复 |
-| 8 | **配置校验覆盖率仅 ~29%** | ⏳ 提升至 ~37%（10/27 Options 有验证） |
+| ~~6~~ | ~~**流式 API 缺少结构化事件**~~ | ✅ 已修复：新增 `ChatStreamEventsAsync` + `StreamingChatEvent` |
+| ~~7~~ | ~~**无 Roslyn 分析器**~~ | ✅ 已配置：Meziantou.Analyzer v2.0.302 全局启用，Abstractions 包强制 CS1591 XML 文档 |
+| ~~8~~ | ~~**配置校验覆盖率仅 ~29%**~~ | ✅ 已修复：全部 Options 类实现 `IValidatableOptions`（VisionOptions、ToolSandboxOptions、RetryOptions、CircuitBreakerOptions、TimeoutOptions、BulkheadOptions） |
 
 ### P2 — 建议改进
 
 | # | 问题 | 状态 |
 |---|---|---|
 | ~~9~~ | ~~`IToolRegistry` 13 个方法过胖~~ | ✅ 已重构：拆分为 `IToolReader`（6 方法） + `IToolRegistrar`（1 方法） + `IToolRegistry`（组合接口） |
-| 10 | DTO/Record 暴露可变集合 | ⏳ 未修复 |
+| ~~10~~ | ~~DTO/Record 暴露可变集合~~ | ✅ 已修复：`AgentContext.Steps` 返回 `IReadOnlyList<AgentStep>` 快照，`DocumentChunk.Metadata` 使用 `IReadOnlyDictionary` |
 | ~~11~~ | ~~ReActAgent 虚假工具回退~~ | ✅ 已修复：无工具时不再硬编码 Search/Calculate/Lookup |
-| 12 | 无 Agent 状态持久化/Checkpoint | ⏳ 未修复 |
-| 13 | 无 Prompt Injection 防护 | ⏳ 未修复 |
-| 14 | `ParallelOrchestrator` 部分失败丢结果 | ⏳ 未修复 |
+| ~~12~~ | ~~无 Agent 状态持久化/Checkpoint~~ | ✅ 已实现：`IAgentCheckpoint` 接口（SaveAsync/LoadAsync/DeleteAsync/ExistsAsync）+ `InMemoryAgentCheckpoint` 实现 + DI 注册 `AddAgentCheckpoint()` |
+| ~~13~~ | ~~无 Prompt Injection 防护~~ | ✅ 已实现：`PromptInjectionGuardrail` 支持 6 类注入模式检测（指令覆盖、角色劫持、系统提示词泄露、越狱、分隔符注入、编码绕过）+ 自定义模式 + 严重性分级 |
+| ~~14~~ | ~~`ParallelOrchestrator` 部分失败丢结果~~ | ✅ 已修复：`ContinueOnError=true` 时提取已完成任务的结果，不再丢弃 |
 
 ---
 
