@@ -1,17 +1,17 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// LLM 提供者接口（OpenAI、Azure OpenAI、Ollama 等）
+/// LLM provider interface (OpenAI, Azure OpenAI, Ollama, etc.).
 /// </summary>
 public interface ILLMProvider
 {
     /// <summary>
-    /// 提供者名称（如 "OpenAI"、"AzureOpenAI"、"Ollama"）
+    /// Provider name (e.g., "OpenAI", "AzureOpenAI", "Ollama").
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 发送聊天完成请求
+    /// Sends a chat completion request.
     /// </summary>
     Task<ChatCompletionResponse> ChatAsync(
         IEnumerable<ChatMessage> messages,
@@ -20,7 +20,7 @@ public interface ILLMProvider
     );
 
     /// <summary>
-    /// 流式聊天完成响应（原始文本流）
+    /// Streams a chat completion response (raw text stream).
     /// </summary>
     IAsyncEnumerable<string> ChatStreamAsync(
         IEnumerable<ChatMessage> messages,
@@ -29,13 +29,13 @@ public interface ILLMProvider
     );
 
     /// <summary>
-    /// 流式聊天完成响应（结构化事件流）
+    /// Streams a chat completion response (structured event stream).
     /// </summary>
     /// <remarks>
-    /// <para>返回 <see cref="StreamingChatEvent"/> 序列，包含 content delta、tool call delta、
-    /// finish reason 和 token usage 等结构化信息。</para>
-    /// <para>默认实现将 <see cref="ChatStreamAsync"/> 的文本流包装为 content delta 事件。
-    /// Provider 可覆盖此方法以提供完整的结构化事件。</para>
+    /// <para>Returns a sequence of <see cref="StreamingChatEvent"/> containing content deltas, tool call deltas,
+    /// finish reasons, and token usage as structured information.</para>
+    /// <para>The default implementation wraps the text stream from <see cref="ChatStreamAsync"/> as content delta events.
+    /// Providers can override this method to provide full structured events.</para>
     /// </remarks>
     IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
         IEnumerable<ChatMessage> messages,

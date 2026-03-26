@@ -1,47 +1,47 @@
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 审批结果
+/// Approval result.
 /// </summary>
 public record ApprovalResult
 {
     /// <summary>
-    /// 操作名称
+    /// Action name.
     /// </summary>
     public required string Action { get; init; }
 
     /// <summary>
-    /// 是否已批准
+    /// Whether it is approved.
     /// </summary>
     public bool IsApproved { get; init; }
 
     /// <summary>
-    /// 是否自动批准
+    /// Whether it was auto-approved.
     /// </summary>
     public bool IsAutoApproved { get; init; }
 
     /// <summary>
-    /// 是否超时
+    /// Whether it timed out.
     /// </summary>
     public bool IsTimedOut { get; init; }
 
     /// <summary>
-    /// 批准人/拒绝人
+    /// Approver/rejector.
     /// </summary>
     public string? ApprovedBy { get; init; }
 
     /// <summary>
-    /// 拒绝原因
+    /// Rejection reason.
     /// </summary>
     public string? RejectionReason { get; init; }
 
     /// <summary>
-    /// 修改后的操作
+    /// Modified action.
     /// </summary>
     public string? ModifiedAction { get; init; }
 
     /// <summary>
-    /// 创建自动批准结果
+    /// Creates an auto-approved result.
     /// </summary>
     public static ApprovalResult AutoApproved(string action) =>
         new()
@@ -52,7 +52,7 @@ public record ApprovalResult
         };
 
     /// <summary>
-    /// 创建批准结果
+    /// Creates an approved result.
     /// </summary>
     public static ApprovalResult Approved(string action, string? approvedBy = null) =>
         new()
@@ -63,7 +63,7 @@ public record ApprovalResult
         };
 
     /// <summary>
-    /// 创建拒绝结果
+    /// Creates a rejected result.
     /// </summary>
     public static ApprovalResult Rejected(
         string action,
@@ -79,7 +79,7 @@ public record ApprovalResult
         };
 
     /// <summary>
-    /// 创建修改结果
+    /// Creates a modified result.
     /// </summary>
     public static ApprovalResult Modified(
         string action,
@@ -95,7 +95,7 @@ public record ApprovalResult
         };
 
     /// <summary>
-    /// 创建超时结果
+    /// Creates a timed-out result.
     /// </summary>
     public static ApprovalResult TimedOut(string action) =>
         new()
@@ -103,6 +103,6 @@ public record ApprovalResult
             Action = action,
             IsApproved = false,
             IsTimedOut = true,
-            RejectionReason = "审批请求超时",
+            RejectionReason = "Approval request timed out",
         };
 }

@@ -3,23 +3,23 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
-/// 审计日志记录器接口
+/// Audit logger interface.
 /// </summary>
 public interface IAuditLogger
 {
     /// <summary>
-    /// 记录审计事件
+    /// Logs an audit event.
     /// </summary>
-    /// <param name="entry">审计条目</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="entry">Audit entry.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task LogAsync(AuditEntry entry, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 查询审计日志
+    /// Queries audit logs.
     /// </summary>
-    /// <param name="filter">过滤条件</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>审计条目列表</returns>
+    /// <param name="filter">Filter criteria.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of audit entries.</returns>
     Task<IReadOnlyList<AuditEntry>> QueryAsync(
         AuditFilter filter,
         CancellationToken cancellationToken = default
@@ -27,236 +27,236 @@ public interface IAuditLogger
 }
 
 /// <summary>
-/// 审计条目
+/// Audit entry.
 /// </summary>
 public record AuditEntry
 {
     /// <summary>
-    /// 唯一标识
+    /// Unique identifier.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString("N");
 
     /// <summary>
-    /// 时间戳
+    /// Timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 事件类型
+    /// Event type.
     /// </summary>
     public required AuditEventType EventType { get; init; }
 
     /// <summary>
-    /// 会话ID
+    /// Session ID.
     /// </summary>
     public string? SessionId { get; init; }
 
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public string? AgentName { get; init; }
 
     /// <summary>
-    /// 用户输入（可能被脱敏）
+    /// User input (may be masked).
     /// </summary>
     public string? Input { get; init; }
 
     /// <summary>
-    /// Agent 输出（可能被脱敏）
+    /// Agent output (may be masked).
     /// </summary>
     public string? Output { get; init; }
 
     /// <summary>
-    /// 工具名称（如果是工具调用）
+    /// Tool name (if this is a tool call).
     /// </summary>
     public string? ToolName { get; init; }
 
     /// <summary>
-    /// 工具参数（可能被脱敏）
+    /// Tool arguments (may be masked).
     /// </summary>
     public string? ToolArgs { get; init; }
 
     /// <summary>
-    /// 结果状态
+    /// Result status.
     /// </summary>
     public AuditResultStatus Status { get; init; } = AuditResultStatus.Success;
 
     /// <summary>
-    /// 错误信息
+    /// Error message.
     /// </summary>
     public string? ErrorMessage { get; init; }
 
     /// <summary>
-    /// 持续时间（毫秒）
+    /// Duration in milliseconds.
     /// </summary>
     public long? DurationMs { get; init; }
 
     /// <summary>
-    /// Token 使用量
+    /// Token usage.
     /// </summary>
     public int? TokensUsed { get; init; }
 
     /// <summary>
-    /// 触发的护栏
+    /// Triggered guardrails.
     /// </summary>
     public IReadOnlyList<string>? TriggeredGuardrails { get; init; }
 
     /// <summary>
-    /// 额外元数据
+    /// Additional metadata.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
 /// <summary>
-/// 审计事件类型
+/// Audit event type.
 /// </summary>
 public enum AuditEventType
 {
     /// <summary>
-    /// Agent 运行开始
+    /// Agent run started.
     /// </summary>
     AgentRunStart,
 
     /// <summary>
-    /// Agent 运行结束
+    /// Agent run ended.
     /// </summary>
     AgentRunEnd,
 
     /// <summary>
-    /// LLM 调用
+    /// LLM call.
     /// </summary>
     LLMCall,
 
     /// <summary>
-    /// 工具调用
+    /// Tool call.
     /// </summary>
     ToolCall,
 
     /// <summary>
-    /// 护栏触发
+    /// Guardrail triggered.
     /// </summary>
     GuardrailTriggered,
 
     /// <summary>
-    /// 速率限制
+    /// Rate limited.
     /// </summary>
     RateLimited,
 
     /// <summary>
-    /// 错误
+    /// Error.
     /// </summary>
     Error,
 
     /// <summary>
-    /// Handoff（任务转交）
+    /// Handoff (task transfer).
     /// </summary>
     Handoff,
 }
 
 /// <summary>
-/// 审计结果状态
+/// Audit result status.
 /// </summary>
 public enum AuditResultStatus
 {
     /// <summary>
-    /// 成功
+    /// Success.
     /// </summary>
     Success,
 
     /// <summary>
-    /// 失败
+    /// Failed.
     /// </summary>
     Failed,
 
     /// <summary>
-    /// 被阻止
+    /// Blocked.
     /// </summary>
     Blocked,
 
     /// <summary>
-    /// 被限制
+    /// Rate limited.
     /// </summary>
     RateLimited,
 }
 
 /// <summary>
-/// 审计日志过滤条件
+/// Audit log filter criteria.
 /// </summary>
 public record AuditFilter
 {
     /// <summary>
-    /// 会话ID
+    /// Session ID.
     /// </summary>
     public string? SessionId { get; init; }
 
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public string? AgentName { get; init; }
 
     /// <summary>
-    /// 事件类型
+    /// Event type.
     /// </summary>
     public AuditEventType? EventType { get; init; }
 
     /// <summary>
-    /// 开始时间
+    /// Start time.
     /// </summary>
     public DateTimeOffset? StartTime { get; init; }
 
     /// <summary>
-    /// 结束时间
+    /// End time.
     /// </summary>
     public DateTimeOffset? EndTime { get; init; }
 
     /// <summary>
-    /// 结果状态
+    /// Result status.
     /// </summary>
     public AuditResultStatus? Status { get; init; }
 
     /// <summary>
-    /// 最大返回数量
+    /// Maximum number of results to return.
     /// </summary>
     public int MaxResults { get; init; } = 100;
 }
 
 /// <summary>
-/// 审计日志配置
+/// Audit log configuration.
 /// </summary>
 public class AuditOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Audit";
 
     /// <summary>
-    /// 启用审计日志
+    /// Enable audit logging.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 记录输入内容
+    /// Log input content.
     /// </summary>
     public bool LogInput { get; set; } = true;
 
     /// <summary>
-    /// 记录输出内容
+    /// Log output content.
     /// </summary>
     public bool LogOutput { get; set; } = true;
 
     /// <summary>
-    /// 记录工具参数
+    /// Log tool arguments.
     /// </summary>
     public bool LogToolArgs { get; set; } = true;
 
     /// <summary>
-    /// 最大内容长度（超过则截断）
+    /// Maximum content length (truncated if exceeded).
     /// </summary>
     public int MaxContentLength { get; set; } = 1000;
 
     /// <summary>
-    /// 内存存储最大条目数
+    /// Maximum number of in-memory entries.
     /// </summary>
     public int MaxInMemoryEntries { get; set; } = 10000;
 

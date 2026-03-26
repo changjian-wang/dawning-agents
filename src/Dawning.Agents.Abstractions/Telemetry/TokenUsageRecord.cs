@@ -9,7 +9,7 @@ namespace Dawning.Agents.Abstractions.Telemetry;
 /// <param name="Timestamp">记录时间</param>
 /// <param name="Model">使用的模型名称</param>
 /// <param name="SessionId">会话 ID（可选，用于分组统计）</param>
-/// <param name="Metadata">附加元数据</param>
+/// <param name="Metadata">附加Metadata</param>
 public record TokenUsageRecord(
     string Source,
     int PromptTokens,

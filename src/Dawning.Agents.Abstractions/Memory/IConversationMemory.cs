@@ -3,59 +3,59 @@ using Dawning.Agents.Abstractions.LLM;
 namespace Dawning.Agents.Abstractions.Memory;
 
 /// <summary>
-/// 对话记忆管理接口
+/// Conversation memory management interface.
 /// </summary>
 /// <remarks>
-/// <para>Memory 系统用于管理 Agent 的对话历史和上下文</para>
-/// <para>实现类型包括：BufferMemory、WindowMemory、SummaryMemory</para>
+/// <para>The Memory system manages an Agent's conversation history and context.</para>
+/// <para>Implementation types include: BufferMemory, WindowMemory, SummaryMemory.</para>
 /// </remarks>
 public interface IConversationMemory
 {
     /// <summary>
-    /// 向记忆添加消息
+    /// Adds a message to memory.
     /// </summary>
-    /// <param name="message">要添加的消息</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="message">The message to add.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task AddMessageAsync(
         ConversationMessage message,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 获取记忆中的所有消息
+    /// Gets all messages in memory.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>消息列表</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Message list.</returns>
     Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 获取格式化为 LLM 上下文的消息
+    /// Gets messages formatted as LLM context.
     /// </summary>
-    /// <param name="maxTokens">最大 token 数量限制（可选）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>可直接用于 LLM 调用的消息列表</returns>
+    /// <param name="maxTokens">Maximum token count limit (optional).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Message list ready for direct use in LLM calls.</returns>
     Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 清除记忆中的所有消息
+    /// Clears all messages in memory.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task ClearAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取当前 token 数量
+    /// Gets the current token count.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>当前记忆的 token 总数</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Total token count of the current memory.</returns>
     Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取消息数量
+    /// Gets the message count.
     /// </summary>
     int MessageCount { get; }
 }

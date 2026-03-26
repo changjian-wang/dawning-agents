@@ -3,71 +3,71 @@ using Dawning.Agents.Abstractions.Agent;
 namespace Dawning.Agents.Abstractions.Handoff;
 
 /// <summary>
-/// Handoff Agent 接口 - 支持 Handoff 能力的 Agent
+/// Handoff Agent interface - an Agent with handoff capabilities.
 /// </summary>
 /// <remarks>
-/// 继承自 IAgent，扩展了 Handoff 相关能力：
-/// - 声明可以转交的目标 Agent 列表
-/// - 在执行过程中可以请求 Handoff
+/// Extends IAgent with handoff-related capabilities:
+/// - Declares a list of target Agents that can receive handoffs
+/// - Can request handoffs during execution
 /// </remarks>
 public interface IHandoffAgent : IAgent
 {
     /// <summary>
-    /// 此 Agent 可以转交的目标 Agent 名称列表
+    /// List of target Agent names this Agent can hand off to.
     /// </summary>
     /// <remarks>
-    /// 如果为空，表示此 Agent 不会主动发起 Handoff
+    /// If empty, this Agent will not initiate handoffs.
     /// </remarks>
     IReadOnlyList<string> Handoffs { get; }
 }
 
 /// <summary>
-/// Handoff 处理器接口 - 负责管理和执行 Handoff
+/// Handoff handler interface - manages and executes handoffs.
 /// </summary>
 public interface IHandoffHandler
 {
     /// <summary>
-    /// 注册 Agent 到 Handoff 系统
+    /// Registers an Agent with the handoff system.
     /// </summary>
-    /// <param name="agent">要注册的 Agent</param>
+    /// <param name="agent">The Agent to register.</param>
     void RegisterAgent(IAgent agent);
 
     /// <summary>
-    /// 批量注册 Agent
+    /// Registers Agents in batch.
     /// </summary>
-    /// <param name="agents">要注册的 Agent 集合</param>
+    /// <param name="agents">Collection of Agents to register.</param>
     void RegisterAgents(IEnumerable<IAgent> agents);
 
     /// <summary>
-    /// 获取已注册的 Agent
+    /// Gets a registered Agent.
     /// </summary>
-    /// <param name="name">Agent 名称</param>
-    /// <returns>Agent 实例，如果未找到则返回 null</returns>
+    /// <param name="name">Agent name.</param>
+    /// <returns>Agent instance, or null if not found.</returns>
     IAgent? GetAgent(string name);
 
     /// <summary>
-    /// 获取所有已注册的 Agent
+    /// Gets all registered Agents.
     /// </summary>
     IReadOnlyList<IAgent> GetAllAgents();
 
     /// <summary>
-    /// 执行 Handoff 请求
+    /// Executes a handoff request.
     /// </summary>
-    /// <param name="request">Handoff 请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>Handoff 执行结果</returns>
+    /// <param name="request">Handoff request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Handoff execution result.</returns>
     Task<HandoffResult> ExecuteHandoffAsync(
         HandoffRequest request,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 从指定的入口 Agent 开始执行任务，支持自动 Handoff
+    /// Starts execution from the specified entry Agent with automatic handoff support.
     /// </summary>
-    /// <param name="entryAgentName">入口 Agent 名称</param>
-    /// <param name="input">用户输入</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>最终执行结果</returns>
+    /// <param name="entryAgentName">Entry Agent name.</param>
+    /// <param name="input">User input.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Final execution result.</returns>
     Task<HandoffResult> RunWithHandoffAsync(
         string entryAgentName,
         string input,
@@ -76,17 +76,17 @@ public interface IHandoffHandler
 }
 
 /// <summary>
-/// Agent 响应扩展 - 用于检测 Handoff 请求
+/// Agent response extensions - for detecting handoff requests.
 /// </summary>
 public static class AgentResponseHandoffExtensions
 {
     /// <summary>
-    /// Handoff 标记前缀
+    /// Handoff marker prefix.
     /// </summary>
     public const string HandoffPrefix = "[HANDOFF:";
 
     /// <summary>
-    /// 检查响应是否包含 Handoff 请求
+    /// Checks whether the response contains a handoff request.
     /// </summary>
     public static bool IsHandoffRequest(this AgentResponse response)
     {
@@ -96,9 +96,9 @@ public static class AgentResponseHandoffExtensions
     }
 
     /// <summary>
-    /// 从响应中解析 Handoff 请求
+    /// Parses a handoff request from the response.
     /// </summary>
-    /// <returns>解析的 Handoff 请求，如果不是 Handoff 响应则返回 null</returns>
+    /// <returns>Parsed handoff request, or null if the response is not a handoff.</returns>
     public static HandoffRequest? ParseHandoffRequest(this AgentResponse response)
     {
         if (!response.IsHandoffRequest())
@@ -108,8 +108,8 @@ public static class AgentResponseHandoffExtensions
 
         var answer = response.FinalAnswer!;
 
-        // 格式: [HANDOFF:TargetAgent] Input text
-        // 或: [HANDOFF:TargetAgent|Reason] Input text
+        // Format: [HANDOFF:TargetAgent] Input text
+        // Or: [HANDOFF:TargetAgent|Reason] Input text
         var endBracket = answer.IndexOf(']');
         if (endBracket < 0)
         {
@@ -147,12 +147,12 @@ public static class AgentResponseHandoffExtensions
     }
 
     /// <summary>
-    /// 创建 Handoff 响应
+    /// Creates a handoff response.
     /// </summary>
-    /// <param name="targetAgent">目标 Agent 名称</param>
-    /// <param name="input">传递给目标 Agent 的输入</param>
-    /// <param name="reason">转交原因</param>
-    /// <returns>格式化的 Handoff 响应字符串</returns>
+    /// <param name="targetAgent">Target Agent name.</param>
+    /// <param name="input">Input to pass to the target Agent.</param>
+    /// <param name="reason">Handoff reason.</param>
+    /// <returns>Formatted handoff response string.</returns>
     public static string CreateHandoffResponse(
         string targetAgent,
         string input,

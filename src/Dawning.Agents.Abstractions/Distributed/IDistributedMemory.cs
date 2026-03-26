@@ -3,50 +3,50 @@ using Dawning.Agents.Abstractions.Memory;
 namespace Dawning.Agents.Abstractions.Distributed;
 
 /// <summary>
-/// 分布式记忆接口
+/// Defines the interface for distributed memory.
 /// </summary>
 /// <remarks>
-/// <para>扩展 <see cref="IConversationMemory"/> 以支持分布式场景</para>
-/// <para>提供会话锁定、跨节点同步等能力</para>
+/// <para>Extends <see cref="IConversationMemory"/> to support distributed scenarios.</para>
+/// <para>Provides session locking and cross-node synchronization capabilities.</para>
 /// </remarks>
 public interface IDistributedMemory : IConversationMemory
 {
     /// <summary>
-    /// 会话 ID
+    /// The session ID.
     /// </summary>
     string SessionId { get; }
 
     /// <summary>
-    /// 尝试获取会话锁
+    /// Attempts to acquire a session lock.
     /// </summary>
-    /// <param name="timeout">锁超时时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否成功获取锁</returns>
+    /// <param name="timeout">The lock timeout duration.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> if the lock was acquired; otherwise, <see langword="false"/>.</returns>
     Task<bool> TryLockSessionAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 释放会话锁
+    /// Releases the session lock.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task UnlockSessionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 设置会话过期时间
+    /// Sets the session expiration time.
     /// </summary>
-    /// <param name="expiry">过期时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="expiry">The expiration duration.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task SetExpiryAsync(TimeSpan expiry, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 刷新会话过期时间
+    /// Refreshes the session expiration time.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task RefreshExpiryAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 检查会话是否存在
+    /// Checks whether the session exists.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>会话是否存在</returns>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> if the session exists; otherwise, <see langword="false"/>.</returns>
     Task<bool> ExistsAsync(CancellationToken cancellationToken = default);
 }

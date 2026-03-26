@@ -3,42 +3,42 @@ namespace Dawning.Agents.Abstractions.Orchestration;
 using Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// 编排执行结果
+/// Orchestration execution result.
 /// </summary>
 public record OrchestrationResult
 {
     /// <summary>
-    /// 是否执行成功
+    /// Whether execution was successful.
     /// </summary>
     public required bool Success { get; init; }
 
     /// <summary>
-    /// 最终输出
+    /// Final output.
     /// </summary>
     public string? FinalOutput { get; init; }
 
     /// <summary>
-    /// 错误信息（如果失败）
+    /// Error message (if failed).
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 每个 Agent 的执行结果
+    /// Execution result for each Agent.
     /// </summary>
     public IReadOnlyList<AgentExecutionRecord> AgentResults { get; init; } = [];
 
     /// <summary>
-    /// 总执行时间
+    /// Total execution time.
     /// </summary>
     public TimeSpan Duration { get; init; }
 
     /// <summary>
-    /// 附加元数据
+    /// Additional metadata.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 
     /// <summary>
-    /// 创建成功结果
+    /// Creates a successful result.
     /// </summary>
     public static OrchestrationResult Successful(
         string finalOutput,
@@ -56,7 +56,7 @@ public record OrchestrationResult
         };
 
     /// <summary>
-    /// 创建失败结果
+    /// Creates a failed result.
     /// </summary>
     public static OrchestrationResult Failed(
         string error,
@@ -73,37 +73,37 @@ public record OrchestrationResult
 }
 
 /// <summary>
-/// 单个 Agent 的执行记录
+/// Execution record for a single Agent.
 /// </summary>
 public record AgentExecutionRecord
 {
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public required string AgentName { get; init; }
 
     /// <summary>
-    /// 输入内容
+    /// Input content.
     /// </summary>
     public required string Input { get; init; }
 
     /// <summary>
-    /// Agent 响应
+    /// Agent response.
     /// </summary>
     public required AgentResponse Response { get; init; }
 
     /// <summary>
-    /// 执行顺序（从 0 开始）
+    /// Execution order (starting from 0).
     /// </summary>
     public int ExecutionOrder { get; init; }
 
     /// <summary>
-    /// 开始时间
+    /// Start time.
     /// </summary>
     public DateTimeOffset StartTime { get; init; }
 
     /// <summary>
-    /// 结束时间
+    /// End time.
     /// </summary>
     public DateTimeOffset EndTime { get; init; }
 }

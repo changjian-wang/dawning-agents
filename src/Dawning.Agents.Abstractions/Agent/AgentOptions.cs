@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 配置选项
+/// Agent configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// Example appsettings.json configuration:
 /// <code>
 /// {
 ///   "Agent": {
@@ -20,40 +20,40 @@ namespace Dawning.Agents.Abstractions.Agent;
 public class AgentOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Agent";
 
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public string Name { get; set; } = "Agent";
 
     /// <summary>
-    /// Agent 系统指令
+    /// Agent system instructions.
     /// </summary>
     public string Instructions { get; set; } = "You are a helpful AI assistant.";
 
     /// <summary>
-    /// 最大执行步骤数
+    /// Maximum number of execution steps.
     /// </summary>
     public int MaxSteps { get; set; } = 10;
 
     /// <summary>
-    /// 每次 LLM 调用的最大 Token 数
+    /// Maximum tokens per LLM call.
     /// </summary>
     public int MaxTokens { get; set; } = 1024;
 
     /// <summary>
-    /// 单次运行最大成本（USD），null 表示无限制
+    /// Maximum cost per run (USD). <c>null</c> means no limit.
     /// </summary>
     /// <remarks>
-    /// 当累计成本超过此值时抛出 <see cref="BudgetExceededException"/>
+    /// Throws <see cref="BudgetExceededException"/> when accumulated cost exceeds this value.
     /// </remarks>
     public decimal? MaxCostPerRun { get; set; }
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {

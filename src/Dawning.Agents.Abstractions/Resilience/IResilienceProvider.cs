@@ -1,30 +1,30 @@
 namespace Dawning.Agents.Abstractions.Resilience;
 
 /// <summary>
-/// 弹性策略提供者接口
+/// Resilience strategy provider interface.
 /// </summary>
 /// <remarks>
-/// 提供重试、断路器、超时等弹性策略，保护 LLM 调用。
+/// Provides retry, circuit breaker, timeout, and other resilience strategies to protect LLM calls.
 /// </remarks>
 public interface IResilienceProvider
 {
     /// <summary>
-    /// 使用弹性策略执行操作
+    /// Executes an operation with resilience strategies.
     /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="operation">要执行的操作</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>操作结果</returns>
+    /// <typeparam name="T">Return type.</typeparam>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Operation result.</returns>
     Task<T> ExecuteAsync<T>(
         Func<CancellationToken, Task<T>> operation,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 使用弹性策略执行操作（无返回值）
+    /// Executes an operation with resilience strategies (no return value).
     /// </summary>
-    /// <param name="operation">要执行的操作</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task ExecuteAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default

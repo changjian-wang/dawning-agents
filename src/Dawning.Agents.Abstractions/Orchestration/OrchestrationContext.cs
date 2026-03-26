@@ -1,7 +1,7 @@
 namespace Dawning.Agents.Abstractions.Orchestration;
 
 /// <summary>
-/// 编排执行上下文（线程安全）
+/// Orchestration execution context (thread-safe).
 /// </summary>
 public class OrchestrationContext
 {
@@ -13,17 +13,17 @@ public class OrchestrationContext
     private string? _stopReason;
 
     /// <summary>
-    /// 会话 ID
+    /// Session ID.
     /// </summary>
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 原始用户输入
+    /// Original user input.
     /// </summary>
     public required string UserInput { get; init; }
 
     /// <summary>
-    /// 当前输入（可能被前一个 Agent 修改）
+    /// Current input (may be modified by a previous Agent).
     /// </summary>
     public string CurrentInput
     {
@@ -44,7 +44,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 已执行的 Agent 记录（只读快照）
+    /// Executed Agent records (read-only snapshot).
     /// </summary>
     public IReadOnlyList<AgentExecutionRecord> ExecutionHistory
     {
@@ -58,7 +58,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 自定义元数据，可在 Agent 之间传递（只读快照）
+    /// Custom metadata that can be shared between Agents (read-only snapshot).
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata
     {
@@ -72,7 +72,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 添加执行记录
+    /// Adds an execution record.
     /// </summary>
     public void AddExecutionRecord(AgentExecutionRecord record)
     {
@@ -83,7 +83,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 设置元数据
+    /// Sets metadata.
     /// </summary>
     public void SetMetadata(string key, object value)
     {
@@ -94,7 +94,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 是否应该停止执行（用于条件路由）
+    /// Whether execution should stop (used for conditional routing).
     /// </summary>
     public bool ShouldStop
     {
@@ -115,7 +115,7 @@ public class OrchestrationContext
     }
 
     /// <summary>
-    /// 停止原因
+    /// Stop reason.
     /// </summary>
     public string? StopReason
     {

@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Memory;
 
 /// <summary>
-/// Memory 配置选项
+/// Memory configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Memory": {
@@ -26,55 +26,55 @@ namespace Dawning.Agents.Abstractions.Memory;
 public class MemoryOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Memory";
 
     /// <summary>
-    /// Memory 类型：Buffer、Window、Summary、Adaptive、Vector
+    /// Memory type: Buffer, Window, Summary, Adaptive, Vector.
     /// </summary>
     public MemoryType Type { get; set; } = MemoryType.Buffer;
 
     /// <summary>
-    /// 窗口大小（WindowMemory 使用）
+    /// Window size (used by WindowMemory).
     /// </summary>
     public int WindowSize { get; set; } = 10;
 
     /// <summary>
-    /// 保留的最近消息数（SummaryMemory 使用）
+    /// Number of recent messages to retain (used by SummaryMemory).
     /// </summary>
     public int MaxRecentMessages { get; set; } = 6;
 
     /// <summary>
-    /// 触发摘要的消息数阈值（SummaryMemory 使用）
+    /// Message count threshold to trigger summarization (used by SummaryMemory).
     /// </summary>
     public int SummaryThreshold { get; set; } = 10;
 
     /// <summary>
-    /// 触发降级的 token 阈值（AdaptiveMemory 使用）
+    /// Token threshold to trigger downgrade (used by AdaptiveMemory).
     /// </summary>
     /// <remarks>
-    /// 当 BufferMemory 中的 token 数量超过此阈值时，自动降级到 SummaryMemory
+    /// When the token count in BufferMemory exceeds this threshold, it automatically downgrades to SummaryMemory.
     /// </remarks>
     public int DowngradeThreshold { get; set; } = 4000;
 
     /// <summary>
-    /// 检索的相关消息数（VectorMemory 使用）
+    /// Number of relevant messages to retrieve (used by VectorMemory).
     /// </summary>
     public int RetrieveTopK { get; set; } = 5;
 
     /// <summary>
-    /// 最小相关性分数（VectorMemory 使用，0-1）
+    /// Minimum relevance score (used by VectorMemory, 0–1).
     /// </summary>
     public float MinRelevanceScore { get; set; } = 0.5f;
 
     /// <summary>
-    /// Token 计数器的模型名称
+    /// Model name for the token counter.
     /// </summary>
     public string ModelName { get; set; } = "gpt-4";
 
     /// <summary>
-    /// 最大上下文 token 数
+    /// Maximum context token count.
     /// </summary>
     public int MaxContextTokens { get; set; } = 8192;
 
@@ -134,32 +134,32 @@ public class MemoryOptions : IValidatableOptions
 }
 
 /// <summary>
-/// Memory 类型枚举
+/// Memory type enumeration.
 /// </summary>
 public enum MemoryType
 {
     /// <summary>
-    /// 缓冲记忆 - 存储所有消息
+    /// Buffer memory — stores all messages.
     /// </summary>
     Buffer,
 
     /// <summary>
-    /// 窗口记忆 - 只保留最后 N 条消息
+    /// Window memory — retains only the last N messages.
     /// </summary>
     Window,
 
     /// <summary>
-    /// 摘要记忆 - 自动摘要旧消息
+    /// Summary memory — automatically summarizes old messages.
     /// </summary>
     Summary,
 
     /// <summary>
-    /// 自适应记忆 - 自动从 Buffer 降级到 Summary
+    /// Adaptive memory — automatically downgrades from Buffer to Summary.
     /// </summary>
     Adaptive,
 
     /// <summary>
-    /// 向量记忆 - 使用向量检索增强上下文相关性（Retrieve 策略）
+    /// Vector memory — uses vector retrieval to enhance context relevance (Retrieve strategy).
     /// </summary>
     Vector,
 }

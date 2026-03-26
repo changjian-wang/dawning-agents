@@ -1,56 +1,56 @@
 namespace Dawning.Agents.Abstractions.Communication;
 
 /// <summary>
-/// Agent 通信的中央消息总线接口
+/// Central message bus interface for agent communication.
 /// </summary>
 /// <remarks>
-/// 支持以下通信模式：
+/// Supports the following communication patterns:
 /// <list type="bullet">
-/// <item>点对点：向特定 Agent 发送消息</item>
-/// <item>广播：向所有 Agent 发送消息</item>
-/// <item>发布/订阅：基于主题的事件通知</item>
-/// <item>请求/响应：同步等待响应</item>
+/// <item>Point-to-point: Send a message to a specific agent.</item>
+/// <item>Broadcast: Send a message to all agents.</item>
+/// <item>Publish/Subscribe: Topic-based event notifications.</item>
+/// <item>Request/Response: Synchronously wait for a response.</item>
 /// </list>
 /// </remarks>
 public interface IMessageBus
 {
     /// <summary>
-    /// 向特定 Agent 发送消息（点对点）
+    /// Sends a message to a specific agent (point-to-point).
     /// </summary>
-    /// <param name="message">要发送的消息（必须设置 ReceiverId）</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="message">The message to send. <see cref="AgentMessage.ReceiverId"/> must be set.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task SendAsync(AgentMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 向所有 Agent 广播消息
+    /// Broadcasts a message to all agents.
     /// </summary>
-    /// <param name="message">要广播的消息</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="message">The message to broadcast.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task BroadcastAsync(AgentMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 订阅指定 Agent 的消息
+    /// Subscribes to messages for a specific agent.
     /// </summary>
-    /// <param name="agentId">订阅者 Agent ID</param>
-    /// <param name="handler">消息处理器</param>
-    /// <returns>取消订阅的 Disposable</returns>
+    /// <param name="agentId">Subscriber agent ID.</param>
+    /// <param name="handler">Message handler.</param>
+    /// <returns>An <see cref="IDisposable"/> that unsubscribes when disposed.</returns>
     IDisposable Subscribe(string agentId, Action<AgentMessage> handler);
 
     /// <summary>
-    /// 订阅指定主题的事件
+    /// Subscribes to events on a specific topic.
     /// </summary>
-    /// <param name="agentId">订阅者 Agent ID</param>
-    /// <param name="topic">主题名称</param>
-    /// <param name="handler">事件处理器</param>
-    /// <returns>取消订阅的 Disposable</returns>
+    /// <param name="agentId">Subscriber agent ID.</param>
+    /// <param name="topic">Topic name.</param>
+    /// <param name="handler">Event handler.</param>
+    /// <returns>An <see cref="IDisposable"/> that unsubscribes when disposed.</returns>
     IDisposable Subscribe(string agentId, string topic, Action<EventMessage> handler);
 
     /// <summary>
-    /// 向主题发布事件
+    /// Publishes an event to a topic.
     /// </summary>
-    /// <param name="topic">主题名称</param>
-    /// <param name="message">事件消息</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="topic">Topic name.</param>
+    /// <param name="message">Event message.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task PublishAsync(
         string topic,
         EventMessage message,
@@ -58,13 +58,13 @@ public interface IMessageBus
     );
 
     /// <summary>
-    /// 请求/响应模式：发送请求并等待响应
+    /// Request/Response pattern: Sends a request and waits for a response.
     /// </summary>
-    /// <param name="request">任务请求</param>
-    /// <param name="timeout">响应超时时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>响应消息</returns>
-    /// <exception cref="TimeoutException">等待响应超时</exception>
+    /// <param name="request">Task request.</param>
+    /// <param name="timeout">Response timeout duration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The response message.</returns>
+    /// <exception cref="TimeoutException">Thrown when the response wait times out.</exception>
     Task<ResponseMessage> RequestAsync(
         TaskMessage request,
         TimeSpan timeout,

@@ -3,43 +3,43 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Handoff;
 
 /// <summary>
-/// Handoff 配置选项
+/// Handoff configuration options.
 /// </summary>
 public class HandoffOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Handoff";
 
     /// <summary>
-    /// 最大 Handoff 深度（防止无限循环）
+    /// Maximum handoff depth (prevents infinite loops).
     /// </summary>
-    /// <remarks>默认为 5，表示最多可以连续转交 5 次</remarks>
+    /// <remarks>Defaults to 5, meaning a maximum of 5 consecutive handoffs.</remarks>
     public int MaxHandoffDepth { get; set; } = 5;
 
     /// <summary>
-    /// 单次 Handoff 超时时间（秒）
+    /// Per-handoff timeout in seconds.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 60;
 
     /// <summary>
-    /// 总超时时间（秒）
+    /// Total timeout in seconds.
     /// </summary>
     public int TotalTimeoutSeconds { get; set; } = 300;
 
     /// <summary>
-    /// 是否允许回环（Agent A -> B -> A）
+    /// Whether to allow cycles (Agent A -> B -> A).
     /// </summary>
     public bool AllowCycles { get; set; } = false;
 
     /// <summary>
-    /// Handoff 失败时是否回退到源 Agent
+    /// Whether to fall back to the source Agent on handoff failure.
     /// </summary>
     public bool FallbackToSource { get; set; } = true;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {

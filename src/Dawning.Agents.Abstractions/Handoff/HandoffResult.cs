@@ -3,42 +3,42 @@ using Dawning.Agents.Abstractions.Agent;
 namespace Dawning.Agents.Abstractions.Handoff;
 
 /// <summary>
-/// Handoff 结果
+/// Handoff result.
 /// </summary>
 public record HandoffResult
 {
     /// <summary>
-    /// 是否成功完成 Handoff
+    /// Whether the handoff completed successfully.
     /// </summary>
     public required bool Success { get; init; }
 
     /// <summary>
-    /// 执行任务的 Agent 名称
+    /// Name of the Agent that executed the task.
     /// </summary>
     public required string ExecutedByAgent { get; init; }
 
     /// <summary>
-    /// Agent 响应
+    /// Agent response.
     /// </summary>
     public AgentResponse? Response { get; init; }
 
     /// <summary>
-    /// 错误信息（如果失败）
+    /// Error message (if failed).
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// Handoff 链路记录（从源 Agent 到最终 Agent 的路径）
+    /// Handoff chain record (path from source Agent to final Agent).
     /// </summary>
     public IReadOnlyList<HandoffRecord> HandoffChain { get; init; } = [];
 
     /// <summary>
-    /// 总执行时间
+    /// Total execution time.
     /// </summary>
     public TimeSpan TotalDuration { get; init; }
 
     /// <summary>
-    /// 创建成功结果
+    /// Creates a successful result.
     /// </summary>
     public static HandoffResult Successful(
         string executedBy,
@@ -56,7 +56,7 @@ public record HandoffResult
         };
 
     /// <summary>
-    /// 创建失败结果
+    /// Creates a failed result.
     /// </summary>
     public static HandoffResult Failed(
         string executedBy,
@@ -75,32 +75,32 @@ public record HandoffResult
 }
 
 /// <summary>
-/// Handoff 记录 - 记录每次转交的详情
+/// Handoff record - details of each transfer.
 /// </summary>
 public record HandoffRecord
 {
     /// <summary>
-    /// 源 Agent 名称（null 表示初始请求）
+    /// Source Agent name (null indicates the initial request).
     /// </summary>
     public string? FromAgent { get; init; }
 
     /// <summary>
-    /// 目标 Agent 名称
+    /// Target Agent name.
     /// </summary>
     public required string ToAgent { get; init; }
 
     /// <summary>
-    /// 转交原因
+    /// Handoff reason.
     /// </summary>
     public string? Reason { get; init; }
 
     /// <summary>
-    /// 转交时间
+    /// Handoff timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 传递的输入
+    /// Passed input.
     /// </summary>
     public required string Input { get; init; }
 }

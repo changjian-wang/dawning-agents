@@ -1,17 +1,17 @@
 namespace Dawning.Agents.Abstractions.Evaluation;
 
 /// <summary>
-/// Agent 评估器接口
+/// Defines the interface for agent evaluation.
 /// </summary>
 public interface IAgentEvaluator
 {
     /// <summary>
-    /// 评估器名称
+    /// The name of the evaluator.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 评估单个测试用例
+    /// Evaluates a single test case.
     /// </summary>
     Task<EvaluationResult> EvaluateAsync(
         EvaluationTestCase testCase,
@@ -19,7 +19,7 @@ public interface IAgentEvaluator
     );
 
     /// <summary>
-    /// 批量评估测试用例
+    /// Evaluates a batch of test cases.
     /// </summary>
     Task<EvaluationReport> EvaluateBatchAsync(
         IEnumerable<EvaluationTestCase> testCases,
@@ -28,236 +28,236 @@ public interface IAgentEvaluator
 }
 
 /// <summary>
-/// 评估测试用例
+/// Represents an evaluation test case.
 /// </summary>
 public record EvaluationTestCase
 {
     /// <summary>
-    /// 测试用例 ID
+    /// The test case ID.
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 测试用例名称
+    /// The test case name.
     /// </summary>
     public string? Name { get; init; }
 
     /// <summary>
-    /// 输入内容
+    /// The input content.
     /// </summary>
     public required string Input { get; init; }
 
     /// <summary>
-    /// 期望输出（用于精确匹配）
+    /// The expected output for exact match comparison.
     /// </summary>
     public string? ExpectedOutput { get; init; }
 
     /// <summary>
-    /// 期望包含的关键词
+    /// The expected keywords to match.
     /// </summary>
     public IReadOnlyList<string>? ExpectedKeywords { get; init; }
 
     /// <summary>
-    /// 期望调用的工具
+    /// The expected tools to be called.
     /// </summary>
     public IReadOnlyList<string>? ExpectedTools { get; init; }
 
     /// <summary>
-    /// 评估标准描述（用于 LLM-as-Judge）
+    /// The evaluation criteria description for LLM-as-Judge.
     /// </summary>
     public string? EvaluationCriteria { get; init; }
 
     /// <summary>
-    /// 最大允许延迟（毫秒）
+    /// The maximum allowed latency in milliseconds.
     /// </summary>
     public int? MaxLatencyMs { get; init; }
 
     /// <summary>
-    /// 最大允许 Token 数
+    /// The maximum allowed token count.
     /// </summary>
     public int? MaxTokens { get; init; }
 
     /// <summary>
-    /// 标签
+    /// The tags.
     /// </summary>
     public IReadOnlyList<string>? Tags { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
 /// <summary>
-/// 评估结果
+/// Represents an evaluation result.
 /// </summary>
 public record EvaluationResult
 {
     /// <summary>
-    /// 测试用例 ID
+    /// The test case ID.
     /// </summary>
     public required string TestCaseId { get; init; }
 
     /// <summary>
-    /// 是否通过
+    /// Gets a value indicating whether the test passed.
     /// </summary>
     public bool Passed { get; init; }
 
     /// <summary>
-    /// 总分 (0-100)
+    /// The overall score (0-100).
     /// </summary>
     public double Score { get; init; }
 
     /// <summary>
-    /// 实际输出
+    /// The actual output.
     /// </summary>
     public string? ActualOutput { get; init; }
 
     /// <summary>
-    /// 延迟（毫秒）
+    /// The latency in milliseconds.
     /// </summary>
     public long LatencyMs { get; init; }
 
     /// <summary>
-    /// Token 使用量
+    /// The token usage.
     /// </summary>
     public TokenUsage? TokenUsage { get; init; }
 
     /// <summary>
-    /// 调用的工具
+    /// The tools that were called.
     /// </summary>
     public IReadOnlyList<string>? ToolsCalled { get; init; }
 
     /// <summary>
-    /// 执行步骤数
+    /// The number of execution steps.
     /// </summary>
     public int StepCount { get; init; }
 
     /// <summary>
-    /// 各项指标得分
+    /// The individual metric scores.
     /// </summary>
     public IReadOnlyDictionary<string, double>? MetricScores { get; init; }
 
     /// <summary>
-    /// 失败原因
+    /// The failure reason.
     /// </summary>
     public string? FailureReason { get; init; }
 
     /// <summary>
-    /// 评估时间
+    /// The time when the evaluation was performed.
     /// </summary>
     public DateTimeOffset EvaluatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
 /// <summary>
-/// Token 使用量
+/// Represents token usage statistics.
 /// </summary>
 public record TokenUsage
 {
     /// <summary>
-    /// 输入 Token 数
+    /// The number of input tokens.
     /// </summary>
     public int InputTokens { get; init; }
 
     /// <summary>
-    /// 输出 Token 数
+    /// The number of output tokens.
     /// </summary>
     public int OutputTokens { get; init; }
 
     /// <summary>
-    /// 总 Token 数
+    /// The total number of tokens.
     /// </summary>
     public long TotalTokens => (long)InputTokens + OutputTokens;
 
     /// <summary>
-    /// 估算成本（美元）
+    /// The estimated cost in US dollars.
     /// </summary>
     public decimal? EstimatedCost { get; init; }
 }
 
 /// <summary>
-/// 评估报告
+/// Represents an evaluation report.
 /// </summary>
 public record EvaluationReport
 {
     /// <summary>
-    /// 报告 ID
+    /// The report ID.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString("N");
 
     /// <summary>
-    /// 报告名称
+    /// The report name.
     /// </summary>
     public string? Name { get; init; }
 
     /// <summary>
-    /// Agent 名称
+    /// The agent name.
     /// </summary>
     public string? AgentName { get; init; }
 
     /// <summary>
-    /// 所有评估结果
+    /// All evaluation results.
     /// </summary>
     public required IReadOnlyList<EvaluationResult> Results { get; init; }
 
     /// <summary>
-    /// 总测试用例数
+    /// The total number of test cases.
     /// </summary>
     public int TotalCount => Results.Count;
 
     /// <summary>
-    /// 通过数
+    /// The number of passed test cases.
     /// </summary>
     public int PassedCount => Results.Count(r => r.Passed);
 
     /// <summary>
-    /// 失败数
+    /// The number of failed test cases.
     /// </summary>
     public int FailedCount => Results.Count(r => !r.Passed);
 
     /// <summary>
-    /// 通过率
+    /// The pass rate.
     /// </summary>
     public double PassRate => TotalCount > 0 ? (double)PassedCount / TotalCount : 0;
 
     /// <summary>
-    /// 平均得分
+    /// The average score.
     /// </summary>
     public double AverageScore => Results.Count > 0 ? Results.Average(r => r.Score) : 0;
 
     /// <summary>
-    /// 平均延迟（毫秒）
+    /// The average latency in milliseconds.
     /// </summary>
     public double AverageLatencyMs => Results.Count > 0 ? Results.Average(r => r.LatencyMs) : 0;
 
     /// <summary>
-    /// P50 延迟（毫秒）
+    /// The P50 (median) latency in milliseconds.
     /// </summary>
     public double P50LatencyMs => CalculatePercentile(Results.Select(r => (double)r.LatencyMs), 50);
 
     /// <summary>
-    /// P95 延迟（毫秒）
+    /// The P95 latency in milliseconds.
     /// </summary>
     public double P95LatencyMs => CalculatePercentile(Results.Select(r => (double)r.LatencyMs), 95);
 
     /// <summary>
-    /// P99 延迟（毫秒）
+    /// The P99 latency in milliseconds.
     /// </summary>
     public double P99LatencyMs => CalculatePercentile(Results.Select(r => (double)r.LatencyMs), 99);
 
     /// <summary>
-    /// 总 Token 使用量
+    /// The total token usage.
     /// </summary>
     public long TotalTokens =>
         Results.Where(r => r.TokenUsage != null).Sum(r => r.TokenUsage!.TotalTokens);
 
     /// <summary>
-    /// 总估算成本
+    /// The total estimated cost.
     /// </summary>
     public decimal TotalEstimatedCost =>
         Results
@@ -265,17 +265,17 @@ public record EvaluationReport
             .Sum(r => r.TokenUsage!.EstimatedCost!.Value);
 
     /// <summary>
-    /// 生成时间
+    /// The time when the report was generated.
     /// </summary>
     public DateTimeOffset GeneratedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 持续时间（毫秒）
+    /// The duration in milliseconds.
     /// </summary>
     public long DurationMs { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 

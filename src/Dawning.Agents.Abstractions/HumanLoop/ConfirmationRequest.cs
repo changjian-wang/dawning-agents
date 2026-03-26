@@ -1,141 +1,141 @@
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 人工确认请求
+/// Human confirmation request.
 /// </summary>
 public record ConfirmationRequest
 {
     /// <summary>
-    /// 唯一请求标识符
+    /// Unique request identifier.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 需要的确认类型
+    /// Required confirmation type.
     /// </summary>
     public ConfirmationType Type { get; init; } = ConfirmationType.Binary;
 
     /// <summary>
-    /// 需要确认的操作
+    /// Action to confirm.
     /// </summary>
     public required string Action { get; init; }
 
     /// <summary>
-    /// 详细描述
+    /// Detailed description.
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
-    /// 操作的风险级别
+    /// Risk level of the operation.
     /// </summary>
     public RiskLevel RiskLevel { get; init; } = RiskLevel.Medium;
 
     /// <summary>
-    /// 供人类选择的选项
+    /// Options for human selection.
     /// </summary>
     public IReadOnlyList<ConfirmationOption> Options { get; init; } = [];
 
     /// <summary>
-    /// 用于决策的上下文数据
+    /// Context data for decision-making.
     /// </summary>
     public IReadOnlyDictionary<string, object> Context { get; init; } =
         new Dictionary<string, object>();
 
     /// <summary>
-    /// 请求创建时间
+    /// Request creation time.
     /// </summary>
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 确认超时时间
+    /// Confirmation timeout.
     /// </summary>
     public TimeSpan? Timeout { get; init; }
 
     /// <summary>
-    /// 超时时的默认操作
+    /// Default action on timeout.
     /// </summary>
     public string? DefaultOnTimeout { get; init; }
 }
 
 /// <summary>
-/// 确认类型
+/// Confirmation type.
 /// </summary>
 public enum ConfirmationType
 {
     /// <summary>
-    /// 是/否二元选择
+    /// Yes/No binary choice.
     /// </summary>
     Binary,
 
     /// <summary>
-    /// 多选项
+    /// Multiple choice.
     /// </summary>
     MultiChoice,
 
     /// <summary>
-    /// 用户自由输入
+    /// Freeform user input.
     /// </summary>
     FreeformInput,
 
     /// <summary>
-    /// 审查和修改
+    /// Review and modify.
     /// </summary>
     Review,
 }
 
 /// <summary>
-/// 风险级别
+/// Risk level.
 /// </summary>
 public enum RiskLevel
 {
     /// <summary>
-    /// 低风险 - 通常自动批准
+    /// Low risk - typically auto-approved.
     /// </summary>
     Low,
 
     /// <summary>
-    /// 中等风险 - 可能需要确认
+    /// Medium risk - may require confirmation.
     /// </summary>
     Medium,
 
     /// <summary>
-    /// 高风险 - 需要确认
+    /// High risk - requires confirmation.
     /// </summary>
     High,
 
     /// <summary>
-    /// 关键风险 - 必须确认
+    /// Critical risk - must be confirmed.
     /// </summary>
     Critical,
 }
 
 /// <summary>
-/// 确认选项
+/// Confirmation option.
 /// </summary>
 public record ConfirmationOption
 {
     /// <summary>
-    /// 选项唯一标识
+    /// Option unique identifier.
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 选项显示标签
+    /// Option display label.
     /// </summary>
     public required string Label { get; init; }
 
     /// <summary>
-    /// 选项描述
+    /// Option description.
     /// </summary>
     public string? Description { get; init; }
 
     /// <summary>
-    /// 是否为默认选项
+    /// Whether this is the default option.
     /// </summary>
     public bool IsDefault { get; init; }
 
     /// <summary>
-    /// 是否为危险操作
+    /// Whether this is a dangerous operation.
     /// </summary>
     public bool IsDangerous { get; init; }
 }

@@ -1,10 +1,10 @@
 namespace Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// Agent 遥测配置
+/// Configuration options for agent telemetry.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// Example appsettings.json:
 /// <code>
 /// {
 ///   "Telemetry": {
@@ -20,52 +20,52 @@ namespace Dawning.Agents.Abstractions.Observability;
 public class TelemetryConfig : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Gets the configuration section name.
     /// </summary>
     public const string SectionName = "Telemetry";
 
     /// <summary>
-    /// 启用日志
+    /// Gets or sets a value indicating whether logging is enabled.
     /// </summary>
     public bool EnableLogging { get; set; } = true;
 
     /// <summary>
-    /// 启用指标收集
+    /// Gets or sets a value indicating whether metrics collection is enabled.
     /// </summary>
     public bool EnableMetrics { get; set; } = true;
 
     /// <summary>
-    /// 启用分布式追踪
+    /// Gets or sets a value indicating whether distributed tracing is enabled.
     /// </summary>
     public bool EnableTracing { get; set; } = true;
 
     /// <summary>
-    /// 遥测服务名称
+    /// Gets or sets the telemetry service name.
     /// </summary>
     public string ServiceName { get; set; } = "Dawning.Agents";
 
     /// <summary>
-    /// 服务版本
+    /// Gets or sets the service version.
     /// </summary>
     public string ServiceVersion { get; set; } = "1.0.0";
 
     /// <summary>
-    /// 环境（dev, staging, prod）
+    /// Gets or sets the environment (dev, staging, prod).
     /// </summary>
     public string Environment { get; set; } = "development";
 
     /// <summary>
-    /// 最低日志级别
+    /// Gets or sets the minimum log level.
     /// </summary>
     public TelemetryLogLevel MinLogLevel { get; set; } = TelemetryLogLevel.Information;
 
     /// <summary>
-    /// 追踪采样率（0.0 - 1.0）
+    /// Gets or sets the trace sampling rate (0.0 - 1.0).
     /// </summary>
     public double TraceSampleRate { get; set; } = 1.0;
 
     /// <summary>
-    /// OTLP 端点（可选）
+    /// Gets or sets the optional OTLP endpoint.
     /// </summary>
     public string? OtlpEndpoint { get; set; }
 
@@ -85,37 +85,37 @@ public class TelemetryConfig : IValidatableOptions
 }
 
 /// <summary>
-/// 日志级别
+/// Defines log severity levels for telemetry.
 /// </summary>
 public enum TelemetryLogLevel
 {
     /// <summary>
-    /// 跟踪
+    /// Trace level.
     /// </summary>
     Trace = 0,
 
     /// <summary>
-    /// 调试
+    /// Debug level.
     /// </summary>
     Debug = 1,
 
     /// <summary>
-    /// 信息
+    /// Information level.
     /// </summary>
     Information = 2,
 
     /// <summary>
-    /// 警告
+    /// Warning level.
     /// </summary>
     Warning = 3,
 
     /// <summary>
-    /// 错误
+    /// Error level.
     /// </summary>
     Error = 4,
 
     /// <summary>
-    /// 严重
+    /// Critical level.
     /// </summary>
     Critical = 5,
 }

@@ -3,16 +3,16 @@ using System.Runtime.CompilerServices;
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// <see cref="StreamingChatEvent"/> 相关扩展方法
+/// Extension methods for <see cref="StreamingChatEvent"/>.
 /// </summary>
 public static class StreamingChatEventExtensions
 {
     /// <summary>
-    /// 将文本流转换为结构化事件流
+    /// Converts a text stream to a structured event stream.
     /// </summary>
     /// <remarks>
-    /// 将 <c>IAsyncEnumerable&lt;string&gt;</c> 的每个文本片段包装为
-    /// <see cref="StreamingChatEvent.ContentDelta"/> 事件。
+    /// Wraps each text fragment from <c>IAsyncEnumerable&lt;string&gt;</c> as a
+    /// <see cref="StreamingChatEvent.ContentDelta"/> event.
     /// </remarks>
     public static async IAsyncEnumerable<StreamingChatEvent> ToStreamingEvents(
         this IAsyncEnumerable<string> textStream,
@@ -33,11 +33,11 @@ public static class StreamingChatEventExtensions
     }
 
     /// <summary>
-    /// 从结构化事件流中提取纯文本流
+    /// Extracts a plain text stream from a structured event stream.
     /// </summary>
     /// <remarks>
-    /// 向下兼容方法：只提取 <see cref="StreamingChatEvent.ContentDelta"/> 部分，
-    /// 忽略 tool call delta、finish reason 和 usage 信息。
+    /// Backward-compatible method: extracts only <see cref="StreamingChatEvent.ContentDelta"/> parts,
+    /// ignoring tool call deltas, finish reasons, and usage information.
     /// </remarks>
     public static async IAsyncEnumerable<string> AsTextStream(
         this IAsyncEnumerable<StreamingChatEvent> eventStream,
@@ -56,11 +56,11 @@ public static class StreamingChatEventExtensions
     }
 
     /// <summary>
-    /// 从结构化事件流中累积完整的工具调用列表
+    /// Accumulates complete tool calls from a structured event stream.
     /// </summary>
     /// <remarks>
-    /// 遍历事件流，将分散的 <see cref="ToolCallDelta"/> 累积拼接为完整的 <see cref="ToolCall"/>。
-    /// 同时收集所有 content delta 为完整文本。
+    /// Iterates through the event stream, accumulating scattered <see cref="ToolCallDelta"/> fragments
+    /// into complete <see cref="ToolCall"/> objects. Also collects all content deltas into the full text.
     /// </remarks>
     public static async Task<StreamingAccumulator> AccumulateAsync(
         this IAsyncEnumerable<StreamingChatEvent> eventStream,
@@ -81,31 +81,31 @@ public static class StreamingChatEventExtensions
 }
 
 /// <summary>
-/// 流式事件累积器，将增量事件组装为完整响应
+/// Streaming event accumulator that assembles incremental events into a complete response.
 /// </summary>
 public class StreamingAccumulator
 {
     private readonly System.Text.StringBuilder _contentBuilder = new();
     private readonly Dictionary<int, ToolCallBuilder> _toolCallBuilders = new();
 
-    /// <summary>累积的完整文本内容</summary>
+    /// <summary>Accumulated complete text content.</summary>
     public string Content => _contentBuilder.ToString();
 
-    /// <summary>结束原因</summary>
+    /// <summary>Finish reason.</summary>
     public string? FinishReason { get; private set; }
 
-    /// <summary>Token 用量</summary>
+    /// <summary>Token usage.</summary>
     public StreamingTokenUsage? Usage { get; private set; }
 
-    /// <summary>累积的完整工具调用列表</summary>
+    /// <summary>Accumulated complete tool call list.</summary>
     public IReadOnlyList<ToolCall> ToolCalls =>
         _toolCallBuilders.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value.Build()).ToList();
 
-    /// <summary>是否包含工具调用</summary>
+    /// <summary>Whether there are tool calls.</summary>
     public bool HasToolCalls => _toolCallBuilders.Count > 0;
 
     /// <summary>
-    /// 添加一个流式事件
+    /// Adds a streaming event.
     /// </summary>
     public void Add(StreamingChatEvent evt)
     {
@@ -137,7 +137,7 @@ public class StreamingAccumulator
     }
 
     /// <summary>
-    /// 转换为 <see cref="ChatCompletionResponse"/>
+    /// Converts to a <see cref="ChatCompletionResponse"/>.
     /// </summary>
     public ChatCompletionResponse ToChatCompletionResponse()
     {

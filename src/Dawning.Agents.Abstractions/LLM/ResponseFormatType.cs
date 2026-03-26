@@ -1,16 +1,16 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// LLM 响应格式类型
+/// LLM response format type.
 /// </summary>
 public enum ResponseFormatType
 {
-    /// <summary>普通文本响应（默认）</summary>
+    /// <summary>Plain text response (default).</summary>
     Text,
 
-    /// <summary>强制返回合法 JSON 对象</summary>
+    /// <summary>Force a valid JSON object response.</summary>
     JsonObject,
 
-    /// <summary>强制返回符合指定 JSON Schema 的对象</summary>
+    /// <summary>Force a response conforming to the specified JSON Schema.</summary>
     JsonSchema,
 }

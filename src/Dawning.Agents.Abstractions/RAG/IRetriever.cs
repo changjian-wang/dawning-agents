@@ -1,26 +1,26 @@
 namespace Dawning.Agents.Abstractions.RAG;
 
 /// <summary>
-/// 检索器接口 - 封装向量搜索和文本查询
+/// Retriever interface - encapsulates vector search and text queries.
 /// </summary>
 /// <remarks>
-/// 检索器结合了 Embedding 和 VectorStore，提供端到端的语义搜索能力。
+/// The retriever combines Embedding and VectorStore to provide end-to-end semantic search capabilities.
 /// </remarks>
 public interface IRetriever
 {
     /// <summary>
-    /// 检索器名称
+    /// Retriever name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 检索相关文档
+    /// Retrieves relevant documents.
     /// </summary>
-    /// <param name="query">查询文本</param>
-    /// <param name="topK">返回的最大结果数</param>
-    /// <param name="minScore">最小相似度阈值</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>检索结果列表</returns>
+    /// <param name="query">Query text.</param>
+    /// <param name="topK">Maximum number of results to return.</param>
+    /// <param name="minScore">Minimum similarity threshold.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of search results.</returns>
     Task<IReadOnlyList<SearchResult>> RetrieveAsync(
         string query,
         int topK = 5,
@@ -29,12 +29,12 @@ public interface IRetriever
     );
 
     /// <summary>
-    /// 检索并格式化为上下文字符串
+    /// Retrieves and formats results as a context string.
     /// </summary>
-    /// <param name="query">查询文本</param>
-    /// <param name="topK">返回的最大结果数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>格式化的上下文字符串</returns>
+    /// <param name="query">Query text.</param>
+    /// <param name="topK">Maximum number of results to return.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Formatted context string.</returns>
     Task<string> RetrieveContextAsync(
         string query,
         int topK = 5,

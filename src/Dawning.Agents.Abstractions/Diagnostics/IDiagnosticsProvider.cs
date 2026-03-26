@@ -1,369 +1,369 @@
 namespace Dawning.Agents.Abstractions.Diagnostics;
 
 /// <summary>
-/// 诊断信息提供者接口
+/// Diagnostics information provider interface.
 /// </summary>
 public interface IDiagnosticsProvider
 {
     /// <summary>
-    /// 获取完整诊断信息
+    /// Gets complete diagnostics information.
     /// </summary>
     Task<DiagnosticsInfo> GetDiagnosticsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取内存信息
+    /// Gets memory information.
     /// </summary>
     MemoryInfo GetMemoryInfo();
 
     /// <summary>
-    /// 获取 GC 信息
+    /// Gets GC information.
     /// </summary>
     GCInfo GetGCInfo();
 
     /// <summary>
-    /// 获取线程池信息
+    /// Gets thread pool information.
     /// </summary>
     ThreadPoolInfo GetThreadPoolInfo();
 
     /// <summary>
-    /// 获取进程信息
+    /// Gets process information.
     /// </summary>
     ProcessInfo GetProcessInfo();
 
     /// <summary>
-    /// 获取 Agent 运行时信息
+    /// Gets agent runtime information.
     /// </summary>
     AgentRuntimeInfo GetAgentRuntimeInfo();
 }
 
 /// <summary>
-/// 完整诊断信息
+/// Complete diagnostics information.
 /// </summary>
 public class DiagnosticsInfo
 {
     /// <summary>
-    /// 采集时间戳
+    /// Collection timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 内存信息
+    /// Memory information.
     /// </summary>
     public MemoryInfo Memory { get; set; } = new();
 
     /// <summary>
-    /// GC 信息
+    /// GC information.
     /// </summary>
     public GCInfo GC { get; set; } = new();
 
     /// <summary>
-    /// 线程池信息
+    /// Thread pool information.
     /// </summary>
     public ThreadPoolInfo ThreadPool { get; set; } = new();
 
     /// <summary>
-    /// 进程信息
+    /// Process information.
     /// </summary>
     public ProcessInfo Process { get; set; } = new();
 
     /// <summary>
-    /// Agent 运行时信息
+    /// Agent runtime information.
     /// </summary>
     public AgentRuntimeInfo AgentRuntime { get; set; } = new();
 
     /// <summary>
-    /// 环境信息
+    /// Environment information.
     /// </summary>
     public EnvironmentInfo Environment { get; set; } = new();
 }
 
 /// <summary>
-/// 内存信息
+/// Memory information.
 /// </summary>
 public class MemoryInfo
 {
     /// <summary>
-    /// 工作集大小（字节）
+    /// Working set size (bytes).
     /// </summary>
     public long WorkingSetBytes { get; set; }
 
     /// <summary>
-    /// 工作集大小（MB）
+    /// Working set size (MB).
     /// </summary>
     public double WorkingSetMB => WorkingSetBytes / (1024.0 * 1024.0);
 
     /// <summary>
-    /// 私有内存（字节）
+    /// Private memory (bytes).
     /// </summary>
     public long PrivateMemoryBytes { get; set; }
 
     /// <summary>
-    /// 私有内存（MB）
+    /// Private memory (MB).
     /// </summary>
     public double PrivateMemoryMB => PrivateMemoryBytes / (1024.0 * 1024.0);
 
     /// <summary>
-    /// GC 堆大小（字节）
+    /// GC heap size (bytes).
     /// </summary>
     public long GCHeapSizeBytes { get; set; }
 
     /// <summary>
-    /// GC 堆大小（MB）
+    /// GC heap size (MB).
     /// </summary>
     public double GCHeapSizeMB => GCHeapSizeBytes / (1024.0 * 1024.0);
 
     /// <summary>
-    /// 托管内存（字节）
+    /// Managed memory (bytes).
     /// </summary>
     public long ManagedMemoryBytes { get; set; }
 
     /// <summary>
-    /// 托管内存（MB）
+    /// Managed memory (MB).
     /// </summary>
     public double ManagedMemoryMB => ManagedMemoryBytes / (1024.0 * 1024.0);
 
     /// <summary>
-    /// 分配的内存总计（字节）
+    /// Total allocated memory (bytes).
     /// </summary>
     public long TotalAllocatedBytes { get; set; }
 }
 
 /// <summary>
-/// GC 信息
+/// GC information.
 /// </summary>
 public class GCInfo
 {
     /// <summary>
-    /// Gen0 回收次数
+    /// Gen0 collection count.
     /// </summary>
     public int Gen0Collections { get; set; }
 
     /// <summary>
-    /// Gen1 回收次数
+    /// Gen1 collection count.
     /// </summary>
     public int Gen1Collections { get; set; }
 
     /// <summary>
-    /// Gen2 回收次数
+    /// Gen2 collection count.
     /// </summary>
     public int Gen2Collections { get; set; }
 
     /// <summary>
-    /// 总回收次数
+    /// Total collection count.
     /// </summary>
     public int TotalCollections => Gen0Collections + Gen1Collections + Gen2Collections;
 
     /// <summary>
-    /// GC 暂停时间百分比
+    /// GC pause time percentage.
     /// </summary>
     public double PauseTimePercentage { get; set; }
 
     /// <summary>
-    /// 最后一次 GC 暂停时间（毫秒）
+    /// Last GC pause duration (milliseconds).
     /// </summary>
     public double LastPauseDurationMs { get; set; }
 
     /// <summary>
-    /// 是否为服务器 GC
+    /// Whether server GC is enabled.
     /// </summary>
     public bool IsServerGC { get; set; }
 
     /// <summary>
-    /// 是否为并发 GC
+    /// Whether concurrent GC is enabled.
     /// </summary>
     public bool IsConcurrentGC { get; set; }
 
     /// <summary>
-    /// GC 延迟模式
+    /// GC latency mode.
     /// </summary>
     public string LatencyMode { get; set; } = string.Empty;
 
     /// <summary>
-    /// 内存压力
+    /// Memory load.
     /// </summary>
     public string MemoryLoad { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// 线程池信息
+/// Thread pool information.
 /// </summary>
 public class ThreadPoolInfo
 {
     /// <summary>
-    /// 可用工作线程数
+    /// Available worker thread count.
     /// </summary>
     public int AvailableWorkerThreads { get; set; }
 
     /// <summary>
-    /// 可用 IO 线程数
+    /// Available I/O thread count.
     /// </summary>
     public int AvailableIOThreads { get; set; }
 
     /// <summary>
-    /// 最小工作线程数
+    /// Minimum worker thread count.
     /// </summary>
     public int MinWorkerThreads { get; set; }
 
     /// <summary>
-    /// 最小 IO 线程数
+    /// Minimum I/O thread count.
     /// </summary>
     public int MinIOThreads { get; set; }
 
     /// <summary>
-    /// 最大工作线程数
+    /// Maximum worker thread count.
     /// </summary>
     public int MaxWorkerThreads { get; set; }
 
     /// <summary>
-    /// 最大 IO 线程数
+    /// Maximum I/O thread count.
     /// </summary>
     public int MaxIOThreads { get; set; }
 
     /// <summary>
-    /// 正在使用的工作线程数
+    /// Busy worker thread count.
     /// </summary>
     public int BusyWorkerThreads => MaxWorkerThreads - AvailableWorkerThreads;
 
     /// <summary>
-    /// 正在使用的 IO 线程数
+    /// Busy I/O thread count.
     /// </summary>
     public int BusyIOThreads => MaxIOThreads - AvailableIOThreads;
 
     /// <summary>
-    /// 排队的工作项数
+    /// Pending work item count.
     /// </summary>
     public long PendingWorkItemCount { get; set; }
 
     /// <summary>
-    /// 已完成的工作项数
+    /// Completed work item count.
     /// </summary>
     public long CompletedWorkItemCount { get; set; }
 
     /// <summary>
-    /// 线程数
+    /// Thread count.
     /// </summary>
     public int ThreadCount { get; set; }
 }
 
 /// <summary>
-/// 进程信息
+/// Process information.
 /// </summary>
 public class ProcessInfo
 {
     /// <summary>
-    /// 进程 ID
+    /// Process ID.
     /// </summary>
     public int ProcessId { get; set; }
 
     /// <summary>
-    /// 进程名称
+    /// Process name.
     /// </summary>
     public string ProcessName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 启动时间
+    /// Start time.
     /// </summary>
     public DateTimeOffset StartTime { get; set; }
 
     /// <summary>
-    /// 运行时长
+    /// Uptime duration.
     /// </summary>
     public TimeSpan Uptime { get; set; }
 
     /// <summary>
-    /// CPU 使用时间
+    /// Total CPU time.
     /// </summary>
     public TimeSpan TotalProcessorTime { get; set; }
 
     /// <summary>
-    /// 用户态 CPU 时间
+    /// User-mode CPU time.
     /// </summary>
     public TimeSpan UserProcessorTime { get; set; }
 
     /// <summary>
-    /// 句柄数
+    /// Handle count.
     /// </summary>
     public int HandleCount { get; set; }
 }
 
 /// <summary>
-/// Agent 运行时信息
+/// Agent runtime information.
 /// </summary>
 public class AgentRuntimeInfo
 {
     /// <summary>
-    /// 已注册的 Agent 数量
+    /// Registered agent count.
     /// </summary>
     public int RegisteredAgentCount { get; set; }
 
     /// <summary>
-    /// 已注册的工具数量
+    /// Registered tool count.
     /// </summary>
     public int RegisteredToolCount { get; set; }
 
     /// <summary>
-    /// 活跃的会话数量
+    /// Active session count.
     /// </summary>
     public int ActiveSessionCount { get; set; }
 
     /// <summary>
-    /// 总请求数
+    /// Total request count.
     /// </summary>
     public long TotalRequestCount { get; set; }
 
     /// <summary>
-    /// 当前正在处理的请求数
+    /// Current in-flight request count.
     /// </summary>
     public int CurrentRequestCount { get; set; }
 
     /// <summary>
-    /// LLM 调用总数
+    /// Total LLM call count.
     /// </summary>
     public long TotalLLMCalls { get; set; }
 
     /// <summary>
-    /// 工具执行总数
+    /// Total tool execution count.
     /// </summary>
     public long TotalToolExecutions { get; set; }
 }
 
 /// <summary>
-/// 环境信息
+/// Environment information.
 /// </summary>
 public class EnvironmentInfo
 {
     /// <summary>
-    /// 机器名称
+    /// Machine name.
     /// </summary>
     public string MachineName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 操作系统
+    /// Operating system.
     /// </summary>
     public string OSDescription { get; set; } = string.Empty;
 
     /// <summary>
-    /// .NET 版本
+    /// .NET version.
     /// </summary>
     public string FrameworkDescription { get; set; } = string.Empty;
 
     /// <summary>
-    /// 处理器架构
+    /// Processor architecture.
     /// </summary>
     public string ProcessorArchitecture { get; set; } = string.Empty;
 
     /// <summary>
-    /// 处理器数量
+    /// Processor count.
     /// </summary>
     public int ProcessorCount { get; set; }
 
     /// <summary>
-    /// 是否为 64 位进程
+    /// Whether the process is 64-bit.
     /// </summary>
     public bool Is64BitProcess { get; set; }
 
     /// <summary>
-    /// 当前目录
+    /// Current directory.
     /// </summary>
     public string CurrentDirectory { get; set; } = string.Empty;
 }

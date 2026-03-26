@@ -1,43 +1,43 @@
 namespace Dawning.Agents.Abstractions.Handoff;
 
 /// <summary>
-/// Handoff 请求 - 当 Agent 需要将任务转交给另一个 Agent 时创建
+/// Handoff request - created when an Agent needs to transfer a task to another Agent.
 /// </summary>
 /// <remarks>
-/// Handoff 是多 Agent 协作的核心机制，允许：
-/// - Triage Agent 根据用户请求分配给专家 Agent
-/// - Agent 在处理过程中发现需要其他专家时主动转交
-/// - 链式调用多个 Agent 完成复杂任务
+/// Handoff is the core mechanism for multi-Agent collaboration, enabling:
+/// - Triage Agent routing user requests to specialist Agents
+/// - Agents proactively transferring tasks when other expertise is needed
+/// - Chained invocation of multiple Agents for complex tasks
 /// </remarks>
 public record HandoffRequest
 {
     /// <summary>
-    /// 目标 Agent 名称
+    /// Target Agent name.
     /// </summary>
     public required string TargetAgentName { get; init; }
 
     /// <summary>
-    /// 转交原因/说明
+    /// Handoff reason/description.
     /// </summary>
     public string? Reason { get; init; }
 
     /// <summary>
-    /// 传递给目标 Agent 的输入
+    /// Input to pass to the target Agent.
     /// </summary>
     public required string Input { get; init; }
 
     /// <summary>
-    /// 附加的上下文数据
+    /// Additional context data.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Context { get; init; }
 
     /// <summary>
-    /// 是否保留对话历史
+    /// Whether to preserve conversation history.
     /// </summary>
     public bool PreserveHistory { get; init; } = true;
 
     /// <summary>
-    /// 创建 Handoff 请求
+    /// Creates a handoff request.
     /// </summary>
     public static HandoffRequest To(string targetAgent, string input, string? reason = null) =>
         new()

@@ -4,10 +4,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
-/// 安全护栏配置选项
+/// Safety guardrail configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Safety": {
@@ -24,50 +24,50 @@ namespace Dawning.Agents.Abstractions.Safety;
 public class SafetyOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Safety";
 
     /// <summary>
-    /// 最大输入长度（字符数）
+    /// Maximum input length (in characters).
     /// </summary>
     public int MaxInputLength { get; set; } = 10000;
 
     /// <summary>
-    /// 最大输出长度（字符数）
+    /// Maximum output length (in characters).
     /// </summary>
     public int MaxOutputLength { get; set; } = 50000;
 
     /// <summary>
-    /// 启用敏感数据检测
+    /// Enable sensitive data detection.
     /// </summary>
     public bool EnableSensitiveDataDetection { get; set; } = true;
 
     /// <summary>
-    /// 启用内容过滤
+    /// Enable content filtering.
     /// </summary>
     public bool EnableContentFilter { get; set; } = true;
 
     /// <summary>
-    /// 启用 Prompt 注入检测
+    /// Enable prompt injection detection.
     /// </summary>
     public bool EnablePromptInjectionDetection { get; set; } = true;
 
     /// <summary>
-    /// 敏感数据检测模式（自动脱敏）
+    /// Sensitive data detection mode (auto-masking).
     /// </summary>
     public bool AutoMaskSensitiveData { get; set; } = true;
 
     /// <summary>
-    /// 阻止的关键词列表
+    /// List of blocked keywords.
     /// </summary>
     public List<string> BlockedKeywords { get; set; } =
     [
-        // 默认阻止一些常见的不安全关键词
+        // Default blocked unsafe keywords
     ];
 
     /// <summary>
-    /// 敏感数据正则表达式模式
+    /// Sensitive data regex patterns.
     /// </summary>
     public List<SensitivePattern> SensitivePatterns { get; set; } =
     [
@@ -114,23 +114,23 @@ public class SafetyOptions : IValidatableOptions
     ];
 
     /// <summary>
-    /// 允许的域名白名单（用于 URL 检查）
+    /// Allowed domain whitelist (for URL checking).
     /// </summary>
     public List<string> AllowedDomains { get; set; } = [];
 
     /// <summary>
-    /// 阻止的域名黑名单
+    /// Blocked domain blacklist.
     /// </summary>
     public List<string> BlockedDomains { get; set; } = [];
 
     /// <summary>
-    /// 失败时的行为
+    /// Behavior on guardrail failure.
     /// </summary>
     public GuardrailFailureBehavior FailureBehavior { get; set; } =
         GuardrailFailureBehavior.BlockAndReport;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -187,53 +187,53 @@ public class SafetyOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 敏感数据模式配置
+/// Sensitive data pattern configuration.
 /// </summary>
 public class SensitivePattern
 {
     /// <summary>
-    /// 模式名称
+    /// Pattern name.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    /// 正则表达式模式
+    /// Regex pattern.
     /// </summary>
     public required string Pattern { get; set; }
 
     /// <summary>
-    /// 脱敏字符
+    /// Masking character.
     /// </summary>
     public char MaskChar { get; set; } = '*';
 
     /// <summary>
-    /// 保留前几个字符
+    /// Number of leading characters to preserve.
     /// </summary>
     public int KeepFirst { get; set; } = 0;
 
     /// <summary>
-    /// 保留后几个字符
+    /// Number of trailing characters to preserve.
     /// </summary>
     public int KeepLast { get; set; } = 0;
 }
 
 /// <summary>
-/// 护栏失败时的行为
+/// Guardrail failure behavior.
 /// </summary>
 public enum GuardrailFailureBehavior
 {
     /// <summary>
-    /// 阻止并报告
+    /// Block and report.
     /// </summary>
     BlockAndReport,
 
     /// <summary>
-    /// 仅警告，继续执行
+    /// Warn only, continue execution.
     /// </summary>
     WarnAndContinue,
 
     /// <summary>
-    /// 静默处理（脱敏后继续）
+    /// Silent processing (mask and continue).
     /// </summary>
     SilentProcess,
 }

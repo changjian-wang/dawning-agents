@@ -3,63 +3,63 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Evaluation;
 
 /// <summary>
-/// 评估指标类型
+/// Specifies the evaluation metric type.
 /// </summary>
 public enum EvaluationMetric
 {
     /// <summary>
-    /// 精确匹配
+    /// Exact match comparison.
     /// </summary>
     ExactMatch,
 
     /// <summary>
-    /// 包含关键词
+    /// Contains specified keywords.
     /// </summary>
     ContainsKeywords,
 
     /// <summary>
-    /// 语义相似度
+    /// Semantic similarity comparison.
     /// </summary>
     SemanticSimilarity,
 
     /// <summary>
-    /// 工具调用准确性
+    /// Tool call accuracy.
     /// </summary>
     ToolCallAccuracy,
 
     /// <summary>
-    /// 延迟
+    /// Response latency.
     /// </summary>
     Latency,
 
     /// <summary>
-    /// Token 效率
+    /// Token efficiency.
     /// </summary>
     TokenEfficiency,
 
     /// <summary>
-    /// LLM 评判
+    /// LLM as judge.
     /// </summary>
     LLMAsJudge,
 
     /// <summary>
-    /// 自定义
+    /// Custom metric.
     /// </summary>
     Custom,
 }
 
 /// <summary>
-/// 评估配置选项
+/// Configuration options for evaluation.
 /// </summary>
 public sealed class EvaluationOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "Evaluation";
 
     /// <summary>
-    /// 启用的指标
+    /// The list of enabled evaluation metrics.
     /// </summary>
     public List<EvaluationMetric> EnabledMetrics { get; set; } =
     [
@@ -69,42 +69,42 @@ public sealed class EvaluationOptions : IValidatableOptions
     ];
 
     /// <summary>
-    /// 通过阈值 (0-100)
+    /// The pass threshold score (0-100).
     /// </summary>
     public double PassThreshold { get; set; } = 70;
 
     /// <summary>
-    /// 最大并发评估数
+    /// The maximum number of concurrent evaluations.
     /// </summary>
     public int MaxConcurrency { get; set; } = 5;
 
     /// <summary>
-    /// 单个测试超时时间（秒）
+    /// The timeout for a single test in seconds.
     /// </summary>
     public int TestTimeoutSeconds { get; set; } = 120;
 
     /// <summary>
-    /// 是否在失败时继续
+    /// Gets or sets a value indicating whether to continue on failure.
     /// </summary>
     public bool ContinueOnFailure { get; set; } = true;
 
     /// <summary>
-    /// 是否保存详细日志
+    /// Gets or sets a value indicating whether to save detailed logs.
     /// </summary>
     public bool SaveDetailedLogs { get; set; } = true;
 
     /// <summary>
-    /// 报告输出目录
+    /// The report output directory.
     /// </summary>
     public string? ReportOutputDirectory { get; set; }
 
     /// <summary>
-    /// LLM-as-Judge 配置
+    /// The LLM-as-Judge configuration options.
     /// </summary>
     public LLMJudgeOptions? LLMJudge { get; set; }
 
     /// <summary>
-    /// 语义相似度配置
+    /// The semantic similarity configuration options.
     /// </summary>
     public SemanticSimilarityOptions? SemanticSimilarity { get; set; }
 
@@ -132,27 +132,27 @@ public sealed class EvaluationOptions : IValidatableOptions
 }
 
 /// <summary>
-/// LLM-as-Judge 配置
+/// Configuration options for LLM-as-Judge evaluation.
 /// </summary>
 public sealed class LLMJudgeOptions : IValidatableOptions
 {
     /// <summary>
-    /// 使用的模型
+    /// The model to use for evaluation.
     /// </summary>
     public string Model { get; set; } = "gpt-4";
 
     /// <summary>
-    /// 评分温度
+    /// The temperature for scoring.
     /// </summary>
     public float Temperature { get; set; } = 0.0f;
 
     /// <summary>
-    /// 评分提示词模板
+    /// The prompt template for scoring.
     /// </summary>
     public string? PromptTemplate { get; set; }
 
     /// <summary>
-    /// 评分维度
+    /// The scoring dimensions.
     /// </summary>
     public List<string> ScoringDimensions { get; set; } =
     ["Accuracy", "Relevance", "Completeness", "Clarity"];
@@ -187,17 +187,17 @@ public sealed class LLMJudgeOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 语义相似度配置
+/// Configuration options for semantic similarity evaluation.
 /// </summary>
 public sealed class SemanticSimilarityOptions : IValidatableOptions
 {
     /// <summary>
-    /// 相似度阈值
+    /// The similarity threshold.
     /// </summary>
     public float Threshold { get; set; } = 0.8f;
 
     /// <summary>
-    /// 使用的 Embedding 模型
+    /// The embedding model to use.
     /// </summary>
     public string? EmbeddingModel { get; set; }
 
@@ -214,42 +214,42 @@ public sealed class SemanticSimilarityOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 评估指标权重配置
+/// Configuration for evaluation metric weights.
 /// </summary>
 public sealed class MetricWeights
 {
     /// <summary>
-    /// 精确匹配权重
+    /// The weight for exact match.
     /// </summary>
     public double ExactMatch { get; set; } = 1.0;
 
     /// <summary>
-    /// 关键词匹配权重
+    /// The weight for keyword matching.
     /// </summary>
     public double ContainsKeywords { get; set; } = 0.8;
 
     /// <summary>
-    /// 语义相似度权重
+    /// The weight for semantic similarity.
     /// </summary>
     public double SemanticSimilarity { get; set; } = 0.9;
 
     /// <summary>
-    /// 工具调用准确性权重
+    /// The weight for tool call accuracy.
     /// </summary>
     public double ToolCallAccuracy { get; set; } = 0.7;
 
     /// <summary>
-    /// 延迟权重
+    /// The weight for latency.
     /// </summary>
     public double Latency { get; set; } = 0.3;
 
     /// <summary>
-    /// Token 效率权重
+    /// The weight for token efficiency.
     /// </summary>
     public double TokenEfficiency { get; set; } = 0.2;
 
     /// <summary>
-    /// LLM 评判权重
+    /// The weight for LLM as judge.
     /// </summary>
     public double LLMAsJudge { get; set; } = 1.0;
 }

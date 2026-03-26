@@ -3,31 +3,31 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// 模型定价信息
+/// Model pricing information.
 /// </summary>
 /// <remarks>
-/// 价格单位：美元/1K tokens
-/// 数据来源：各 LLM 提供商官方定价
+/// Price unit: USD per 1K tokens.
+/// Data source: official pricing from each LLM provider.
 /// </remarks>
 public class ModelPricing
 {
     /// <summary>
-    /// 模型名称
+    /// Model name.
     /// </summary>
     public required string Model { get; init; }
 
     /// <summary>
-    /// 输入价格（美元/1K tokens）
+    /// Input price (USD per 1K tokens).
     /// </summary>
     public decimal InputPricePerKToken { get; init; }
 
     /// <summary>
-    /// 输出价格（美元/1K tokens）
+    /// Output price (USD per 1K tokens).
     /// </summary>
     public decimal OutputPricePerKToken { get; init; }
 
     /// <summary>
-    /// 计算总成本
+    /// Calculates the total cost.
     /// </summary>
     public decimal CalculateCost(int inputTokens, int outputTokens)
     {
@@ -36,13 +36,13 @@ public class ModelPricing
     }
 
     /// <summary>
-    /// 预定义的模型定价（2026 年数据）
+    /// Predefined model pricing (2026 data).
     /// </summary>
     public static class KnownPricing
     {
-        // OpenAI 模型
+        // OpenAI models
 
-        /// <summary>GPT-4o 定价</summary>
+        /// <summary>GPT-4o pricing.</summary>
         public static readonly ModelPricing Gpt4o = new()
         {
             Model = "gpt-4o",
@@ -50,7 +50,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.01m,
         };
 
-        /// <summary>GPT-4o Mini 定价</summary>
+        /// <summary>GPT-4o Mini pricing.</summary>
         public static readonly ModelPricing Gpt4oMini = new()
         {
             Model = "gpt-4o-mini",
@@ -58,7 +58,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.0006m,
         };
 
-        /// <summary>GPT-4 Turbo 定价</summary>
+        /// <summary>GPT-4 Turbo pricing.</summary>
         public static readonly ModelPricing Gpt4Turbo = new()
         {
             Model = "gpt-4-turbo",
@@ -66,7 +66,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.03m,
         };
 
-        /// <summary>GPT-3.5 Turbo 定价</summary>
+        /// <summary>GPT-3.5 Turbo pricing.</summary>
         public static readonly ModelPricing Gpt35Turbo = new()
         {
             Model = "gpt-3.5-turbo",
@@ -74,9 +74,9 @@ public class ModelPricing
             OutputPricePerKToken = 0.0015m,
         };
 
-        // Claude 模型
+        // Claude models
 
-        /// <summary>Claude 3 Opus 定价</summary>
+        /// <summary>Claude 3 Opus pricing.</summary>
         public static readonly ModelPricing Claude3Opus = new()
         {
             Model = "claude-3-opus",
@@ -84,7 +84,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.075m,
         };
 
-        /// <summary>Claude 3 Sonnet 定价</summary>
+        /// <summary>Claude 3 Sonnet pricing.</summary>
         public static readonly ModelPricing Claude3Sonnet = new()
         {
             Model = "claude-3-sonnet",
@@ -92,7 +92,7 @@ public class ModelPricing
             OutputPricePerKToken = 0.015m,
         };
 
-        /// <summary>Claude 3 Haiku 定价</summary>
+        /// <summary>Claude 3 Haiku pricing.</summary>
         public static readonly ModelPricing Claude3Haiku = new()
         {
             Model = "claude-3-haiku",
@@ -100,9 +100,9 @@ public class ModelPricing
             OutputPricePerKToken = 0.00125m,
         };
 
-        // 本地模型（免费）
+        // Local models (free)
 
-        /// <summary>Ollama 本地模型定价（免费）</summary>
+        /// <summary>Ollama local model pricing (free).</summary>
         public static readonly ModelPricing Ollama = new()
         {
             Model = "ollama",
@@ -111,7 +111,7 @@ public class ModelPricing
         };
 
         /// <summary>
-        /// 根据模型名称获取定价
+        /// Gets pricing by model name.
         /// </summary>
         public static ModelPricing GetPricing(string model)
         {
@@ -128,7 +128,7 @@ public class ModelPricing
                 _ => new ModelPricing
                 {
                     Model = model,
-                    InputPricePerKToken = 0.001m, // 默认估算
+                    InputPricePerKToken = 0.001m, // default estimate
                     OutputPricePerKToken = 0.002m,
                 },
             };
@@ -137,7 +137,7 @@ public class ModelPricing
 }
 
 /// <summary>
-/// 模型统计信息
+/// Model statistics.
 /// </summary>
 public class ModelStatistics
 {
@@ -149,12 +149,12 @@ public class ModelStatistics
     private readonly Lock _lock = new();
 
     /// <summary>
-    /// 提供者名称
+    /// Provider name.
     /// </summary>
     public required string ProviderName { get; init; }
 
     /// <summary>
-    /// 总请求数
+    /// Total number of requests.
     /// </summary>
     public long TotalRequests
     {
@@ -168,7 +168,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 成功请求数
+    /// Number of successful requests.
     /// </summary>
     public long SuccessfulRequests
     {
@@ -182,7 +182,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 失败请求数
+    /// Number of failed requests.
     /// </summary>
     public long FailedRequests
     {
@@ -196,7 +196,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 总输入 Token 数
+    /// Total number of input tokens.
     /// </summary>
     public long TotalInputTokens
     {
@@ -210,7 +210,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 总输出 Token 数
+    /// Total number of output tokens.
     /// </summary>
     public long TotalOutputTokens
     {
@@ -229,7 +229,7 @@ public class ModelStatistics
     private DateTimeOffset _lastUpdated = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 总成本（美元）
+    /// Total cost in USD.
     /// </summary>
     public decimal TotalCost
     {
@@ -243,7 +243,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 平均延迟（毫秒）
+    /// Average latency in milliseconds.
     /// </summary>
     public double AverageLatencyMs
     {
@@ -257,7 +257,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// P99 延迟（毫秒）
+    /// P99 latency in milliseconds.
     /// </summary>
     public long P99LatencyMs
     {
@@ -271,7 +271,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 最后更新时间
+    /// Last updated time.
     /// </summary>
     public DateTimeOffset LastUpdated
     {
@@ -285,7 +285,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 成功率
+    /// Success rate.
     /// </summary>
     public double SuccessRate
     {
@@ -299,12 +299,12 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 是否健康（成功率 > 95%）
+    /// Whether the provider is healthy (success rate > 95%).
     /// </summary>
     public bool IsHealthy => SuccessRate >= 0.95;
 
     /// <summary>
-    /// 记录成功请求
+    /// Records a successful request.
     /// </summary>
     public void RecordSuccess(long inputTokens, long outputTokens, decimal cost, double latencyMs)
     {
@@ -322,7 +322,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 记录失败请求
+    /// Records a failed request.
     /// </summary>
     public void RecordFailure()
     {
@@ -335,7 +335,7 @@ public class ModelStatistics
     }
 
     /// <summary>
-    /// 更新 P99 延迟
+    /// Updates the P99 latency.
     /// </summary>
     public void UpdateP99Latency(long p99Ms)
     {
@@ -347,47 +347,47 @@ public class ModelStatistics
 }
 
 /// <summary>
-/// 模型路由器配置选项
+/// Model router configuration options.
 /// </summary>
 public class ModelRouterOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "ModelRouter";
 
     /// <summary>
-    /// 路由策略
+    /// Routing strategy.
     /// </summary>
     public ModelRoutingStrategy Strategy { get; set; } = ModelRoutingStrategy.CostOptimized;
 
     /// <summary>
-    /// 健康检查间隔（秒）
+    /// Health check interval in seconds.
     /// </summary>
     public int HealthCheckIntervalSeconds { get; set; } = 30;
 
     /// <summary>
-    /// 不健康阈值（连续失败次数）
+    /// Unhealthy threshold (consecutive failure count).
     /// </summary>
     public int UnhealthyThreshold { get; set; } = 3;
 
     /// <summary>
-    /// 恢复阈值（连续成功次数）
+    /// Recovery threshold (consecutive success count).
     /// </summary>
     public int RecoveryThreshold { get; set; } = 2;
 
     /// <summary>
-    /// 是否启用故障转移
+    /// Whether to enable failover.
     /// </summary>
     public bool EnableFailover { get; set; } = true;
 
     /// <summary>
-    /// 故障转移最大重试次数
+    /// Maximum number of failover retries.
     /// </summary>
     public int MaxFailoverRetries { get; set; } = 2;
 
     /// <summary>
-    /// 自定义模型定价配置
+    /// Custom model pricing configuration.
     /// </summary>
     public Dictionary<string, ModelPricing> CustomPricing { get; set; } = new();
 
@@ -419,25 +419,25 @@ public class ModelRouterOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 模型路由策略
+/// Model routing strategy.
 /// </summary>
 public enum ModelRoutingStrategy
 {
-    /// <summary>成本优化（选择最便宜的模型）</summary>
+    /// <summary>Cost optimized (select the cheapest model).</summary>
     CostOptimized,
 
-    /// <summary>延迟优化（选择响应最快的模型）</summary>
+    /// <summary>Latency optimized (select the fastest model).</summary>
     LatencyOptimized,
 
-    /// <summary>负载均衡（轮询分配）</summary>
+    /// <summary>Load balancing (round-robin distribution).</summary>
     RoundRobin,
 
-    /// <summary>加权负载均衡</summary>
+    /// <summary>Weighted load balancing.</summary>
     WeightedRoundRobin,
 
-    /// <summary>随机选择</summary>
+    /// <summary>Random selection.</summary>
     Random,
 
-    /// <summary>优先级（按配置顺序，故障转移）</summary>
+    /// <summary>Priority (configured order with failover).</summary>
     Priority,
 }

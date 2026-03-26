@@ -1,79 +1,79 @@
 namespace Dawning.Agents.Abstractions.Distributed;
 
 /// <summary>
-/// 分布式锁接口
+/// Defines the interface for a distributed lock.
 /// </summary>
 /// <remarks>
-/// <para>用于在分布式环境中实现互斥访问</para>
-/// <para>支持可重入锁、自动续期等特性</para>
+/// <para>Provides mutual exclusion in distributed environments.</para>
+/// <para>Supports reentrant locks, automatic renewal, and more.</para>
 /// </remarks>
 public interface IDistributedLock : IAsyncDisposable
 {
     /// <summary>
-    /// 锁的资源名称
+    /// The name of the locked resource.
     /// </summary>
     string Resource { get; }
 
     /// <summary>
-    /// 锁的唯一标识
+    /// The unique identifier of the lock.
     /// </summary>
     string LockId { get; }
 
     /// <summary>
-    /// 是否已获取锁
+    /// Gets a value indicating whether the lock has been acquired.
     /// </summary>
     bool IsAcquired { get; }
 
     /// <summary>
-    /// 锁的过期时间
+    /// The expiration time of the lock.
     /// </summary>
     DateTimeOffset? ExpiresAt { get; }
 
     /// <summary>
-    /// 尝试获取锁
+    /// Attempts to acquire the lock.
     /// </summary>
-    /// <param name="timeout">等待超时</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否成功获取锁</returns>
+    /// <param name="timeout">The timeout for waiting to acquire the lock.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> if the lock was acquired; otherwise, <see langword="false"/>.</returns>
     Task<bool> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 释放锁
+    /// Releases the lock.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task ReleaseAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 延长锁的持有时间
+    /// Extends the lock duration.
     /// </summary>
-    /// <param name="extension">延长时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否成功延长</returns>
+    /// <param name="extension">The amount of time to extend the lock.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> if the lock was extended; otherwise, <see langword="false"/>.</returns>
     Task<bool> ExtendAsync(TimeSpan extension, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// 分布式锁工厂接口
+/// Defines the factory interface for creating distributed locks.
 /// </summary>
 public interface IDistributedLockFactory
 {
     /// <summary>
-    /// 创建分布式锁
+    /// Creates a distributed lock.
     /// </summary>
-    /// <param name="resource">资源名称</param>
-    /// <param name="expiry">锁过期时间</param>
-    /// <returns>分布式锁实例</returns>
+    /// <param name="resource">The resource name.</param>
+    /// <param name="expiry">The lock expiration time.</param>
+    /// <returns>A distributed lock instance.</returns>
     IDistributedLock CreateLock(string resource, TimeSpan expiry);
 
     /// <summary>
-    /// 获取锁并执行操作
+    /// Acquires a lock and executes the specified action.
     /// </summary>
-    /// <typeparam name="T">返回值类型</typeparam>
-    /// <param name="resource">资源名称</param>
-    /// <param name="expiry">锁过期时间</param>
-    /// <param name="action">要执行的操作</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>操作结果</returns>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="resource">The resource name.</param>
+    /// <param name="expiry">The lock expiration time.</param>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The result of the action.</returns>
     Task<T> ExecuteWithLockAsync<T>(
         string resource,
         TimeSpan expiry,
@@ -82,12 +82,12 @@ public interface IDistributedLockFactory
     );
 
     /// <summary>
-    /// 获取锁并执行操作（无返回值）
+    /// Acquires a lock and executes the specified action without a return value.
     /// </summary>
-    /// <param name="resource">资源名称</param>
-    /// <param name="expiry">锁过期时间</param>
-    /// <param name="action">要执行的操作</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="resource">The resource name.</param>
+    /// <param name="expiry">The lock expiration time.</param>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task ExecuteWithLockAsync(
         string resource,
         TimeSpan expiry,

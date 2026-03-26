@@ -1,88 +1,88 @@
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
-/// 护栏基础接口
+/// Guardrail base interface.
 /// </summary>
 public interface IGuardrail
 {
     /// <summary>
-    /// 护栏名称
+    /// Guardrail name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 护栏描述
+    /// Guardrail description.
     /// </summary>
     string Description { get; }
 
     /// <summary>
-    /// 是否启用
+    /// Whether the guardrail is enabled.
     /// </summary>
     bool IsEnabled { get; }
 
     /// <summary>
-    /// 检查内容
+    /// Checks content.
     /// </summary>
-    /// <param name="content">要检查的内容</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>检查结果</returns>
+    /// <param name="content">Content to check.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Check result.</returns>
     Task<GuardrailResult> CheckAsync(string content, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// 输入护栏接口 - 在 LLM 调用前检查用户输入
+/// Input guardrail interface - checks user input before LLM calls.
 /// </summary>
 public interface IInputGuardrail : IGuardrail { }
 
 /// <summary>
-/// 输出护栏接口 - 在 LLM 响应后检查输出内容
+/// Output guardrail interface - checks output content after LLM responses.
 /// </summary>
 public interface IOutputGuardrail : IGuardrail { }
 
 /// <summary>
-/// 护栏管道接口 - 管理多个护栏的执行
+/// Guardrail pipeline interface - manages execution of multiple guardrails.
 /// </summary>
 public interface IGuardrailPipeline
 {
     /// <summary>
-    /// 所有输入护栏
+    /// All input guardrails.
     /// </summary>
     IReadOnlyList<IInputGuardrail> InputGuardrails { get; }
 
     /// <summary>
-    /// 所有输出护栏
+    /// All output guardrails.
     /// </summary>
     IReadOnlyList<IOutputGuardrail> OutputGuardrails { get; }
 
     /// <summary>
-    /// 检查输入内容
+    /// Checks input content.
     /// </summary>
-    /// <param name="input">用户输入</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>检查结果</returns>
+    /// <param name="input">User input.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Check result.</returns>
     Task<GuardrailResult> CheckInputAsync(
         string input,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 检查输出内容
+    /// Checks output content.
     /// </summary>
-    /// <param name="output">LLM 输出</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>检查结果</returns>
+    /// <param name="output">LLM output.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Check result.</returns>
     Task<GuardrailResult> CheckOutputAsync(
         string output,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 添加输入护栏
+    /// Adds an input guardrail.
     /// </summary>
     IGuardrailPipeline AddInputGuardrail(IInputGuardrail guardrail);
 
     /// <summary>
-    /// 添加输出护栏
+    /// Adds an output guardrail.
     /// </summary>
     IGuardrailPipeline AddOutputGuardrail(IOutputGuardrail guardrail);
 }

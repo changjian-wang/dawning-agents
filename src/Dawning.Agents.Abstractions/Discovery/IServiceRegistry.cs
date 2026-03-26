@@ -3,55 +3,55 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Discovery;
 
 /// <summary>
-/// 服务实例信息
+/// Represents a service instance.
 /// </summary>
 public sealed record ServiceInstance
 {
     /// <summary>
-    /// 服务唯一标识
+    /// The unique identifier of the service instance.
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 服务名称
+    /// The name of the service.
     /// </summary>
     public required string ServiceName { get; init; }
 
     /// <summary>
-    /// 服务地址
+    /// The host address of the service.
     /// </summary>
     public required string Host { get; init; }
 
     /// <summary>
-    /// 服务端口
+    /// The port number of the service.
     /// </summary>
     public required int Port { get; init; }
 
     /// <summary>
-    /// 服务权重 (用于负载均衡)
+    /// The weight of the service instance, used for load balancing.
     /// </summary>
     public int Weight { get; init; } = 100;
 
     /// <summary>
-    /// 服务标签
+    /// The metadata tags associated with the service instance.
     /// </summary>
     public IReadOnlyDictionary<string, string> Tags { get; init; } =
         new Dictionary<string, string>();
 
     /// <summary>
-    /// 健康检查端点
+    /// The URL for the health check endpoint.
     /// </summary>
     public string? HealthCheckUrl { get; init; }
 
     /// <summary>
-    /// 注册时间
+    /// The time when the service instance was registered.
     /// </summary>
     public DateTimeOffset RegisteredAt { get; init; } = DateTimeOffset.UtcNow;
 
     private long _lastHeartbeatTicks = DateTimeOffset.UtcNow.UtcTicks;
 
     /// <summary>
-    /// 最后心跳时间
+    /// The time of the last heartbeat.
     /// </summary>
     public DateTimeOffset LastHeartbeat
     {
@@ -62,7 +62,7 @@ public sealed record ServiceInstance
     private bool _isHealthy = true;
 
     /// <summary>
-    /// 是否健康
+    /// Gets or sets a value indicating whether the service instance is healthy.
     /// </summary>
     public bool IsHealthy
     {
@@ -71,35 +71,35 @@ public sealed record ServiceInstance
     }
 
     /// <summary>
-    /// 获取服务 URI
+    /// Gets the service URI.
     /// </summary>
     public Uri GetUri(string scheme = "http") => new($"{scheme}://{Host}:{Port}");
 }
 
 /// <summary>
-/// 服务注册选项
+/// Configuration options for service registry.
 /// </summary>
 public sealed class ServiceRegistryOptions : IValidatableOptions
 {
-    /// <summary>配置节名称</summary>
+    /// <summary>The configuration section name.</summary>
     public const string SectionName = "ServiceRegistry";
 
     /// <summary>
-    /// 心跳间隔 (秒)
+    /// The heartbeat interval in seconds.
     /// </summary>
     public int HeartbeatIntervalSeconds { get; set; } = 10;
 
     /// <summary>
-    /// 服务过期时间 (秒)
+    /// The service expiration time in seconds.
     /// </summary>
     public int ServiceExpireSeconds { get; set; } = 30;
 
     /// <summary>
-    /// 健康检查间隔 (秒)
+    /// The health check interval in seconds.
     /// </summary>
     public int HealthCheckIntervalSeconds { get; set; } = 15;
 
-    /// <summary>验证配置是否有效</summary>
+    /// <summary>Validates the configuration options.</summary>
     public void Validate()
     {
         if (HeartbeatIntervalSeconds <= 0)
@@ -122,27 +122,27 @@ public sealed class ServiceRegistryOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 服务注册接口
+/// Defines the interface for service registration and discovery.
 /// </summary>
 public interface IServiceRegistry
 {
     /// <summary>
-    /// 注册服务实例
+    /// Registers a service instance.
     /// </summary>
     Task RegisterAsync(ServiceInstance instance, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 注销服务实例
+    /// Deregisters a service instance.
     /// </summary>
     Task DeregisterAsync(string instanceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 发送心跳
+    /// Sends a heartbeat for the specified service instance.
     /// </summary>
     Task HeartbeatAsync(string instanceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取指定服务的所有健康实例
+    /// Gets all healthy instances of the specified service.
     /// </summary>
     Task<IReadOnlyList<ServiceInstance>> GetInstancesAsync(
         string serviceName,
@@ -150,12 +150,12 @@ public interface IServiceRegistry
     );
 
     /// <summary>
-    /// 获取所有已注册的服务名称
+    /// Gets all registered service names.
     /// </summary>
     Task<IReadOnlyList<string>> GetServicesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 监听服务变更
+    /// Watches for changes to the specified service.
     /// </summary>
     IAsyncEnumerable<ServiceInstance[]> WatchAsync(
         string serviceName,

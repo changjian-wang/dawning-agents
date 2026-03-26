@@ -1,17 +1,17 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具执行沙箱 — 控制 bash/脚本命令的执行环境和安全策略
+/// Tool execution sandbox — controls the execution environment and security policy for bash/script commands.
 /// </summary>
 public interface IToolSandbox
 {
     /// <summary>
-    /// 在沙箱中执行命令
+    /// Executes a command in the sandbox.
     /// </summary>
-    /// <param name="command">要执行的命令</param>
-    /// <param name="options">沙箱选项</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>执行结果</returns>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="options">Sandbox options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Execution result.</returns>
     Task<ToolExecutionResult> ExecuteAsync(
         string command,
         ToolSandboxOptions? options = null,
@@ -20,32 +20,32 @@ public interface IToolSandbox
 }
 
 /// <summary>
-/// 沙箱执行选项
+/// Sandbox execution options.
 /// </summary>
 public class ToolSandboxOptions : IValidatableOptions
 {
     /// <summary>
-    /// 工作目录
+    /// Working directory.
     /// </summary>
     public string WorkingDirectory { get; set; } = ".";
 
     /// <summary>
-    /// 最大执行时间
+    /// Maximum execution time.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 沙箱模式
+    /// Sandbox mode.
     /// </summary>
     public SandboxMode Mode { get; set; } = SandboxMode.Trust;
 
     /// <summary>
-    /// 脚本运行时类型
+    /// Script runtime type.
     /// </summary>
     public ScriptRuntime Runtime { get; set; } = ScriptRuntime.Bash;
 
     /// <summary>
-    /// 环境变量
+    /// Environment variables.
     /// </summary>
     public IDictionary<string, string> Environment { get; set; } = new Dictionary<string, string>();
 
@@ -65,58 +65,58 @@ public class ToolSandboxOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 沙箱模式
+/// Sandbox mode.
 /// </summary>
 public enum SandboxMode
 {
     /// <summary>
-    /// 信任模式 — 直接在主机执行（开发环境）
+    /// Trust mode — executes directly on the host (development environment).
     /// </summary>
     Trust,
 
     /// <summary>
-    /// 工作目录限制 — 限制在指定目录内执行
+    /// Working directory restriction — limits execution to the specified directory.
     /// </summary>
     WorkingDir,
 
     /// <summary>
-    /// 超时模式 — 仅限制执行时间
+    /// Timeout mode — only limits execution time.
     /// </summary>
     Timeout,
 }
 
 /// <summary>
-/// 工具执行结果
+/// Tool execution result.
 /// </summary>
 public record ToolExecutionResult
 {
     /// <summary>
-    /// 进程退出码
+    /// Process exit code.
     /// </summary>
     public int ExitCode { get; init; }
 
     /// <summary>
-    /// 标准输出
+    /// Standard output.
     /// </summary>
     public string Stdout { get; init; } = "";
 
     /// <summary>
-    /// 标准错误
+    /// Standard error.
     /// </summary>
     public string Stderr { get; init; } = "";
 
     /// <summary>
-    /// 执行耗时
+    /// Execution duration.
     /// </summary>
     public TimeSpan Duration { get; init; }
 
     /// <summary>
-    /// 是否超时
+    /// Whether the execution timed out.
     /// </summary>
     public bool TimedOut { get; init; }
 
     /// <summary>
-    /// 是否执行成功（退出码为 0 且未超时）
+    /// Whether the execution succeeded (exit code is 0 and did not time out).
     /// </summary>
     public bool IsSuccess => ExitCode == 0 && !TimedOut;
 }

@@ -1,171 +1,171 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 动态脚本工具定义 — 描述一个可在运行时创建的脚本工具
+/// Ephemeral script tool definition — describes a script tool that can be created at runtime.
 /// </summary>
 public class EphemeralToolDefinition
 {
     /// <summary>
-    /// 工具名称（snake_case，唯一标识符）
+    /// Tool name (snake_case, unique identifier).
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    /// 工具用途描述（供 LLM 理解）
+    /// Tool purpose description (for the LLM to understand).
     /// </summary>
     public required string Description { get; set; }
 
     /// <summary>
-    /// 脚本运行时
+    /// Script runtime.
     /// </summary>
     public ScriptRuntime Runtime { get; set; } = ScriptRuntime.Bash;
 
     /// <summary>
-    /// 脚本内容，用 $param_name 引用参数
+    /// Script content; use $param_name to reference parameters.
     /// </summary>
     public required string Script { get; set; }
 
     /// <summary>
-    /// 工具参数列表
+    /// Tool parameter list.
     /// </summary>
     public IList<ScriptParameter> Parameters { get; set; } = new List<ScriptParameter>();
 
     /// <summary>
-    /// 持久化范围
+    /// Persistence scope.
     /// </summary>
     public ToolScope Scope { get; set; } = ToolScope.Session;
 
     /// <summary>
-    /// 元数据
+    /// Metadata.
     /// </summary>
     public EphemeralToolMetadata Metadata { get; set; } = new();
 }
 
 /// <summary>
-/// 脚本参数定义
+/// Script parameter definition.
 /// </summary>
 public record ScriptParameter
 {
     /// <summary>
-    /// 参数名称
+    /// Parameter name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 参数描述
+    /// Parameter description.
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
-    /// 参数类型（string, int, bool）
+    /// Parameter type (string, int, bool).
     /// </summary>
     public string Type { get; init; } = "string";
 
     /// <summary>
-    /// 是否必需
+    /// Whether the parameter is required.
     /// </summary>
     public bool Required { get; init; } = true;
 
     /// <summary>
-    /// 默认值
+    /// Default value.
     /// </summary>
     public string? DefaultValue { get; init; }
 }
 
 /// <summary>
-/// 动态工具元数据（含行为上下文，供路由和反思引擎使用）
+/// Ephemeral tool metadata (with behavioral context for the router and reflection engine).
 /// </summary>
 public class EphemeralToolMetadata
 {
     /// <summary>
-    /// 创建者
+    /// Author.
     /// </summary>
     public string? Author { get; set; }
 
     /// <summary>
-    /// 创建时间
+    /// Creation time.
     /// </summary>
     public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 标签
+    /// Tags.
     /// </summary>
     public IList<string> Tags { get; set; } = new List<string>();
 
     /// <summary>
-    /// 版本号（每次修复 +1）
+    /// Version number (incremented on each fix).
     /// </summary>
     public int Version { get; set; } = 1;
 
     /// <summary>
-    /// 适用场景描述（供技能路由器理解何时使用此工具）
+    /// Usage scenario description (for the skill router to understand when to use this tool).
     /// </summary>
     public string? WhenToUse { get; set; }
 
     /// <summary>
-    /// 已知限制
+    /// Known limitations.
     /// </summary>
     public string? Limitations { get; set; }
 
     /// <summary>
-    /// 历史失败模式（供反思引擎参考诊断）
+    /// Historical failure patterns (for the reflection engine to reference during diagnosis).
     /// </summary>
     public IList<string> FailurePatterns { get; set; } = new List<string>();
 
     /// <summary>
-    /// 相关技能名称（供路由器做关联推荐）
+    /// Related skill names (for the router to make association recommendations).
     /// </summary>
     public IList<string> RelatedSkills { get; set; } = new List<string>();
 
     /// <summary>
-    /// 修订次数
+    /// Revision count.
     /// </summary>
     public int RevisionCount { get; set; }
 
     /// <summary>
-    /// 最后修订时间
+    /// Last revision time.
     /// </summary>
     public DateTimeOffset? LastRevisedAt { get; set; }
 }
 
 /// <summary>
-/// 脚本运行时类型
+/// Script runtime type.
 /// </summary>
 public enum ScriptRuntime
 {
     /// <summary>
-    /// Bash / sh（Linux / macOS 默认）
+    /// Bash / sh (default on Linux / macOS).
     /// </summary>
     Bash,
 
     /// <summary>
-    /// PowerShell（Windows 默认，跨平台可用）
+    /// PowerShell (default on Windows, cross-platform available).
     /// </summary>
     PowerShell,
 
     /// <summary>
-    /// Python 3
+    /// Python 3.
     /// </summary>
     Python,
 }
 
 /// <summary>
-/// 工具持久化范围
+/// Tool persistence scope.
 /// </summary>
 public enum ToolScope
 {
     /// <summary>
-    /// Session 级别 — 仅在当前会话中存活（内存）
+    /// Session level — lives only within the current session (in-memory).
     /// </summary>
     Session,
 
     /// <summary>
-    /// User 级别 — 跨项目持久化 (~/.dawning/tools/)
+    /// User level — persisted across projects (~/.dawning/tools/).
     /// </summary>
     User,
 
     /// <summary>
-    /// Global 级别 — 项目级持久化 ({project}/.dawning/tools/)，可提交 git
+    /// Global level — project-level persistence ({project}/.dawning/tools/), can be committed to git.
     /// </summary>
     Global,
 }

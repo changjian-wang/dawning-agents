@@ -1,37 +1,37 @@
 namespace Dawning.Agents.Abstractions.Configuration;
 
 /// <summary>
-/// 密钥管理接口
+/// Secrets management interface.
 /// </summary>
 public interface ISecretsManager
 {
     /// <summary>
-    /// 获取密钥
+    /// Gets a secret.
     /// </summary>
-    /// <param name="name">密钥名称</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>密钥值，如果不存在则返回 null</returns>
+    /// <param name="name">Secret name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The secret value, or <see langword="null"/> if it does not exist.</returns>
     Task<string?> GetSecretAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 设置密钥
+    /// Sets a secret.
     /// </summary>
-    /// <param name="name">密钥名称</param>
-    /// <param name="value">密钥值</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Secret name.</param>
+    /// <param name="value">Secret value.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task SetSecretAsync(string name, string value, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 删除密钥
+    /// Deletes a secret.
     /// </summary>
-    /// <param name="name">密钥名称</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Secret name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task DeleteSecretAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 检查密钥是否存在
+    /// Checks whether a secret exists.
     /// </summary>
-    /// <param name="name">密钥名称</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Secret name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default);
 }

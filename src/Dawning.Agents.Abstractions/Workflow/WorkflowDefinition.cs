@@ -1,172 +1,172 @@
 namespace Dawning.Agents.Abstractions.Workflow;
 
 /// <summary>
-/// 工作流定义（可序列化）
+/// Workflow definition (serializable)
 /// </summary>
 public record WorkflowDefinition
 {
     /// <summary>
-    /// 工作流 ID
+    /// Workflow ID
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 工作流名称
+    /// Workflow name
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 工作流描述
+    /// Workflow description
     /// </summary>
     public string? Description { get; init; }
 
     /// <summary>
-    /// 版本号
+    /// Version number
     /// </summary>
     public string Version { get; init; } = "1.0.0";
 
     /// <summary>
-    /// 节点定义列表
+    /// Node definition list
     /// </summary>
     public IReadOnlyList<WorkflowNodeDefinition> Nodes { get; init; } = [];
 
     /// <summary>
-    /// 边（连接）定义列表
+    /// Edge (connection) definition list
     /// </summary>
     public IReadOnlyList<WorkflowEdgeDefinition> Edges { get; init; } = [];
 
     /// <summary>
-    /// 起始节点 ID
+    /// Start node ID
     /// </summary>
     public required string StartNodeId { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public Dictionary<string, object?>? Metadata { get; init; }
 }
 
 /// <summary>
-/// 节点定义（可序列化）
+/// Node definition (serializable)
 /// </summary>
 public record WorkflowNodeDefinition
 {
     /// <summary>
-    /// 节点 ID
+    /// Node ID
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 节点名称
+    /// Node name
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 节点类型
+    /// Node type
     /// </summary>
     public WorkflowNodeType Type { get; init; }
 
     /// <summary>
-    /// 节点配置（JSON 格式，根据 Type 解析为具体配置类）
+    /// Node configuration (JSON format, parsed into specific config classes based on Type)
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Config { get; init; }
 
     /// <summary>
-    /// 可视化位置 X
+    /// Visual position X
     /// </summary>
     public double? PositionX { get; init; }
 
     /// <summary>
-    /// 可视化位置 Y
+    /// Visual position Y
     /// </summary>
     public double? PositionY { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Metadata { get; init; }
 }
 
 /// <summary>
-/// 边（连接）定义（可序列化）
+/// Edge (connection) definition (serializable)
 /// </summary>
 public record WorkflowEdgeDefinition
 {
     /// <summary>
-    /// 源节点 ID
+    /// Source node ID.
     /// </summary>
     public required string FromNodeId { get; init; }
 
     /// <summary>
-    /// 目标节点 ID
+    /// Target node ID.
     /// </summary>
     public required string ToNodeId { get; init; }
 
     /// <summary>
-    /// 边标签（用于条件分支）
+    /// Edge label (for conditional branching)
     /// </summary>
     public string? Label { get; init; }
 
     /// <summary>
-    /// 条件表达式（可选）
+    /// Condition expression (optional)
     /// </summary>
     public string? Condition { get; init; }
 }
 
 /// <summary>
-/// 工作流序列化器接口
+/// Workflow serializer interface
 /// </summary>
 public interface IWorkflowSerializer
 {
     /// <summary>
-    /// 序列化为 JSON
+    /// Serialize to JSON
     /// </summary>
     string SerializeToJson(WorkflowDefinition definition);
 
     /// <summary>
-    /// 从 JSON 反序列化
+    /// Deserialize from JSON
     /// </summary>
     WorkflowDefinition DeserializeFromJson(string json);
 
     /// <summary>
-    /// 序列化为 YAML
+    /// Serialize to YAML
     /// </summary>
     string SerializeToYaml(WorkflowDefinition definition);
 
     /// <summary>
-    /// 从 YAML 反序列化
+    /// Deserialize from YAML
     /// </summary>
     WorkflowDefinition DeserializeFromYaml(string yaml);
 }
 
 /// <summary>
-/// 工作流可视化器接口
+/// Workflow visualizer interface
 /// </summary>
 public interface IWorkflowVisualizer
 {
     /// <summary>
-    /// 生成 Mermaid 图表
+    /// Generate a Mermaid diagram
     /// </summary>
     string GenerateMermaid(WorkflowDefinition definition);
 
     /// <summary>
-    /// 生成 DOT 图表（Graphviz）
+    /// Generate a DOT diagram (Graphviz)
     /// </summary>
     string GenerateDot(WorkflowDefinition definition);
 }
 
 /// <summary>
-/// 工作流引擎接口
+/// Workflow engine interface
 /// </summary>
 public interface IWorkflowEngine
 {
     /// <summary>
-    /// 从定义创建工作流
+    /// Create a workflow from a definition
     /// </summary>
     IWorkflow CreateWorkflow(WorkflowDefinition definition);
 
     /// <summary>
-    /// 执行工作流定义
+    /// Execute the workflow定义
     /// </summary>
     Task<WorkflowResult> ExecuteAsync(
         WorkflowDefinition definition,
@@ -175,70 +175,70 @@ public interface IWorkflowEngine
     );
 
     /// <summary>
-    /// 验证工作流定义
+    /// Validate a workflow definition
     /// </summary>
     WorkflowValidationResult Validate(WorkflowDefinition definition);
 }
 
 /// <summary>
-/// 工作流验证结果
+/// Workflow validation result
 /// </summary>
 public record WorkflowValidationResult
 {
     /// <summary>
-    /// 是否有效
+    /// Whether valid
     /// </summary>
     public bool IsValid { get; init; }
 
     /// <summary>
-    /// 错误列表
+    /// Error list
     /// </summary>
     public List<WorkflowValidationError> Errors { get; init; } = [];
 
     /// <summary>
-    /// 警告列表
+    /// Warning list
     /// </summary>
     public List<WorkflowValidationWarning> Warnings { get; init; } = [];
 }
 
 /// <summary>
-/// 工作流验证错误
+/// Workflow validation error
 /// </summary>
 public record WorkflowValidationError
 {
     /// <summary>
-    /// 错误代码
+    /// Error code
     /// </summary>
     public required string Code { get; init; }
 
     /// <summary>
-    /// 错误消息
+    /// Error message
     /// </summary>
     public required string Message { get; init; }
 
     /// <summary>
-    /// 相关节点 ID
+    /// 相关Node ID
     /// </summary>
     public string? NodeId { get; init; }
 }
 
 /// <summary>
-/// 工作流验证警告
+/// Workflow validation warning
 /// </summary>
 public record WorkflowValidationWarning
 {
     /// <summary>
-    /// 警告代码
+    /// Warning code
     /// </summary>
     public required string Code { get; init; }
 
     /// <summary>
-    /// 警告消息
+    /// Warning message
     /// </summary>
     public required string Message { get; init; }
 
     /// <summary>
-    /// 相关节点 ID
+    /// 相关Node ID
     /// </summary>
     public string? NodeId { get; init; }
 }

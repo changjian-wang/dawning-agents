@@ -1,85 +1,85 @@
 namespace Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// 健康检查结果
+/// Represents the result of a health check.
 /// </summary>
 public record HealthCheckResult
 {
     /// <summary>
-    /// 整体状态
+    /// Gets the overall health status.
     /// </summary>
     public HealthStatus Status { get; init; }
 
     /// <summary>
-    /// 检查时间
+    /// Gets the timestamp when the check was performed.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
-    /// 各组件健康状态
+    /// Gets the health status of each component.
     /// </summary>
     public IReadOnlyList<ComponentHealth> Components { get; init; } = [];
 }
 
 /// <summary>
-/// 组件健康状态
+/// Represents the health status of an individual component.
 /// </summary>
 public record ComponentHealth
 {
     /// <summary>
-    /// 组件名称
+    /// Gets the component name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 健康状态
+    /// Gets the health status.
     /// </summary>
     public HealthStatus Status { get; init; }
 
     /// <summary>
-    /// 消息
+    /// Gets an optional descriptive message.
     /// </summary>
     public string? Message { get; init; }
 
     /// <summary>
-    /// 附加数据
+    /// Gets optional additional data associated with the health check.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Data { get; init; }
 }
 
 /// <summary>
-/// 健康状态
+/// Defines health status values.
 /// </summary>
 public enum HealthStatus
 {
     /// <summary>
-    /// 健康
+    /// Healthy.
     /// </summary>
     Healthy,
 
     /// <summary>
-    /// 降级
+    /// Degraded.
     /// </summary>
     Degraded,
 
     /// <summary>
-    /// 不健康
+    /// Unhealthy.
     /// </summary>
     Unhealthy,
 }
 
 /// <summary>
-/// 健康检查提供者接口
+/// Provides health check capabilities for a component.
 /// </summary>
 public interface IHealthCheckProvider
 {
     /// <summary>
-    /// 提供者名称
+    /// Gets the provider name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 检查健康状态
+    /// Checks the health status of the component.
     /// </summary>
     Task<ComponentHealth> CheckHealthAsync(CancellationToken cancellationToken = default);
 }

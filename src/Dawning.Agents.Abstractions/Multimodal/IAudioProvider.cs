@@ -3,35 +3,35 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Multimodal;
 
 /// <summary>
-/// 音频转录提供者接口 (Speech-to-Text)
+/// Audio transcription provider interface (Speech-to-Text).
 /// </summary>
 /// <remarks>
-/// 支持将音频文件转录为文本，类似 OpenAI Whisper。
+/// Supports transcribing audio files to text, similar to OpenAI Whisper.
 /// </remarks>
 public interface IAudioTranscriptionProvider
 {
     /// <summary>
-    /// 提供者名称
+    /// Provider name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 支持的音频格式
+    /// Supported audio formats.
     /// </summary>
     IReadOnlyList<string> SupportedFormats { get; }
 
     /// <summary>
-    /// 最大音频文件大小（字节）
+    /// Maximum audio file size (bytes).
     /// </summary>
     long MaxFileSize { get; }
 
     /// <summary>
-    /// 最大音频时长（秒）
+    /// Maximum audio duration (seconds).
     /// </summary>
     int MaxDurationSeconds { get; }
 
     /// <summary>
-    /// 转录音频内容
+    /// Transcribes audio content.
     /// </summary>
     Task<TranscriptionResult> TranscribeAsync(
         AudioContent audio,
@@ -40,7 +40,7 @@ public interface IAudioTranscriptionProvider
     );
 
     /// <summary>
-    /// 转录音频文件
+    /// Transcribes an audio file.
     /// </summary>
     Task<TranscriptionResult> TranscribeFileAsync(
         string filePath,
@@ -49,7 +49,7 @@ public interface IAudioTranscriptionProvider
     );
 
     /// <summary>
-    /// 转录音频流
+    /// Transcribes an audio stream.
     /// </summary>
     Task<TranscriptionResult> TranscribeStreamAsync(
         Stream audioStream,
@@ -60,32 +60,32 @@ public interface IAudioTranscriptionProvider
 }
 
 /// <summary>
-/// 文本转语音提供者接口 (Text-to-Speech)
+/// Text-to-Speech provider interface.
 /// </summary>
 public interface ITextToSpeechProvider
 {
     /// <summary>
-    /// 提供者名称
+    /// Provider name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 可用的声音列表
+    /// Available voices list.
     /// </summary>
     IReadOnlyList<VoiceInfo> AvailableVoices { get; }
 
     /// <summary>
-    /// 支持的输出格式
+    /// Supported output formats.
     /// </summary>
     IReadOnlyList<string> SupportedOutputFormats { get; }
 
     /// <summary>
-    /// 最大文本长度
+    /// Maximum text length.
     /// </summary>
     int MaxTextLength { get; }
 
     /// <summary>
-    /// 将文本转换为语音
+    /// Converts text to speech.
     /// </summary>
     Task<SpeechResult> SynthesizeAsync(
         string text,
@@ -94,7 +94,7 @@ public interface ITextToSpeechProvider
     );
 
     /// <summary>
-    /// 将文本转换为语音并保存到文件
+    /// Converts text to speech and saves to a file.
     /// </summary>
     Task<SpeechResult> SynthesizeToFileAsync(
         string text,
@@ -104,7 +104,7 @@ public interface ITextToSpeechProvider
     );
 
     /// <summary>
-    /// 流式文本转语音
+    /// Streaming text-to-speech.
     /// </summary>
     IAsyncEnumerable<byte[]> SynthesizeStreamAsync(
         string text,
@@ -114,55 +114,51 @@ public interface ITextToSpeechProvider
 }
 
 /// <summary>
-/// 转录配置选项
+/// Transcription configuration options.
 /// </summary>
 public class TranscriptionOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Audio:Transcription";
 
     /// <summary>
-    /// 模型名称
+    /// Model name.
     /// </summary>
-    /// <remarks>
-    /// OpenAI: whisper-1
-    /// Azure: whisper
-    /// </remarks>
     public string? Model { get; set; }
 
     /// <summary>
-    /// 源语言（ISO 639-1 代码）
+    /// Source language (ISO 639-1 code).
     /// </summary>
     /// <remarks>
-    /// 设置源语言可以提高准确性和速度。
-    /// 例如："zh"（中文）,"en"（英文）,"ja"（日文）
+    /// Setting the source language can improve accuracy and speed.
+    /// Examples: "zh" (Chinese), "en" (English), "ja" (Japanese).
     /// </remarks>
     public string? Language { get; set; }
 
     /// <summary>
-    /// 提示词（帮助模型理解上下文）
+    /// Prompt (helps the model understand context).
     /// </summary>
     public string? Prompt { get; set; }
 
     /// <summary>
-    /// 响应格式
+    /// Response format.
     /// </summary>
     public TranscriptionFormat ResponseFormat { get; set; } = TranscriptionFormat.Text;
 
     /// <summary>
-    /// 温度参数（0-1，较低值更确定）
+    /// Temperature parameter (0–1, lower values are more deterministic).
     /// </summary>
     public double Temperature { get; set; } = 0;
 
     /// <summary>
-    /// 是否包含时间戳
+    /// Whether to include timestamps.
     /// </summary>
     public bool IncludeTimestamps { get; set; }
 
     /// <summary>
-    /// 时间戳粒度
+    /// Timestamp granularity.
     /// </summary>
     public TimestampGranularity TimestampGranularity { get; set; } = TimestampGranularity.Segment;
 
@@ -179,94 +175,94 @@ public class TranscriptionOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 转录响应格式
+/// Transcription response format.
 /// </summary>
 public enum TranscriptionFormat
 {
     /// <summary>
-    /// 纯文本
+    /// Plain text.
     /// </summary>
     Text,
 
     /// <summary>
-    /// JSON 格式
+    /// JSON format.
     /// </summary>
     Json,
 
     /// <summary>
-    /// 详细 JSON（包含时间戳等）
+    /// Verbose JSON (includes timestamps, etc.).
     /// </summary>
     VerboseJson,
 
     /// <summary>
-    /// SRT 字幕格式
+    /// SRT subtitle format.
     /// </summary>
     Srt,
 
     /// <summary>
-    /// VTT 字幕格式
+    /// VTT subtitle format.
     /// </summary>
     Vtt,
 }
 
 /// <summary>
-/// 时间戳粒度
+/// Timestamp granularity.
 /// </summary>
 public enum TimestampGranularity
 {
     /// <summary>
-    /// 按段落
+    /// By segment.
     /// </summary>
     Segment,
 
     /// <summary>
-    /// 按单词
+    /// By word.
     /// </summary>
     Word,
 }
 
 /// <summary>
-/// 转录结果
+/// Transcription result.
 /// </summary>
 public record TranscriptionResult
 {
     /// <summary>
-    /// 是否成功
+    /// Whether the transcription succeeded.
     /// </summary>
     public bool Success { get; init; } = true;
 
     /// <summary>
-    /// 转录文本
+    /// Transcribed text.
     /// </summary>
     public string? Text { get; init; }
 
     /// <summary>
-    /// 检测到的语言
+    /// Detected language.
     /// </summary>
     public string? DetectedLanguage { get; init; }
 
     /// <summary>
-    /// 音频时长（秒）
+    /// Audio duration (seconds).
     /// </summary>
     public double? DurationSeconds { get; init; }
 
     /// <summary>
-    /// 分段信息（带时间戳）
+    /// Segment information (with timestamps).
     /// </summary>
     public IReadOnlyList<TranscriptionSegment>? Segments { get; init; }
 
     /// <summary>
-    /// 单词信息（带时间戳）
+    /// Word information (with timestamps).
     /// </summary>
     public IReadOnlyList<TranscriptionWord>? Words { get; init; }
 
     /// <summary>
-    /// 错误信息
+    /// Error message.
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 创建成功结果
+    /// Creates a successful result.
     /// </summary>
     public static TranscriptionResult Ok(
         string text,
@@ -282,81 +278,81 @@ public record TranscriptionResult
         };
 
     /// <summary>
-    /// 创建失败结果
+    /// Creates a failure result.
     /// </summary>
     public static TranscriptionResult Failed(string error) =>
         new() { Success = false, Error = error };
 }
 
 /// <summary>
-/// 转录分段
+/// Transcription segment.
 /// </summary>
 public record TranscriptionSegment
 {
     /// <summary>
-    /// 分段 ID
+    /// Segment ID.
     /// </summary>
     public int Id { get; init; }
 
     /// <summary>
-    /// 开始时间（秒）
+    /// Start time (seconds).
     /// </summary>
     public double Start { get; init; }
 
     /// <summary>
-    /// 结束时间（秒）
+    /// End time (seconds).
     /// </summary>
     public double End { get; init; }
 
     /// <summary>
-    /// 分段文本
+    /// Segment text.
     /// </summary>
     public required string Text { get; init; }
 
     /// <summary>
-    /// 置信度（0-1）
+    /// Confidence (0–1).
     /// </summary>
     public double? Confidence { get; init; }
 }
 
 /// <summary>
-/// 转录单词
+/// Transcription word.
 /// </summary>
 public record TranscriptionWord
 {
     /// <summary>
-    /// 单词
+    /// Word.
     /// </summary>
     public required string Word { get; init; }
 
     /// <summary>
-    /// 开始时间（秒）
+    /// Start time (seconds).
     /// </summary>
     public double Start { get; init; }
 
     /// <summary>
-    /// 结束时间（秒）
+    /// End time (seconds).
     /// </summary>
     public double End { get; init; }
 
     /// <summary>
-    /// 置信度（0-1）
+    /// Confidence (0–1).
     /// </summary>
     public double? Confidence { get; init; }
 }
 
 /// <summary>
-/// 语音合成配置选项
+/// Speech synthesis configuration options.
 /// </summary>
 public class SpeechOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Audio:Speech";
 
     /// <summary>
-    /// 模型名称
+    /// Model name.
     /// </summary>
     /// <remarks>
     /// OpenAI: tts-1, tts-1-hd
@@ -365,31 +361,31 @@ public class SpeechOptions : IValidatableOptions
     public string? Model { get; set; }
 
     /// <summary>
-    /// 声音名称
+    /// Voice name.
     /// </summary>
     /// <remarks>
     /// OpenAI: alloy, echo, fable, onyx, nova, shimmer
-    /// Azure: zh-CN-XiaoxiaoNeural, en-US-JennyNeural 等
+    /// Azure: zh-CN-XiaoxiaoNeural, en-US-JennyNeural, etc.
     /// </remarks>
     public string Voice { get; set; } = "alloy";
 
     /// <summary>
-    /// 输出格式
+    /// Output format.
     /// </summary>
     public SpeechOutputFormat OutputFormat { get; set; } = SpeechOutputFormat.Mp3;
 
     /// <summary>
-    /// 语速（0.25-4.0，1.0 为正常速度）
+    /// Speech speed (0.25–4.0, 1.0 is normal speed).
     /// </summary>
     public double Speed { get; set; } = 1.0;
 
     /// <summary>
-    /// 音调调整（仅部分提供者支持）
+    /// Pitch adjustment (only supported by some providers).
     /// </summary>
     public double? Pitch { get; set; }
 
     /// <summary>
-    /// 音量调整（仅部分提供者支持）
+    /// Volume adjustment (only supported by some providers).
     /// </summary>
     public double? Volume { get; set; }
 
@@ -409,140 +405,140 @@ public class SpeechOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 语音输出格式
+/// Speech output format.
 /// </summary>
 public enum SpeechOutputFormat
 {
     /// <summary>
-    /// MP3 格式
+    /// MP3 format.
     /// </summary>
     Mp3,
 
     /// <summary>
-    /// Opus 格式（低延迟）
+    /// Opus format (low latency).
     /// </summary>
     Opus,
 
     /// <summary>
-    /// AAC 格式
+    /// AAC format.
     /// </summary>
     Aac,
 
     /// <summary>
-    /// FLAC 格式（无损）
+    /// FLAC format (lossless).
     /// </summary>
     Flac,
 
     /// <summary>
-    /// WAV 格式
+    /// WAV format.
     /// </summary>
     Wav,
 
     /// <summary>
-    /// PCM 格式
+    /// PCM format.
     /// </summary>
     Pcm,
 }
 
 /// <summary>
-/// 语音信息
+/// Voice information.
 /// </summary>
 public record VoiceInfo
 {
     /// <summary>
-    /// 声音 ID
+    /// Voice ID.
     /// </summary>
     public required string Id { get; init; }
 
     /// <summary>
-    /// 声音名称
+    /// Voice name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 支持的语言
+    /// Supported languages.
     /// </summary>
     public IReadOnlyList<string> Languages { get; init; } = [];
 
     /// <summary>
-    /// 性别
+    /// Gender.
     /// </summary>
     public VoiceGender Gender { get; init; } = VoiceGender.Neutral;
 
     /// <summary>
-    /// 描述
+    /// Description.
     /// </summary>
     public string? Description { get; init; }
 
     /// <summary>
-    /// 预览 URL
+    /// Preview URL.
     /// </summary>
     public string? PreviewUrl { get; init; }
 }
 
 /// <summary>
-/// 声音性别
+/// Voice gender.
 /// </summary>
 public enum VoiceGender
 {
     /// <summary>
-    /// 中性
+    /// Neutral.
     /// </summary>
     Neutral,
 
     /// <summary>
-    /// 男性
+    /// Male.
     /// </summary>
     Male,
 
     /// <summary>
-    /// 女性
+    /// Female.
     /// </summary>
     Female,
 }
 
 /// <summary>
-/// 语音合成结果
+/// Speech synthesis result.
 /// </summary>
 public record SpeechResult
 {
     /// <summary>
-    /// 是否成功
+    /// Whether the synthesis succeeded.
     /// </summary>
     public bool Success { get; init; } = true;
 
     /// <summary>
-    /// 音频数据
+    /// Audio data.
     /// </summary>
     public byte[]? AudioData { get; init; }
 
     /// <summary>
-    /// 音频内容（包装为 AudioContent）
+    /// Audio content (wrapped as AudioContent).
     /// </summary>
     public AudioContent? Audio { get; init; }
 
     /// <summary>
-    /// 输出文件路径（如果保存到文件）
+    /// Output file path (if saved to file).
     /// </summary>
     public string? OutputPath { get; init; }
 
     /// <summary>
-    /// 音频时长（秒）
+    /// Audio duration (seconds).
     /// </summary>
     public double? DurationSeconds { get; init; }
 
     /// <summary>
-    /// 字符数
+    /// Character count.
     /// </summary>
     public int? CharacterCount { get; init; }
 
     /// <summary>
-    /// 错误信息
+    /// Error message.
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 创建成功结果
+    /// Creates a successful result.
     /// </summary>
     public static SpeechResult Ok(byte[] audioData, double? duration = null) =>
         new()
@@ -554,7 +550,7 @@ public record SpeechResult
         };
 
     /// <summary>
-    /// 创建文件保存成功结果
+    /// Creates a successful file-save result.
     /// </summary>
     public static SpeechResult OkFile(string outputPath, double? duration = null) =>
         new()
@@ -565,7 +561,7 @@ public record SpeechResult
         };
 
     /// <summary>
-    /// 创建失败结果
+    /// Creates a failure result.
     /// </summary>
     public static SpeechResult Failed(string error) => new() { Success = false, Error = error };
 }

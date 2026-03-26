@@ -1,49 +1,49 @@
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
-/// 护栏检查结果
+/// Guardrail check result.
 /// </summary>
 public record GuardrailResult
 {
     /// <summary>
-    /// 是否通过检查
+    /// Whether the check passed.
     /// </summary>
     public bool Passed { get; init; }
 
     /// <summary>
-    /// 检查消息（通过时为空，失败时为原因）
+    /// Check message (empty when passed, contains the reason when failed).
     /// </summary>
     public string? Message { get; init; }
 
     /// <summary>
-    /// 触发的护栏名称
+    /// Name of the triggered guardrail.
     /// </summary>
     public string? TriggeredBy { get; init; }
 
     /// <summary>
-    /// 处理后的内容（可能被修改、脱敏等）
+    /// Processed content (may be modified, masked, etc.).
     /// </summary>
     public string? ProcessedContent { get; init; }
 
     /// <summary>
-    /// 检测到的问题详情
+    /// Details of detected issues.
     /// </summary>
     public IReadOnlyList<GuardrailIssue> Issues { get; init; } = [];
 
     /// <summary>
-    /// 创建通过结果
+    /// Creates a passing result.
     /// </summary>
     public static GuardrailResult Pass(string? processedContent = null) =>
         new() { Passed = true, ProcessedContent = processedContent };
 
     /// <summary>
-    /// 创建通过结果（带处理后内容）
+    /// Creates a passing result with processed content.
     /// </summary>
     public static GuardrailResult PassWithContent(string processedContent) =>
         new() { Passed = true, ProcessedContent = processedContent };
 
     /// <summary>
-    /// 创建失败结果
+    /// Creates a failing result.
     /// </summary>
     public static GuardrailResult Fail(
         string message,
@@ -60,63 +60,63 @@ public record GuardrailResult
 }
 
 /// <summary>
-/// 护栏检测到的问题
+/// Issue detected by a guardrail.
 /// </summary>
 public record GuardrailIssue
 {
     /// <summary>
-    /// 问题类型
+    /// Issue type.
     /// </summary>
     public required string Type { get; init; }
 
     /// <summary>
-    /// 问题描述
+    /// Issue description.
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
-    /// 问题位置（如果适用）
+    /// Issue position (if applicable).
     /// </summary>
     public int? Position { get; init; }
 
     /// <summary>
-    /// 问题长度（如果适用）
+    /// Issue length (if applicable).
     /// </summary>
     public int? Length { get; init; }
 
     /// <summary>
-    /// 匹配到的内容（如果适用，可能被部分遮蔽）
+    /// Matched content (if applicable, may be partially masked).
     /// </summary>
     public string? MatchedContent { get; init; }
 
     /// <summary>
-    /// 严重程度
+    /// Severity level.
     /// </summary>
     public IssueSeverity Severity { get; init; } = IssueSeverity.Warning;
 }
 
 /// <summary>
-/// 问题严重程度
+/// Issue severity level.
 /// </summary>
 public enum IssueSeverity
 {
     /// <summary>
-    /// 信息提示
+    /// Informational.
     /// </summary>
     Info,
 
     /// <summary>
-    /// 警告
+    /// Warning.
     /// </summary>
     Warning,
 
     /// <summary>
-    /// 错误（阻止执行）
+    /// Error (blocks execution).
     /// </summary>
     Error,
 
     /// <summary>
-    /// 严重错误
+    /// Critical error.
     /// </summary>
     Critical,
 }

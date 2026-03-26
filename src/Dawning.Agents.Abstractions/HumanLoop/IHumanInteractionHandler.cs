@@ -1,54 +1,54 @@
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 通知级别
+/// Notification level.
 /// </summary>
 public enum NotificationLevel
 {
     /// <summary>
-    /// 信息
+    /// Information.
     /// </summary>
     Info,
 
     /// <summary>
-    /// 警告
+    /// Warning.
     /// </summary>
     Warning,
 
     /// <summary>
-    /// 错误
+    /// Error.
     /// </summary>
     Error,
 
     /// <summary>
-    /// 成功
+    /// Success.
     /// </summary>
     Success,
 }
 
 /// <summary>
-/// 人机交互接口
+/// Human interaction handler interface.
 /// </summary>
 public interface IHumanInteractionHandler
 {
     /// <summary>
-    /// 请求人工确认
+    /// Requests human confirmation.
     /// </summary>
-    /// <param name="request">确认请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>确认响应</returns>
+    /// <param name="request">Confirmation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Confirmation response.</returns>
     Task<ConfirmationResponse> RequestConfirmationAsync(
         ConfirmationRequest request,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 请求人工输入/反馈
+    /// Requests human input/feedback.
     /// </summary>
-    /// <param name="prompt">提示信息</param>
-    /// <param name="defaultValue">默认值</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户输入</returns>
+    /// <param name="prompt">Prompt message.</param>
+    /// <param name="defaultValue">Default value.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>User input.</returns>
     Task<string> RequestInputAsync(
         string prompt,
         string? defaultValue = null,
@@ -56,11 +56,11 @@ public interface IHumanInteractionHandler
     );
 
     /// <summary>
-    /// 通知人类（无需响应）
+    /// Notifies a human (no response required).
     /// </summary>
-    /// <param name="message">消息内容</param>
-    /// <param name="level">通知级别</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="message">Message content.</param>
+    /// <param name="level">Notification level.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task NotifyAsync(
         string message,
         NotificationLevel level = NotificationLevel.Info,
@@ -68,11 +68,11 @@ public interface IHumanInteractionHandler
     );
 
     /// <summary>
-    /// 升级到人工处理
+    /// Escalates to human handling.
     /// </summary>
-    /// <param name="request">升级请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>升级结果</returns>
+    /// <param name="request">Escalation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Escalation result.</returns>
     Task<EscalationResult> EscalateAsync(
         EscalationRequest request,
         CancellationToken cancellationToken = default

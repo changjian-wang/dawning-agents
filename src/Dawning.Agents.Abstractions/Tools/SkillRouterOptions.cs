@@ -1,27 +1,27 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 语义技能路由器配置
+/// Semantic skill router configuration.
 /// </summary>
 public sealed class SkillRouterOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "SkillRouter";
 
     /// <summary>
-    /// 启用语义路由的工具数量阈值（低于此值全量注入）
+    /// Tool count threshold to enable semantic routing (tools below this count are fully injected).
     /// </summary>
     public int ActivationThreshold { get; set; } = 10;
 
     /// <summary>
-    /// 默认 top-K
+    /// Default top-K.
     /// </summary>
     public int DefaultTopK { get; set; } = 5;
 
     /// <summary>
-    /// 默认最小相似度
+    /// Default minimum similarity.
     /// </summary>
     public float DefaultMinScore { get; set; } = 0.3f;
 

@@ -1,47 +1,47 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 执行响应
+/// Agent execution response.
 /// </summary>
 public record AgentResponse
 {
     /// <summary>
-    /// 是否执行成功
+    /// Whether the execution succeeded.
     /// </summary>
     public required bool Success { get; init; }
 
     /// <summary>
-    /// 最终答案
+    /// Final answer.
     /// </summary>
     public string? FinalAnswer { get; init; }
 
     /// <summary>
-    /// 错误信息（如果失败）
+    /// Error message, if the execution failed.
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 导致失败的异常（如果有）
+    /// Exception that caused the failure, if any.
     /// </summary>
     public Exception? Exception { get; init; }
 
     /// <summary>
-    /// 执行的所有步骤
+    /// All execution steps.
     /// </summary>
     public IReadOnlyList<AgentStep> Steps { get; init; } = [];
 
     /// <summary>
-    /// 总执行时间
+    /// Total execution duration.
     /// </summary>
     public TimeSpan Duration { get; init; }
 
     /// <summary>
-    /// 总成本（USD）
+    /// Total cost (USD).
     /// </summary>
     public decimal TotalCost { get; init; }
 
     /// <summary>
-    /// 创建成功响应
+    /// Creates a successful response.
     /// </summary>
     public static AgentResponse Successful(
         string finalAnswer,
@@ -58,7 +58,7 @@ public record AgentResponse
         };
 
     /// <summary>
-    /// 创建失败响应
+    /// Creates a failed response.
     /// </summary>
     public static AgentResponse Failed(
         string error,

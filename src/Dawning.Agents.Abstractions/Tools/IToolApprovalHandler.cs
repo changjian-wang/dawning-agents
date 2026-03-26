@@ -1,21 +1,21 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具审批处理器接口 - 处理高风险工具的执行确认
+/// Tool approval handler interface — handles execution confirmation for high-risk tools.
 /// </summary>
 /// <remarks>
-/// <para>对于需要确认的工具（RequiresConfirmation = true），在执行前需要通过审批</para>
-/// <para>不同的实现可以支持不同的审批策略：自动、交互式、基于风险等级等</para>
+/// <para>For tools that require confirmation (RequiresConfirmation = true), approval is needed before execution.</para>
+/// <para>Different implementations can support various approval strategies: automatic, interactive, risk-level-based, etc.</para>
 /// </remarks>
 public interface IToolApprovalHandler
 {
     /// <summary>
-    /// 请求工具执行批准
+    /// Requests approval for tool execution.
     /// </summary>
-    /// <param name="tool">要执行的工具</param>
-    /// <param name="input">工具输入参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否批准执行</returns>
+    /// <param name="tool">The tool to execute.</param>
+    /// <param name="input">Tool input parameters.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Whether execution is approved.</returns>
     Task<bool> RequestApprovalAsync(
         ITool tool,
         string input,
@@ -23,12 +23,12 @@ public interface IToolApprovalHandler
     );
 
     /// <summary>
-    /// 请求 URL 访问批准（用于网络请求工具）
+    /// Requests approval for URL access (for network request tools).
     /// </summary>
-    /// <param name="tool">发起请求的工具</param>
-    /// <param name="url">要访问的 URL</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否批准访问</returns>
+    /// <param name="tool">The tool initiating the request.</param>
+    /// <param name="url">The URL to access.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Whether access is approved.</returns>
     Task<bool> RequestUrlApprovalAsync(
         ITool tool,
         string url,
@@ -36,12 +36,12 @@ public interface IToolApprovalHandler
     );
 
     /// <summary>
-    /// 请求终端命令执行批准
+    /// Requests approval for terminal command execution.
     /// </summary>
-    /// <param name="tool">发起请求的工具</param>
-    /// <param name="command">要执行的命令</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否批准执行</returns>
+    /// <param name="tool">The tool initiating the request.</param>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Whether execution is approved.</returns>
     Task<bool> RequestCommandApprovalAsync(
         ITool tool,
         string command,
@@ -50,27 +50,27 @@ public interface IToolApprovalHandler
 }
 
 /// <summary>
-/// 审批策略枚举
+/// Approval strategy enumeration.
 /// </summary>
 public enum ApprovalStrategy
 {
     /// <summary>
-    /// 总是自动批准
+    /// Always approve automatically.
     /// </summary>
     AlwaysApprove,
 
     /// <summary>
-    /// 总是拒绝（只读模式）
+    /// Always deny (read-only mode).
     /// </summary>
     AlwaysDeny,
 
     /// <summary>
-    /// 基于风险等级决定（Low 自动批准，Medium/High 需要确认）
+    /// Decide based on risk level (Low: auto-approve, Medium/High: require confirmation).
     /// </summary>
     RiskBased,
 
     /// <summary>
-    /// 总是需要交互式确认
+    /// Always require interactive confirmation.
     /// </summary>
     Interactive,
 }

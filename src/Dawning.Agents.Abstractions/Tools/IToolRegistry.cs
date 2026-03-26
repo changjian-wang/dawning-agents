@@ -1,60 +1,60 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具只读查询接口 - 检索已注册的工具
+/// Read-only tool query interface — retrieves registered tools.
 /// </summary>
 public interface IToolReader
 {
     /// <summary>
-    /// 根据名称获取工具
+    /// Gets a tool by name.
     /// </summary>
-    /// <param name="name">工具名称（不区分大小写）</param>
-    /// <returns>工具实例，未找到时返回 null</returns>
+    /// <param name="name">Tool name (case-insensitive).</param>
+    /// <returns>The tool instance, or <see langword="null"/> if not found.</returns>
     ITool? GetTool(string name);
 
     /// <summary>
-    /// 获取所有已注册的工具
+    /// Gets all registered tools.
     /// </summary>
     IReadOnlyList<ITool> GetAllTools();
 
     /// <summary>
-    /// 检查工具是否已注册
+    /// Checks whether a tool is registered.
     /// </summary>
-    /// <param name="name">工具名称</param>
+    /// <param name="name">Tool name.</param>
     bool HasTool(string name);
 
     /// <summary>
-    /// 已注册的工具数量
+    /// Number of registered tools.
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// 根据分类获取工具
+    /// Gets tools by category.
     /// </summary>
-    /// <param name="category">工具分类</param>
-    /// <returns>属于该分类的所有工具</returns>
+    /// <param name="category">Tool category.</param>
+    /// <returns>All tools belonging to the specified category.</returns>
     IReadOnlyList<ITool> GetToolsByCategory(string category);
 
     /// <summary>
-    /// 获取所有工具分类
+    /// Gets all tool categories.
     /// </summary>
-    /// <returns>分类名称列表</returns>
+    /// <returns>List of category names.</returns>
     IReadOnlyList<string> GetCategories();
 }
 
 /// <summary>
-/// 工具注册接口 - 注册工具到注册表
+/// Tool registrar interface — registers tools into the registry.
 /// </summary>
 public interface IToolRegistrar
 {
     /// <summary>
-    /// 注册工具
+    /// Registers a tool.
     /// </summary>
-    /// <param name="tool">要注册的工具</param>
+    /// <param name="tool">The tool to register.</param>
     void Register(ITool tool);
 }
 
 /// <summary>
-/// 工具注册表 - 管理和检索已注册的工具（组合接口，向后兼容）
+/// Tool registry — manages and retrieves registered tools (composite interface for backward compatibility).
 /// </summary>
 public interface IToolRegistry : IToolReader, IToolRegistrar { }

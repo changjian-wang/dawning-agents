@@ -1,37 +1,37 @@
 namespace Dawning.Agents.Abstractions.Memory;
 
 /// <summary>
-/// 表示对话历史中的消息
+/// Represents a message in the conversation history.
 /// </summary>
 public record ConversationMessage
 {
     /// <summary>
-    /// 消息的唯一标识符
+    /// Unique identifier of the message.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 角色："user"、"assistant" 或 "system"
+    /// Role: "user", "assistant", or "system".
     /// </summary>
     public required string Role { get; init; }
 
     /// <summary>
-    /// 消息内容
+    /// Message content.
     /// </summary>
     public required string Content { get; init; }
 
     /// <summary>
-    /// 消息创建时间
+    /// Message creation time.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 可选的元数据（例如工具调用、token 数量）
+    /// Optional metadata (e.g., tool calls, token count).
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 
     /// <summary>
-    /// 此消息的估计 token 数量
+    /// Estimated token count for this message.
     /// </summary>
     public int? TokenCount { get; init; }
 }

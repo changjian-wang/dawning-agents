@@ -1,105 +1,105 @@
 namespace Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// 追踪上下文
+/// Represents the W3C trace context for distributed tracing.
 /// </summary>
 public record TraceContext
 {
     /// <summary>
-    /// 追踪 ID
+    /// Gets the trace ID.
     /// </summary>
     public required string TraceId { get; init; }
 
     /// <summary>
-    /// Span ID
+    /// Gets the span ID.
     /// </summary>
     public required string SpanId { get; init; }
 
     /// <summary>
-    /// 追踪标志
+    /// Gets the trace flags.
     /// </summary>
     public required string TraceFlags { get; init; }
 }
 
 /// <summary>
-/// Span 类型
+/// Defines the kind of a span.
 /// </summary>
 public enum SpanKind
 {
     /// <summary>
-    /// 内部操作
+    /// Internal operation.
     /// </summary>
     Internal,
 
     /// <summary>
-    /// 客户端调用
+    /// Client call.
     /// </summary>
     Client,
 
     /// <summary>
-    /// 服务端处理
+    /// Server-side processing.
     /// </summary>
     Server,
 
     /// <summary>
-    /// 消息生产
+    /// Message producer.
     /// </summary>
     Producer,
 
     /// <summary>
-    /// 消息消费
+    /// Message consumer.
     /// </summary>
     Consumer,
 }
 
 /// <summary>
-/// Span 状态
+/// Defines the status of a span.
 /// </summary>
 public enum SpanStatus
 {
     /// <summary>
-    /// 未设置
+    /// Unset.
     /// </summary>
     Unset,
 
     /// <summary>
-    /// 正常
+    /// OK.
     /// </summary>
     Ok,
 
     /// <summary>
-    /// 错误
+    /// Error.
     /// </summary>
     Error,
 }
 
 /// <summary>
-/// 追踪 Span 接口
+/// Represents a trace span for distributed tracing.
 /// </summary>
 public interface ITraceSpan : IDisposable
 {
     /// <summary>
-    /// Span ID
+    /// Gets the span ID.
     /// </summary>
     string SpanId { get; }
 
     /// <summary>
-    /// 设置属性
+    /// Sets an attribute on the span.
     /// </summary>
     void SetAttribute(string key, object value);
 
     /// <summary>
-    /// 设置状态
+    /// Sets the span status.
     /// </summary>
     void SetStatus(SpanStatus status, string? description = null);
 
     /// <summary>
-    /// 记录异常
+    /// Records an exception on the span.
     /// </summary>
     void RecordException(Exception ex);
 
     /// <summary>
-    /// 启动子 Span
+    /// Starts a child span.
     /// </summary>
     ITraceSpan StartChildSpan(string name);
 }

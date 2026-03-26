@@ -1,83 +1,83 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 单次工具执行记录
+/// Single tool execution record.
 /// </summary>
 public record ToolUsageRecord
 {
     /// <summary>
-    /// 工具名称
+    /// Tool name.
     /// </summary>
     public required string ToolName { get; init; }
 
     /// <summary>
-    /// 是否执行成功
+    /// Whether the execution succeeded.
     /// </summary>
     public bool Success { get; init; }
 
     /// <summary>
-    /// 执行耗时
+    /// Execution duration.
     /// </summary>
     public TimeSpan Duration { get; init; }
 
     /// <summary>
-    /// 错误信息
+    /// Error message.
     /// </summary>
     public string? ErrorMessage { get; init; }
 
     /// <summary>
-    /// 任务上下文描述
+    /// Task context description.
     /// </summary>
     public string? TaskContext { get; init; }
 
     /// <summary>
-    /// 记录时间戳
+    /// Record timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// 工具效用统计
+/// Tool utility statistics.
 /// </summary>
 public record ToolUsageStats
 {
     /// <summary>
-    /// 工具名称
+    /// Tool name.
     /// </summary>
     public required string ToolName { get; init; }
 
     /// <summary>
-    /// 总调用次数
+    /// Total number of calls.
     /// </summary>
     public int TotalCalls { get; init; }
 
     /// <summary>
-    /// 成功次数
+    /// Success count.
     /// </summary>
     public int SuccessCount { get; init; }
 
     /// <summary>
-    /// 失败次数
+    /// Failure count.
     /// </summary>
     public int FailureCount { get; init; }
 
     /// <summary>
-    /// 成功率 (0-1)
+    /// Success rate (0–1).
     /// </summary>
     public float SuccessRate => TotalCalls > 0 ? (float)SuccessCount / TotalCalls : 0f;
 
     /// <summary>
-    /// 平均延迟
+    /// Average latency.
     /// </summary>
     public TimeSpan AverageLatency { get; init; }
 
     /// <summary>
-    /// 最后使用时间
+    /// Last used time.
     /// </summary>
     public DateTimeOffset LastUsed { get; init; }
 
     /// <summary>
-    /// 最近的错误信息（保留最近 N 条）
+    /// Recent error messages (retains the most recent N entries).
     /// </summary>
     public IReadOnlyList<string> RecentErrors { get; init; } = [];
 }

@@ -1,32 +1,32 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// 反思引擎配置
+/// Reflection engine configuration.
 /// </summary>
 public sealed class ReflectionOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Reflection";
 
     /// <summary>
-    /// 是否启用反思引擎
+    /// Whether the reflection engine is enabled.
     /// </summary>
     public bool Enabled { get; set; }
 
     /// <summary>
-    /// 同一工具连续失败多少次后触发反思
+    /// Number of consecutive failures for the same tool before triggering reflection.
     /// </summary>
     public int FailureThreshold { get; set; } = 2;
 
     /// <summary>
-    /// 最大反思次数（防止无限修复循环）
+    /// Maximum number of reflections (prevents infinite repair loops).
     /// </summary>
     public int MaxReflections { get; set; } = 3;
 
     /// <summary>
-    /// 反思使用的模型（可使用较便宜的模型，null 表示使用默认模型）
+    /// Model to use for reflection (a cheaper model can be used). <c>null</c> means use the default model.
     /// </summary>
     public string? ModelOverride { get; set; }
 

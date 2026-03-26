@@ -1,29 +1,29 @@
 namespace Dawning.Agents.Abstractions.Logging;
 
 /// <summary>
-/// 日志级别控制器接口
+/// Defines the interface for runtime log level control.
 /// </summary>
 /// <remarks>
-/// 允许在运行时动态调整日志级别，无需重启应用。
+/// Allows dynamic adjustment of log levels at runtime without restarting the application.
 /// </remarks>
 public interface ILogLevelController
 {
     /// <summary>
-    /// 当前日志级别
+    /// The current log level.
     /// </summary>
     string CurrentLevel { get; }
 
     /// <summary>
-    /// 设置日志级别
+    /// Sets the log level.
     /// </summary>
-    /// <param name="level">日志级别（Verbose, Debug, Information, Warning, Error, Fatal）</param>
+    /// <param name="level">The log level (Verbose, Debug, Information, Warning, Error, Fatal).</param>
     void SetLevel(string level);
 
     /// <summary>
-    /// 临时提升日志级别（用于调试）
+    /// Temporarily elevates the log level for debugging purposes.
     /// </summary>
-    /// <param name="level">目标级别</param>
-    /// <param name="duration">持续时间</param>
-    /// <returns>恢复句柄，Dispose 后恢复原级别</returns>
+    /// <param name="level">The target log level.</param>
+    /// <param name="duration">The duration of the temporary level.</param>
+    /// <returns>A handle that restores the previous log level when disposed.</returns>
     IDisposable TemporaryLevel(string level, TimeSpan duration);
 }

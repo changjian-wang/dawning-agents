@@ -4,21 +4,21 @@ using Dawning.Agents.Abstractions.Scaling;
 namespace Dawning.Agents.Abstractions.Distributed;
 
 /// <summary>
-/// 分布式 Agent 请求队列接口
+/// Defines the interface for a distributed agent request queue.
 /// </summary>
 /// <remarks>
-/// <para>扩展 <see cref="IAgentRequestQueue"/> 以支持分布式场景</para>
-/// <para>支持优先级队列、延迟任务、死信队列等特性</para>
+/// <para>Extends <see cref="IAgentRequestQueue"/> to support distributed scenarios.</para>
+/// <para>Supports priority queues, delayed tasks, dead letter queues, and more.</para>
 /// </remarks>
 public interface IDistributedAgentQueue : IAgentRequestQueue
 {
     /// <summary>
-    /// 入队工作项（带消息 ID）
+    /// Enqueues a work item and returns a message ID.
     /// </summary>
-    /// <param name="item">工作项</param>
-    /// <param name="delay">延迟执行时间（可选）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>消息 ID</returns>
+    /// <param name="item">The work item to enqueue.</param>
+    /// <param name="delay">The optional delay before execution.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The message ID.</returns>
     Task<string> EnqueueWithIdAsync(
         AgentWorkItem item,
         TimeSpan? delay = null,
@@ -26,18 +26,18 @@ public interface IDistributedAgentQueue : IAgentRequestQueue
     );
 
     /// <summary>
-    /// 确认消息处理完成
+    /// Acknowledges that a message has been processed.
     /// </summary>
-    /// <param name="messageId">消息 ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="messageId">The message ID.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task AcknowledgeAsync(string messageId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 将消息重新入队
+    /// Re-enqueues a message.
     /// </summary>
-    /// <param name="messageId">消息 ID</param>
-    /// <param name="delay">延迟执行时间（可选）</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="messageId">The message ID.</param>
+    /// <param name="delay">The optional delay before execution.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task RequeueAsync(
         string messageId,
         TimeSpan? delay = null,
@@ -45,11 +45,11 @@ public interface IDistributedAgentQueue : IAgentRequestQueue
     );
 
     /// <summary>
-    /// 将消息移入死信队列
+    /// Moves a message to the dead letter queue.
     /// </summary>
-    /// <param name="messageId">消息 ID</param>
-    /// <param name="reason">移入死信队列的原因</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="messageId">The message ID.</param>
+    /// <param name="reason">The reason for moving the message to the dead letter queue.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     Task MoveToDeadLetterAsync(
         string messageId,
         string reason,
@@ -57,57 +57,57 @@ public interface IDistributedAgentQueue : IAgentRequestQueue
     );
 
     /// <summary>
-    /// 获取待处理消息数量
+    /// Gets the number of pending messages.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>待处理消息数量</returns>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of pending messages.</returns>
     Task<long> GetPendingCountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取死信队列消息数量
+    /// Gets the number of messages in the dead letter queue.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>死信队列消息数量</returns>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of messages in the dead letter queue.</returns>
     Task<long> GetDeadLetterCountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 消费者组名称
+    /// The consumer group name.
     /// </summary>
     string ConsumerGroup { get; }
 
     /// <summary>
-    /// 消费者名称
+    /// The consumer name.
     /// </summary>
     string ConsumerName { get; }
 }
 
 /// <summary>
-/// 分布式队列消息
+/// Represents a distributed queue message.
 /// </summary>
 public record DistributedQueueMessage
 {
     /// <summary>
-    /// 消息 ID
+    /// The message ID.
     /// </summary>
     public required string MessageId { get; init; }
 
     /// <summary>
-    /// 工作项
+    /// The work item.
     /// </summary>
     public required AgentWorkItem WorkItem { get; init; }
 
     /// <summary>
-    /// 入队时间
+    /// The time when the message was enqueued.
     /// </summary>
     public DateTimeOffset EnqueuedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 重试次数
+    /// The retry count.
     /// </summary>
     public int RetryCount { get; init; }
 
     /// <summary>
-    /// 最大重试次数
+    /// Maximum retry count
     /// </summary>
     public int MaxRetries { get; init; } = 3;
 }

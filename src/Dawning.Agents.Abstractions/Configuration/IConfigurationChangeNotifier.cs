@@ -1,34 +1,34 @@
 namespace Dawning.Agents.Abstractions.Configuration;
 
 /// <summary>
-/// 配置变更事件参数
+/// Configuration change event arguments.
 /// </summary>
-/// <typeparam name="TOptions">配置类型</typeparam>
+/// <typeparam name="TOptions">The configuration type.</typeparam>
 public class ConfigurationChangedEventArgs<TOptions> : EventArgs
     where TOptions : class
 {
     /// <summary>
-    /// 旧配置
+    /// Previous configuration value.
     /// </summary>
     public TOptions? OldValue { get; }
 
     /// <summary>
-    /// 新配置
+    /// New configuration value.
     /// </summary>
     public TOptions NewValue { get; }
 
     /// <summary>
-    /// 配置名称（用于命名配置）
+    /// Configuration name (for named configurations).
     /// </summary>
     public string? Name { get; }
 
     /// <summary>
-    /// 变更时间戳
+    /// Change timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; }
 
     /// <summary>
-    /// 创建配置变更事件参数
+    /// Creates a new instance of <see cref="ConfigurationChangedEventArgs{TOptions}"/>.
     /// </summary>
     public ConfigurationChangedEventArgs(TOptions? oldValue, TOptions newValue, string? name = null)
     {
@@ -40,19 +40,19 @@ public class ConfigurationChangedEventArgs<TOptions> : EventArgs
 }
 
 /// <summary>
-/// 配置变更通知接口
+/// Configuration change notification interface.
 /// </summary>
-/// <typeparam name="TOptions">配置类型</typeparam>
+/// <typeparam name="TOptions">The configuration type.</typeparam>
 public interface IConfigurationChangeNotifier<TOptions>
     where TOptions : class
 {
     /// <summary>
-    /// 配置变更事件
+    /// Configuration change event.
     /// </summary>
     event EventHandler<ConfigurationChangedEventArgs<TOptions>>? ConfigurationChanged;
 
     /// <summary>
-    /// 当前配置值
+    /// Current configuration value.
     /// </summary>
     TOptions CurrentValue { get; }
 }

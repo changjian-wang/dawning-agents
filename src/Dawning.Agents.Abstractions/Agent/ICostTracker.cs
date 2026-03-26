@@ -1,57 +1,57 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// 单次 Agent 运行的成本追踪器
+/// Cost tracker for a single agent run.
 /// </summary>
 /// <remarks>
-/// 每个 Agent Run 应使用独立的 ICostTracker 实例。
-/// 当配置了 MaxCostPerRun 且成本超出预算时抛出 <see cref="BudgetExceededException"/>。
+/// Each agent run should use a separate <see cref="ICostTracker"/> instance.
+/// Throws <see cref="BudgetExceededException"/> when MaxCostPerRun is configured and cost exceeds the budget.
 /// </remarks>
 public interface ICostTracker
 {
     /// <summary>
-    /// 累计总成本（USD）
+    /// Accumulated total cost (USD).
     /// </summary>
     decimal TotalCost { get; }
 
     /// <summary>
-    /// 最大单次运行成本预算（USD），null 表示无限制
+    /// Maximum cost budget per run (USD). <c>null</c> means no limit.
     /// </summary>
     decimal? Budget { get; }
 
     /// <summary>
-    /// 累加成本，超出预算时抛出 <see cref="BudgetExceededException"/>
+    /// Adds cost. Throws <see cref="BudgetExceededException"/> when accumulated cost exceeds the budget.
     /// </summary>
-    /// <param name="cost">本次成本（USD）</param>
-    /// <exception cref="BudgetExceededException">累计成本超出预算</exception>
+    /// <param name="cost">Cost to add (USD).</param>
+    /// <exception cref="BudgetExceededException">Accumulated cost exceeds the budget.</exception>
     void Add(decimal cost);
 
     /// <summary>
-    /// 重置成本为零
+    /// Resets cost to zero.
     /// </summary>
     void Reset();
 }
 
 /// <summary>
-/// 成本超出预算异常
+/// Exception thrown when cost exceeds the budget.
 /// </summary>
 public class BudgetExceededException : InvalidOperationException
 {
     /// <summary>
-    /// 累计成本（USD）
+    /// Accumulated cost (USD).
     /// </summary>
     public decimal TotalCost { get; }
 
     /// <summary>
-    /// 预算上限（USD）
+    /// Budget limit (USD).
     /// </summary>
     public decimal Budget { get; }
 
     /// <summary>
-    /// 创建成本超出预算异常
+    /// Initializes a new instance of the <see cref="BudgetExceededException"/> class.
     /// </summary>
-    /// <param name="totalCost">累计成本</param>
-    /// <param name="budget">预算上限</param>
+    /// <param name="totalCost">Accumulated cost.</param>
+    /// <param name="budget">Budget limit.</param>
     public BudgetExceededException(decimal totalCost, decimal budget)
         : base($"Cost budget exceeded: ${totalCost:F4} > ${budget:F4}")
     {

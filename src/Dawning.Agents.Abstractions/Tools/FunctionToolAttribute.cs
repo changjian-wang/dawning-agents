@@ -1,30 +1,30 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 标记方法为可被 Agent 调用的工具
+/// Marks a method as a tool that can be invoked by an Agent.
 /// </summary>
 /// <remarks>
-/// <para>使用此特性标记的方法会被自动扫描并注册为工具</para>
-/// <para>方法签名要求：</para>
+/// <para>Methods marked with this attribute are automatically scanned and registered as tools.</para>
+/// <para>Method signature requirements:</para>
 /// <list type="bullet">
-/// <item>返回类型：string, Task&lt;string&gt;, ToolResult, 或 Task&lt;ToolResult&gt;</item>
-/// <item>参数：支持基本类型（string, int, bool, double 等）</item>
-/// <item>可选：最后一个参数可以是 CancellationToken</item>
+/// <item>Return type: string, Task&lt;string&gt;, ToolResult, or Task&lt;ToolResult&gt;</item>
+/// <item>Parameters: basic types supported (string, int, bool, double, etc.)</item>
+/// <item>Optional: the last parameter can be a CancellationToken</item>
 /// </list>
 /// </remarks>
 /// <example>
 /// <code>
-/// [FunctionTool("搜索网页内容")]
+/// [FunctionTool("Search web content")]
 /// public string Search(string query) => $"Results for: {query}";
 ///
-/// [FunctionTool("计算数学表达式")]
+/// [FunctionTool("Calculate a mathematical expression")]
 /// public async Task&lt;string&gt; CalculateAsync(string expression, CancellationToken ct = default)
 /// {
-///     // 实现
+///     // Implementation
 /// }
 ///
-/// // 高风险操作需要确认
-/// [FunctionTool("执行终端命令", RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
+/// // High-risk operations require confirmation
+/// [FunctionTool("Execute a terminal command", RequiresConfirmation = true, RiskLevel = ToolRiskLevel.High)]
 /// public string RunCommand(string command) { ... }
 /// </code>
 /// </example>
@@ -32,38 +32,38 @@ namespace Dawning.Agents.Abstractions.Tools;
 public sealed class FunctionToolAttribute : Attribute
 {
     /// <summary>
-    /// 工具描述（供 LLM 理解工具用途）
+    /// Tool description (for the LLM to understand the tool's purpose).
     /// </summary>
     public string Description { get; }
 
     /// <summary>
-    /// 工具名称（可选，默认使用方法名）
+    /// Tool name (optional; defaults to the method name).
     /// </summary>
     public string? Name { get; set; }
 
     /// <summary>
-    /// 是否需要用户确认才能执行（用于危险操作）
+    /// Whether user confirmation is required before execution (for dangerous operations).
     /// </summary>
     /// <remarks>
-    /// 当设置为 true 时，工具执行前会请求用户确认。
-    /// 适用于：删除文件、执行命令、修改系统设置等操作。
+    /// When set to <see langword="true"/>, user confirmation is requested before tool execution.
+    /// Applicable to: file deletion, command execution, system settings modification, etc.
     /// </remarks>
     public bool RequiresConfirmation { get; set; } = false;
 
     /// <summary>
-    /// 工具的风险等级
+    /// Risk level of the tool.
     /// </summary>
     public ToolRiskLevel RiskLevel { get; set; } = ToolRiskLevel.Low;
 
     /// <summary>
-    /// 工具分类（用于分组显示）
+    /// Tool category (used for grouping display).
     /// </summary>
     public string? Category { get; set; }
 
     /// <summary>
-    /// 创建 FunctionTool 特性
+    /// Creates a <see cref="FunctionToolAttribute"/>.
     /// </summary>
-    /// <param name="description">工具描述</param>
+    /// <param name="description">Tool description.</param>
     public FunctionToolAttribute(string description)
     {
         Description = description;
@@ -71,49 +71,49 @@ public sealed class FunctionToolAttribute : Attribute
 }
 
 /// <summary>
-/// 工具风险等级
+/// Tool risk level.
 /// </summary>
 public enum ToolRiskLevel
 {
     /// <summary>
-    /// 低风险 - 只读操作，无副作用（如：获取时间、计算、格式化）
+    /// Low risk — read-only operations with no side effects (e.g., get time, calculate, format).
     /// </summary>
     Low = 0,
 
     /// <summary>
-    /// 中等风险 - 可能有副作用但可恢复（如：写文件、HTTP 请求）
+    /// Medium risk — may have side effects but recoverable (e.g., write file, HTTP request).
     /// </summary>
     Medium = 1,
 
     /// <summary>
-    /// 高风险 - 可能造成不可逆影响（如：删除文件、执行命令、Git 操作）
+    /// High risk — may cause irreversible impact (e.g., delete file, execute command, Git operations).
     /// </summary>
     High = 2,
 }
 
 /// <summary>
-/// 标记参数的描述信息（供 LLM 理解参数用途）
+/// Marks a parameter's description (for the LLM to understand the parameter's purpose).
 /// </summary>
 /// <example>
 /// <code>
-/// [FunctionTool("搜索网页")]
+/// [FunctionTool("Search web pages")]
 /// public string Search(
-///     [ToolParameter("搜索关键词")] string query,
-///     [ToolParameter("返回结果数量")] int count = 10)
+///     [ToolParameter("Search keywords")] string query,
+///     [ToolParameter("Number of results to return")] int count = 10)
 /// </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
 public sealed class ToolParameterAttribute : Attribute
 {
     /// <summary>
-    /// 参数描述
+    /// Parameter description.
     /// </summary>
     public string Description { get; }
 
     /// <summary>
-    /// 创建参数描述特性
+    /// Creates a <see cref="ToolParameterAttribute"/>.
     /// </summary>
-    /// <param name="description">参数描述</param>
+    /// <param name="description">Parameter description.</param>
     public ToolParameterAttribute(string description)
     {
         Description = description;

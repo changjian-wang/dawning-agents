@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Configuration;
 
 /// <summary>
-/// Agent 配置选项
+/// Agent configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Agent": {
@@ -22,37 +22,37 @@ namespace Dawning.Agents.Abstractions.Configuration;
 public record AgentDeploymentOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Agent";
 
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public string Name { get; init; } = "DefaultAgent";
 
     /// <summary>
-    /// 最大迭代次数
+    /// Maximum iteration count
     /// </summary>
     public int MaxIterations { get; init; } = 10;
 
     /// <summary>
-    /// 每个请求的最大 Token 数
+    /// Maximum tokens per request.
     /// </summary>
     public int MaxTokensPerRequest { get; init; } = 4000;
 
     /// <summary>
-    /// 请求超时时间
+    /// Request timeout duration.
     /// </summary>
     public TimeSpan RequestTimeout { get; init; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// 是否启用安全护栏
+    /// Whether to enable safety guardrails.
     /// </summary>
     public bool EnableSafetyGuardrails { get; init; } = true;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -79,10 +79,10 @@ public record AgentDeploymentOptions : IValidatableOptions
 }
 
 /// <summary>
-/// LLM 提供者配置选项
+/// LLM provider configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "LLM": {
@@ -97,47 +97,47 @@ public record AgentDeploymentOptions : IValidatableOptions
 public record LLMDeploymentOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "LLM";
 
     /// <summary>
-    /// LLM 提供者名称
+    /// LLM provider name.
     /// </summary>
     public string Provider { get; init; } = "OpenAI";
 
     /// <summary>
-    /// API 密钥
+    /// API key.
     /// </summary>
     public string? ApiKey { get; init; }
 
     /// <summary>
-    /// 自定义端点
+    /// Custom endpoint.
     /// </summary>
     public string? Endpoint { get; init; }
 
     /// <summary>
-    /// 模型名称
+    /// Model name.
     /// </summary>
     public string Model { get; init; } = "gpt-4";
 
     /// <summary>
-    /// 温度参数
+    /// Temperature parameter.
     /// </summary>
     public double Temperature { get; init; } = 0.7;
 
     /// <summary>
-    /// 最大重试次数
+    /// Maximum retry count
     /// </summary>
     public int MaxRetries { get; init; } = 3;
 
     /// <summary>
-    /// 重试延迟
+    /// Retry delay.
     /// </summary>
     public TimeSpan RetryDelay { get; init; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -169,10 +169,10 @@ public record LLMDeploymentOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 缓存配置选项
+/// Cache configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Cache": {
@@ -186,37 +186,37 @@ public record LLMDeploymentOptions : IValidatableOptions
 public record CacheOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Cache";
 
     /// <summary>
-    /// 是否启用缓存
+    /// Whether caching is enabled.
     /// </summary>
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// 缓存提供者
+    /// Cache provider.
     /// </summary>
     public string Provider { get; init; } = "Memory";
 
     /// <summary>
-    /// Redis 连接字符串
+    /// Redis connection string.
     /// </summary>
     public string? ConnectionString { get; init; }
 
     /// <summary>
-    /// 默认过期时间
+    /// Default expiration time.
     /// </summary>
     public TimeSpan DefaultExpiration { get; init; } = TimeSpan.FromHours(1);
 
     /// <summary>
-    /// 最大缓存大小
+    /// Maximum cache size.
     /// </summary>
     public int MaxCacheSize { get; init; } = 10000;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {

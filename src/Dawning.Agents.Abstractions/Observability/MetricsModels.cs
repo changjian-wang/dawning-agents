@@ -1,88 +1,88 @@
 namespace Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// 指标数据
+/// Represents a single metric data point.
 /// </summary>
 public record MetricData
 {
     /// <summary>
-    /// 指标名称
+    /// Gets the metric name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 指标类型（counter, histogram, gauge）
+    /// Gets the metric type (counter, histogram, gauge).
     /// </summary>
     public required string Type { get; init; }
 
     /// <summary>
-    /// 值（用于计数器和仪表）
+    /// Gets the value (used for counters and gauges).
     /// </summary>
     public double Value { get; init; }
 
     /// <summary>
-    /// 计数（用于直方图）
+    /// Gets the count (used for histograms).
     /// </summary>
     public int Count { get; init; }
 
     /// <summary>
-    /// 总和（用于直方图）
+    /// Gets the sum (used for histograms).
     /// </summary>
     public double Sum { get; init; }
 
     /// <summary>
-    /// 最小值
+    /// Gets the minimum value.
     /// </summary>
     public double Min { get; init; }
 
     /// <summary>
-    /// 最大值
+    /// Gets the maximum value.
     /// </summary>
     public double Max { get; init; }
 
     /// <summary>
-    /// 50 百分位
+    /// Gets the 50th percentile.
     /// </summary>
     public double P50 { get; init; }
 
     /// <summary>
-    /// 95 百分位
+    /// Gets the 95th percentile.
     /// </summary>
     public double P95 { get; init; }
 
     /// <summary>
-    /// 99 百分位
+    /// Gets the 99th percentile.
     /// </summary>
     public double P99 { get; init; }
 
     /// <summary>
-    /// 标签
+    /// Gets the optional tags associated with this metric.
     /// </summary>
     public IReadOnlyDictionary<string, string>? Tags { get; init; }
 }
 
 /// <summary>
-/// 指标快照
+/// Represents a point-in-time snapshot of all metrics.
 /// </summary>
 public record MetricsSnapshot
 {
     /// <summary>
-    /// 时间戳
+    /// Gets the timestamp of the snapshot.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
-    /// 计数器指标
+    /// Gets the counter metrics.
     /// </summary>
     public IReadOnlyList<MetricData> Counters { get; init; } = [];
 
     /// <summary>
-    /// 直方图指标
+    /// Gets the histogram metrics.
     /// </summary>
     public IReadOnlyList<MetricData> Histograms { get; init; } = [];
 
     /// <summary>
-    /// 仪表指标
+    /// Gets the gauge metrics.
     /// </summary>
     public IReadOnlyList<MetricData> Gauges { get; init; } = [];
 }

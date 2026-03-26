@@ -1,49 +1,49 @@
 namespace Dawning.Agents.Abstractions.Multimodal;
 
 /// <summary>
-/// 多模态内容类型
+/// Multimodal content type.
 /// </summary>
 public enum ContentType
 {
     /// <summary>
-    /// 纯文本
+    /// Plain text.
     /// </summary>
     Text,
 
     /// <summary>
-    /// 图像
+    /// Image.
     /// </summary>
     Image,
 
     /// <summary>
-    /// 音频
+    /// Audio.
     /// </summary>
     Audio,
 
     /// <summary>
-    /// 视频
+    /// Video.
     /// </summary>
     Video,
 
     /// <summary>
-    /// 文档
+    /// Document.
     /// </summary>
     Document,
 }
 
 /// <summary>
-/// 多模态内容项
+/// Multimodal content item.
 /// </summary>
 public abstract record ContentItem
 {
     /// <summary>
-    /// 内容类型
+    /// Content type.
     /// </summary>
     public abstract ContentType Type { get; }
 }
 
 /// <summary>
-/// 文本内容
+/// Text content.
 /// </summary>
 public record TextContent : ContentItem
 {
@@ -51,18 +51,18 @@ public record TextContent : ContentItem
     public override ContentType Type => ContentType.Text;
 
     /// <summary>
-    /// 文本内容
+    /// Text content.
     /// </summary>
     public required string Text { get; init; }
 
     /// <summary>
-    /// 创建文本内容
+    /// Creates text content.
     /// </summary>
     public static TextContent Create(string text) => new() { Text = text };
 }
 
 /// <summary>
-/// 图像内容
+/// Image content.
 /// </summary>
 public record ImageContent : ContentItem
 {
@@ -70,66 +70,66 @@ public record ImageContent : ContentItem
     public override ContentType Type => ContentType.Image;
 
     /// <summary>
-    /// 图像数据（Base64 编码）
+    /// Image data (Base64 encoded).
     /// </summary>
     public string? Base64Data { get; init; }
 
     /// <summary>
-    /// 图像 URL
+    /// Image URL.
     /// </summary>
     public string? Url { get; init; }
 
     /// <summary>
-    /// 图像 MIME 类型
+    /// Image MIME type.
     /// </summary>
     public string MimeType { get; init; } = "image/png";
 
     /// <summary>
-    /// 图像详情级别（用于 GPT-4V）
+    /// Image detail level (for GPT-4V).
     /// </summary>
     public ImageDetail Detail { get; init; } = ImageDetail.Auto;
 
     /// <summary>
-    /// 图像描述/Alt 文本
+    /// Image description / alt text.
     /// </summary>
     public string? AltText { get; init; }
 
     /// <summary>
-    /// 从 Base64 数据创建
+    /// Creates from Base64 data.
     /// </summary>
     public static ImageContent FromBase64(string base64Data, string mimeType = "image/png") =>
         new() { Base64Data = base64Data, MimeType = mimeType };
 
     /// <summary>
-    /// 从 URL 创建
+    /// Creates from a URL.
     /// </summary>
     public static ImageContent FromUrl(string url, ImageDetail detail = ImageDetail.Auto) =>
         new() { Url = url, Detail = detail };
 }
 
 /// <summary>
-/// 图像详情级别
+/// Image detail level.
 /// </summary>
 public enum ImageDetail
 {
     /// <summary>
-    /// 自动选择
+    /// Auto select.
     /// </summary>
     Auto,
 
     /// <summary>
-    /// 低分辨率（更快、更便宜）
+    /// Low resolution (faster, cheaper).
     /// </summary>
     Low,
 
     /// <summary>
-    /// 高分辨率（更详细）
+    /// High resolution (more detailed).
     /// </summary>
     High,
 }
 
 /// <summary>
-/// 音频内容
+/// Audio content.
 /// </summary>
 public record AudioContent : ContentItem
 {
@@ -137,77 +137,77 @@ public record AudioContent : ContentItem
     public override ContentType Type => ContentType.Audio;
 
     /// <summary>
-    /// 音频数据（Base64 编码）
+    /// Audio data (Base64 encoded).
     /// </summary>
     public string? Base64Data { get; init; }
 
     /// <summary>
-    /// 音频 URL
+    /// Audio URL.
     /// </summary>
     public string? Url { get; init; }
 
     /// <summary>
-    /// 音频 MIME 类型
+    /// Audio MIME type.
     /// </summary>
     public string MimeType { get; init; } = "audio/mp3";
 
     /// <summary>
-    /// 时长（秒）
+    /// Duration (seconds).
     /// </summary>
     public double? DurationSeconds { get; init; }
 
     /// <summary>
-    /// 转录文本（如果已转录）
+    /// Transcript text (if already transcribed).
     /// </summary>
     public string? Transcript { get; init; }
 
     /// <summary>
-    /// 从 Base64 数据创建
+    /// Creates from Base64 data.
     /// </summary>
     public static AudioContent FromBase64(string base64Data, string mimeType = "audio/mp3") =>
         new() { Base64Data = base64Data, MimeType = mimeType };
 
     /// <summary>
-    /// 从 URL 创建
+    /// Creates from a URL.
     /// </summary>
     public static AudioContent FromUrl(string url) => new() { Url = url };
 }
 
 /// <summary>
-/// 多模态消息（包含多个内容项）
+/// Multimodal message (contains multiple content items).
 /// </summary>
 public class MultimodalMessage
 {
     /// <summary>
-    /// 角色
+    /// Role.
     /// </summary>
     public required string Role { get; init; }
 
     /// <summary>
-    /// 内容项列表
+    /// Content item list.
     /// </summary>
     public List<ContentItem> Content { get; init; } = [];
 
     /// <summary>
-    /// 创建用户消息
+    /// Creates a user message.
     /// </summary>
     public static MultimodalMessage User(params ContentItem[] content) =>
         new() { Role = "user", Content = [.. content] };
 
     /// <summary>
-    /// 创建助手消息
+    /// Creates an assistant message.
     /// </summary>
     public static MultimodalMessage Assistant(string text) =>
         new() { Role = "assistant", Content = [TextContent.Create(text)] };
 
     /// <summary>
-    /// 创建系统消息
+    /// Creates a system message.
     /// </summary>
     public static MultimodalMessage System(string text) =>
         new() { Role = "system", Content = [TextContent.Create(text)] };
 
     /// <summary>
-    /// 添加文本
+    /// Adds text.
     /// </summary>
     public MultimodalMessage AddText(string text)
     {
@@ -216,7 +216,7 @@ public class MultimodalMessage
     }
 
     /// <summary>
-    /// 添加图像（从 URL）
+    /// Adds an image (from URL).
     /// </summary>
     public MultimodalMessage AddImageUrl(string url, ImageDetail detail = ImageDetail.Auto)
     {
@@ -225,7 +225,7 @@ public class MultimodalMessage
     }
 
     /// <summary>
-    /// 添加图像（从 Base64）
+    /// Adds an image (from Base64).
     /// </summary>
     public MultimodalMessage AddImageBase64(string base64Data, string mimeType = "image/png")
     {

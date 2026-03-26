@@ -27,7 +27,7 @@ public interface ISemanticCache
     /// </summary>
     /// <param name="query">查询文本</param>
     /// <param name="response">响应文本</param>
-    /// <param name="metadata">可选的元数据</param>
+    /// <param name="metadata">可选的Metadata</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task SetAsync(
         string query,
@@ -74,7 +74,7 @@ public record SemanticCacheResult
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public IReadOnlyDictionary<string, string> Metadata { get; init; } =
         new Dictionary<string, string>();

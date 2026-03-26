@@ -1,16 +1,16 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 状态检查点 — 支持保存和恢复 Agent 执行上下文
+/// Agent state checkpoint — supports saving and restoring agent execution context.
 /// </summary>
 public interface IAgentCheckpoint
 {
     /// <summary>
-    /// 保存 Agent 上下文快照
+    /// Saves an agent context snapshot.
     /// </summary>
-    /// <param name="sessionId">会话 ID（作为检查点键）</param>
-    /// <param name="context">要保存的 Agent 上下文</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="sessionId">Session ID (used as the checkpoint key).</param>
+    /// <param name="context">Agent context to save.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task SaveAsync(
         string sessionId,
         AgentContext context,
@@ -18,24 +18,24 @@ public interface IAgentCheckpoint
     );
 
     /// <summary>
-    /// 加载 Agent 上下文快照
+    /// Loads an agent context snapshot.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>保存的上下文，不存在时返回 null</returns>
+    /// <param name="sessionId">Session ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The saved context, or <c>null</c> if not found.</returns>
     Task<AgentContext?> LoadAsync(string sessionId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 删除检查点
+    /// Deletes a checkpoint.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="sessionId">Session ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task DeleteAsync(string sessionId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 检查检查点是否存在
+    /// Checks whether a checkpoint exists.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="sessionId">Session ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> ExistsAsync(string sessionId, CancellationToken cancellationToken = default);
 }

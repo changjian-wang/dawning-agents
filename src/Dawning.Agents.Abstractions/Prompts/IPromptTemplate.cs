@@ -1,24 +1,24 @@
 namespace Dawning.Agents.Abstractions.Prompts;
 
 /// <summary>
-/// 提示词模板接口
+/// Prompt template interface.
 /// </summary>
 public interface IPromptTemplate
 {
     /// <summary>
-    /// 模板名称
+    /// Template name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 模板内容（包含占位符）
+    /// Template content (with placeholders).
     /// </summary>
     string Template { get; }
 
     /// <summary>
-    /// 格式化模板，替换占位符
+    /// Formats the template by substituting placeholders.
     /// </summary>
-    /// <param name="variables">变量字典</param>
-    /// <returns>格式化后的字符串</returns>
+    /// <param name="variables">Variable dictionary.</param>
+    /// <returns>The formatted string.</returns>
     string Format(IReadOnlyDictionary<string, object> variables);
 }

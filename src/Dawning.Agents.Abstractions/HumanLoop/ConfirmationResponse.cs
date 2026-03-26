@@ -1,42 +1,42 @@
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 人工确认响应
+/// Human confirmation response.
 /// </summary>
 public record ConfirmationResponse
 {
     /// <summary>
-    /// 对应的请求 ID
+    /// Corresponding request ID.
     /// </summary>
     public required string RequestId { get; init; }
 
     /// <summary>
-    /// 选择的选项 ID
+    /// Selected option ID.
     /// </summary>
     public required string SelectedOption { get; init; }
 
     /// <summary>
-    /// 自由输入内容（用于 FreeformInput 类型）
+    /// Freeform input content (for FreeformInput type).
     /// </summary>
     public string? FreeformInput { get; init; }
 
     /// <summary>
-    /// 修改后的内容（用于 Review 类型）
+    /// Modified content (for Review type).
     /// </summary>
     public string? ModifiedContent { get; init; }
 
     /// <summary>
-    /// 响应时间
+    /// Response time.
     /// </summary>
     public DateTimeOffset RespondedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 响应人
+    /// Responder.
     /// </summary>
     public string? RespondedBy { get; init; }
 
     /// <summary>
-    /// 原因说明
+    /// Reason.
     /// </summary>
     public string? Reason { get; init; }
 }

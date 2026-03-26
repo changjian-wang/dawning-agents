@@ -1,37 +1,37 @@
 namespace Dawning.Agents.Abstractions.Workflow;
 
 /// <summary>
-/// 工作流接口
+/// Workflow interface
 /// </summary>
 public interface IWorkflow
 {
     /// <summary>
-    /// 工作流 ID
+    /// Workflow ID
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// 工作流名称
+    /// Workflow name
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 工作流描述
+    /// Workflow description
     /// </summary>
     string? Description { get; }
 
     /// <summary>
-    /// 所有节点
+    /// All nodes
     /// </summary>
     IReadOnlyList<IWorkflowNode> Nodes { get; }
 
     /// <summary>
-    /// 起始节点 ID
+    /// Start node ID
     /// </summary>
     string StartNodeId { get; }
 
     /// <summary>
-    /// 执行工作流
+    /// Execute the workflow
     /// </summary>
     Task<WorkflowResult> ExecuteAsync(
         WorkflowContext context,
@@ -40,32 +40,32 @@ public interface IWorkflow
 }
 
 /// <summary>
-/// 工作流节点接口
+/// Workflow node interface
 /// </summary>
 public interface IWorkflowNode
 {
     /// <summary>
-    /// 节点 ID
+    /// Node ID
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// 节点名称
+    /// Node name
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// 节点类型
+    /// Node type
     /// </summary>
     WorkflowNodeType Type { get; }
 
     /// <summary>
-    /// 下一个节点 ID（单一后继）
+    /// Next node ID (single successor)
     /// </summary>
     string? NextNodeId { get; }
 
     /// <summary>
-    /// 执行节点
+    /// Execute the node
     /// </summary>
     Task<NodeExecutionResult> ExecuteAsync(
         WorkflowContext context,
@@ -74,63 +74,63 @@ public interface IWorkflowNode
 }
 
 /// <summary>
-/// 工作流节点类型
+/// Workflow node type.
 /// </summary>
 public enum WorkflowNodeType
 {
     /// <summary>
-    /// Agent 节点 - 调用 Agent
+    /// Agent node - invokes an Agent
     /// </summary>
     Agent,
 
     /// <summary>
-    /// 工具节点 - 直接调用工具
+    /// Tool node - directly invokes a tool
     /// </summary>
     Tool,
 
     /// <summary>
-    /// 条件节点 - 条件分支
+    /// Condition node - conditional branching
     /// </summary>
     Condition,
 
     /// <summary>
-    /// 循环节点 - 循环执行
+    /// Loop node - iterative execution
     /// </summary>
     Loop,
 
     /// <summary>
-    /// 并行节点 - 并行执行多个分支
+    /// Parallel node - executes multiple branches concurrently
     /// </summary>
     Parallel,
 
     /// <summary>
-    /// 子工作流节点 - 嵌套工作流
+    /// Sub-workflow node - nested workflow
     /// </summary>
     SubWorkflow,
 
     /// <summary>
-    /// 起始节点
+    /// Start node
     /// </summary>
     Start,
 
     /// <summary>
-    /// 结束节点
+    /// End node
     /// </summary>
     End,
 
     /// <summary>
-    /// 人工审批节点
+    /// Human approval node
     /// </summary>
     HumanApproval,
 
     /// <summary>
-    /// 延迟节点
+    /// Delay node
     /// </summary>
     Delay,
 }
 
 /// <summary>
-/// 工作流上下文（线程安全）
+/// Workflow context (thread-safe)
 /// </summary>
 public class WorkflowContext
 {
@@ -141,12 +141,12 @@ public class WorkflowContext
     private readonly Lock _lock = new();
 
     /// <summary>
-    /// 输入数据
+    /// Input data
     /// </summary>
     public string Input { get; set; } = string.Empty;
 
     /// <summary>
-    /// 共享状态（只读快照）
+    /// Shared state (read-only snapshot)
     /// </summary>
     public IReadOnlyDictionary<string, object?> State
     {
@@ -160,7 +160,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 节点执行结果（只读快照）
+    /// Node execution result（只读快照）
     /// </summary>
     public IReadOnlyDictionary<string, NodeExecutionResult> NodeResults
     {
@@ -174,7 +174,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 执行历史（只读快照）
+    /// Execution history (read-only snapshot)
     /// </summary>
     public IReadOnlyList<WorkflowExecutionStep> ExecutionHistory
     {
@@ -188,7 +188,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 元数据（只读快照）
+    /// Metadata（只读快照）
     /// </summary>
     public IReadOnlyDictionary<string, object?> Metadata
     {
@@ -202,7 +202,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 获取状态值
+    /// Get a state value
     /// </summary>
     public T? GetState<T>(string key)
     {
@@ -217,7 +217,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 设置状态值
+    /// Set a state value
     /// </summary>
     public void SetState<T>(string key, T value)
     {
@@ -228,7 +228,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 添加节点执行结果
+    /// 添加Node execution result
     /// </summary>
     public void AddNodeResult(string nodeId, NodeExecutionResult result)
     {
@@ -239,7 +239,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 添加执行步骤
+    /// Add an execution step
     /// </summary>
     public void AddExecutionStep(WorkflowExecutionStep step)
     {
@@ -250,7 +250,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 设置元数据
+    /// 设置Metadata
     /// </summary>
     public void SetMetadata(string key, object? value)
     {
@@ -261,7 +261,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 获取上一个节点的结果
+    /// Get the result of the previous node
     /// </summary>
     public NodeExecutionResult? GetLastResult()
     {
@@ -275,46 +275,46 @@ public class WorkflowContext
 }
 
 /// <summary>
-/// 节点执行结果
+/// Node execution result
 /// </summary>
 public record NodeExecutionResult
 {
     /// <summary>
-    /// 节点 ID
+    /// Node ID
     /// </summary>
     public required string NodeId { get; init; }
 
     /// <summary>
-    /// 是否成功
+    /// Whether successful
     /// </summary>
     public bool Success { get; init; } = true;
 
     /// <summary>
-    /// 输出数据
+    /// Output data
     /// </summary>
     public string? Output { get; init; }
 
     /// <summary>
-    /// 错误信息
+    /// Error message
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 下一个节点 ID（用于条件节点决定分支）
+    /// Next node ID (used by condition nodes to determine branching)
     /// </summary>
     public string? NextNodeId { get; init; }
 
     /// <summary>
-    /// 执行时间（毫秒）
+    /// Execution duration (milliseconds)
     /// </summary>
     public long DurationMs { get; init; }
 
     /// <summary>
-    /// 元数据
+    /// Metadata
     /// </summary>
     public Dictionary<string, object?>? Metadata { get; init; }
 
-    /// <summary>创建成功结果</summary>
+    /// <summary>Create a success result</summary>
     public static NodeExecutionResult Ok(string nodeId, string? output = null) =>
         new()
         {
@@ -323,7 +323,7 @@ public record NodeExecutionResult
             Output = output,
         };
 
-    /// <summary>创建失败结果</summary>
+    /// <summary>Create a failure result</summary>
     public static NodeExecutionResult Fail(string nodeId, string error) =>
         new()
         {
@@ -332,7 +332,7 @@ public record NodeExecutionResult
             Error = error,
         };
 
-    /// <summary>创建分支结果</summary>
+    /// <summary>Create a branching result</summary>
     public static NodeExecutionResult Branch(string nodeId, string nextNodeId) =>
         new()
         {
@@ -343,83 +343,83 @@ public record NodeExecutionResult
 }
 
 /// <summary>
-/// 工作流执行步骤
+/// Workflow execution step
 /// </summary>
 public record WorkflowExecutionStep
 {
     /// <summary>
-    /// 节点 ID
+    /// Node ID
     /// </summary>
     public required string NodeId { get; init; }
 
     /// <summary>
-    /// 节点名称
+    /// Node name
     /// </summary>
     public required string NodeName { get; init; }
 
     /// <summary>
-    /// 节点类型
+    /// Node type
     /// </summary>
     public WorkflowNodeType NodeType { get; init; }
 
     /// <summary>
-    /// 开始时间
+    /// Start time
     /// </summary>
     public DateTimeOffset StartedAt { get; init; }
 
     /// <summary>
-    /// 结束时间
+    /// End time
     /// </summary>
     public DateTimeOffset? CompletedAt { get; init; }
 
     /// <summary>
-    /// 是否成功
+    /// Whether successful
     /// </summary>
     public bool Success { get; init; }
 }
 
 /// <summary>
-/// 工作流执行结果
+/// Workflow execution result
 /// </summary>
 public record WorkflowResult
 {
     /// <summary>
-    /// 工作流 ID
+    /// Workflow ID
     /// </summary>
     public required string WorkflowId { get; init; }
 
     /// <summary>
-    /// 是否成功
+    /// Whether successful
     /// </summary>
     public bool Success { get; init; }
 
     /// <summary>
-    /// 最终输出
+    /// Final output
     /// </summary>
     public string? FinalOutput { get; init; }
 
     /// <summary>
-    /// 错误信息
+    /// Error message
     /// </summary>
     public string? Error { get; init; }
 
     /// <summary>
-    /// 执行的节点数
+    /// Number of nodes executed
     /// </summary>
     public int NodesExecuted { get; init; }
 
     /// <summary>
-    /// 总执行时间（毫秒）
+    /// Total execution duration (milliseconds)
     /// </summary>
     public long TotalDurationMs { get; init; }
 
     /// <summary>
-    /// 执行历史
+    /// Execution history
     /// </summary>
     public IReadOnlyList<WorkflowExecutionStep>? ExecutionHistory { get; init; }
 
     /// <summary>
-    /// 最终状态
+    /// Final state
     /// </summary>
     public IReadOnlyDictionary<string, object?>? FinalState { get; init; }
 }

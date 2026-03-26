@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Scaling;
 
 /// <summary>
-/// 扩展配置选项
+/// Configuration options for agent scaling.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// Example appsettings.json:
 /// <code>
 /// {
 ///   "Scaling": {
@@ -21,52 +21,52 @@ namespace Dawning.Agents.Abstractions.Scaling;
 public record ScalingOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Gets the configuration section name.
     /// </summary>
     public const string SectionName = "Scaling";
 
     /// <summary>
-    /// 最小实例数
+    /// Gets the minimum number of instances.
     /// </summary>
     public int MinInstances { get; init; } = 1;
 
     /// <summary>
-    /// 最大实例数
+    /// Gets the maximum number of instances.
     /// </summary>
     public int MaxInstances { get; init; } = 10;
 
     /// <summary>
-    /// 目标 CPU 使用率百分比
+    /// Gets the target CPU usage percentage.
     /// </summary>
     public int TargetCpuPercent { get; init; } = 70;
 
     /// <summary>
-    /// 目标内存使用率百分比
+    /// Gets the target memory usage percentage.
     /// </summary>
     public int TargetMemoryPercent { get; init; } = 80;
 
     /// <summary>
-    /// 扩容冷却时间（秒）
+    /// Gets the scale-up cooldown period in seconds.
     /// </summary>
     public int ScaleUpCooldownSeconds { get; init; } = 60;
 
     /// <summary>
-    /// 缩容冷却时间（秒）
+    /// Gets the scale-down cooldown period in seconds.
     /// </summary>
     public int ScaleDownCooldownSeconds { get; init; } = 300;
 
     /// <summary>
-    /// 工作队列容量
+    /// Gets the work queue capacity.
     /// </summary>
     public int QueueCapacity { get; init; } = 1000;
 
     /// <summary>
-    /// 工作线程数（0 = 自动检测）
+    /// Gets the number of worker threads (0 = auto-detect).
     /// </summary>
     public int WorkerCount { get; init; } = 0;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -112,80 +112,80 @@ public record ScalingOptions : IValidatableOptions
     }
 
     /// <summary>
-    /// 获取实际工作线程数
+    /// Gets the actual worker thread count, using auto-detection if configured.
     /// </summary>
     public int GetActualWorkerCount() =>
         WorkerCount > 0 ? WorkerCount : Environment.ProcessorCount * 2;
 }
 
 /// <summary>
-/// 扩展指标
+/// Represents a point-in-time snapshot of scaling metrics.
 /// </summary>
 public record ScalingMetrics
 {
     /// <summary>
-    /// CPU 使用率百分比
+    /// Gets the CPU usage percentage.
     /// </summary>
     public double CpuPercent { get; init; }
 
     /// <summary>
-    /// 内存使用率百分比
+    /// Gets the memory usage percentage.
     /// </summary>
     public double MemoryPercent { get; init; }
 
     /// <summary>
-    /// 队列长度
+    /// Gets the queue length.
     /// </summary>
     public int QueueLength { get; init; }
 
     /// <summary>
-    /// 活跃请求数
+    /// Gets the number of active requests.
     /// </summary>
     public int ActiveRequests { get; init; }
 
     /// <summary>
-    /// 平均延迟（毫秒）
+    /// Gets the average latency in milliseconds.
     /// </summary>
     public double AvgLatencyMs { get; init; }
 
     /// <summary>
-    /// 采集时间
+    /// Gets the timestamp when the metrics were collected.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// 扩展决策
+/// Represents an auto-scaling decision.
 /// </summary>
 public record ScalingDecision
 {
     /// <summary>
-    /// 扩展动作
+    /// Gets the scaling action.
     /// </summary>
     public ScalingAction Action { get; init; }
 
     /// <summary>
-    /// 实例变化数量
+    /// Gets the instance count delta.
     /// </summary>
     public int Delta { get; init; }
 
     /// <summary>
-    /// 决策原因
+    /// Gets the reason for the decision.
     /// </summary>
     public string? Reason { get; init; }
 
     /// <summary>
-    /// 决策时间
+    /// Gets the timestamp of the decision.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 创建无操作决策
+    /// Creates a no-op decision.
     /// </summary>
     public static ScalingDecision None => new() { Action = ScalingAction.None };
 
     /// <summary>
-    /// 创建扩容决策
+    /// Creates a scale-up decision.
     /// </summary>
     public static ScalingDecision ScaleUp(int delta, string reason) =>
         new()
@@ -196,7 +196,7 @@ public record ScalingDecision
         };
 
     /// <summary>
-    /// 创建缩容决策
+    /// Creates a scale-down decision.
     /// </summary>
     public static ScalingDecision ScaleDown(int delta, string reason) =>
         new()
@@ -208,43 +208,43 @@ public record ScalingDecision
 }
 
 /// <summary>
-/// 扩展动作
+/// Defines scaling action types.
 /// </summary>
 public enum ScalingAction
 {
     /// <summary>
-    /// 无操作
+    /// No action.
     /// </summary>
     None,
 
     /// <summary>
-    /// 扩容
+    /// Scale up (add instances).
     /// </summary>
     ScaleUp,
 
     /// <summary>
-    /// 缩容
+    /// Scale down (remove instances).
     /// </summary>
     ScaleDown,
 }
 
 /// <summary>
-/// 熔断器状态
+/// Defines circuit breaker states.
 /// </summary>
 public enum CircuitState
 {
     /// <summary>
-    /// 关闭状态（正常运行）
+    /// Closed (normal operation).
     /// </summary>
     Closed,
 
     /// <summary>
-    /// 打开状态（阻止请求）
+    /// Open (blocking requests).
     /// </summary>
     Open,
 
     /// <summary>
-    /// 半开状态（测试恢复）
+    /// Half-open (testing recovery).
     /// </summary>
     HalfOpen,
 }

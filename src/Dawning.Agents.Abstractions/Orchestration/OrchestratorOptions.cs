@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Orchestration;
 
 /// <summary>
-/// 编排器配置选项
+/// Orchestrator configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Orchestration": {
@@ -21,38 +21,38 @@ namespace Dawning.Agents.Abstractions.Orchestration;
 public class OrchestratorOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "Orchestration";
 
     /// <summary>
-    /// 最大并发数（用于并行编排）
+    /// Maximum concurrency (for parallel orchestration).
     /// </summary>
     public int MaxConcurrency { get; set; } = 5;
 
     /// <summary>
-    /// 总超时时间（秒）
+    /// Total timeout in seconds.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 300;
 
     /// <summary>
-    /// 单个 Agent 超时时间（秒）
+    /// Per-Agent timeout in seconds.
     /// </summary>
     public int AgentTimeoutSeconds { get; set; } = 60;
 
     /// <summary>
-    /// 某个 Agent 失败后是否继续执行
+    /// Whether to continue execution after an Agent failure.
     /// </summary>
     public bool ContinueOnError { get; set; }
 
     /// <summary>
-    /// 结果聚合策略（用于并行编排）
+    /// Result aggregation strategy (for parallel orchestration).
     /// </summary>
     public ResultAggregationStrategy AggregationStrategy { get; set; } =
         ResultAggregationStrategy.LastResult;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -81,32 +81,32 @@ public class OrchestratorOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 结果聚合策略
+/// Result aggregation strategy.
 /// </summary>
 public enum ResultAggregationStrategy
 {
     /// <summary>
-    /// 使用最后一个 Agent 的结果
+    /// Uses the last Agent's result.
     /// </summary>
     LastResult,
 
     /// <summary>
-    /// 使用第一个成功的结果
+    /// Uses the first successful result.
     /// </summary>
     FirstSuccess,
 
     /// <summary>
-    /// 合并所有结果
+    /// Merges all results.
     /// </summary>
     Merge,
 
     /// <summary>
-    /// 投票选择最优结果
+    /// Votes to select the best result.
     /// </summary>
     Vote,
 
     /// <summary>
-    /// 自定义聚合
+    /// Custom aggregation.
     /// </summary>
     Custom,
 }

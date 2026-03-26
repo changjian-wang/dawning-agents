@@ -1,146 +1,146 @@
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 升级到人工处理的请求
+/// Request to escalate to human handling.
 /// </summary>
 public record EscalationRequest
 {
     /// <summary>
-    /// 唯一请求标识符
+    /// Unique request identifier.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 升级原因
+    /// Escalation reason.
     /// </summary>
     public required string Reason { get; init; }
 
     /// <summary>
-    /// 详细描述
+    /// Detailed description.
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
-    /// 升级严重程度
+    /// Escalation severity.
     /// </summary>
     public EscalationSeverity Severity { get; init; } = EscalationSeverity.Medium;
 
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     public string? AgentName { get; init; }
 
     /// <summary>
-    /// 任务 ID
+    /// Task ID.
     /// </summary>
     public string? TaskId { get; init; }
 
     /// <summary>
-    /// 上下文数据
+    /// Context data.
     /// </summary>
     public IReadOnlyDictionary<string, object> Context { get; init; } =
         new Dictionary<string, object>();
 
     /// <summary>
-    /// 已尝试的解决方案
+    /// Attempted solutions.
     /// </summary>
     public IReadOnlyList<string> AttemptedSolutions { get; init; } = [];
 
     /// <summary>
-    /// 创建时间
+    /// Creation time.
     /// </summary>
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// 升级严重程度
+/// Escalation severity.
 /// </summary>
 public enum EscalationSeverity
 {
     /// <summary>
-    /// 低 - 信息性升级
+    /// Low - informational escalation.
     /// </summary>
     Low,
 
     /// <summary>
-    /// 中等 - 需要关注
+    /// Medium - requires attention.
     /// </summary>
     Medium,
 
     /// <summary>
-    /// 高 - 需要立即处理
+    /// High - requires immediate action.
     /// </summary>
     High,
 
     /// <summary>
-    /// 关键 - 紧急处理
+    /// Critical - urgent action required.
     /// </summary>
     Critical,
 }
 
 /// <summary>
-/// 升级结果
+/// Escalation result.
 /// </summary>
 public record EscalationResult
 {
     /// <summary>
-    /// 对应的请求 ID
+    /// Corresponding request ID.
     /// </summary>
     public required string RequestId { get; init; }
 
     /// <summary>
-    /// 采取的操作
+    /// Action taken.
     /// </summary>
     public EscalationAction Action { get; init; }
 
     /// <summary>
-    /// 解决方案
+    /// Resolution.
     /// </summary>
     public string? Resolution { get; init; }
 
     /// <summary>
-    /// 指令
+    /// Instructions.
     /// </summary>
     public string? Instructions { get; init; }
 
     /// <summary>
-    /// 解决人
+    /// Resolver.
     /// </summary>
     public string? ResolvedBy { get; init; }
 
     /// <summary>
-    /// 解决时间
+    /// Resolution time.
     /// </summary>
     public DateTimeOffset ResolvedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// 升级操作类型
+/// Escalation action type.
 /// </summary>
 public enum EscalationAction
 {
     /// <summary>
-    /// 已解决
+    /// Resolved.
     /// </summary>
     Resolved,
 
     /// <summary>
-    /// 已跳过
+    /// Skipped.
     /// </summary>
     Skipped,
 
     /// <summary>
-    /// 已中止
+    /// Aborted.
     /// </summary>
     Aborted,
 
     /// <summary>
-    /// 已委派
+    /// Delegated.
     /// </summary>
     Delegated,
 
     /// <summary>
-    /// 重试
+    /// Retried.
     /// </summary>
     Retried,
 }

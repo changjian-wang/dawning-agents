@@ -1,34 +1,34 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 核心接口
+/// Core agent interface.
 /// </summary>
 public interface IAgent
 {
     /// <summary>
-    /// Agent 名称
+    /// Agent name.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// Agent 系统指令
+    /// Agent system instructions.
     /// </summary>
     string Instructions { get; }
 
     /// <summary>
-    /// 执行 Agent 任务
+    /// Executes an agent task.
     /// </summary>
-    /// <param name="input">用户输入</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>Agent 响应</returns>
+    /// <param name="input">User input.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Agent response.</returns>
     Task<AgentResponse> RunAsync(string input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 使用指定上下文执行 Agent 任务
+    /// Executes an agent task with the specified context.
     /// </summary>
-    /// <param name="context">执行上下文</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>Agent 响应</returns>
+    /// <param name="context">Execution context.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Agent response.</returns>
     Task<AgentResponse> RunAsync(
         AgentContext context,
         CancellationToken cancellationToken = default

@@ -3,35 +3,35 @@ using Dawning.Agents.Abstractions.LLM;
 namespace Dawning.Agents.Abstractions.Memory;
 
 /// <summary>
-/// Token 计数器接口
+/// Token counter interface.
 /// </summary>
 /// <remarks>
-/// <para>用于计算文本的 token 数量，帮助管理 LLM 上下文窗口</para>
-/// <para>实现类型包括：SimpleTokenCounter（估算）、TiktokenCounter（精确）</para>
+/// <para>Used to count the number of tokens in text, helping manage the LLM context window.</para>
+/// <para>Implementation types include: SimpleTokenCounter (estimation), TiktokenCounter (precise).</para>
 /// </remarks>
 public interface ITokenCounter
 {
     /// <summary>
-    /// 计算给定文本中的 token 数量
+    /// Counts the number of tokens in the given text.
     /// </summary>
-    /// <param name="text">要计算的文本</param>
-    /// <returns>token 数量</returns>
+    /// <param name="text">The text to count.</param>
+    /// <returns>Token count.</returns>
     int CountTokens(string text);
 
     /// <summary>
-    /// 计算消息列表的 token 数量（包括角色开销）
+    /// Counts the token count for a message list (including role overhead).
     /// </summary>
-    /// <param name="messages">消息列表</param>
-    /// <returns>token 总数</returns>
+    /// <param name="messages">Message list.</param>
+    /// <returns>Total token count.</returns>
     int CountTokens(IEnumerable<ChatMessage> messages);
 
     /// <summary>
-    /// 获取此计数器对应的模型名称
+    /// Gets the model name corresponding to this counter.
     /// </summary>
     string ModelName { get; }
 
     /// <summary>
-    /// 获取最大上下文窗口大小
+    /// Gets the maximum context window size.
     /// </summary>
     int MaxContextTokens { get; }
 }

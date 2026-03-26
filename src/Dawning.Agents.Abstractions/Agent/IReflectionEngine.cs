@@ -3,19 +3,19 @@ using Dawning.Agents.Abstractions.Tools;
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// 反思引擎 — 工具执行失败后的诊断与修复决策
+/// Reflection engine — diagnosis and repair decisions after tool execution failures.
 /// </summary>
 /// <remarks>
-/// <para>灵感来源: Memento-Skills Read-Write Reflective Learning</para>
-/// <para>失败不仅是重试信号，而是训练信号</para>
+/// <para>Inspired by Memento-Skills Read-Write Reflective Learning.</para>
+/// <para>Failures are not just retry signals, but training signals.</para>
 /// </remarks>
 public interface IReflectionEngine
 {
     /// <summary>
-    /// 对失败的工具执行进行反思，产生修复策略
+    /// Reflects on a failed tool execution and produces a repair strategy.
     /// </summary>
-    /// <param name="context">反思上下文</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="context">Reflection context.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<ReflectionResult> ReflectAsync(
         ReflectionContext context,
         CancellationToken cancellationToken = default
@@ -23,94 +23,94 @@ public interface IReflectionEngine
 }
 
 /// <summary>
-/// 反思上下文
+/// Reflection context.
 /// </summary>
 public record ReflectionContext
 {
     /// <summary>
-    /// 失败的工具
+    /// The failed tool.
     /// </summary>
     public required ITool FailedTool { get; init; }
 
     /// <summary>
-    /// 工具的输入参数
+    /// Input parameters for the tool.
     /// </summary>
     public required string Input { get; init; }
 
     /// <summary>
-    /// 失败的执行结果
+    /// The failed execution result.
     /// </summary>
     public required ToolResult FailedResult { get; init; }
 
     /// <summary>
-    /// 原始任务描述
+    /// Original task description.
     /// </summary>
     public required string TaskDescription { get; init; }
 
     /// <summary>
-    /// 之前的执行步骤
+    /// Previous execution steps.
     /// </summary>
     public IReadOnlyList<AgentStep>? PreviousSteps { get; init; }
 
     /// <summary>
-    /// 工具的效用统计
+    /// Tool usage statistics.
     /// </summary>
     public ToolUsageStats? UsageStats { get; init; }
 }
 
 /// <summary>
-/// 反思结果
+/// Reflection result.
 /// </summary>
 public record ReflectionResult
 {
     /// <summary>
-    /// 建议的修复策略
+    /// Suggested repair strategy.
     /// </summary>
     public required ReflectionAction Action { get; init; }
 
     /// <summary>
-    /// 修订后的工具定义（当 Action = ReviseAndRetry 时）
+    /// Revised tool definition (when Action is <see cref="ReflectionAction.ReviseAndRetry"/>).
     /// </summary>
     public EphemeralToolDefinition? RevisedDefinition { get; init; }
 
     /// <summary>
-    /// 诊断报告
+    /// Diagnostic report.
     /// </summary>
     public string? Diagnosis { get; init; }
 
     /// <summary>
-    /// 置信度 (0-1)
+    /// Confidence score (0-1).
     /// </summary>
     public float Confidence { get; init; }
 }
 
 /// <summary>
-/// 反思修复策略
+/// Reflection repair strategy.
 /// </summary>
 public enum ReflectionAction
 {
     /// <summary>
-    /// 简单重试（临时性错误，如网络超时）
+    /// Simple retry (transient errors such as network timeouts).
     /// </summary>
     Retry,
 
     /// <summary>
-    /// 修改工具定义后重试
+    /// Revise tool definition and retry.
     /// </summary>
     ReviseAndRetry,
 
     /// <summary>
-    /// 放弃该工具，选择其他工具
+    /// Abandon the tool and select an alternative.
     /// </summary>
     Abandon,
 
     /// <summary>
-    /// 创建全新工具
+    /// Create a new tool.
     /// </summary>
     CreateNew,
 
     /// <summary>
-    /// 升级给人类处理
+    /// Escalate to a human.
     /// </summary>
     Escalate,
 }

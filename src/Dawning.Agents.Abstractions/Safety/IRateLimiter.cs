@@ -3,28 +3,28 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Safety;
 
 /// <summary>
-/// 速率限制器接口
+/// Rate limiter interface.
 /// </summary>
 public interface IRateLimiter
 {
     /// <summary>
-    /// 尝试获取许可
+    /// Attempts to acquire a permit.
     /// </summary>
-    /// <param name="key">限制键（如用户ID、会话ID）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否允许执行</returns>
+    /// <param name="key">Rate limit key (e.g., user ID, session ID).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Whether execution is allowed.</returns>
     Task<RateLimitResult> TryAcquireAsync(
         string key,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 尝试获取许可（使用指定策略）
+    /// Attempts to acquire a permit using a specified policy.
     /// </summary>
-    /// <param name="key">限制键（如用户ID、会话ID）</param>
-    /// <param name="policyName">策略名称（null 则使用默认配置）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否允许执行</returns>
+    /// <param name="key">Rate limit key (e.g., user ID, session ID).</param>
+    /// <param name="policyName">Policy name (null uses the default configuration).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Whether execution is allowed.</returns>
     Task<RateLimitResult> TryAcquireAsync(
         string key,
         string? policyName,
@@ -32,129 +32,129 @@ public interface IRateLimiter
     );
 
     /// <summary>
-    /// 获取当前状态
+    /// Gets the current status.
     /// </summary>
-    /// <param name="key">限制键</param>
-    /// <returns>当前限制状态</returns>
+    /// <param name="key">Rate limit key.</param>
+    /// <returns>Current rate limit status.</returns>
     RateLimitStatus GetStatus(string key);
 
     /// <summary>
-    /// 获取当前状态（使用指定策略的限额）
+    /// Gets the current status using a specified policy's limits.
     /// </summary>
-    /// <param name="key">限制键</param>
-    /// <param name="policyName">策略名称（null 则使用默认配置）</param>
-    /// <returns>当前限制状态</returns>
+    /// <param name="key">Rate limit key.</param>
+    /// <param name="policyName">Policy name (null uses the default configuration).</param>
+    /// <returns>Current rate limit status.</returns>
     RateLimitStatus GetStatus(string key, string? policyName);
 
     /// <summary>
-    /// 重置指定键的计数器
+    /// Resets the counter for the specified key.
     /// </summary>
-    /// <param name="key">限制键</param>
+    /// <param name="key">Rate limit key.</param>
     void Reset(string key);
 }
 
 /// <summary>
-/// Token 使用限制器接口
+/// Token usage rate limiter interface.
 /// </summary>
 public interface ITokenRateLimiter
 {
     /// <summary>
-    /// 检查是否允许使用指定数量的 Token
+    /// Checks whether the specified number of tokens can be used.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <param name="tokenCount">Token 数量</param>
-    /// <returns>限制结果</returns>
+    /// <param name="sessionId">Session ID.</param>
+    /// <param name="tokenCount">Token count.</param>
+    /// <returns>Rate limit result.</returns>
     TokenRateLimitResult TryUseTokens(string sessionId, int tokenCount);
 
     /// <summary>
-    /// 检查会话是否仍有 Token 预算（不消耗 Token）
+    /// Checks whether the session still has a token budget (without consuming tokens).
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <returns>是否有剩余预算</returns>
+    /// <param name="sessionId">Session ID.</param>
+    /// <returns>Whether there is remaining budget.</returns>
     bool HasBudget(string sessionId);
 
     /// <summary>
-    /// 获取会话已使用的 Token 数
+    /// Gets the number of tokens used by the session.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
-    /// <returns>已使用的 Token 数</returns>
+    /// <param name="sessionId">Session ID.</param>
+    /// <returns>Number of tokens used.</returns>
     int GetUsedTokens(string sessionId);
 
     /// <summary>
-    /// 重置会话的 Token 计数
+    /// Resets the token counter for the session.
     /// </summary>
-    /// <param name="sessionId">会话 ID</param>
+    /// <param name="sessionId">Session ID.</param>
     void ResetSession(string sessionId);
 }
 
 /// <summary>
-/// 速率限制拒绝原因
+/// Rate limit denial reason.
 /// </summary>
 public enum RateLimitDenyReason
 {
     /// <summary>
-    /// 未被拒绝
+    /// Not denied.
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// 滑动窗口速率超限
+    /// Sliding window rate limit exceeded.
     /// </summary>
     RateLimitExceeded,
 
     /// <summary>
-    /// 桶数达到上限（新 key 被拒绝）
+    /// Bucket capacity reached (new key denied).
     /// </summary>
     BucketCapReached,
 
     /// <summary>
-    /// 单次请求 Token 超限
+    /// Single request token limit exceeded.
     /// </summary>
     TokenPerRequestExceeded,
 
     /// <summary>
-    /// 会话 Token 总量超限
+    /// Session total token limit exceeded.
     /// </summary>
     TokenPerSessionExceeded,
 
     /// <summary>
-    /// Token 桶数达到上限
+    /// Token bucket capacity reached.
     /// </summary>
     TokenBucketCapReached,
 }
 
 /// <summary>
-/// 速率限制结果
+/// Rate limit result.
 /// </summary>
 public record RateLimitResult
 {
     /// <summary>
-    /// 是否允许
+    /// Whether the request is allowed.
     /// </summary>
     public bool IsAllowed { get; init; }
 
     /// <summary>
-    /// 剩余请求数
+    /// Remaining request count.
     /// </summary>
     public int RemainingRequests { get; init; }
 
     /// <summary>
-    /// 重置时间
+    /// Reset time.
     /// </summary>
     public DateTimeOffset ResetTime { get; init; }
 
     /// <summary>
-    /// 需要等待的时间（如果被限制）
+    /// Time to wait before retrying (if rate limited).
     /// </summary>
     public TimeSpan? RetryAfter { get; init; }
 
     /// <summary>
-    /// 拒绝原因
+    /// Denial reason.
     /// </summary>
     public RateLimitDenyReason DenyReason { get; init; }
 
     /// <summary>
-    /// 创建允许结果
+    /// Creates an allow result.
     /// </summary>
     public static RateLimitResult Allow(int remaining, DateTimeOffset resetTime) =>
         new()
@@ -165,7 +165,7 @@ public record RateLimitResult
         };
 
     /// <summary>
-    /// 创建拒绝结果
+    /// Creates a denial result.
     /// </summary>
     public static RateLimitResult Deny(
         TimeSpan retryAfter,
@@ -183,120 +183,120 @@ public record RateLimitResult
 }
 
 /// <summary>
-/// Token 速率限制结果
+/// Token rate limit result.
 /// </summary>
 public record TokenRateLimitResult
 {
     /// <summary>
-    /// 是否允许
+    /// Whether the request is allowed.
     /// </summary>
     public bool IsAllowed { get; init; }
 
     /// <summary>
-    /// 拒绝原因
+    /// Denial reason.
     /// </summary>
     public RateLimitDenyReason DenyReason { get; init; }
 
     /// <summary>
-    /// 创建允许结果
+    /// Creates an allow result.
     /// </summary>
     public static TokenRateLimitResult Allow() => new() { IsAllowed = true };
 
     /// <summary>
-    /// 创建拒绝结果
+    /// Creates a denial result.
     /// </summary>
     public static TokenRateLimitResult Deny(RateLimitDenyReason reason) =>
         new() { IsAllowed = false, DenyReason = reason };
 }
 
 /// <summary>
-/// 速率限制状态
+/// Rate limit status.
 /// </summary>
 public record RateLimitStatus
 {
     /// <summary>
-    /// 当前窗口内的请求数
+    /// Number of requests in the current window.
     /// </summary>
     public int CurrentCount { get; init; }
 
     /// <summary>
-    /// 最大请求数
+    /// Maximum number of requests.
     /// </summary>
     public int MaxRequests { get; init; }
 
     /// <summary>
-    /// 窗口重置时间
+    /// Window reset time.
     /// </summary>
     public DateTimeOffset ResetTime { get; init; }
 
     /// <summary>
-    /// 是否被限制
+    /// Whether the rate limit is exceeded.
     /// </summary>
     public bool IsLimited => CurrentCount >= MaxRequests;
 }
 
 /// <summary>
-/// 速率限制配置
+/// Rate limit configuration.
 /// </summary>
 public class RateLimitOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "RateLimit";
 
     /// <summary>
-    /// 时间窗口内最大请求数
+    /// Maximum number of requests per time window.
     /// </summary>
     public int MaxRequestsPerWindow { get; set; } = 60;
 
     /// <summary>
-    /// 时间窗口大小
+    /// Time window size.
     /// </summary>
     public TimeSpan WindowSize { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 每个会话的最大 Token 数
+    /// Maximum tokens per session.
     /// </summary>
     public int MaxTokensPerSession { get; set; } = 100000;
 
     /// <summary>
-    /// 每个请求的最大 Token 数
+    /// Maximum tokens per request.
     /// </summary>
     public int MaxTokensPerRequest { get; set; } = 4000;
 
     /// <summary>
-    /// 启用速率限制
+    /// Enable rate limiting.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 启用反压模式（被限制时等待而非直接拒绝）
+    /// Enable backpressure mode (wait instead of immediately rejecting when rate limited).
     /// </summary>
     public bool EnableBackpressure { get; set; }
 
     /// <summary>
-    /// 反压模式下的最大等待时间
+    /// Maximum wait time in backpressure mode.
     /// </summary>
     public TimeSpan BackpressureTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 空闲桶清理间隔
+    /// Idle bucket eviction interval.
     /// </summary>
     public TimeSpan EvictionInterval { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Token 桶空闲超时（超过此时间未访问的 Token 桶将被清理）
+    /// Token bucket idle timeout (buckets not accessed within this duration will be evicted).
     /// </summary>
     public TimeSpan TokenIdleTimeout { get; set; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 最大桶数（防止内存膨胀）
+    /// Maximum number of buckets (prevents memory bloat).
     /// </summary>
     public int MaxBuckets { get; set; } = 10_000;
 
     /// <summary>
-    /// 命名策略（不同 key 可绑定不同限流参数）
+    /// Named policies (different keys can bind to different rate limit parameters).
     /// </summary>
     public Dictionary<string, RateLimitPolicy> Policies { get; set; } = [];
 
@@ -360,24 +360,24 @@ public class RateLimitOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 命名速率限制策略（覆盖默认配置的 MaxRequestsPerWindow 和 WindowSize）
+/// Named rate limit policy (overrides default MaxRequestsPerWindow and WindowSize).
 /// </summary>
 public class RateLimitPolicy
 {
     /// <summary>
-    /// 时间窗口内最大请求数
+    /// Maximum number of requests per time window.
     /// </summary>
     public int MaxRequestsPerWindow { get; set; }
 
     /// <summary>
-    /// 时间窗口大小
+    /// Time window size.
     /// </summary>
     public TimeSpan WindowSize { get; set; }
 
     /// <summary>
-    /// 校验策略参数
+    /// Validates policy parameters.
     /// </summary>
-    /// <param name="name">策略名称（用于错误消息）</param>
+    /// <param name="name">Policy name (used for error messages).</param>
     public void Validate(string name)
     {
         if (MaxRequestsPerWindow <= 0)

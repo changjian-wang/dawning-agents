@@ -1,9 +1,9 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// 表示 LLM 返回的 Function Calling 工具调用
+/// Represents a function calling tool call returned by the LLM.
 /// </summary>
-/// <param name="Id">工具调用唯一标识（用于关联 tool 消息的响应）</param>
-/// <param name="FunctionName">要调用的函数名称</param>
-/// <param name="Arguments">序列化的 JSON 参数</param>
+/// <param name="Id">Unique identifier for the tool call (used to correlate tool message responses).</param>
+/// <param name="FunctionName">Name of the function to invoke.</param>
+/// <param name="Arguments">Serialized JSON arguments.</param>
 public record ToolCall(string Id, string FunctionName, string Arguments);

@@ -1,71 +1,71 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// 流式聊天事件（结构化的流式输出）
+/// Streaming chat event (structured streaming output).
 /// </summary>
 /// <remarks>
-/// 替代原始 <c>IAsyncEnumerable&lt;string&gt;</c>，提供 content delta、tool call delta、
-/// finish reason 和 token usage 等结构化信息。
+/// Replaces the raw <c>IAsyncEnumerable&lt;string&gt;</c>, providing content deltas, tool call deltas,
+/// finish reasons, and token usage as structured information.
 /// </remarks>
 public record StreamingChatEvent
 {
-    /// <summary>文本增量内容</summary>
+    /// <summary>Incremental text content.</summary>
     public string? ContentDelta { get; init; }
 
-    /// <summary>工具调用增量（流式累积 tool call 信息）</summary>
+    /// <summary>Tool call delta (incrementally accumulated tool call information during streaming).</summary>
     public ToolCallDelta? ToolCallDelta { get; init; }
 
-    /// <summary>结束原因（仅在最后一个事件中出现）</summary>
+    /// <summary>Finish reason (present only in the last event).</summary>
     public string? FinishReason { get; init; }
 
-    /// <summary>Token 用量（仅在最后一个事件中出现）</summary>
+    /// <summary>Token usage (present only in the last event).</summary>
     public StreamingTokenUsage? Usage { get; init; }
 
-    /// <summary>创建内容增量事件</summary>
+    /// <summary>Creates a content delta event.</summary>
     public static StreamingChatEvent Content(string text) => new() { ContentDelta = text };
 
-    /// <summary>创建工具调用增量事件</summary>
+    /// <summary>Creates a tool call delta event.</summary>
     public static StreamingChatEvent ToolCall(ToolCallDelta delta) =>
         new() { ToolCallDelta = delta };
 
-    /// <summary>创建完成事件（含 finish reason 和可选 usage）</summary>
+    /// <summary>Creates a completion event with a finish reason and optional usage.</summary>
     public static StreamingChatEvent Done(string finishReason, StreamingTokenUsage? usage = null) =>
         new() { FinishReason = finishReason, Usage = usage };
 }
 
 /// <summary>
-/// 流式工具调用增量
+/// Streaming tool call delta.
 /// </summary>
 /// <remarks>
-/// 流式响应中 tool call 信息可能分多个 chunk 到达，
-/// 需要客户端根据 Index 累积组装完整的 ToolCall。
+/// In a streaming response, tool call information may arrive across multiple chunks.
+/// The client must accumulate and assemble complete ToolCall objects by Index.
 /// </remarks>
 public record ToolCallDelta
 {
-    /// <summary>工具调用在列表中的索引</summary>
+    /// <summary>Index of the tool call in the list.</summary>
     public int Index { get; init; }
 
-    /// <summary>工具调用 ID（通常在第一个 delta 中出现）</summary>
+    /// <summary>Tool call ID (typically appears in the first delta).</summary>
     public string? Id { get; init; }
 
-    /// <summary>函数名（通常在第一个 delta 中出现）</summary>
+    /// <summary>Function name (typically appears in the first delta).</summary>
     public string? FunctionName { get; init; }
 
-    /// <summary>参数增量（JSON 片段，需要累积拼接）</summary>
+    /// <summary>Arguments delta (JSON fragment that must be accumulated and concatenated).</summary>
     public string? ArgumentsDelta { get; init; }
 }
 
 /// <summary>
-/// 流式响应的 Token 用量统计
+/// Token usage statistics for a streaming response.
 /// </summary>
 public record StreamingTokenUsage
 {
-    /// <summary>输入 Token 数</summary>
+    /// <summary>Number of input tokens.</summary>
     public int PromptTokens { get; init; }
 
-    /// <summary>输出 Token 数</summary>
+    /// <summary>Number of output tokens.</summary>
     public int CompletionTokens { get; init; }
 
-    /// <summary>总 Token 数</summary>
+    /// <summary>Total number of tokens.</summary>
     public int TotalTokens => PromptTokens + CompletionTokens;
 }

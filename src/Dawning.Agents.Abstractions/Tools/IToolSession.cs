@@ -1,32 +1,32 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具会话 — 管理 session 级别的动态工具，聚合多层级工具解析
+/// Tool session — manages session-scoped dynamic tools and aggregates multi-level tool resolution.
 /// </summary>
 /// <remarks>
-/// <para>工具解析顺序: Core → Session → User → Global → MCP</para>
-/// <para>Session 工具存储在内存中，随会话销毁</para>
+/// <para>Tool resolution order: Core → Session → User → Global → MCP.</para>
+/// <para>Session tools are stored in memory and destroyed with the session.</para>
 /// </remarks>
 public interface IToolSession : IDisposable, IAsyncDisposable
 {
     /// <summary>
-    /// 创建并注册一个动态脚本工具到当前 session
+    /// Creates and registers a dynamic script tool in the current session.
     /// </summary>
-    /// <param name="definition">工具定义</param>
-    /// <returns>创建的工具实例</returns>
+    /// <param name="definition">Tool definition.</param>
+    /// <returns>The created tool instance.</returns>
     ITool CreateTool(EphemeralToolDefinition definition);
 
     /// <summary>
-    /// 获取当前 session 的所有动态工具
+    /// Gets all dynamic tools in the current session.
     /// </summary>
     IReadOnlyList<ITool> GetSessionTools();
 
     /// <summary>
-    /// 提升工具的持久化层级（Session → User 或 Global）
+    /// Promotes a tool's persistence level (Session → User or Global).
     /// </summary>
-    /// <param name="name">工具名称</param>
-    /// <param name="targetScope">目标范围</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Tool name.</param>
+    /// <param name="targetScope">Target scope.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task PromoteToolAsync(
         string name,
         ToolScope targetScope,
@@ -34,11 +34,11 @@ public interface IToolSession : IDisposable, IAsyncDisposable
     );
 
     /// <summary>
-    /// 从指定层级移除工具
+    /// Removes a tool from the specified scope.
     /// </summary>
-    /// <param name="name">工具名称</param>
-    /// <param name="scope">工具范围</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Tool name.</param>
+    /// <param name="scope">Tool scope.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task RemoveToolAsync(
         string name,
         ToolScope scope,
@@ -46,20 +46,20 @@ public interface IToolSession : IDisposable, IAsyncDisposable
     );
 
     /// <summary>
-    /// 列出指定层级的所有工具定义
+    /// Lists all tool definitions in the specified scope.
     /// </summary>
-    /// <param name="scope">工具范围</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="scope">Tool scope.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<IReadOnlyList<EphemeralToolDefinition>> ListToolsAsync(
         ToolScope scope,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 更新 session 工具的定义（原地修订，用于反思修复）
+    /// Updates a session tool's definition (in-place revision, used for reflective repair).
     /// </summary>
-    /// <param name="name">工具名称</param>
-    /// <param name="definition">修订后的工具定义</param>
-    /// <returns>更新后的工具实例</returns>
+    /// <param name="name">Tool name.</param>
+    /// <param name="definition">Revised tool definition.</param>
+    /// <returns>The updated tool instance.</returns>
     ITool UpdateTool(string name, EphemeralToolDefinition definition);
 }

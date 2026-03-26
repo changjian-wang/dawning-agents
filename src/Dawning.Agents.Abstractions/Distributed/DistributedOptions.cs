@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Distributed;
 
 /// <summary>
-/// Redis 配置选项
+/// Configuration options for Redis.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// Example appsettings.json configuration:
 /// <code>
 /// {
 ///   "Redis": {
@@ -20,59 +20,59 @@ namespace Dawning.Agents.Abstractions.Distributed;
 public sealed class RedisOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "Redis";
 
     /// <summary>
-    /// Redis 连接字符串
+    /// The Redis connection string.
     /// </summary>
     /// <example>localhost:6379,password=xxx,ssl=false,abortConnect=false</example>
     public string ConnectionString { get; set; } = "localhost:6379";
 
     /// <summary>
-    /// 实例名称前缀
+    /// The instance name prefix.
     /// </summary>
-    /// <remarks>所有 key 都会以此前缀开头，用于区分不同应用</remarks>
+    /// <remarks>All keys are prefixed with this value to distinguish between different applications.</remarks>
     public string InstanceName { get; set; } = "dawning:";
 
     /// <summary>
-    /// 默认数据库索引
+    /// The default database index.
     /// </summary>
     public int DefaultDatabase { get; set; } = 0;
 
     /// <summary>
-    /// 连接超时（毫秒）
+    /// The connection timeout in milliseconds.
     /// </summary>
     public int ConnectTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 同步操作超时（毫秒）
+    /// The synchronous operation timeout in milliseconds.
     /// </summary>
     public int SyncTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 异步操作超时（毫秒）
+    /// The asynchronous operation timeout in milliseconds.
     /// </summary>
     public int AsyncTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 是否启用 SSL
+    /// Gets or sets a value indicating whether SSL is enabled.
     /// </summary>
     public bool UseSsl { get; set; }
 
     /// <summary>
-    /// 连接失败时是否中止
+    /// Gets or sets a value indicating whether to abort on connection failure.
     /// </summary>
     public bool AbortOnConnectFail { get; set; } = false;
 
     /// <summary>
-    /// 连接池大小
+    /// The connection pool size.
     /// </summary>
     public int PoolSize { get; set; } = 10;
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration options.
     /// </summary>
     public void Validate()
     {
@@ -114,52 +114,52 @@ public sealed class RedisOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 分布式队列配置选项
+/// Configuration options for distributed queue.
 /// </summary>
 public sealed class DistributedQueueOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "DistributedQueue";
 
     /// <summary>
-    /// 队列名称
+    /// The queue name.
     /// </summary>
     public string QueueName { get; set; } = "agent:queue";
 
     /// <summary>
-    /// 消费者组名称
+    /// The consumer group name.
     /// </summary>
     public string ConsumerGroup { get; set; } = "agent-workers";
 
     /// <summary>
-    /// 消费者名称前缀
+    /// The consumer name prefix.
     /// </summary>
     public string ConsumerNamePrefix { get; set; } = "worker";
 
     /// <summary>
-    /// 死信队列名称
+    /// The dead letter queue name.
     /// </summary>
     public string DeadLetterQueue { get; set; } = "agent:deadletter";
 
     /// <summary>
-    /// 最大重试次数
+    /// Maximum retry count
     /// </summary>
     public int MaxRetries { get; set; } = 3;
 
     /// <summary>
-    /// 消息可见性超时（秒）
+    /// The message visibility timeout in seconds.
     /// </summary>
     public int VisibilityTimeout { get; set; } = 30;
 
     /// <summary>
-    /// 批量读取大小
+    /// The batch read size.
     /// </summary>
     public int BatchSize { get; set; } = 10;
 
     /// <summary>
-    /// 轮询间隔（毫秒）
+    /// The poll interval in milliseconds.
     /// </summary>
     public int PollInterval { get; set; } = 100;
 
@@ -209,42 +209,42 @@ public sealed class DistributedQueueOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 分布式锁配置选项
+/// Configuration options for distributed locks.
 /// </summary>
 public sealed class DistributedLockOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "DistributedLock";
 
     /// <summary>
-    /// 锁 key 前缀
+    /// The lock key prefix.
     /// </summary>
     public string KeyPrefix { get; set; } = "lock:";
 
     /// <summary>
-    /// 默认锁过期时间（秒）
+    /// The default lock expiration time in seconds.
     /// </summary>
     public int DefaultExpiry { get; set; } = 30;
 
     /// <summary>
-    /// 默认等待超时（秒）
+    /// The default wait timeout in seconds.
     /// </summary>
     public int DefaultWaitTimeout { get; set; } = 10;
 
     /// <summary>
-    /// 重试间隔（毫秒）
+    /// The retry interval in milliseconds.
     /// </summary>
     public int RetryInterval { get; set; } = 100;
 
     /// <summary>
-    /// 是否启用自动续期
+    /// Gets or sets a value indicating whether automatic renewal is enabled.
     /// </summary>
     public bool EnableAutoRenewal { get; set; } = true;
 
     /// <summary>
-    /// 自动续期间隔（锁过期时间的比例）
+    /// The automatic renewal interval as a ratio of the lock expiration time.
     /// </summary>
     public double RenewalInterval { get; set; } = 0.5;
 
@@ -281,32 +281,32 @@ public sealed class DistributedLockOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 分布式会话配置选项
+/// Configuration options for distributed sessions.
 /// </summary>
 public sealed class DistributedSessionOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "DistributedSession";
 
     /// <summary>
-    /// 会话 key 前缀
+    /// The session key prefix.
     /// </summary>
     public string KeyPrefix { get; set; } = "session:";
 
     /// <summary>
-    /// 默认会话过期时间（分钟）
+    /// The default session expiration time in minutes.
     /// </summary>
     public int DefaultExpiry { get; set; } = 30;
 
     /// <summary>
-    /// 是否启用滑动过期
+    /// Gets or sets a value indicating whether sliding expiration is enabled.
     /// </summary>
     public bool EnableSlidingExpiry { get; set; } = true;
 
     /// <summary>
-    /// 最大消息数量
+    /// The maximum number of messages.
     /// </summary>
     public int MaxMessages { get; set; } = 100;
 

@@ -1,7 +1,7 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 执行上下文，包含当前会话的所有状态信息（线程安全）
+/// Agent execution context containing all state information for the current session (thread-safe).
 /// </summary>
 public class AgentContext
 {
@@ -10,17 +10,17 @@ public class AgentContext
     private readonly Lock _lock = new();
 
     /// <summary>
-    /// 会话 ID
+    /// Session ID.
     /// </summary>
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 用户原始输入
+    /// Original user input.
     /// </summary>
     public required string UserInput { get; init; }
 
     /// <summary>
-    /// 执行步骤历史（只读快照）
+    /// Execution step history (read-only snapshot).
     /// </summary>
     public IReadOnlyList<AgentStep> Steps
     {
@@ -34,12 +34,12 @@ public class AgentContext
     }
 
     /// <summary>
-    /// 最大执行步骤数，防止无限循环
+    /// Maximum number of execution steps to prevent infinite loops.
     /// </summary>
     public int MaxSteps { get; init; } = 10;
 
     /// <summary>
-    /// 自定义元数据（只读快照）
+    /// Custom metadata (read-only snapshot).
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata
     {
@@ -53,9 +53,9 @@ public class AgentContext
     }
 
     /// <summary>
-    /// 添加执行步骤
+    /// Adds an execution step.
     /// </summary>
-    /// <param name="step">要添加的步骤</param>
+    /// <param name="step">The step to add.</param>
     public void AddStep(AgentStep step)
     {
         lock (_lock)
@@ -65,10 +65,10 @@ public class AgentContext
     }
 
     /// <summary>
-    /// 设置元数据
+    /// Sets a metadata entry.
     /// </summary>
-    /// <param name="key">键</param>
-    /// <param name="value">值</param>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
     public void SetMetadata(string key, object value)
     {
         lock (_lock)

@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Resilience;
 
 /// <summary>
-/// 弹性策略配置选项
+/// Resilience strategy configuration options.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Resilience": {
@@ -30,26 +30,26 @@ namespace Dawning.Agents.Abstractions.Resilience;
 /// </remarks>
 public class ResilienceOptions : IValidatableOptions
 {
-    /// <summary>配置节名称</summary>
+    /// <summary>Configuration section name.</summary>
     public const string SectionName = "Resilience";
 
     /// <summary>
-    /// 重试策略配置
+    /// Retry strategy configuration.
     /// </summary>
     public RetryOptions Retry { get; set; } = new();
 
     /// <summary>
-    /// 断路器策略配置
+    /// Circuit breaker strategy configuration.
     /// </summary>
     public CircuitBreakerOptions CircuitBreaker { get; set; } = new();
 
     /// <summary>
-    /// 超时策略配置
+    /// Timeout strategy configuration.
     /// </summary>
     public TimeoutOptions Timeout { get; set; } = new();
 
     /// <summary>
-    /// 舱壁隔离策略配置
+    /// Bulkhead isolation strategy configuration.
     /// </summary>
     public BulkheadOptions Bulkhead { get; set; } = new();
 
@@ -64,37 +64,37 @@ public class ResilienceOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 重试策略配置
+/// Retry strategy configuration.
 /// </summary>
 public class RetryOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用重试
+    /// Whether retry is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 最大重试次数
+    /// Maximum retry attempts.
     /// </summary>
     public int MaxRetryAttempts { get; set; } = 3;
 
     /// <summary>
-    /// 基础延迟时间（毫秒）
+    /// Base delay time in milliseconds.
     /// </summary>
     public int BaseDelayMs { get; set; } = 1000;
 
     /// <summary>
-    /// 是否使用抖动（Jitter）避免惊群效应
+    /// Whether to use jitter to avoid the thundering herd effect.
     /// </summary>
     public bool UseJitter { get; set; } = true;
 
     /// <summary>
-    /// 退避策略类型（Constant=固定延迟, Exponential=指数退避, Linear=线性递增）
+    /// Backoff strategy type (Constant=fixed delay, Exponential=exponential backoff, Linear=linear increase).
     /// </summary>
     public RetryBackoffType BackoffType { get; set; } = RetryBackoffType.Constant;
 
     /// <summary>
-    /// 最大延迟时间（毫秒）
+    /// Maximum delay time in milliseconds.
     /// </summary>
     public int MaxDelayMs { get; set; } = 30000;
 
@@ -119,32 +119,32 @@ public class RetryOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 断路器策略配置
+/// Circuit breaker strategy configuration.
 /// </summary>
 public class CircuitBreakerOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用断路器
+    /// Whether the circuit breaker is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 触发断路的失败率（0.0-1.0）
+    /// Failure ratio to trigger the circuit breaker (0.0-1.0).
     /// </summary>
     public double FailureRatio { get; set; } = 0.5;
 
     /// <summary>
-    /// 采样时间窗口（秒）
+    /// Sampling time window in seconds.
     /// </summary>
     public int SamplingDurationSeconds { get; set; } = 30;
 
     /// <summary>
-    /// 最小请求数（低于此数不触发断路）
+    /// Minimum request count (circuit breaker will not trigger below this threshold).
     /// </summary>
     public int MinimumThroughput { get; set; } = 10;
 
     /// <summary>
-    /// 断路持续时间（秒）
+    /// Circuit break duration in seconds.
     /// </summary>
     public int BreakDurationSeconds { get; set; } = 30;
 
@@ -182,17 +182,17 @@ public class CircuitBreakerOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 超时策略配置
+/// Timeout strategy configuration.
 /// </summary>
 public class TimeoutOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用超时
+    /// Whether timeout is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 超时时间（秒）
+    /// Timeout duration in seconds.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 120;
 
@@ -207,25 +207,25 @@ public class TimeoutOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 舱壁隔离策略配置
+/// Bulkhead isolation strategy configuration.
 /// </summary>
 /// <remarks>
-/// 舱壁隔离用于限制并发请求数，防止资源耗尽。
+/// Bulkhead isolation limits the number of concurrent requests to prevent resource exhaustion.
 /// </remarks>
 public class BulkheadOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用舱壁隔离
+    /// Whether bulkhead isolation is enabled.
     /// </summary>
     public bool Enabled { get; set; } = false;
 
     /// <summary>
-    /// 最大并发执行数
+    /// Maximum concurrent executions.
     /// </summary>
     public int MaxConcurrency { get; set; } = 10;
 
     /// <summary>
-    /// 最大排队等待数
+    /// Maximum queued actions.
     /// </summary>
     public int MaxQueuedActions { get; set; } = 20;
 
@@ -245,16 +245,16 @@ public class BulkheadOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 重试退避策略类型
+/// Retry backoff strategy type.
 /// </summary>
 public enum RetryBackoffType
 {
-    /// <summary>固定延迟</summary>
+    /// <summary>Fixed delay.</summary>
     Constant = 0,
 
-    /// <summary>线性递增</summary>
+    /// <summary>Linear increase.</summary>
     Linear = 1,
 
-    /// <summary>指数退避</summary>
+    /// <summary>Exponential backoff.</summary>
     Exponential = 2,
 }

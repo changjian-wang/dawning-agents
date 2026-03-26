@@ -1,25 +1,25 @@
 namespace Dawning.Agents.Abstractions.Diagnostics;
 
 /// <summary>
-/// 性能分析器接口
+/// Performance profiler interface.
 /// </summary>
 public interface IPerformanceProfiler
 {
     /// <summary>
-    /// 开始计时一个操作
+    /// Starts timing an operation.
     /// </summary>
-    /// <param name="operationName">操作名称</param>
-    /// <param name="category">操作类别</param>
-    /// <returns>计时句柄，Dispose 时结束计时</returns>
+    /// <param name="operationName">Operation name.</param>
+    /// <param name="category">Operation category.</param>
+    /// <returns>A timing handle that stops timing when disposed.</returns>
     IDisposable StartOperation(string operationName, string? category = null);
 
     /// <summary>
-    /// 记录一个已完成的操作
+    /// Records a completed operation.
     /// </summary>
-    /// <param name="operationName">操作名称</param>
-    /// <param name="duration">耗时</param>
-    /// <param name="category">操作类别</param>
-    /// <param name="metadata">附加元数据</param>
+    /// <param name="operationName">Operation name.</param>
+    /// <param name="duration">Duration.</param>
+    /// <param name="category">Operation category.</param>
+    /// <param name="metadata">Additional metadata.</param>
     void RecordOperation(
         string operationName,
         TimeSpan duration,
@@ -28,123 +28,123 @@ public interface IPerformanceProfiler
     );
 
     /// <summary>
-    /// 获取慢操作列表
+    /// Gets a list of slow operations.
     /// </summary>
-    /// <param name="threshold">慢操作阈值</param>
-    /// <param name="limit">返回数量限制</param>
+    /// <param name="threshold">Slow operation threshold.</param>
+    /// <param name="limit">Maximum number of results to return.</param>
     IReadOnlyList<OperationTrace> GetSlowOperations(TimeSpan threshold, int limit = 100);
 
     /// <summary>
-    /// 获取操作统计
+    /// Gets operation statistics.
     /// </summary>
-    /// <param name="category">操作类别（可选）</param>
+    /// <param name="category">Operation category (optional).</param>
     IReadOnlyDictionary<string, OperationStatistics> GetStatistics(string? category = null);
 
     /// <summary>
-    /// 清除历史记录
+    /// Clears history.
     /// </summary>
     void Clear();
 }
 
 /// <summary>
-/// 操作追踪记录
+/// Operation trace record.
 /// </summary>
 public class OperationTrace
 {
     /// <summary>
-    /// 操作名称
+    /// Operation name.
     /// </summary>
     public string OperationName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 操作类别
+    /// Operation category.
     /// </summary>
     public string? Category { get; set; }
 
     /// <summary>
-    /// 开始时间
+    /// Start time.
     /// </summary>
     public DateTimeOffset StartTime { get; set; }
 
     /// <summary>
-    /// 耗时
+    /// Duration.
     /// </summary>
     public TimeSpan Duration { get; set; }
 
     /// <summary>
-    /// 耗时（毫秒）
+    /// Duration (milliseconds).
     /// </summary>
     public double DurationMs => Duration.TotalMilliseconds;
 
     /// <summary>
-    /// 是否成功
+    /// Whether the operation was successful.
     /// </summary>
     public bool IsSuccess { get; set; } = true;
 
     /// <summary>
-    /// 错误信息
+    /// Error message.
     /// </summary>
     public string? ErrorMessage { get; set; }
 
     /// <summary>
-    /// 附加元数据
+    /// Additional metadata.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Metadata { get; set; }
 }
 
 /// <summary>
-/// 操作统计信息
+/// Operation statistics.
 /// </summary>
 public class OperationStatistics
 {
     /// <summary>
-    /// 操作名称
+    /// Operation name.
     /// </summary>
     public string OperationName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 总调用次数
+    /// Total invocation count.
     /// </summary>
     public long TotalCount { get; set; }
 
     /// <summary>
-    /// 成功次数
+    /// Success count.
     /// </summary>
     public long SuccessCount { get; set; }
 
     /// <summary>
-    /// 失败次数
+    /// Failure count.
     /// </summary>
     public long FailureCount { get; set; }
 
     /// <summary>
-    /// 成功率
+    /// Success rate.
     /// </summary>
     public double SuccessRate => TotalCount > 0 ? (double)SuccessCount / TotalCount : 0;
 
     /// <summary>
-    /// 总耗时
+    /// Total duration.
     /// </summary>
     public TimeSpan TotalDuration { get; set; }
 
     /// <summary>
-    /// 平均耗时
+    /// Average duration.
     /// </summary>
     public TimeSpan AverageDuration =>
         TotalCount > 0 ? TimeSpan.FromTicks(TotalDuration.Ticks / TotalCount) : TimeSpan.Zero;
 
     /// <summary>
-    /// 最小耗时
+    /// Minimum duration.
     /// </summary>
     public TimeSpan MinDuration { get; set; } = TimeSpan.MaxValue;
 
     /// <summary>
-    /// 最大耗时
+    /// Maximum duration.
     /// </summary>
     public TimeSpan MaxDuration { get; set; } = TimeSpan.Zero;
 
     /// <summary>
-    /// 最后一次调用时间
+    /// Last invocation time.
     /// </summary>
     public DateTimeOffset LastCallTime { get; set; }
 }

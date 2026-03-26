@@ -1,21 +1,21 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// 向 LLM 声明的工具定义（用于 Native Function Calling）
+/// Tool definition declared to the LLM for native function calling.
 /// </summary>
 public record ToolDefinition
 {
-    /// <summary>工具名称（对应函数名）</summary>
+    /// <summary>Tool name (corresponds to the function name).</summary>
     public required string Name { get; init; }
 
-    /// <summary>工具描述（帮助 LLM 理解何时使用）</summary>
+    /// <summary>Tool description (helps the LLM understand when to use it).</summary>
     public required string Description { get; init; }
 
-    /// <summary>参数的 JSON Schema（符合 OpenAI function calling 规范）</summary>
+    /// <summary>JSON Schema for parameters (conforming to the OpenAI function calling specification).</summary>
     public string? ParametersSchema { get; init; }
 
     /// <summary>
-    /// 从 ITool 创建工具定义
+    /// Creates a tool definition from an ITool.
     /// </summary>
     public static ToolDefinition FromTool(
         string name,

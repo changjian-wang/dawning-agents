@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Logging;
 
 /// <summary>
-/// 日志配置选项
+/// Configuration options for agent logging.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// Example appsettings.json configuration:
 /// <code>
 /// {
 ///   "AgentLogging": {
@@ -37,79 +37,79 @@ public class LoggingOptions : IValidatableOptions
     ];
 
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "AgentLogging";
 
     /// <summary>
-    /// 最小日志级别
+    /// The minimum log level.
     /// </summary>
     public string MinimumLevel { get; set; } = "Information";
 
     /// <summary>
-    /// 是否启用控制台输出
+    /// Gets or sets a value indicating whether console output is enabled.
     /// </summary>
     public bool EnableConsole { get; set; } = true;
 
     /// <summary>
-    /// 是否启用文件输出
+    /// Gets or sets a value indicating whether file output is enabled.
     /// </summary>
     public bool EnableFile { get; set; } = false;
 
     /// <summary>
-    /// 日志文件路径（支持滚动占位符）
+    /// The log file path (supports rolling placeholders).
     /// </summary>
     public string FilePath { get; set; } = "logs/agent-.log";
 
     /// <summary>
-    /// 文件滚动间隔
+    /// The file rolling interval.
     /// </summary>
     public RollingIntervalType RollingInterval { get; set; } = RollingIntervalType.Day;
 
     /// <summary>
-    /// 保留的文件数量
+    /// The number of retained log files.
     /// </summary>
     public int RetainedFileCount { get; set; } = 30;
 
     /// <summary>
-    /// 输出模板
+    /// The output template.
     /// </summary>
     public string OutputTemplate { get; set; } =
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{AgentName}] {Message:lj}{NewLine}{Exception}";
 
     /// <summary>
-    /// 是否使用 JSON 格式（适合 ELK/Seq）
+    /// Gets or sets a value indicating whether to use JSON format (suitable for ELK/Seq).
     /// </summary>
     public bool EnableJsonFormat { get; set; } = false;
 
     /// <summary>
-    /// 是否添加机器名称
+    /// Gets or sets a value indicating whether to enrich with machine name.
     /// </summary>
     public bool EnrichWithMachineName { get; set; } = true;
 
     /// <summary>
-    /// 是否添加线程 ID
+    /// Gets or sets a value indicating whether to enrich with thread ID.
     /// </summary>
     public bool EnrichWithThreadId { get; set; } = true;
 
     /// <summary>
-    /// 是否添加请求 ID
+    /// Gets or sets a value indicating whether to enrich with request ID.
     /// </summary>
     public bool EnrichWithRequestId { get; set; } = true;
 
     /// <summary>
-    /// 针对特定命名空间的日志级别覆盖
+    /// The log level overrides for specific namespaces.
     /// </summary>
     public IDictionary<string, string> Override { get; set; } =
         new Dictionary<string, string> { ["Microsoft"] = "Warning", ["System"] = "Warning" };
 
     /// <summary>
-    /// Elasticsearch 配置
+    /// The Elasticsearch logging options.
     /// </summary>
     public ElasticsearchLoggingOptions? Elasticsearch { get; set; }
 
     /// <summary>
-    /// Seq 配置（开发环境推荐）
+    /// The Seq logging options (recommended for development).
     /// </summary>
     public SeqLoggingOptions? Seq { get; set; }
 
@@ -146,52 +146,52 @@ public class LoggingOptions : IValidatableOptions
 }
 
 /// <summary>
-/// Elasticsearch 日志配置
+/// Configuration options for Elasticsearch logging.
 /// </summary>
 public class ElasticsearchLoggingOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用
+    /// Gets or sets a value indicating whether Elasticsearch logging is enabled.
     /// </summary>
     public bool Enabled { get; set; } = false;
 
     /// <summary>
-    /// Elasticsearch 节点地址
+    /// The Elasticsearch node URIs.
     /// </summary>
     public string[] NodeUris { get; set; } = ["http://localhost:9200"];
 
     /// <summary>
-    /// 索引格式（支持日期占位符）
+    /// The index format (supports date placeholders).
     /// </summary>
     public string IndexFormat { get; set; } = "dawning-agents-{0:yyyy.MM.dd}";
 
     /// <summary>
-    /// 自动注册索引模板
+    /// Gets or sets a value indicating whether to auto-register index templates.
     /// </summary>
     public bool AutoRegisterTemplate { get; set; } = true;
 
     /// <summary>
-    /// API Key（可选）
+    /// The API key (optional).
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// 用户名（可选，Basic Auth）
+    /// The username (optional, for Basic Auth).
     /// </summary>
     public string? Username { get; set; }
 
     /// <summary>
-    /// 密码（可选，Basic Auth）
+    /// The password (optional, for Basic Auth).
     /// </summary>
     public string? Password { get; set; }
 
     /// <summary>
-    /// 批量发送大小
+    /// The batch size.
     /// </summary>
     public int BatchSize { get; set; } = 50;
 
     /// <summary>
-    /// 批量发送间隔（秒）
+    /// The batch interval in seconds.
     /// </summary>
     public int BatchIntervalSeconds { get; set; } = 2;
 
@@ -225,27 +225,27 @@ public class ElasticsearchLoggingOptions : IValidatableOptions
 }
 
 /// <summary>
-/// Seq 日志配置
+/// Configuration options for Seq logging.
 /// </summary>
 public class SeqLoggingOptions : IValidatableOptions
 {
     /// <summary>
-    /// 是否启用
+    /// Gets or sets a value indicating whether Seq logging is enabled.
     /// </summary>
     public bool Enabled { get; set; } = false;
 
     /// <summary>
-    /// Seq 服务器地址
+    /// The Seq server URL.
     /// </summary>
     public string ServerUrl { get; set; } = "http://localhost:5341";
 
     /// <summary>
-    /// API Key（可选）
+    /// The API key (optional).
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// 批量发送间隔（秒）
+    /// The batch interval in seconds.
     /// </summary>
     public int BatchIntervalSeconds { get; set; } = 2;
 
@@ -265,37 +265,37 @@ public class SeqLoggingOptions : IValidatableOptions
 }
 
 /// <summary>
-/// 日志文件滚动间隔类型
+/// Specifies the log file rolling interval type.
 /// </summary>
 public enum RollingIntervalType
 {
     /// <summary>
-    /// 无限制（不滚动）
+    /// No rolling (infinite).
     /// </summary>
     Infinite,
 
     /// <summary>
-    /// 按年滚动
+    /// Roll by year.
     /// </summary>
     Year,
 
     /// <summary>
-    /// 按月滚动
+    /// Roll by month.
     /// </summary>
     Month,
 
     /// <summary>
-    /// 按天滚动
+    /// Roll by day.
     /// </summary>
     Day,
 
     /// <summary>
-    /// 按小时滚动
+    /// Roll by hour.
     /// </summary>
     Hour,
 
     /// <summary>
-    /// 按分钟滚动
+    /// Roll by minute.
     /// </summary>
     Minute,
 }

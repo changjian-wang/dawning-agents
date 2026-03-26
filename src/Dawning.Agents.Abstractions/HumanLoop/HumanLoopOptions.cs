@@ -3,68 +3,68 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.HumanLoop;
 
 /// <summary>
-/// 审批配置
+/// Approval configuration.
 /// </summary>
 public class ApprovalConfig
 {
     /// <summary>
-    /// 是否对低风险操作要求审批
+    /// Whether to require approval for low-risk operations.
     /// </summary>
     public bool RequireApprovalForLowRisk { get; set; } = false;
 
     /// <summary>
-    /// 是否对中等风险操作要求审批
+    /// Whether to require approval for medium-risk operations.
     /// </summary>
     public bool RequireApprovalForMediumRisk { get; set; } = true;
 
     /// <summary>
-    /// 审批超时时间
+    /// Approval timeout.
     /// </summary>
     public TimeSpan ApprovalTimeout { get; set; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// 超时时的默认操作（approve/reject）
+    /// Default action on timeout (approve/reject).
     /// </summary>
     public string DefaultOnTimeout { get; set; } = "reject";
 }
 
 /// <summary>
-/// 人机协作配置
+/// Human-in-the-loop configuration.
 /// </summary>
 public class HumanLoopOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Configuration section name.
     /// </summary>
     public const string SectionName = "HumanLoop";
 
     /// <summary>
-    /// 是否在执行前确认
+    /// Whether to confirm before execution.
     /// </summary>
     public bool ConfirmBeforeExecution { get; set; } = false;
 
     /// <summary>
-    /// 是否在返回前审查
+    /// Whether to review before returning.
     /// </summary>
     public bool ReviewBeforeReturn { get; set; } = false;
 
     /// <summary>
-    /// 是否对中等风险操作要求审批
+    /// Whether to require approval for medium-risk operations.
     /// </summary>
     public bool RequireApprovalForMediumRisk { get; set; } = true;
 
     /// <summary>
-    /// 默认超时时间
+    /// Default timeout.
     /// </summary>
     public TimeSpan DefaultTimeout { get; set; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// 最大重试次数
+    /// Maximum retry count.
     /// </summary>
     public int MaxRetries { get; set; } = 3;
 
     /// <summary>
-    /// 高风险关键词（用于自动识别风险级别）
+    /// High-risk keywords (for automatic risk level detection).
     /// </summary>
     public string[] HighRiskKeywords { get; set; } =
     [
@@ -74,18 +74,13 @@ public class HumanLoopOptions : IValidatableOptions
         "execute",
         "transfer",
         "payment",
-        "删除",
-        "移除",
-        "执行",
-        "转账",
-        "支付",
     ];
 
     /// <summary>
-    /// 关键风险关键词
+    /// Critical-risk keywords.
     /// </summary>
     public string[] CriticalRiskKeywords { get; set; } =
-    ["production", "financial", "customer data", "credentials", "生产", "财务", "客户数据", "凭证"];
+    ["production", "financial", "customer data", "credentials"];
 
     /// <inheritdoc />
     public void Validate()

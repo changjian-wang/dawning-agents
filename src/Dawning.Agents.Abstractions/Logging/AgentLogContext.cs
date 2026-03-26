@@ -1,14 +1,14 @@
 namespace Dawning.Agents.Abstractions.Logging;
 
 /// <summary>
-/// Agent 日志上下文 - 用于在日志中传递 Agent 相关信息
+/// Provides agent-related context information for structured logging.
 /// </summary>
 public class AgentLogContext
 {
     private static readonly AsyncLocal<AgentLogContext?> s_current = new();
 
     /// <summary>
-    /// 当前日志上下文
+    /// Gets or sets the current log context.
     /// </summary>
     public static AgentLogContext? Current
     {
@@ -17,37 +17,37 @@ public class AgentLogContext
     }
 
     /// <summary>
-    /// Agent 名称
+    /// The agent name.
     /// </summary>
     public string? AgentName { get; set; }
 
     /// <summary>
-    /// 请求 ID
+    /// The request ID.
     /// </summary>
     public string? RequestId { get; set; }
 
     /// <summary>
-    /// 会话 ID
+    /// The session ID.
     /// </summary>
     public string? SessionId { get; set; }
 
     /// <summary>
-    /// 用户 ID
+    /// The user ID.
     /// </summary>
     public string? UserId { get; set; }
 
     /// <summary>
-    /// 当前工具名称
+    /// The current tool name.
     /// </summary>
     public string? ToolName { get; set; }
 
     /// <summary>
-    /// 当前步骤编号
+    /// The current step number.
     /// </summary>
     public int? StepNumber { get; set; }
 
     /// <summary>
-    /// 创建作用域
+    /// Begins a new log context scope.
     /// </summary>
     public static IDisposable BeginScope(
         string? agentName = null,
@@ -68,7 +68,7 @@ public class AgentLogContext
     }
 
     /// <summary>
-    /// 设置当前工具
+    /// Sets the current tool name.
     /// </summary>
     public static void SetTool(string toolName)
     {
@@ -79,7 +79,7 @@ public class AgentLogContext
     }
 
     /// <summary>
-    /// 设置当前步骤
+    /// Sets the current step number.
     /// </summary>
     public static void SetStep(int stepNumber)
     {

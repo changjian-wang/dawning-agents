@@ -3,73 +3,73 @@ namespace Dawning.Agents.Abstractions.Scaling;
 using Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 工作项
+/// Represents a work item queued for agent processing.
 /// </summary>
 public record AgentWorkItem
 {
     /// <summary>
-    /// 工作项 ID
+    /// Gets the work item ID.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 输入内容
+    /// Gets the input content.
     /// </summary>
     public required string Input { get; init; }
 
     /// <summary>
-    /// Agent 上下文
+    /// Gets the agent context.
     /// </summary>
     public AgentContext? Context { get; init; }
 
     /// <summary>
-    /// 完成回调
+    /// Gets the completion source for signaling the result.
     /// </summary>
     public required TaskCompletionSource<AgentResponse> CompletionSource { get; init; }
 
     /// <summary>
-    /// 入队时间
+    /// Gets the time the item was enqueued.
     /// </summary>
     public DateTimeOffset EnqueuedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 优先级
+    /// Gets the priority of the work item.
     /// </summary>
     public int Priority { get; init; } = 0;
 
     /// <summary>
-    /// 取消令牌
+    /// Gets the cancellation token.
     /// </summary>
     public CancellationToken CancellationToken { get; init; }
 }
 
 /// <summary>
-/// Agent 实例信息
+/// Represents an agent instance used for load balancing and scaling.
 /// </summary>
 public class AgentInstance
 {
     /// <summary>
-    /// 实例 ID
+    /// Gets the instance ID.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// Agent 实例 (本地模式)
+    /// Gets the agent instance (local mode).
     /// </summary>
     public IAgent? Agent { get; init; }
 
     /// <summary>
-    /// 端点地址 (分布式模式)
+    /// Gets the endpoint address (distributed mode).
     /// </summary>
     public string Endpoint { get; init; } = "";
 
     /// <summary>
-    /// 服务名称
+    /// Gets the service name.
     /// </summary>
     public string ServiceName { get; init; } = "";
 
     /// <summary>
-    /// 是否健康
+    /// Gets or sets a value indicating whether the instance is healthy.
     /// </summary>
     public bool IsHealthy
     {
@@ -82,7 +82,7 @@ public class AgentInstance
     private int _activeRequests;
 
     /// <summary>
-    /// 活跃请求数
+    /// Gets or sets the number of active requests.
     /// </summary>
     public int ActiveRequests
     {
@@ -91,173 +91,173 @@ public class AgentInstance
     }
 
     /// <summary>
-    /// 原子递增活跃请求数
+    /// Atomically increments the active request count.
     /// </summary>
     public void IncrementActiveRequests() => Interlocked.Increment(ref _activeRequests);
 
     /// <summary>
-    /// 原子递减活跃请求数
+    /// Atomically decrements the active request count.
     /// </summary>
     public void DecrementActiveRequests() => Interlocked.Decrement(ref _activeRequests);
 
     /// <summary>
-    /// 权重 (用于加权负载均衡)
+    /// Gets the weight (used for weighted load balancing).
     /// </summary>
     public int Weight { get; init; } = 100;
 
     /// <summary>
-    /// 最后健康检查时间
+    /// Gets or sets the time of the last health check.
     /// </summary>
     public DateTimeOffset LastHealthCheck { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 标签
+    /// Gets the tags associated with this instance.
     /// </summary>
     public IReadOnlyDictionary<string, string> Tags { get; init; } =
         new Dictionary<string, string>();
 }
 
 /// <summary>
-/// 请求队列接口
+/// Provides a queue for agent work items.
 /// </summary>
 public interface IAgentRequestQueue
 {
     /// <summary>
-    /// 入队工作项
+    /// Enqueues a work item.
     /// </summary>
     ValueTask EnqueueAsync(AgentWorkItem item, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 出队工作项
+    /// Dequeues a work item.
     /// </summary>
     ValueTask<AgentWorkItem?> DequeueAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 当前队列长度
+    /// Gets the current queue length.
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// 是否可以接受更多项
+    /// Gets a value indicating whether the queue can accept more items.
     /// </summary>
     bool CanWrite { get; }
 }
 
 /// <summary>
-/// 工作池接口
+/// Manages a pool of agent workers.
 /// </summary>
 public interface IAgentWorkerPool : IDisposable, IAsyncDisposable
 {
     /// <summary>
-    /// 启动工作池
+    /// Starts the worker pool.
     /// </summary>
     void Start();
 
     /// <summary>
-    /// 停止工作池
+    /// Stops the worker pool.
     /// </summary>
     Task StopAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 工作线程数
+    /// Gets the number of workers.
     /// </summary>
     int WorkerCount { get; }
 
     /// <summary>
-    /// 是否正在运行
+    /// Gets a value indicating whether the pool is running.
     /// </summary>
     bool IsRunning { get; }
 }
 
 /// <summary>
-/// 负载均衡器接口
+/// Distributes requests across agent instances.
 /// </summary>
 public interface IAgentLoadBalancer
 {
     /// <summary>
-    /// 注册实例
+    /// Registers an agent instance.
     /// </summary>
     void RegisterInstance(AgentInstance instance);
 
     /// <summary>
-    /// 注销实例
+    /// Unregisters an agent instance.
     /// </summary>
     void UnregisterInstance(string instanceId);
 
     /// <summary>
-    /// 获取下一个实例（轮询）
+    /// Gets the next instance using round-robin selection.
     /// </summary>
     AgentInstance? GetNextInstance();
 
     /// <summary>
-    /// 获取负载最小的实例
+    /// Gets the instance with the least load.
     /// </summary>
     AgentInstance? GetLeastLoadedInstance();
 
     /// <summary>
-    /// 获取所有实例
+    /// Gets all registered instances.
     /// </summary>
     IReadOnlyList<AgentInstance> GetAllInstances();
 
     /// <summary>
-    /// 获取健康实例数
+    /// Gets the number of healthy instances.
     /// </summary>
     int HealthyInstanceCount { get; }
 }
 
 /// <summary>
-/// 熔断器接口
+/// Provides circuit breaker functionality for fault tolerance.
 /// </summary>
 public interface ICircuitBreaker
 {
     /// <summary>
-    /// 当前状态
+    /// Gets the current circuit state.
     /// </summary>
     CircuitState State { get; }
 
     /// <summary>
-    /// 带熔断保护执行
+    /// Executes an action with circuit breaker protection.
     /// </summary>
     Task<T> ExecuteAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 带熔断保护执行（无返回值）
+    /// Executes an action with circuit breaker protection (no return value).
     /// </summary>
     Task ExecuteAsync(Func<Task> action, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 重置熔断器
+    /// Resets the circuit breaker.
     /// </summary>
     void Reset();
 
     /// <summary>
-    /// 连续失败次数
+    /// Gets the consecutive failure count.
     /// </summary>
     int FailureCount { get; }
 }
 
 /// <summary>
-/// 自动扩展器接口
+/// Provides automatic scaling of agent instances.
 /// </summary>
 public interface IAgentAutoScaler
 {
     /// <summary>
-    /// 评估并应用扩展决策
+    /// Evaluates and applies a scaling decision.
     /// </summary>
     Task<ScalingDecision> EvaluateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 当前实例数
+    /// Gets the current number of instances.
     /// </summary>
     int CurrentInstances { get; }
 
     /// <summary>
-    /// 上次扩容时间
+    /// Gets the time of the last scale-up event.
     /// </summary>
     DateTimeOffset? LastScaleUpTime { get; }
 
     /// <summary>
-    /// 上次缩容时间
+    /// Gets the time of the last scale-down event.
     /// </summary>
     DateTimeOffset? LastScaleDownTime { get; }
 }

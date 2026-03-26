@@ -1,31 +1,31 @@
 namespace Dawning.Agents.Abstractions.Tools;
 
 /// <summary>
-/// 工具持久化存储 — 管理 User 和 Global 级别的工具定义
+/// Tool persistent store — manages User and Global level tool definitions.
 /// </summary>
 /// <remarks>
-/// <para>User 工具存储在 ~/.dawning/tools/ 目录</para>
-/// <para>Global 工具存储在 {project}/.dawning/tools/ 目录</para>
+/// <para>User tools are stored in the ~/.dawning/tools/ directory.</para>
+/// <para>Global tools are stored in the {project}/.dawning/tools/ directory.</para>
 /// </remarks>
 public interface IToolStore
 {
     /// <summary>
-    /// 加载指定范围的所有工具定义
+    /// Loads all tool definitions for the specified scope.
     /// </summary>
-    /// <param name="scope">工具范围（User 或 Global）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>工具定义列表</returns>
+    /// <param name="scope">Tool scope (User or Global).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of tool definitions.</returns>
     Task<IReadOnlyList<EphemeralToolDefinition>> LoadToolsAsync(
         ToolScope scope,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 保存工具定义到指定范围
+    /// Saves a tool definition to the specified scope.
     /// </summary>
-    /// <param name="definition">工具定义</param>
-    /// <param name="scope">工具范围（User 或 Global）</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="definition">Tool definition.</param>
+    /// <param name="scope">Tool scope (User or Global).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task SaveToolAsync(
         EphemeralToolDefinition definition,
         ToolScope scope,
@@ -33,11 +33,11 @@ public interface IToolStore
     );
 
     /// <summary>
-    /// 从指定范围删除工具定义
+    /// Deletes a tool definition from the specified scope.
     /// </summary>
-    /// <param name="name">工具名称</param>
-    /// <param name="scope">工具范围（User 或 Global）</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Tool name.</param>
+    /// <param name="scope">Tool scope (User or Global).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task DeleteToolAsync(
         string name,
         ToolScope scope,
@@ -45,11 +45,11 @@ public interface IToolStore
     );
 
     /// <summary>
-    /// 检查工具是否存在于指定范围
+    /// Checks whether a tool exists in the specified scope.
     /// </summary>
-    /// <param name="name">工具名称</param>
-    /// <param name="scope">工具范围</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="name">Tool name.</param>
+    /// <param name="scope">Tool scope.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> ExistsAsync(
         string name,
         ToolScope scope,
@@ -57,11 +57,11 @@ public interface IToolStore
     );
 
     /// <summary>
-    /// 更新工具定义（自动递增版本号和修订时间）
+    /// Updates a tool definition (automatically increments version and revision time).
     /// </summary>
-    /// <param name="definition">修订后的工具定义</param>
-    /// <param name="scope">工具范围（User 或 Global）</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="definition">Revised tool definition.</param>
+    /// <param name="scope">Tool scope (User or Global).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task UpdateToolAsync(
         EphemeralToolDefinition definition,
         ToolScope scope,

@@ -1,47 +1,47 @@
 namespace Dawning.Agents.Abstractions.Agent;
 
 /// <summary>
-/// Agent 单步执行记录
+/// Agent single-step execution record.
 /// </summary>
 public record AgentStep
 {
     /// <summary>
-    /// 步骤序号
+    /// Step number.
     /// </summary>
     public required int StepNumber { get; init; }
 
     /// <summary>
-    /// LLM 原始输出（用于调试和 Final Answer 提取）
+    /// Raw LLM output (used for debugging and final answer extraction).
     /// </summary>
     public string? RawOutput { get; init; }
 
     /// <summary>
-    /// Agent 的思考过程
+    /// Agent's reasoning process.
     /// </summary>
     public string? Thought { get; init; }
 
     /// <summary>
-    /// 执行的动作名称
+    /// Name of the executed action.
     /// </summary>
     public string? Action { get; init; }
 
     /// <summary>
-    /// 动作的输入参数
+    /// Input parameters for the action.
     /// </summary>
     public string? ActionInput { get; init; }
 
     /// <summary>
-    /// 动作执行后的观察结果
+    /// Observation result after action execution.
     /// </summary>
     public string? Observation { get; init; }
 
     /// <summary>
-    /// 步骤执行时间
+    /// Step execution timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 本步骤成本（USD）
+    /// Cost of this step (USD).
     /// </summary>
     public decimal Cost { get; init; }
 }

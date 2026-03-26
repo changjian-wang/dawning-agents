@@ -1,148 +1,148 @@
 namespace Dawning.Agents.Abstractions.Communication;
 
 /// <summary>
-/// Agent 通信的基础消息
+/// Base message for agent communication.
 /// </summary>
 public abstract record AgentMessage
 {
     /// <summary>
-    /// 消息唯一标识
+    /// Unique message identifier.
     /// </summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// 发送者 Agent ID
+    /// Sender agent ID.
     /// </summary>
     public required string SenderId { get; init; }
 
     /// <summary>
-    /// 接收者 Agent ID（null 表示广播）
+    /// Receiver agent ID. <see langword="null"/> indicates a broadcast message.
     /// </summary>
     public string? ReceiverId { get; init; }
 
     /// <summary>
-    /// 消息时间戳
+    /// Message timestamp.
     /// </summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// 消息元数据
+    /// Message metadata.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; init; } =
         new Dictionary<string, object>();
 }
 
 /// <summary>
-/// 任务请求消息
+/// Task request message.
 /// </summary>
 public record TaskMessage : AgentMessage
 {
     /// <summary>
-    /// 任务内容
+    /// Task content.
     /// </summary>
     public required string Task { get; init; }
 
     /// <summary>
-    /// 任务优先级（0 最高）
+    /// Task priority (0 is highest).
     /// </summary>
     public int Priority { get; init; } = 0;
 
     /// <summary>
-    /// 任务超时时间
+    /// Task timeout duration.
     /// </summary>
     public TimeSpan? Timeout { get; init; }
 
     /// <summary>
-    /// 关联 ID（用于请求/响应匹配）
+    /// Correlation ID for request/response matching.
     /// </summary>
     public string? CorrelationId { get; init; }
 }
 
 /// <summary>
-/// 任务响应消息
+/// Task response message.
 /// </summary>
 public record ResponseMessage : AgentMessage
 {
     /// <summary>
-    /// 关联 ID（匹配原始请求）
+    /// Correlation ID matching the original request.
     /// </summary>
     public required string CorrelationId { get; init; }
 
     /// <summary>
-    /// 响应结果
+    /// Response result.
     /// </summary>
     public required string Result { get; init; }
 
     /// <summary>
-    /// 是否成功
+    /// Whether the operation was successful.
     /// </summary>
     public bool IsSuccess { get; init; }
 
     /// <summary>
-    /// 错误信息（如果失败）
+    /// Error message if the operation failed.
     /// </summary>
     public string? Error { get; init; }
 }
 
 /// <summary>
-/// 状态更新消息
+/// Status update message.
 /// </summary>
 public record StatusMessage : AgentMessage
 {
     /// <summary>
-    /// Agent 当前状态
+    /// Current agent status.
     /// </summary>
     public required AgentStatus Status { get; init; }
 
     /// <summary>
-    /// 当前执行的任务
+    /// Currently executing task.
     /// </summary>
     public string? CurrentTask { get; init; }
 
     /// <summary>
-    /// 任务进度（0.0 - 1.0）
+    /// Task progress (0.0 - 1.0).
     /// </summary>
     public double? Progress { get; init; }
 }
 
 /// <summary>
-/// 事件通知消息
+/// Event notification message.
 /// </summary>
 public record EventMessage : AgentMessage
 {
     /// <summary>
-    /// 事件类型
+    /// Event type.
     /// </summary>
     public required string EventType { get; init; }
 
     /// <summary>
-    /// 事件负载数据
+    /// Event payload data.
     /// </summary>
     public required object Payload { get; init; }
 }
 
 /// <summary>
-/// Agent 状态枚举
+/// Agent status enumeration.
 /// </summary>
 public enum AgentStatus
 {
     /// <summary>
-    /// 空闲
+    /// Idle.
     /// </summary>
     Idle,
 
     /// <summary>
-    /// 忙碌
+    /// Busy.
     /// </summary>
     Busy,
 
     /// <summary>
-    /// 错误
+    /// Error.
     /// </summary>
     Error,
 
     /// <summary>
-    /// 离线
+    /// Offline.
     /// </summary>
     Offline,
 }

@@ -1,25 +1,25 @@
 namespace Dawning.Agents.Abstractions.LLM;
 
 /// <summary>
-/// 聊天完成请求的选项
+/// Options for a chat completion request.
 /// </summary>
 public record ChatCompletionOptions
 {
-    /// <summary>采样温度 (0.0-2.0)，越高越随机</summary>
+    /// <summary>Sampling temperature (0.0–2.0). Higher values produce more random output.</summary>
     public float Temperature { get; init; } = 0.7f;
 
-    /// <summary>生成的最大 Token 数</summary>
+    /// <summary>Maximum number of tokens to generate.</summary>
     public int MaxTokens { get; init; } = 1000;
 
-    /// <summary>系统提示词</summary>
+    /// <summary>System prompt.</summary>
     public string? SystemPrompt { get; init; }
 
-    /// <summary>可用工具列表（用于 Native Function Calling）</summary>
+    /// <summary>Available tool definitions for native function calling.</summary>
     public IReadOnlyList<ToolDefinition>? Tools { get; init; }
 
-    /// <summary>工具选择模式（Auto/None/Required）</summary>
+    /// <summary>Tool choice mode (Auto/None/Required).</summary>
     public ToolChoiceMode? ToolChoice { get; init; }
 
-    /// <summary>响应格式（Text/JsonObject/JsonSchema）</summary>
+    /// <summary>Response format (Text/JsonObject/JsonSchema).</summary>
     public ResponseFormat? ResponseFormat { get; init; }
 }
