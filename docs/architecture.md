@@ -189,7 +189,10 @@ dawning-agents/
 │   │   │   ├── AgentOptions.cs             # 配置选项
 │   │   │   ├── AgentResponse.cs            # 执行结果
 │   │   │   ├── AgentStep.cs                # 单步记录
-│   │   │   └── IAgent.cs                   # Agent 接口
+│   │   │   ├── IAgent.cs                   # Agent 接口
+│   │   │   ├── ICostTracker.cs             # 成本追踪接口
+│   │   │   ├── IReflectionEngine.cs        # 反思引擎接口
+│   │   │   └── ReflectionOptions.cs        # 反思配置
 │   │   ├── Cache/                          # 缓存
 │   │   │   └── ISemanticCache.cs           # 语义缓存接口
 │   │   ├── Communication/                  # 通信
@@ -232,7 +235,15 @@ dawning-agents/
 │   │   │   ├── ILLMProvider.cs             # LLM 接口
 │   │   │   ├── IModelRouter.cs             # 模型路由接口
 │   │   │   ├── LLMOptions.cs               # LLM 配置
-│   │   │   └── LLMProviderType.cs          # 提供者枚举
+│   │   │   ├── LLMProviderType.cs          # 提供者枚举
+│   │   │   ├── ModelRouterOptions.cs       # 模型路由配置
+│   │   │   ├── ResponseFormat.cs           # 响应格式
+│   │   │   ├── ResponseFormatType.cs       # 响应格式枚举
+│   │   │   ├── StreamingChatEvent.cs       # 流式事件
+│   │   │   ├── StreamingChatEventExtensions.cs # 流式事件扩展
+│   │   │   ├── ToolCall.cs                 # 工具调用
+│   │   │   ├── ToolChoiceMode.cs           # 工具选择模式
+│   │   │   └── ToolDefinition.cs           # 工具定义
 │   │   ├── Logging/                        # 日志
 │   │   │   ├── AgentLogContext.cs          # Agent 日志上下文
 │   │   │   ├── ILogLevelController.cs      # 日志级别控制接口
@@ -279,14 +290,20 @@ dawning-agents/
 │   │   │   ├── ITokenUsageTracker.cs       # Token 用量追踪接口
 │   │   │   └── TokenUsageRecord.cs         # Token 用量记录
 │   │   ├── Tools/                          # 工具系统
+│   │   │   ├── EphemeralToolDefinition.cs  # 临时工具定义
 │   │   │   ├── FunctionToolAttribute.cs    # 工具特性
+│   │   │   ├── ISkillEvolutionPolicy.cs    # 技能进化策略
+│   │   │   ├── ISkillRouter.cs             # 技能路由接口
 │   │   │   ├── ITool.cs                    # 工具接口
 │   │   │   ├── IToolApprovalHandler.cs     # 审批处理器
-│   │   │   ├── IToolRegistry.cs            # 工具注册表
+│   │   │   ├── IToolRegistry.cs            # 工具注册表（IToolReader + IToolRegistrar）
+│   │   │   ├── IToolSandbox.cs             # 工具沙箱接口
 │   │   │   ├── IToolSelector.cs            # 工具选择器
-│   │   │   ├── IToolSet.cs                 # 工具集
-│   │   │   ├── IVirtualTool.cs             # 虚拟工具
-│   │   │   └── PackageManagerOptions.cs    # 包管理配置
+│   │   │   ├── IToolSession.cs             # 工具会话接口
+│   │   │   ├── IToolStore.cs               # 工具持久化存储
+│   │   │   ├── IToolUsageTracker.cs        # 工具使用追踪
+│   │   │   ├── SkillRouterOptions.cs       # 技能路由配置
+│   │   │   └── ToolUsageModels.cs          # 工具使用模型
 │   │   └── Workflow/                       # 工作流
 │   │       ├── IWorkflow.cs                # 工作流接口
 │   │       ├── WorkflowDefinition.cs       # 工作流定义
@@ -306,6 +323,9 @@ dawning-agents/
 │   │   ├── Agent/
 │   │   │   ├── AgentBase.cs                # Agent 基类（模板方法）
 │   │   │   ├── AgentServiceCollectionExtensions.cs
+│   │   │   ├── CostTracker.cs              # 成本追踪器
+│   │   │   ├── FunctionCallingAgent.cs     # Function Calling 实现
+│   │   │   ├── LLMReflectionEngine.cs      # LLM 反思引擎
 │   │   │   └── ReActAgent.cs               # ReAct 实现
 │   │   ├── Cache/
 │   │   │   ├── SemanticCache.cs            # 语义缓存
@@ -441,14 +461,27 @@ dawning-agents/
 │   │   │   │   ├── PackageManagerTool.cs   # 包管理（19 方法）
 │   │   │   │   ├── ProcessTool.cs          # 进程管理（6 方法）
 │   │   │   │   └── UtilityTool.cs          # 实用工具（5 方法）
+│   │   │   ├── Core/                       # 核心工具（动态工具系统）
+│   │   │   │   ├── BashTool.cs             # Bash 脚本执行
+│   │   │   │   ├── CommandAnalyzer.cs      # 命令安全分析
+│   │   │   │   ├── CreateToolTool.cs       # 动态创建工具
+│   │   │   │   ├── EditFileTool.cs         # 文件编辑
+│   │   │   │   ├── EphemeralTool.cs        # 临时工具实现
+│   │   │   │   ├── FileToolStore.cs        # 文件工具持久化
+│   │   │   │   ├── ReadFileTool.cs         # 文件读取
+│   │   │   │   ├── SearchTool.cs           # 搜索工具
+│   │   │   │   ├── ToolSandbox.cs          # 工具沙箱
+│   │   │   │   ├── ToolSession.cs          # 工具会话实现
+│   │   │   │   └── WriteFileTool.cs        # 文件写入
+│   │   │   ├── DefaultSkillEvolutionPolicy.cs # 技能进化策略
 │   │   │   ├── DefaultToolApprovalHandler.cs
 │   │   │   ├── DefaultToolSelector.cs      # 工具选择器
+│   │   │   ├── InMemoryToolUsageTracker.cs # 内存工具追踪
 │   │   │   ├── MethodTool.cs               # 方法包装器
+│   │   │   ├── SemanticSkillRouter.cs      # 语义技能路由
 │   │   │   ├── ToolRegistry.cs             # 工具注册表
 │   │   │   ├── ToolScanner.cs              # 工具扫描器
-│   │   │   ├── ToolServiceCollectionExtensions.cs
-│   │   │   ├── ToolSet.cs                  # 工具集实现
-│   │   │   └── VirtualTool.cs              # 虚拟工具实现
+│   │   │   └── ToolServiceCollectionExtensions.cs
 │   │   ├── Validation/                     # 验证
 │   │   │   ├── AgentOptionsValidator.cs    # Agent 配置验证
 │   │   │   ├── HumanLoopOptionsValidator.cs
@@ -493,6 +526,9 @@ dawning-agents/
 │   │   ├── OpenAIProvider.cs               # OpenAI LLM
 │   │   └── OpenAIServiceCollectionExtensions.cs
 │   │
+│   ├── Dawning.Agents.OpenTelemetry/        # 📊 OpenTelemetry 可观测性
+│   │   └── OpenTelemetryExtensions.cs      # OpenTelemetry DI 扩展
+│   │
 │   ├── Dawning.Agents.Pinecone/            # 🌲 Pinecone 向量存储
 │   │   ├── PineconeOptions.cs
 │   │   ├── PineconeServiceCollectionExtensions.cs
@@ -506,24 +542,41 @@ dawning-agents/
 │   ├── Dawning.Agents.Redis/               # 🔴 Redis 扩展
 │   │   ├── Cache/                          # Redis 缓存
 │   │   │   └── RedisDistributedCache.cs    # 分布式缓存实现
+│   │   ├── Communication/                  # Redis 通信
+│   │   │   ├── RedisMessageBus.cs          # Redis 消息总线
+│   │   │   └── RedisSharedState.cs         # Redis 共享状态
+│   │   ├── Health/                         # 健康检查
+│   │   │   └── RedisHealthCheck.cs         # Redis 健康检查
 │   │   ├── Lock/                           # 分布式锁
 │   │   │   └── RedisDistributedLock.cs     # Redis 分布式锁
 │   │   ├── Memory/                         # Redis 记忆
 │   │   │   └── RedisMemoryStore.cs         # Redis 记忆存储
 │   │   ├── Queue/                          # 消息队列
 │   │   │   └── RedisAgentQueue.cs          # Redis Agent 队列
+│   │   ├── Telemetry/                      # Redis 遥测
+│   │   │   ├── RedisTokenUsageTracker.cs   # Redis Token 追踪
+│   │   │   └── RedisToolUsageTracker.cs    # Redis 工具追踪
 │   │   └── RedisServiceCollectionExtensions.cs
+│   │
+│   ├── Dawning.Agents.Serilog/              # 📝 Serilog 结构化日志
+│   │   ├── AgentContextEnricher.cs         # Agent 上下文扩充
+│   │   ├── LoggingServiceCollectionExtensions.cs
+│   │   ├── LogLevelController.cs           # 日志级别控制
+│   │   └── SpanIdEnricher.cs               # Span ID 扩充
 │   │
 │   └── Dawning.Agents.Weaviate/            # 🔶 Weaviate 向量存储
 │       ├── WeaviateOptions.cs
 │       ├── WeaviateServiceCollectionExtensions.cs
 │       └── WeaviateVectorStore.cs
 │
-└── tests/                                  # 🧪 单元测试（1906 个）
+└── tests/                                  # 🧪 单元测试（2535 个）
     └── Dawning.Agents.Tests/
         ├── Agent/                          # Agent 测试
         │   ├── AgentModelsTests.cs
         │   ├── AgentServiceCollectionExtensionsTests.cs
+        │   ├── CostTrackerTests.cs
+        │   ├── FunctionCallingAgentTests.cs
+        │   ├── LLMReflectionEngineTests.cs
         │   └── ReActAgentTests.cs
         ├── Cache/                          # 缓存测试
         │   ├── SemanticCacheServiceCollectionExtensionsTests.cs
@@ -569,7 +622,11 @@ dawning-agents/
         │   ├── HotReloadableLLMProviderTests.cs
         │   ├── LLMServiceCollectionExtensionsTests.cs
         │   ├── ModelRouterTests.cs
-        │   └── ProviderTests.cs
+        │   ├── OllamaProviderFunctionCallingTests.cs
+        │   ├── ProviderTests.cs
+        │   ├── RoutingLLMProviderStreamFailoverTests.cs
+        │   ├── StreamingChatEventTests.cs
+        │   └── StructuredOutputTests.cs
         ├── Logging/                        # 日志测试
         │   ├── AgentContextEnricherTests.cs
         │   ├── AgentLogContextTests.cs
@@ -629,8 +686,14 @@ dawning-agents/
         │   └── VectorRetrieverTests.cs
         ├── Redis/                          # Redis 测试
         │   ├── DistributedOptionsTests.cs
+        │   ├── RedisAgentQueueTests.cs
         │   ├── RedisDistributedCacheTests.cs
-        │   └── RedisDistributedLockTests.cs
+        │   ├── RedisDistributedLockTests.cs
+        │   ├── RedisHealthCheckTests.cs
+        │   ├── RedisMessageBusTests.cs
+        │   ├── RedisSharedStateTests.cs
+        │   ├── RedisTokenUsageTrackerTests.cs
+        │   └── RedisToolUsageTrackerTests.cs
         ├── Resilience/                     # 弹性测试
         │   ├── PollyResilienceProviderTests.cs
         │   ├── ResilienceServiceCollectionExtensionsTests.cs
@@ -665,27 +728,36 @@ dawning-agents/
         │   ├── BuiltIn/
         │   │   ├── BuiltInToolExtensionsTests.cs
         │   │   └── CSharpierToolTests.cs
-        │   ├── BuiltInToolTests.cs
-        │   ├── DateTimeToolTests.cs
+        │   ├── Core/                       # 核心工具测试
+        │   │   ├── BashToolTests.cs
+        │   │   ├── CommandAnalyzerTests.cs
+        │   │   ├── CreateToolToolTests.cs
+        │   │   ├── EditFileToolTests.cs
+        │   │   ├── EphemeralToolTests.cs
+        │   │   ├── FileToolStoreTests.cs
+        │   │   ├── ReadFileToolTests.cs
+        │   │   ├── SearchToolTests.cs
+        │   │   ├── ToolSandboxTests.cs
+        │   │   ├── ToolSessionTests.cs
+        │   │   └── WriteFileToolTests.cs
+        │   ├── DefaultSkillEvolutionPolicyTests.cs
         │   ├── DefaultToolApprovalHandlerTests.cs
-        │   ├── DefaultToolSelectorTests.cs
-        │   ├── JsonToolTests.cs
-        │   ├── MathToolTests.cs
+        │   ├── InMemoryToolUsageTrackerTests.cs
         │   ├── MethodToolTests.cs
-        │   ├── PackageManagerToolTests.cs
+        │   ├── SemanticSkillRouterTests.cs
         │   ├── ToolApprovalHandlerTests.cs
         │   ├── ToolScannerTests.cs
-        │   ├── ToolSelectorTests.cs
-        │   ├── ToolServiceCollectionExtensionsTests.cs
-        │   ├── ToolSetTests.cs
-        │   ├── UtilityToolTests.cs
-        │   └── VirtualToolTests.cs
+        │   └── ToolServiceCollectionExtensionsTests.cs
         ├── Validation/                     # 验证测试
+        │   ├── AbstractionsOptionsValidateTests.cs
         │   ├── AgentOptionsValidatorTests.cs
         │   ├── LLMOptionsValidatorTests.cs
+        │   ├── MemoryOptionsValidatorTests.cs
         │   ├── OptionsValidatorTests.cs
+        │   ├── ProviderOptionsValidateTests.cs
         │   ├── ResilienceOptionsValidatorTests.cs
-        │   └── ValidationServiceCollectionExtensionsTests.cs
+        │   ├── ValidationServiceCollectionExtensionsTests.cs
+        │   └── VectorStoreOptionsValidateTests.cs
         ├── Weaviate/                       # Weaviate 测试
         │   └── WeaviateVectorStoreTests.cs
         └── Workflow/                       # 工作流测试
@@ -763,7 +835,7 @@ public abstract class AgentBase : IAgent
 // Dawning.Agents.Core/Agent/ReActAgent.cs
 public partial class ReActAgent : AgentBase
 {
-    private readonly IToolRegistry? _toolRegistry;
+    private readonly IToolReader? _toolRegistry;
     
     // 正则表达式（编译时生成）
     [GeneratedRegex(@"Thought:\s*(.+?)(?=Action:|Final Answer:|$)")]
@@ -810,6 +882,129 @@ public partial class ReActAgent : AgentBase
 直到输出 Final Answer
 ```
 
+#### FunctionCallingAgent 实现
+
+```csharp
+// Dawning.Agents.Core/Agent/FunctionCallingAgent.cs
+public class FunctionCallingAgent : AgentBase
+{
+    private readonly IToolReader _toolRegistry;
+    private readonly IToolSession? _toolSession;
+    private readonly CreateToolTool? _createToolTool;
+    
+    public override async Task<AgentResponse> RunAsync(AgentContext context, CancellationToken ct)
+    {
+        var messages = BuildInitialMessages(context);
+        
+        while (step < context.MaxSteps)
+        {
+            // 每轮重新构建工具定义（session 工具可能动态变化）
+            var toolDefinitions = BuildToolDefinitions();
+            
+            var options = new ChatCompletionOptions
+            {
+                MaxTokens = Options.MaxTokens,
+                Tools = toolDefinitions.Count > 0 ? toolDefinitions : null,
+                ToolChoice = toolDefinitions.Count > 0 ? ToolChoiceMode.Auto : null,
+            };
+            
+            var response = await LLMProvider.ChatAsync(messages, options, ct);
+            
+            if (response.HasToolCalls)
+            {
+                // 添加 assistant 消息（含 tool calls）
+                messages.Add(ChatMessage.AssistantWithToolCalls(response.ToolCalls!, response.Content));
+                
+                // 执行每个工具并回传结果
+                foreach (var toolCall in response.ToolCalls!)
+                {
+                    var result = await ExecuteToolCallAsync(toolCall, ct);
+                    messages.Add(ChatMessage.ToolResult(toolCall.Id, result));
+                }
+            }
+            else
+            {
+                // 无工具调用 → 最终答案
+                return AgentResponse.Successful(response.Content, context.Steps, elapsed);
+            }
+        }
+    }
+}
+```
+
+**Function Calling 模式**：使用 LLM 原生工具调用，相比 ReAct 的文本解析更可靠
+
+```
+用户输入 → LLM(含工具定义) → ToolCalls? → 执行工具 → ToolResult → LLM → ...
+                                 ↓ 无
+                            返回最终答案
+```
+
+**工具解析优先级**：Registry → create_tool → Session 工具
+
+**与 ReActAgent 的对比**：
+
+| 维度 | ReActAgent | FunctionCallingAgent |
+|------|-----------|---------------------|
+| 工具调用方式 | 文本正则解析 | LLM 原生 ToolCalls |
+| 准确率 | 依赖 LLM 格式遵循 | 高（结构化 JSON） |
+| 工具依赖 | `IToolReader?`（可选） | `IToolReader`（必须） |
+| 动态工具 | 不支持 | 支持（IToolSession） |
+| 并行工具调用 | 不支持 | 支持（多个 ToolCall） |
+
+#### IReflectionEngine 反思引擎
+
+```csharp
+// Dawning.Agents.Abstractions/Agent/IReflectionEngine.cs
+public interface IReflectionEngine
+{
+    Task<ReflectionResult> ReflectAsync(ReflectionContext context, CancellationToken ct = default);
+}
+
+public record ReflectionContext
+{
+    public required ITool FailedTool { get; init; }
+    public required string Input { get; init; }
+    public required ToolResult FailedResult { get; init; }
+    public required string TaskDescription { get; init; }
+    public IReadOnlyList<AgentStep>? PreviousSteps { get; init; }
+    public ToolUsageStats? UsageStats { get; init; }
+}
+
+public record ReflectionResult
+{
+    public required ReflectionAction Action { get; init; }      // Retry | ReviseAndRetry | Abandon | CreateNew | Escalate
+    public EphemeralToolDefinition? RevisedDefinition { get; init; }
+    public string? Diagnosis { get; init; }
+    public float Confidence { get; init; }
+}
+```
+
+**LLMReflectionEngine** 是默认实现：将失败上下文发送给 LLM，由 LLM 诊断失败原因并建议修复策略。
+
+- **Retry**：直接重试
+- **ReviseAndRetry**：修改工具脚本后重试
+- **Abandon**：放弃该工具
+- **CreateNew**：创建新工具替代
+- **Escalate**：升级到人工处理
+
+#### IToolSession 工具会话
+
+```csharp
+// Dawning.Agents.Abstractions/Tools/IToolSession.cs
+public interface IToolSession : IDisposable, IAsyncDisposable
+{
+    ITool CreateTool(EphemeralToolDefinition definition);           // 创建动态工具
+    IReadOnlyList<ITool> GetSessionTools();                        // 获取 session 工具
+    Task PromoteToolAsync(string name, ToolScope targetScope, CancellationToken ct);  // 提升持久化层级
+    Task RemoveToolAsync(string name, ToolScope scope, CancellationToken ct);
+    Task<IReadOnlyList<EphemeralToolDefinition>> ListToolsAsync(ToolScope scope, CancellationToken ct);
+    ITool UpdateTool(string name, EphemeralToolDefinition definition); // 原地修订
+}
+```
+
+**工具解析顺序**：Core → Session → User → Global → MCP
+
 ---
 
 ### LLM Provider 模块
@@ -828,13 +1023,54 @@ public interface ILLMProvider
         ChatCompletionOptions? options = null,
         CancellationToken ct = default);
     
-    // 流式输出
+    // 流式输出（纯文本片段）
     IAsyncEnumerable<string> ChatStreamAsync(
         IEnumerable<ChatMessage> messages,
         ChatCompletionOptions? options = null,
         CancellationToken ct = default);
+    
+    // 结构化流式事件（含 Tool Call Delta、Finish Reason、Token Usage）
+    IAsyncEnumerable<StreamingChatEvent> ChatStreamEventsAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatCompletionOptions? options = null,
+        CancellationToken ct = default)
+    {
+        // 默认实现：将 ChatStreamAsync 包装为 ContentDelta 事件
+        // Provider 可重写以提供原生结构化事件
+    }
 }
 ```
+
+#### StreamingChatEvent 结构化流式事件
+
+```csharp
+// Dawning.Agents.Abstractions/LLM/StreamingChatEvent.cs
+
+/// <summary>结构化流式事件 — 包含文本、工具调用、结束原因、用量</summary>
+public sealed record StreamingChatEvent
+{
+    public string? ContentDelta { get; init; }         // 文本片段
+    public ToolCallDelta? ToolCallDelta { get; init; } // 工具调用增量
+    public string? FinishReason { get; init; }         // stop / tool_calls / length
+    public StreamingTokenUsage? Usage { get; init; }   // Token 用量
+}
+
+/// <summary>工具调用增量 — 流式传输中逐步构建完整 ToolCall</summary>
+public sealed record ToolCallDelta
+{
+    public int Index { get; init; }             // 工具调用索引
+    public string? Id { get; init; }            // 调用 ID（首个 chunk 有值）
+    public string? FunctionName { get; init; }  // 函数名（首个 chunk 有值）
+    public string? ArgumentsDelta { get; init; } // 参数 JSON 片段（逐步拼接）
+}
+
+/// <summary>流式 Token 用量（最后一个 chunk 携带）</summary>
+public sealed record StreamingTokenUsage(int PromptTokens, int CompletionTokens, int TotalTokens);
+```
+
+> [!NOTE]
+> `ChatStreamEventsAsync` 提供默认实现，将 `ChatStreamAsync` 的纯文本包装为 `ContentDelta` 事件。
+> OpenAI/Azure Provider 可重写此方法以返回原生结构化事件（含 Tool Call Delta）。
 
 #### OllamaProvider 实现
 
@@ -953,6 +1189,36 @@ public class MathTool
 }
 ```
 
+#### IToolRegistry 接口体系
+
+```csharp
+// Dawning.Agents.Abstractions/Tools/IToolRegistry.cs
+
+/// 只读查询接口（Agent 注入此接口）
+public interface IToolReader
+{
+    ITool? GetTool(string name);
+    IReadOnlyList<ITool> GetAllTools();
+    bool HasTool(string name);
+    int Count { get; }
+    IReadOnlyList<ITool> GetToolsByCategory(string category);
+    IReadOnlyList<string> GetCategories();
+}
+
+/// 写入接口（注册阶段使用）
+public interface IToolRegistrar
+{
+    void Register(ITool tool);
+}
+
+/// 组合接口（向后兼容）
+public interface IToolRegistry : IToolReader, IToolRegistrar { }
+```
+
+> [!NOTE]
+> Agent 构造函数注入 `IToolReader`（只读），不依赖完整的 `IToolRegistry`。
+> 这是接口隔离原则（ISP）的体现：Agent 只需查询工具，不需要注册工具。
+
 #### ToolRegistry 实现
 
 ```csharp
@@ -1009,17 +1275,8 @@ public class ToolScanner
             // 生成 JSON Schema
             var schema = GenerateParameterSchema(method);
             
-            // 包装为 ITool
-            yield return new FunctionToolWrapper(
-                name: attr.Name ?? method.Name,
-                description: attr.Description,
-                schema: schema,
-                method: method,
-                instance: instance,
-                riskLevel: attr.RiskLevel,
-                requiresConfirmation: attr.RequiresConfirmation,
-                category: attr.Category
-            );
+            // 包装为 MethodTool（ITool 实现）
+            yield return new MethodTool(method, instance, attr);
         }
     }
 }
@@ -3150,12 +3407,26 @@ public static IServiceCollection AddReActAgent(
     // 2. 注册依赖
     services.AddToolRegistry();  // 确保依赖已注册
     
-    // 3. 注册服务（TryAdd 避免重复）
-    services.TryAddSingleton<IAgent, ReActAgent>();
+    // 3. 注册服务（TryAddScoped 避免重复，Scoped 防止 Captive Dependency）
+    services.TryAddScoped<IAgent, ReActAgent>();
     
     return services;
 }
+
+// Function Calling Agent 注册
+public static IServiceCollection AddFunctionCallingAgent(
+    this IServiceCollection services,
+    IConfiguration configuration)
+{
+    services.Configure<AgentOptions>(configuration.GetSection("Agent"));
+    services.AddToolRegistry();
+    services.TryAddScoped<IAgent, FunctionCallingAgent>();
+    return services;
+}
 ```
+
+> [!NOTE]
+> Agent 注册为 **Scoped** 生命周期（而非 Singleton），避免与 Scoped Memory 产生 Captive Dependency 问题。
 
 ### 依赖图
 
@@ -3167,16 +3438,30 @@ graph TD
     end
     
     subgraph "可选依赖"
-        IToolRegistry
+        IToolReader
         IConversationMemory
-        ILogger[ILogger&lt;ReActAgent&gt;]
+        ILogger[ILogger&lt;T&gt;]
+        IToolUsageTracker
+    end
+    
+    subgraph "FunctionCallingAgent 额外依赖"
+        IToolSession
     end
     
     ReActAgent --> ILLMProvider
     ReActAgent --> IOptions
-    ReActAgent -.-> IToolRegistry
+    ReActAgent -.-> IToolReader
     ReActAgent -.-> IConversationMemory
     ReActAgent -.-> ILogger
+    ReActAgent -.-> IToolUsageTracker
+    
+    FunctionCallingAgent --> ILLMProvider
+    FunctionCallingAgent --> IOptions
+    FunctionCallingAgent --> IToolReader
+    FunctionCallingAgent -.-> IConversationMemory
+    FunctionCallingAgent -.-> ILogger
+    FunctionCallingAgent -.-> IToolUsageTracker
+    FunctionCallingAgent -.-> IToolSession
 ```
 
 ### 配置绑定
@@ -3298,63 +3583,55 @@ public class MyCustomMemory : IConversationMemory
 
 ## 已知架构问题与改进计划
 
-> **评估日期**: 2026-02-10
+> **评估日期**: 2026-02-10 | **最近更新**: 2026-02-12
 
 ### P0 — 阻碍企业采用
 
-#### 1. Core 包依赖臃肿
+#### ~~1. Core 包依赖臃肿~~ ✅ 已解决
 
-`Dawning.Agents.Core.csproj` 包含 32+ NuGet 包 + 2 个 ProjectReference（OpenAI、Azure），违背"极简"设计目标。安装 Core 会被迫拉入 ~35+ 无关传递依赖。
+> [!NOTE]
+> Core 包已完成拆分。当前 `Dawning.Agents.Core.csproj` 仅依赖 Polly、FluentValidation、M.E.* 等基础包。
+> Redis、OpenTelemetry、Serilog 已分别拆为独立包：
+> - `Dawning.Agents.Redis` — StackExchange.Redis
+> - `Dawning.Agents.OpenTelemetry` — OpenTelemetry 遥测
+> - `Dawning.Agents.Serilog` — Serilog 结构化日志
 
-| 不应在 Core 的依赖 | 应归属的独立包 |
-|---|---|
-| `Dawning.Agents.OpenAI` / `.Azure` (ProjectReference) | 应由消费者按需引用，Core 不应反向依赖 Provider |
-| `StackExchange.Redis` / `AspNetCore.HealthChecks.Redis` | `Dawning.Agents.Redis` |
-| 7 个 OpenTelemetry 包 (含 beta) | `Dawning.Agents.Observability` (新建) |
-| 10 个 Serilog 包 + `Elastic.Serilog.Sinks` | `Dawning.Agents.Logging.Serilog` (新建) |
+#### ~~2. `ILLMProvider` 缺少 Native Function Calling 支持~~ ✅ 已解决
 
-**修复方向**: 将 Core 拆为纯核心（仅保留 Polly、FluentValidation、M.E.* 等基础依赖）+ 可选扩展包。
+> [!NOTE]
+> 已扩展完成：
+> - `ChatMessage` 新增 `ToolCalls`、`ToolCallId`、`HasToolCalls`、`AssistantWithToolCalls()`、`ToolResult()` 工厂方法
+> - `ChatCompletionOptions` 新增 `Tools`、`ToolChoice`、`ResponseFormat`
+> - 新增 `ToolCall`、`ToolDefinition`、`ToolChoiceMode`、`ResponseFormat` 等类型
+> - 新增 `FunctionCallingAgent`：基于原生 Function Calling 的 Agent 实现
+> - 新增 `ChatStreamEventsAsync` + `StreamingChatEvent` 结构化流式事件
 
-#### 2. `ILLMProvider` 缺少 Native Function Calling 支持
+#### ~~3. 异常被吞，生产排障困难~~ ✅ 已解决
 
-```csharp
-// 当前 — 只有 Temperature / MaxTokens / SystemPrompt
-public record ChatCompletionOptions { ... }
-
-// 当前 — 只有 Role + Content
-public record ChatMessage(string Role, string Content);
-```
-
-无 `Tools[]`、`ToolChoice`、`ResponseFormat`、`ToolCalls`、`ToolCallId` 字段。整个框架只能通过文本解析 ReAct 调用工具，无法使用现代 LLM 的原生 Function Calling。
-
-**修复方向**: 扩展 `ChatCompletionOptions` 和 `ChatMessage`，增加 Function Calling 与 Structured Output 支持。
-
-#### 3. 异常被吞，生产排障困难
-
-`AgentBase.RunAsync` 的 `catch (Exception ex)` 只保留 `ex.Message`，丢失异常类型、堆栈。`AgentResponse` 没有 `Exception` 属性。同样问题出现在 `OrchestratorBase`。
-
-**修复方向**: `AgentResponse` 增加 `Exception?` 属性；`catch` 中保留完整异常。
+> [!NOTE]
+> `AgentResponse` 已添加 `Exception?` 属性。`AgentResponse.Failed()` 工厂方法接受 `Exception? exception = null` 参数。
+> `AgentBase`、`FunctionCallingAgent` 的 catch 块均保留完整异常。
 
 ### P1 — 重要优化
 
-| # | 问题 | 说明 |
+| # | 问题 | 状态 |
 |---|---|---|
-| 4 | **Provider 缺少 ILogger/IOptions/IHttpClientFactory** | OpenAI/Azure Provider 直接收 `string apiKey`，无重试逻辑，`Content[0].Text` 不安全取值 |
-| 5 | **Singleton Agent + Scoped Memory = Captive Dependency** | Agent 注册为 Singleton，Memory 注册为 Scoped，导致生命周期陷阱 |
-| 6 | **流式 API 缺少结构化事件** | `IAsyncEnumerable<string>` 丢失 Tool Call 事件、Finish Reason、Token Usage |
-| 7 | **无 Roslyn 分析器** | CS1591 被 `<NoWarn>` 全局压制，无静态代码分析 |
-| 8 | **配置校验覆盖率仅 ~29%** | 27 个 Options 类仅 6 个有 `Validate()`，零个使用 `IValidateOptions<T>` |
+| 4 | **Provider 缺少 ILogger/IOptions/IHttpClientFactory** | ⏳ 部分修复（OpenAI/Azure Provider 已改用 IHttpClientFactory） |
+| ~~5~~ | ~~**Singleton Agent + Scoped Memory = Captive Dependency**~~ | ✅ 已修复：Agent 改为 `TryAddScoped` |
+| 6 | **流式 API 缺少结构化事件** | ✅ 已修复：新增 `ChatStreamEventsAsync` + `StreamingChatEvent` |
+| 7 | **无 Roslyn 分析器** | ⏳ 未修复 |
+| 8 | **配置校验覆盖率仅 ~29%** | ⏳ 提升至 ~37%（10/27 Options 有验证） |
 
 ### P2 — 建议改进
 
-| # | 问题 | 说明 |
+| # | 问题 | 状态 |
 |---|---|---|
-| 9 | `IToolRegistry` 13 个方法过胖 | 应拆为 `IToolRegistry` + `IToolSetRegistry` + `IVirtualToolManager`；缺少 `Unregister` |
-| 10 | DTO/Record 暴露可变集合 | `AgentContext.Steps` (mutable List)、`DocumentChunk.Metadata` (mutable Dict on record) |
-| 11 | ReActAgent 虚假工具回退 | 无工具时硬编码 "Search/Calculate/Lookup"，LLM 尝试调用会浪费步数 |
-| 12 | 无 Agent 状态持久化/Checkpoint | 长流程 Agent 无法跨进程重启 |
-| 13 | 无 Prompt Injection 防护 | `ContentFilterGuardrail` 仅关键词匹配；Tool 输出未消毒即回注 LLM 上下文 |
-| 14 | `ParallelOrchestrator` 部分失败丢结果 | `ContinueOnError=true` 时 `WhenAll` 抛异常后 results 被置为 `[]` |
+| ~~9~~ | ~~`IToolRegistry` 13 个方法过胖~~ | ✅ 已重构：拆分为 `IToolReader`（6 方法） + `IToolRegistrar`（1 方法） + `IToolRegistry`（组合接口） |
+| 10 | DTO/Record 暴露可变集合 | ⏳ 未修复 |
+| ~~11~~ | ~~ReActAgent 虚假工具回退~~ | ✅ 已修复：无工具时不再硬编码 Search/Calculate/Lookup |
+| 12 | 无 Agent 状态持久化/Checkpoint | ⏳ 未修复 |
+| 13 | 无 Prompt Injection 防护 | ⏳ 未修复 |
+| 14 | `ParallelOrchestrator` 部分失败丢结果 | ⏳ 未修复 |
 
 ---
 
@@ -3368,8 +3645,9 @@ Dawning.Agents 的架构特点：
 4. **模板方法**：Agent 基类定义执行骨架，子类专注实现细节
 5. **策略模式**：Memory、Provider 等都支持多种策略切换
 6. **企业级基础设施**：完整的日志、健康检查、指标收集支持
-
-> ⚠️ **当前 Core 包依赖臃肿（P0）和缺少 Native Function Calling（P0）是阻碍企业采用的核心问题，详见上方"已知架构问题"章节。**
+7. **双 Agent 架构**：ReActAgent（文本解析）+ FunctionCallingAgent（原生工具调用）
+8. **接口隔离**：IToolReader / IToolRegistrar 分离，Agent 仅依赖只读接口
+9. **反思学习**：IReflectionEngine 支持工具失败诊断与自动修复
 
 ---
 
