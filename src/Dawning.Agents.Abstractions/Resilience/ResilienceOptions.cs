@@ -56,70 +56,10 @@ public class ResilienceOptions : IValidatableOptions
     /// <inheritdoc />
     public void Validate()
     {
-        if (Retry.MaxRetryAttempts < 0)
-        {
-            throw new InvalidOperationException("Retry.MaxRetryAttempts must be >= 0.");
-        }
-
-        if (Retry.BaseDelayMs < 0)
-        {
-            throw new InvalidOperationException("Retry.BaseDelayMs must be >= 0.");
-        }
-
-        if (Retry.MaxDelayMs <= 0)
-        {
-            throw new InvalidOperationException("Retry.MaxDelayMs must be greater than 0.");
-        }
-
-        if (Retry.MaxDelayMs < Retry.BaseDelayMs)
-        {
-            throw new InvalidOperationException(
-                "Retry.MaxDelayMs must be greater than or equal to Retry.BaseDelayMs."
-            );
-        }
-
-        if (CircuitBreaker.FailureRatio <= 0 || CircuitBreaker.FailureRatio > 1)
-        {
-            throw new InvalidOperationException(
-                "CircuitBreaker.FailureRatio must be between 0 (exclusive) and 1 (inclusive)."
-            );
-        }
-
-        if (CircuitBreaker.BreakDurationSeconds <= 0)
-        {
-            throw new InvalidOperationException(
-                "CircuitBreaker.BreakDurationSeconds must be greater than 0."
-            );
-        }
-
-        if (CircuitBreaker.MinimumThroughput <= 0)
-        {
-            throw new InvalidOperationException(
-                "CircuitBreaker.MinimumThroughput must be greater than 0."
-            );
-        }
-
-        if (CircuitBreaker.SamplingDurationSeconds <= 0)
-        {
-            throw new InvalidOperationException(
-                "CircuitBreaker.SamplingDurationSeconds must be greater than 0."
-            );
-        }
-
-        if (Timeout.TimeoutSeconds <= 0)
-        {
-            throw new InvalidOperationException("Timeout.TimeoutSeconds must be greater than 0.");
-        }
-
-        if (Bulkhead.MaxConcurrency <= 0)
-        {
-            throw new InvalidOperationException("Bulkhead.MaxConcurrency must be greater than 0.");
-        }
-
-        if (Bulkhead.MaxQueuedActions < 0)
-        {
-            throw new InvalidOperationException("Bulkhead.MaxQueuedActions must be >= 0.");
-        }
+        Retry.Validate();
+        CircuitBreaker.Validate();
+        Timeout.Validate();
+        Bulkhead.Validate();
     }
 }
 
