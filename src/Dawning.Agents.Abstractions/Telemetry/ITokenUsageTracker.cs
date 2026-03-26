@@ -1,38 +1,38 @@
 namespace Dawning.Agents.Abstractions.Telemetry;
 
 /// <summary>
-/// Token 使用追踪器接口
+/// Defines a tracker for recording and aggregating token usage.
 /// </summary>
 /// <remarks>
-/// 用于记录和统计 LLM 调用的 Token 使用情况。
-/// 支持按来源（Agent）、模型、会话等维度进行分组统计。
+/// Records and aggregates token consumption across LLM calls.
+/// Supports grouping by source (agent), model, and session.
 ///
-/// 使用示例:
+/// Usage example:
 /// <code>
-/// // 记录 Token 使用
+/// // Record token usage
 /// tracker.Record(TokenUsageRecord.Create("MyAgent", 100, 50, "gpt-4"));
 ///
-/// // 获取统计
+/// // Retrieve summary
 /// var summary = tracker.GetSummary();
-/// Console.WriteLine($"总计: {summary.TotalTokens} tokens");
+/// Console.WriteLine($"Total: {summary.TotalTokens} tokens");
 /// </code>
 /// </remarks>
 public interface ITokenUsageTracker
 {
     /// <summary>
-    /// 记录一次 Token 使用
+    /// Records a token usage entry.
     /// </summary>
-    /// <param name="record">Token 使用记录</param>
+    /// <param name="record">The token usage record.</param>
     void Record(TokenUsageRecord record);
 
     /// <summary>
-    /// 记录一次 Token 使用（简化方法）
+    /// Records a token usage entry using individual values.
     /// </summary>
-    /// <param name="source">来源标识</param>
-    /// <param name="promptTokens">输入 Token 数</param>
-    /// <param name="completionTokens">输出 Token 数</param>
-    /// <param name="model">模型名称</param>
-    /// <param name="sessionId">会话 ID</param>
+    /// <param name="source">The source identifier.</param>
+    /// <param name="promptTokens">The number of prompt tokens.</param>
+    /// <param name="completionTokens">The number of completion tokens.</param>
+    /// <param name="model">The model name.</param>
+    /// <param name="sessionId">The session identifier.</param>
     void Record(
         string source,
         int promptTokens,
@@ -42,45 +42,45 @@ public interface ITokenUsageTracker
     );
 
     /// <summary>
-    /// 获取汇总统计
+    /// Gets an aggregated usage summary.
     /// </summary>
-    /// <param name="source">按来源过滤（可选）</param>
-    /// <param name="sessionId">按会话过滤（可选）</param>
-    /// <returns>Token 使用汇总</returns>
+    /// <param name="source">Optional source filter.</param>
+    /// <param name="sessionId">Optional session filter.</param>
+    /// <returns>The aggregated <see cref="TokenUsageSummary"/>.</returns>
     TokenUsageSummary GetSummary(string? source = null, string? sessionId = null);
 
     /// <summary>
-    /// 获取所有记录
+    /// Gets all recorded token usage entries.
     /// </summary>
-    /// <param name="source">按来源过滤（可选）</param>
-    /// <param name="sessionId">按会话过滤（可选）</param>
-    /// <returns>Token 使用记录列表</returns>
+    /// <param name="source">Optional source filter.</param>
+    /// <param name="sessionId">Optional session filter.</param>
+    /// <returns>A read-only list of <see cref="TokenUsageRecord"/> entries.</returns>
     IReadOnlyList<TokenUsageRecord> GetRecords(string? source = null, string? sessionId = null);
 
     /// <summary>
-    /// 重置统计
+    /// Resets tracked usage data.
     /// </summary>
-    /// <param name="source">按来源重置（可选，null 表示全部重置）</param>
-    /// <param name="sessionId">按会话重置（可选）</param>
+    /// <param name="source">Optional source filter. When <see langword="null"/>, all data is reset.</param>
+    /// <param name="sessionId">Optional session filter.</param>
     void Reset(string? source = null, string? sessionId = null);
 
     /// <summary>
-    /// 总输入 Token 数
+    /// Gets the total number of prompt tokens.
     /// </summary>
     long TotalPromptTokens { get; }
 
     /// <summary>
-    /// 总输出 Token 数
+    /// Gets the total number of completion tokens.
     /// </summary>
     long TotalCompletionTokens { get; }
 
     /// <summary>
-    /// 总 Token 数
+    /// Gets the total number of tokens.
     /// </summary>
     long TotalTokens { get; }
 
     /// <summary>
-    /// 总调用次数
+    /// Gets the total number of LLM calls.
     /// </summary>
     int CallCount { get; }
 }

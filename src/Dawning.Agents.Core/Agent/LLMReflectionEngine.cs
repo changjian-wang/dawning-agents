@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// 基于 LLM 的反思引擎 — 通过调用 LLM 诊断失败并建议修复策略
+/// LLM-based reflection engine — diagnoses failures and suggests repair strategies by calling the LLM.
 /// </summary>
 public sealed class LLMReflectionEngine : IReflectionEngine
 {
@@ -19,7 +19,7 @@ public sealed class LLMReflectionEngine : IReflectionEngine
     private readonly ILogger<LLMReflectionEngine> _logger;
 
     /// <summary>
-    /// 创建 LLM 反思引擎
+    /// Initializes a new instance of the <see cref="LLMReflectionEngine"/> class.
     /// </summary>
     public LLMReflectionEngine(
         ILLMProvider llmProvider,
@@ -151,7 +151,7 @@ public sealed class LLMReflectionEngine : IReflectionEngine
     {
         try
         {
-            // 提取 JSON 块（LLM 可能添加 markdown 代码块）
+            // Extract JSON block (LLM may add markdown code blocks)
             var jsonContent = ExtractJsonBlock(content);
             using var doc = JsonDocument.Parse(jsonContent);
             var root = doc.RootElement;

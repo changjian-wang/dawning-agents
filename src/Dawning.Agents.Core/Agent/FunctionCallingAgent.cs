@@ -11,13 +11,13 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// 基于 Native Function Calling 的 Agent 实现
+/// Native Function Calling-based agent implementation.
 /// </summary>
 /// <remarks>
-/// <para>使用 LLM 原生 Function Calling（ToolCalls）代替文本解析</para>
-/// <para>流程：构建消息 → ChatAsync → 检测 ToolCalls → 执行工具 → 回传结果 → 循环</para>
-/// <para>相比 ReActAgent（基于正则解析），此方式更可靠、准确率更高</para>
-/// <para>当注入 IToolSession 时，支持动态工具创建（create_tool）和 session/user/global 工具加载</para>
+/// <para>Uses LLM native Function Calling (ToolCalls) instead of text parsing.</para>
+/// <para>Flow: build messages → ChatAsync → detect ToolCalls → execute tools → return results → loop.</para>
+/// <para>Compared to ReActAgent (regex-based parsing), this approach is more reliable and accurate.</para>
+/// <para>When IToolSession is injected, supports dynamic tool creation (create_tool) and session/user/global tool loading.</para>
 /// </remarks>
 public class FunctionCallingAgent : AgentBase
 {
@@ -26,15 +26,15 @@ public class FunctionCallingAgent : AgentBase
     private readonly CreateToolTool? _createToolTool;
 
     /// <summary>
-    /// 初始化 Function Calling Agent
+    /// Initializes a new instance of the <see cref="FunctionCallingAgent"/> class.
     /// </summary>
-    /// <param name="llmProvider">LLM 提供者</param>
-    /// <param name="options">Agent 配置选项</param>
-    /// <param name="toolRegistry">工具只读查询（必须提供）</param>
-    /// <param name="memory">对话记忆（可选）</param>
-    /// <param name="toolSession">工具会话（可选，启用动态工具创建）</param>
-    /// <param name="logger">日志记录器（可选）</param>
-    /// <param name="usageTracker">工具使用追踪器（可选）</param>
+    /// <param name="llmProvider">LLM provider.</param>
+    /// <param name="options">Agent configuration options.</param>
+    /// <param name="toolRegistry">Tool read-only query (required).</param>
+    /// <param name="memory">Conversation memory (optional).</param>
+    /// <param name="toolSession">Tool session (optional, enables dynamic tool creation).</param>
+    /// <param name="logger">Logger (optional).</param>
+    /// <param name="usageTracker">Tool usage tracker (optional).</param>
     public FunctionCallingAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
@@ -57,15 +57,15 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 使用 Function Calling 模式执行 Agent 任务
+    /// Executes the agent task using Function Calling mode.
     /// </summary>
     /// <remarks>
-    /// 重写基类的 RunAsync 以实现完整的 Function Calling 循环：
+    /// Overrides the base RunAsync to implement the full Function Calling loop:
     /// <list type="number">
-    /// <item>构建消息列表（含工具定义）</item>
-    /// <item>调用 LLM</item>
-    /// <item>如果响应包含 ToolCalls：执行工具 → 将结果回传 → 继续循环</item>
-    /// <item>如果响应不含 ToolCalls：返回最终答案</item>
+    /// <item>Build message list (with tool definitions).</item>
+    /// <item>Call LLM.</item>
+    /// <item>If response contains ToolCalls: execute tools → return results → continue loop.</item>
+    /// <item>If response does not contain ToolCalls: return final answer.</item>
     /// </list>
     /// </remarks>
     public override async Task<AgentResponse> RunAsync(
@@ -78,21 +78,21 @@ public class FunctionCallingAgent : AgentBase
         var stopwatch = Stopwatch.StartNew();
         var costTracker = CreateCostTracker();
         Logger.LogInformation(
-            "FunctionCallingAgent {AgentName} 开始执行任务，输入长度: {InputLength}",
+            "FunctionCallingAgent {AgentName} started task execution, input length: {InputLength}",
             Name,
             context.UserInput.Length
         );
 
         try
         {
-            // 构建消息历史
+            // Build message history
             var messages = new List<ChatMessage>();
             if (!string.IsNullOrWhiteSpace(Instructions))
             {
                 messages.Add(ChatMessage.System(Instructions));
             }
 
-            // 从 Memory 加载历史
+            // Load history from Memory
             if (Memory != null)
             {
                 var history = await Memory
@@ -103,9 +103,9 @@ public class FunctionCallingAgent : AgentBase
 
             messages.Add(ChatMessage.User(context.UserInput));
 
-            // Function Calling 循环
+            // Function Calling loop
             var step = 0;
-            // 消息数量上限：每步添加 1 个 assistant + N 个 tool result，限制总消息数防止 OOM
+            // Message count limit: each step adds 1 assistant + N tool results, limit total messages to prevent OOM
             var maxMessages = context.MaxSteps * 10 + messages.Count;
             while (step < context.MaxSteps)
             {
@@ -114,7 +114,7 @@ public class FunctionCallingAgent : AgentBase
                 if (messages.Count > maxMessages)
                 {
                     Logger.LogWarning(
-                        "FunctionCallingAgent {AgentName} 消息数量超限 {Count}/{Max}",
+                        "FunctionCallingAgent {AgentName} message count exceeded limit {Count}/{Max}",
                         Name,
                         messages.Count,
                         maxMessages
@@ -124,9 +124,9 @@ public class FunctionCallingAgent : AgentBase
                         new AgentStep
                         {
                             StepNumber = step + 1,
-                            Thought = "消息数量超限，终止循环",
+                            Thought = "Message count exceeded limit, terminating loop",
                             Action = "Overflow",
-                            Observation = $"消息数量 {messages.Count} 超过上限 {maxMessages}",
+                            Observation = $"Message count {messages.Count} exceeded limit {maxMessages}",
                         }
                     );
                     break;
@@ -138,7 +138,7 @@ public class FunctionCallingAgent : AgentBase
                 // (e.g. create_tool was called in a previous step)
                 var toolDefinitions = BuildToolDefinitions();
 
-                Logger.LogDebug("Function Calling 步骤 {Step}/{MaxSteps}", step, context.MaxSteps);
+                Logger.LogDebug("Function Calling step {Step}/{MaxSteps}", step, context.MaxSteps);
 
                 var completionOptions = new ChatCompletionOptions
                 {
@@ -156,28 +156,28 @@ public class FunctionCallingAgent : AgentBase
 
                 if (response.HasToolCalls)
                 {
-                    // LLM 请求调用工具
-                    Logger.LogDebug("收到 {Count} 个工具调用请求", response.ToolCalls!.Count);
+                    // LLM requested tool calls
+                    Logger.LogDebug("Received {Count} tool call requests", response.ToolCalls!.Count);
 
-                    // 添加 assistant 消息（含 tool calls）
+                    // Add assistant message (with tool calls)
                     messages.Add(
                         ChatMessage.AssistantWithToolCalls(response.ToolCalls!, response.Content)
                     );
 
-                    // 执行每个工具调用并添加结果消息
+                    // Execute each tool call and add result messages
                     var toolResultSummary = new StringBuilder();
                     foreach (var toolCall in response.ToolCalls!)
                     {
                         var toolResult = await ExecuteToolCallAsync(toolCall, cancellationToken)
                             .ConfigureAwait(false);
 
-                        // 添加 tool result 消息
+                        // Add tool result message
                         messages.Add(ChatMessage.ToolResult(toolCall.Id, toolResult));
 
                         toolResultSummary.AppendLine($"[{toolCall.FunctionName}]: {toolResult}");
                     }
 
-                    // 记录步骤
+                    // Record step
                     var toolNames = string.Join(
                         ", ",
                         response.ToolCalls!.Select(tc => tc.FunctionName)
@@ -187,7 +187,7 @@ public class FunctionCallingAgent : AgentBase
                         {
                             StepNumber = step,
                             RawOutput = response.Content,
-                            Thought = $"调用工具: {toolNames}",
+                            Thought = $"Calling tools: {toolNames}",
                             Action = toolNames,
                             ActionInput = string.Join(
                                 "; ",
@@ -202,7 +202,7 @@ public class FunctionCallingAgent : AgentBase
                 }
                 else
                 {
-                    // LLM 返回最终答案（无工具调用）
+                    // LLM returned final answer (no tool calls)
                     var finalAnswer = response.Content ?? string.Empty;
 
                     context.AddStep(
@@ -210,19 +210,19 @@ public class FunctionCallingAgent : AgentBase
                         {
                             StepNumber = step,
                             RawOutput = finalAnswer,
-                            Thought = "生成最终答案",
+                            Thought = "Generating final answer",
                             Cost = stepCost,
                         }
                     );
 
                     stopwatch.Stop();
                     Logger.LogInformation(
-                        "FunctionCallingAgent {AgentName} 完成任务，共 {Steps} 步",
+                        "FunctionCallingAgent {AgentName} completed task in {Steps} steps",
                         Name,
                         context.Steps.Count
                     );
 
-                    // 保存到 Memory
+                    // Save to Memory
                     await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken)
                         .ConfigureAwait(false);
 
@@ -230,10 +230,10 @@ public class FunctionCallingAgent : AgentBase
                 }
             }
 
-            // 超过最大步数
+            // Exceeded maximum steps
             stopwatch.Stop();
             Logger.LogWarning(
-                "FunctionCallingAgent {AgentName} 超过最大步数 {MaxSteps}",
+                "FunctionCallingAgent {AgentName} exceeded maximum steps {MaxSteps}",
                 Name,
                 context.MaxSteps
             );
@@ -247,7 +247,7 @@ public class FunctionCallingAgent : AgentBase
         {
             stopwatch.Stop();
             Logger.LogWarning(
-                "FunctionCallingAgent {AgentName} 成本超出预算: {TotalCost:F4} > {Budget:F4}",
+                "FunctionCallingAgent {AgentName} cost exceeded budget: {TotalCost:F4} > {Budget:F4}",
                 Name,
                 ex.TotalCost,
                 ex.Budget
@@ -261,7 +261,7 @@ public class FunctionCallingAgent : AgentBase
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             stopwatch.Stop();
-            Logger.LogWarning(ex, "FunctionCallingAgent {AgentName} 任务被取消", Name);
+            Logger.LogWarning(ex, "FunctionCallingAgent {AgentName} task was cancelled", Name);
             return AgentResponse.Failed(
                 "Operation cancelled",
                 context.Steps,
@@ -272,13 +272,13 @@ public class FunctionCallingAgent : AgentBase
         catch (Exception ex)
         {
             stopwatch.Stop();
-            Logger.LogError(ex, "FunctionCallingAgent {AgentName} 执行出错", Name);
+            Logger.LogError(ex, "FunctionCallingAgent {AgentName} execution error", Name);
             return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
     }
 
     /// <summary>
-    /// 执行单个工具调用
+    /// Executes a single tool call.
     /// </summary>
     private async Task<string> ExecuteToolCallAsync(
         ToolCall toolCall,
@@ -293,7 +293,7 @@ public class FunctionCallingAgent : AgentBase
         }
 
         Logger.LogDebug(
-            "执行工具 {ToolName}，参数: {Args}",
+            "Executing tool {ToolName}, arguments: {Args}",
             toolCall.FunctionName,
             toolCall.Arguments
         );
@@ -319,7 +319,7 @@ public class FunctionCallingAgent : AgentBase
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "工具 {ToolName} 执行失败", toolCall.FunctionName);
+            Logger.LogError(ex, "Tool {ToolName} execution failed", toolCall.FunctionName);
             await RecordToolCallUsageAsync(
                     toolCall.FunctionName,
                     false,
@@ -332,7 +332,7 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 记录工具调用到追踪器
+    /// Records tool call usage to the tracker.
     /// </summary>
     private async Task RecordToolCallUsageAsync(
         string toolName,
@@ -364,7 +364,7 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 解析工具：Registry → create_tool → Session 工具
+    /// Resolves a tool: Registry → create_tool → Session tools.
     /// </summary>
     private ITool? ResolveTool(string name)
     {
@@ -398,7 +398,7 @@ public class FunctionCallingAgent : AgentBase
     }
 
     /// <summary>
-    /// 从 IToolRegistry + IToolSession 构建 ToolDefinition 列表（按名称去重，Registry 优先）
+    /// Builds a <see cref="ToolDefinition"/> list from IToolRegistry + IToolSession (deduplicated by name, Registry takes priority).
     /// </summary>
     private List<ToolDefinition> BuildToolDefinitions()
     {
@@ -456,7 +456,7 @@ public class FunctionCallingAgent : AgentBase
         return definitions;
     }
 
-    // AgentBase 抽象方法的最小实现（FunctionCallingAgent 重写了 RunAsync，不使用这些方法）
+    // Minimal implementation of AgentBase abstract methods (FunctionCallingAgent overrides RunAsync and does not use these)
 
     /// <inheritdoc/>
     protected override Task<AgentStep> ExecuteStepAsync(
@@ -466,7 +466,7 @@ public class FunctionCallingAgent : AgentBase
     )
     {
         throw new NotSupportedException(
-            "FunctionCallingAgent 使用 Native Function Calling 循环，不走 ExecuteStepAsync 路径"
+            "FunctionCallingAgent uses the native Function Calling loop and does not use the ExecuteStepAsync path."
         );
     }
 
@@ -474,7 +474,7 @@ public class FunctionCallingAgent : AgentBase
     protected override string? ExtractFinalAnswer(AgentStep step, int maxSteps)
     {
         throw new NotSupportedException(
-            "FunctionCallingAgent 使用 Native Function Calling 循环，不走 ExtractFinalAnswer 路径"
+            "FunctionCallingAgent uses the native Function Calling loop and does not use the ExtractFinalAnswer path."
         );
     }
 }

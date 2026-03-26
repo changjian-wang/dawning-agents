@@ -166,7 +166,7 @@ public interface IWorkflowEngine
     IWorkflow CreateWorkflow(WorkflowDefinition definition);
 
     /// <summary>
-    /// Execute the workflow定义
+    /// Execute a workflow definition
     /// </summary>
     Task<WorkflowResult> ExecuteAsync(
         WorkflowDefinition definition,
@@ -217,7 +217,7 @@ public record WorkflowValidationError
     public required string Message { get; init; }
 
     /// <summary>
-    /// 相关Node ID
+    /// Related node ID
     /// </summary>
     public string? NodeId { get; init; }
 }
@@ -238,7 +238,7 @@ public record WorkflowValidationWarning
     public required string Message { get; init; }
 
     /// <summary>
-    /// 相关Node ID
+    /// Related node ID
     /// </summary>
     public string? NodeId { get; init; }
 }

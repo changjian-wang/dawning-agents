@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// 基于内存的 Agent 检查点实现 — 适用于开发和测试场景
+/// In-memory agent checkpoint implementation — suitable for development and testing scenarios.
 /// </summary>
 public class InMemoryAgentCheckpoint : IAgentCheckpoint
 {
@@ -14,9 +14,9 @@ public class InMemoryAgentCheckpoint : IAgentCheckpoint
     private readonly ILogger<InMemoryAgentCheckpoint> _logger;
 
     /// <summary>
-    /// 初始化内存检查点
+    /// Initializes a new instance of the <see cref="InMemoryAgentCheckpoint"/> class.
     /// </summary>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="logger">Logger.</param>
     public InMemoryAgentCheckpoint(ILogger<InMemoryAgentCheckpoint>? logger = null)
     {
         _logger = logger ?? NullLogger<InMemoryAgentCheckpoint>.Instance;

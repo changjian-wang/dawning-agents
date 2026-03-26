@@ -10,12 +10,12 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// 基于 ReAct 模式的 Agent 实现
+/// ReAct pattern-based agent implementation.
 /// </summary>
 /// <remarks>
-/// <para>ReAct = Reasoning + Acting，交替进行思考和行动</para>
-/// <para>输出格式：Thought → Action → Action Input → Observation → ... → Final Answer</para>
-/// <para>参考论文：ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)</para>
+/// <para>ReAct = Reasoning + Acting, alternating between thinking and acting.</para>
+/// <para>Output format: Thought → Action → Action Input → Observation → ... → Final Answer.</para>
+/// <para>Reference: ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022).</para>
 /// </remarks>
 public partial class ReActAgent : AgentBase
 {
@@ -24,40 +24,40 @@ public partial class ReActAgent : AgentBase
     private readonly IReflectionEngine? _reflectionEngine;
 
     /// <summary>
-    /// 匹配 "Thought: ..." 部分，提取 Agent 的思考过程
+    /// Matches the "Thought: ..." section and extracts the agent's reasoning process.
     /// </summary>
     [GeneratedRegex(@"Thought:\s*(.+?)(?=Action:|Final Answer:|$)", RegexOptions.Singleline)]
     private static partial Regex ThoughtRegex();
 
     /// <summary>
-    /// 匹配 "Action: ..." 部分，提取要执行的动作名称
+    /// Matches the "Action: ..." section and extracts the action name to execute.
     /// </summary>
     [GeneratedRegex(@"Action:\s*(.+?)(?=Action Input:|$)", RegexOptions.Singleline)]
     private static partial Regex ActionRegex();
 
     /// <summary>
-    /// 匹配 "Action Input: ..." 部分，提取动作的输入参数
+    /// Matches the "Action Input: ..." section and extracts the action's input parameters.
     /// </summary>
     [GeneratedRegex(@"Action Input:\s*(.+?)(?=Observation:|$)", RegexOptions.Singleline)]
     private static partial Regex ActionInputRegex();
 
     /// <summary>
-    /// 匹配 "Final Answer: ..." 部分，提取最终答案
+    /// Matches the "Final Answer: ..." section and extracts the final answer.
     /// </summary>
     [GeneratedRegex(@"Final Answer:\s*(.+?)$", RegexOptions.Singleline)]
     private static partial Regex FinalAnswerRegex();
 
     /// <summary>
-    /// 初始化 ReAct Agent
+    /// Initializes a new instance of the <see cref="ReActAgent"/> class.
     /// </summary>
-    /// <param name="llmProvider">LLM 提供者，用于调用语言模型</param>
-    /// <param name="options">Agent 配置选项</param>
-    /// <param name="toolRegistry">工具只读查询（可选）</param>
-    /// <param name="memory">对话记忆（可选）</param>
-    /// <param name="logger">日志记录器（可选）</param>
-    /// <param name="usageTracker">工具使用追踪器（可选）</param>
-    /// <param name="skillRouter">语义技能路由（可选）</param>
-    /// <param name="reflectionEngine">反思引擎（可选）</param>
+    /// <param name="llmProvider">LLM provider for calling language models.</param>
+    /// <param name="options">Agent configuration options.</param>
+    /// <param name="toolRegistry">Tool read-only query (optional).</param>
+    /// <param name="memory">Conversation memory (optional).</param>
+    /// <param name="logger">Logger (optional).</param>
+    /// <param name="usageTracker">Tool usage tracker (optional).</param>
+    /// <param name="skillRouter">Semantic skill router (optional).</param>
+    /// <param name="reflectionEngine">Reflection engine (optional).</param>
     public ReActAgent(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
@@ -76,22 +76,22 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 执行单个 ReAct 步骤：构建提示词 → 调用 LLM → 解析输出 → 执行动作
+    /// Executes a single ReAct step: build prompt → call LLM → parse output → execute action.
     /// </summary>
-    /// <param name="context">当前执行上下文，包含用户输入和历史步骤</param>
-    /// <param name="stepNumber">当前步骤编号（从 1 开始）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>执行结果，包含 Thought、Action、ActionInput 和 Observation</returns>
+    /// <param name="context">Current execution context containing user input and historical steps.</param>
+    /// <param name="stepNumber">Current step number (1-based).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Step result containing Thought, Action, ActionInput, and Observation.</returns>
     protected override async Task<AgentStep> ExecuteStepAsync(
         AgentContext context,
         int stepNumber,
         CancellationToken cancellationToken
     )
     {
-        // 构建提示词
+        // Build prompt
         var prompt = BuildPrompt(context);
 
-        // 构建系统提示词（当有 SkillRouter 时使用异步语义路由）
+        // Build system prompt (use async semantic routing when SkillRouter is available)
         string systemPrompt;
         if (_skillRouter != null)
         {
@@ -107,7 +107,7 @@ public partial class ReActAgent : AgentBase
             systemPrompt = BuildSystemPrompt();
         }
 
-        // 调用 LLM
+        // Call LLM
         var messages = new List<ChatMessage>(2)
         {
             new("system", systemPrompt),
@@ -123,14 +123,14 @@ public partial class ReActAgent : AgentBase
             .ConfigureAwait(false);
         var llmOutput = response.Content ?? string.Empty;
 
-        Logger.LogDebug("LLM 输出:\n{Output}", llmOutput);
+        Logger.LogDebug("LLM output:\n{Output}", llmOutput);
 
-        // 解析输出
+        // Parse output
         var thought = ExtractMatch(ThoughtRegex(), llmOutput);
         var action = ExtractMatch(ActionRegex(), llmOutput);
         var actionInput = ExtractMatch(ActionInputRegex(), llmOutput);
 
-        // 执行动作获取观察结果
+        // Execute action and get observation
         string? observation = null;
         if (!string.IsNullOrEmpty(action))
         {
@@ -151,16 +151,16 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 从步骤中提取最终答案
+    /// Extracts the final answer from a step.
     /// </summary>
-    /// <param name="step">当前执行步骤</param>
-    /// <returns>最终答案字符串，如果该步骤不包含最终答案则返回 null</returns>
+    /// <param name="step">Current execution step.</param>
+    /// <returns>The final answer string, or <see langword="null"/> if the step does not contain a final answer.</returns>
     /// <remarks>
-    /// 当 LLM 输出包含 "Final Answer: ..." 时返回答案内容
+    /// Returns the answer content when the LLM output contains "Final Answer: ...".
     /// </remarks>
     protected override string? ExtractFinalAnswer(AgentStep step, int maxSteps)
     {
-        // 从原始输出中提取 Final Answer
+        // Extract Final Answer from raw output
         if (!string.IsNullOrEmpty(step.RawOutput))
         {
             var finalAnswer = ExtractMatch(FinalAnswerRegex(), step.RawOutput);
@@ -170,18 +170,18 @@ public partial class ReActAgent : AgentBase
             }
         }
 
-        // 如果没有 Action 且有 Thought，仅在已达最大步数时作为兜底返回
+        // If no Action but has Thought, return as fallback only when max steps reached
         if (
             string.IsNullOrEmpty(step.Action)
             && !string.IsNullOrEmpty(step.Thought)
             && step.StepNumber >= maxSteps
         )
         {
-            // 将 Thought 作为答案返回
+            // Return Thought as answer
             return step.Thought;
         }
 
-        // 如果既没有标准格式，也没有 Thought，但有原始输出，直接返回原始输出
+        // If no standard format, no Thought, but has raw output, return raw output directly
         if (
             string.IsNullOrEmpty(step.Action)
             && string.IsNullOrEmpty(step.Thought)
@@ -195,7 +195,7 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 构建系统提示词
+    /// Builds the system prompt.
     /// </summary>
     protected virtual string BuildSystemPrompt()
     {
@@ -204,7 +204,7 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 将可用动作列表格式化为完整的系统提示词
+    /// Formats the available actions list into a complete system prompt.
     /// </summary>
     private string FormatSystemPrompt(string availableActions)
     {
@@ -232,7 +232,7 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 构建可用动作列表的提示词
+    /// Builds the available actions prompt.
     /// </summary>
     protected virtual string BuildAvailableActionsPrompt()
     {
@@ -255,7 +255,7 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 构建可用动作列表（支持语义路由）
+    /// Builds the available actions prompt with semantic routing support.
     /// </summary>
     protected virtual async Task<string> BuildAvailableActionsPromptAsync(
         string taskDescription,
@@ -269,7 +269,7 @@ public partial class ReActAgent : AgentBase
 
         IEnumerable<ITool> tools;
 
-        // 如果已注册 SkillRouter 且工具数达到阈值，用语义路由检索 top-K
+        // If SkillRouter is registered and tool count meets threshold, use semantic routing for top-K retrieval
         if (_skillRouter != null)
         {
             var scored = await _skillRouter
@@ -295,19 +295,19 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 构建用户提示词（包含历史步骤）
+    /// Builds the user prompt including historical steps.
     /// </summary>
-    /// <param name="context">执行上下文，包含用户输入和历史步骤</param>
-    /// <returns>格式化的提示词字符串</returns>
+    /// <param name="context">Execution context containing user input and historical steps.</param>
+    /// <returns>The formatted prompt string.</returns>
     /// <remarks>
-    /// 输出格式示例：
+    /// Output format example:
     /// <code>
-    /// Question: 用户问题
+    /// Question: User question
     ///
-    /// Thought: 上一步的思考
-    /// Action: 上一步的动作
-    /// Action Input: 上一步的输入
-    /// Observation: 上一步的观察结果
+    /// Thought: Previous step's reasoning
+    /// Action: Previous step's action
+    /// Action Input: Previous step's input
+    /// Observation: Previous step's observation
     /// </code>
     /// </remarks>
     protected virtual string BuildPrompt(AgentContext context)
@@ -316,7 +316,7 @@ public partial class ReActAgent : AgentBase
         sb.AppendLine($"Question: {context.UserInput}");
         sb.AppendLine();
 
-        // 添加历史步骤
+        // Append historical steps
         foreach (var step in context.Steps)
         {
             if (!string.IsNullOrEmpty(step.Thought))
@@ -346,15 +346,15 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 执行动作并返回观察结果
+    /// Executes an action and returns the observation.
     /// </summary>
-    /// <param name="action">动作名称（如 Search, Calculate, Lookup）</param>
-    /// <param name="actionInput">动作输入参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>动作执行后的观察结果</returns>
+    /// <param name="action">Action name (e.g., Search, Calculate, Lookup).</param>
+    /// <param name="actionInput">Action input parameters.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The observation after action execution.</returns>
     /// <remarks>
-    /// <para>使用 IToolRegistry 中注册的工具执行动作</para>
-    /// <para>如果工具不存在，返回错误信息和可用工具列表</para>
+    /// <para>Uses tools registered in IToolRegistry to execute actions.</para>
+    /// <para>If the tool does not exist, returns an error message with available tools.</para>
     /// </remarks>
     protected virtual async Task<string> ExecuteActionAsync(
         string action,
@@ -362,15 +362,15 @@ public partial class ReActAgent : AgentBase
         CancellationToken cancellationToken
     )
     {
-        Logger.LogDebug("执行动作: {Action}, 输入: {Input}", action, actionInput);
+        Logger.LogDebug("Executing action: {Action}, input: {Input}", action, actionInput);
 
-        // 使用注册的工具
+        // Use registered tools
         if (_toolRegistry != null)
         {
             var tool = _toolRegistry.GetTool(action);
             if (tool != null)
             {
-                Logger.LogDebug("使用注册的工具: {ToolName}", tool.Name);
+                Logger.LogDebug("Using registered tool: {ToolName}", tool.Name);
                 var result = await tool.ExecuteAsync(actionInput ?? string.Empty, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -379,7 +379,7 @@ public partial class ReActAgent : AgentBase
                     return result.Output;
                 }
 
-                // 工具执行失败 — 尝试反思修复
+                // Tool execution failed — attempt reflection repair
                 if (_reflectionEngine != null)
                 {
                     var repaired = await TryReflectAndRepairAsync(
@@ -399,23 +399,23 @@ public partial class ReActAgent : AgentBase
                 return $"Tool error: {result.Error}";
             }
 
-            // 工具不存在，返回错误信息和可用工具列表
+            // Tool not found, return error with available tools list
             var availableTools = _toolRegistry.GetAllTools();
             if (availableTools.Count > 0)
             {
                 var toolList = string.Join(", ", availableTools.Select(t => t.Name));
-                Logger.LogWarning("工具 '{Action}' 不存在，可用工具: {Tools}", action, toolList);
+                Logger.LogWarning("Tool '{Action}' not found, available tools: {Tools}", action, toolList);
                 return $"Error: Tool '{action}' not found. Available tools: {toolList}. Please choose a valid tool.";
             }
         }
 
-        // 没有注册任何工具
-        Logger.LogWarning("没有注册任何工具，无法执行动作: {Action}", action);
+        // No tools registered
+        Logger.LogWarning("No tools registered, cannot execute action: {Action}", action);
         return $"Error: No tools registered. Cannot execute action '{action}'. Please register tools using AddBuiltInTools() or AddToolsFrom<T>().";
     }
 
     /// <summary>
-    /// 尝试通过反思引擎修复失败的工具执行
+    /// Attempts to repair a failed tool execution through the reflection engine.
     /// </summary>
     private async Task<string?> TryReflectAndRepairAsync(
         ITool failedTool,
@@ -454,7 +454,7 @@ public partial class ReActAgent : AgentBase
 
             if (reflection.Action == ReflectionAction.Retry)
             {
-                // 简单重试
+                // Simple retry
                 var retryResult = await failedTool
                     .ExecuteAsync(input, cancellationToken)
                     .ConfigureAwait(false);
@@ -477,7 +477,7 @@ public partial class ReActAgent : AgentBase
     }
 
     /// <summary>
-    /// 从正则匹配中提取内容
+    /// Extracts content from a regex match.
     /// </summary>
     private static string? ExtractMatch(Regex regex, string input)
     {

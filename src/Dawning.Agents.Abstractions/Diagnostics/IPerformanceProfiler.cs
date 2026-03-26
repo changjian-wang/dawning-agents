@@ -150,42 +150,42 @@ public class OperationStatistics
 }
 
 /// <summary>
-/// 预定义的操作类别
+/// Predefined operation categories.
 /// </summary>
 public static class OperationCategories
 {
     /// <summary>
-    /// LLM 调用
+    /// LLM calls.
     /// </summary>
     public const string LLM = "LLM";
 
     /// <summary>
-    /// 工具执行
+    /// Tool execution.
     /// </summary>
     public const string Tool = "Tool";
 
     /// <summary>
-    /// Agent 执行
+    /// Agent execution.
     /// </summary>
     public const string Agent = "Agent";
 
     /// <summary>
-    /// RAG 检索
+    /// RAG retrieval.
     /// </summary>
     public const string RAG = "RAG";
 
     /// <summary>
-    /// 数据库操作
+    /// Database operations.
     /// </summary>
     public const string Database = "Database";
 
     /// <summary>
-    /// HTTP 请求
+    /// HTTP requests.
     /// </summary>
     public const string Http = "Http";
 
     /// <summary>
-    /// 缓存操作
+    /// Cache operations.
     /// </summary>
     public const string Cache = "Cache";
 }

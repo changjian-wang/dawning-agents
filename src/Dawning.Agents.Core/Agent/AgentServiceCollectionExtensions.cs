@@ -8,16 +8,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core;
 
 /// <summary>
-/// Agent 服务注册扩展
+/// Agent service registration extensions.
 /// </summary>
 public static class AgentServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 ReAct Agent 服务（基于文本解析的 Agent）
+    /// Adds ReAct Agent services (text parsing-based agent).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configuration">Configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddReActAgent(
         this IServiceCollection services,
         IConfiguration configuration
@@ -25,7 +25,7 @@ public static class AgentServiceCollectionExtensions
     {
         services.AddValidatedOptions<AgentOptions>(configuration, AgentOptions.SectionName);
 
-        // 确保 ToolRegistry 已注册（Agent 可选依赖）
+        // Ensure ToolRegistry is registered (optional agent dependency)
         services.AddToolRegistry();
 
         services.TryAddScoped<IAgent, ReActAgent>();
@@ -34,11 +34,11 @@ public static class AgentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 ReAct Agent 服务（使用配置委托）
+    /// Adds ReAct Agent services (using a configuration delegate).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configure">Configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddReActAgent(
         this IServiceCollection services,
         Action<AgentOptions> configure
@@ -46,7 +46,7 @@ public static class AgentServiceCollectionExtensions
     {
         services.AddValidatedOptions(configure);
 
-        // 确保 ToolRegistry 已注册（Agent 可选依赖）
+        // Ensure ToolRegistry is registered (optional agent dependency)
         services.AddToolRegistry();
 
         services.TryAddScoped<IAgent, ReActAgent>();
@@ -55,15 +55,15 @@ public static class AgentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Function Calling Agent 服务（基于 LLM 原生工具调用的 Agent）
+    /// Adds Function Calling Agent services (LLM native tool calling-based agent).
     /// </summary>
     /// <remarks>
-    /// <para>使用 LLM 原生 Function Calling，比 ReActAgent 的文本解析更可靠</para>
-    /// <para>需要 LLM Provider 支持 Function Calling（OpenAI、Azure OpenAI、Ollama 等）</para>
+    /// <para>Uses LLM native Function Calling, which is more reliable than ReActAgent's text parsing.</para>
+    /// <para>Requires an LLM Provider that supports Function Calling (OpenAI, Azure OpenAI, Ollama, etc.).</para>
     /// </remarks>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configuration">Configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddFunctionCallingAgent(
         this IServiceCollection services,
         IConfiguration configuration
@@ -79,11 +79,11 @@ public static class AgentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Function Calling Agent 服务（使用配置委托）
+    /// Adds Function Calling Agent services (using a configuration delegate).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configure">Configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddFunctionCallingAgent(
         this IServiceCollection services,
         Action<AgentOptions> configure
@@ -99,10 +99,10 @@ public static class AgentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加反思引擎（基于 LLM 的工具失败诊断与修复）
+    /// Adds the reflection engine (LLM-based tool failure diagnosis and repair).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">反思配置（可选）</param>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configure">Reflection configuration (optional).</param>
     public static IServiceCollection AddReflectionEngine(
         this IServiceCollection services,
         Action<ReflectionOptions>? configure = null
@@ -122,10 +122,10 @@ public static class AgentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Agent 检查点服务（内存实现，适用于开发和测试）
+    /// Adds the agent checkpoint service (in-memory implementation, suitable for development and testing).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">Service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAgentCheckpoint(this IServiceCollection services)
     {
         services.TryAddSingleton<IAgentCheckpoint, InMemoryAgentCheckpoint>();

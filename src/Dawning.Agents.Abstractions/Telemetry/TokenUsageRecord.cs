@@ -1,15 +1,15 @@
 namespace Dawning.Agents.Abstractions.Telemetry;
 
 /// <summary>
-/// Token 使用记录
+/// Represents a single token usage record.
 /// </summary>
-/// <param name="Source">来源标识（Agent 名称、组件名等）</param>
-/// <param name="PromptTokens">输入 Token 数</param>
-/// <param name="CompletionTokens">输出 Token 数</param>
-/// <param name="Timestamp">记录时间</param>
-/// <param name="Model">使用的模型名称</param>
-/// <param name="SessionId">会话 ID（可选，用于分组统计）</param>
-/// <param name="Metadata">附加Metadata</param>
+/// <param name="Source">The source identifier (e.g., agent name or component name).</param>
+/// <param name="PromptTokens">The number of prompt tokens consumed.</param>
+/// <param name="CompletionTokens">The number of completion tokens consumed.</param>
+/// <param name="Timestamp">The time the record was created.</param>
+/// <param name="Model">The model name used for the call.</param>
+/// <param name="SessionId">An optional session identifier for grouped aggregation.</param>
+/// <param name="Metadata">Optional metadata associated with this record.</param>
 public record TokenUsageRecord(
     string Source,
     int PromptTokens,
@@ -21,12 +21,12 @@ public record TokenUsageRecord(
 )
 {
     /// <summary>
-    /// 总 Token 数
+    /// Gets the total number of tokens (prompt + completion).
     /// </summary>
     public long TotalTokens => (long)PromptTokens + CompletionTokens;
 
     /// <summary>
-    /// 创建一个新的 Token 使用记录
+    /// Creates a new <see cref="TokenUsageRecord"/> with the current UTC timestamp.
     /// </summary>
     public static TokenUsageRecord Create(
         string source,
@@ -50,14 +50,14 @@ public record TokenUsageRecord(
 }
 
 /// <summary>
-/// Token 使用汇总统计
+/// Represents an aggregated token usage summary.
 /// </summary>
-/// <param name="TotalPromptTokens">总输入 Token 数</param>
-/// <param name="TotalCompletionTokens">总输出 Token 数</param>
-/// <param name="CallCount">调用次数</param>
-/// <param name="BySource">按来源分组的统计</param>
-/// <param name="ByModel">按模型分组的统计</param>
-/// <param name="BySession">按会话分组的统计</param>
+/// <param name="TotalPromptTokens">The total number of prompt tokens.</param>
+/// <param name="TotalCompletionTokens">The total number of completion tokens.</param>
+/// <param name="CallCount">The total number of LLM calls.</param>
+/// <param name="BySource">Usage statistics grouped by source.</param>
+/// <param name="ByModel">Usage statistics grouped by model.</param>
+/// <param name="BySession">Usage statistics grouped by session.</param>
 public record TokenUsageSummary(
     long TotalPromptTokens,
     long TotalCompletionTokens,
@@ -68,26 +68,26 @@ public record TokenUsageSummary(
 )
 {
     /// <summary>
-    /// 总 Token 数
+    /// Gets the total number of tokens (prompt + completion).
     /// </summary>
     public long TotalTokens => TotalPromptTokens + TotalCompletionTokens;
 
     /// <summary>
-    /// 空统计
+    /// Gets an empty summary with zero values.
     /// </summary>
     public static TokenUsageSummary Empty => new(0, 0, 0, new Dictionary<string, SourceUsage>());
 }
 
 /// <summary>
-/// 单个来源的 Token 使用统计
+/// Represents token usage statistics for a single source.
 /// </summary>
-/// <param name="PromptTokens">输入 Token 数</param>
-/// <param name="CompletionTokens">输出 Token 数</param>
-/// <param name="CallCount">调用次数</param>
+/// <param name="PromptTokens">The number of prompt tokens.</param>
+/// <param name="CompletionTokens">The number of completion tokens.</param>
+/// <param name="CallCount">The number of LLM calls.</param>
 public record SourceUsage(long PromptTokens, long CompletionTokens, int CallCount)
 {
     /// <summary>
-    /// 总 Token 数
+    /// Gets the total number of tokens (prompt + completion).
     /// </summary>
     public long TotalTokens => (long)PromptTokens + CompletionTokens;
 }

@@ -3,32 +3,32 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Abstractions.Cache;
 
 /// <summary>
-/// 语义缓存接口 - 基于向量相似度的智能缓存
+/// Defines a semantic cache that uses vector similarity to store and retrieve LLM responses.
 /// </summary>
 /// <remarks>
-/// <para>缓存 LLM 响应，当新查询与缓存中的查询语义相似时直接返回</para>
-/// <para>可大幅减少重复 LLM 调用，降低成本和延迟</para>
+/// <para>Caches LLM responses and returns them when a new query is semantically similar to a cached query.</para>
+/// <para>Significantly reduces redundant LLM calls, lowering both cost and latency.</para>
 /// </remarks>
 public interface ISemanticCache
 {
     /// <summary>
-    /// 尝试获取语义相似的缓存响应
+    /// Attempts to retrieve a semantically similar cached response.
     /// </summary>
-    /// <param name="query">查询文本</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>缓存命中时返回响应，否则返回 null</returns>
+    /// <param name="query">The query text.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The cached result if a match is found; otherwise, <see langword="null"/>.</returns>
     Task<SemanticCacheResult?> GetAsync(
         string query,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// 存储查询和响应到缓存
+    /// Stores a query and its response in the cache.
     /// </summary>
-    /// <param name="query">查询文本</param>
-    /// <param name="response">响应文本</param>
-    /// <param name="metadata">可选的Metadata</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="query">The query text.</param>
+    /// <param name="response">The response text.</param>
+    /// <param name="metadata">Optional metadata.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     Task SetAsync(
         string query,
         string response,
@@ -37,54 +37,54 @@ public interface ISemanticCache
     );
 
     /// <summary>
-    /// 清除所有缓存
+    /// Clears all cached entries.
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     Task ClearAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取缓存条目数量
+    /// Gets the number of cached entries.
     /// </summary>
     int Count { get; }
 }
 
 /// <summary>
-/// 语义缓存结果
+/// Represents a semantic cache lookup result.
 /// </summary>
 public record SemanticCacheResult
 {
     /// <summary>
-    /// 缓存的响应内容
+    /// Gets the cached response content.
     /// </summary>
     public required string Response { get; init; }
 
     /// <summary>
-    /// 原始查询文本
+    /// Gets the original query text that produced the cached response.
     /// </summary>
     public required string OriginalQuery { get; init; }
 
     /// <summary>
-    /// 相似度分数 (0-1)
+    /// Gets the similarity score between the input query and the cached query (0–1).
     /// </summary>
     public required float SimilarityScore { get; init; }
 
     /// <summary>
-    /// 缓存创建时间
+    /// Gets the time the cache entry was created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>
-    /// Metadata
+    /// Gets the metadata associated with the cached entry.
     /// </summary>
     public IReadOnlyDictionary<string, string> Metadata { get; init; } =
         new Dictionary<string, string>();
 }
 
 /// <summary>
-/// 语义缓存配置选项
+/// Configuration options for the semantic cache.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "SemanticCache": {
@@ -99,35 +99,35 @@ public record SemanticCacheResult
 public class SemanticCacheOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Gets the configuration section name.
     /// </summary>
     public const string SectionName = "SemanticCache";
 
     /// <summary>
-    /// 是否启用语义缓存
+    /// Gets or sets a value indicating whether the semantic cache is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 相似度阈值 (0-1)，超过此阈值才返回缓存
+    /// Gets or sets the similarity threshold (0–1). Only results above this threshold are returned.
     /// </summary>
     /// <remarks>
-    /// 默认 0.95，较高的阈值确保只返回高度相似的缓存
+    /// Defaults to 0.95. A higher threshold ensures only highly similar results are returned.
     /// </remarks>
     public float SimilarityThreshold { get; set; } = 0.95f;
 
     /// <summary>
-    /// 最大缓存条目数
+    /// Gets or sets the maximum number of cache entries.
     /// </summary>
     public int MaxEntries { get; set; } = 10000;
 
     /// <summary>
-    /// 缓存过期时间（分钟）
+    /// Gets or sets the cache expiration time in minutes.
     /// </summary>
-    public int ExpirationMinutes { get; set; } = 1440; // 24 小时
+    public int ExpirationMinutes { get; set; } = 1440; // 24 hours
 
     /// <summary>
-    /// 命名空间，用于隔离不同应用的缓存
+    /// Gets or sets the namespace used to isolate cache entries across applications.
     /// </summary>
     public string Namespace { get; set; } = "default";
 

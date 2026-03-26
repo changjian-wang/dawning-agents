@@ -3,7 +3,7 @@ using Dawning.Agents.Abstractions.Agent;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// 成本追踪器实现（线程安全）
+/// Cost tracker implementation (thread-safe).
 /// </summary>
 public sealed class CostTracker : ICostTracker
 {
@@ -26,9 +26,9 @@ public sealed class CostTracker : ICostTracker
     public decimal? Budget { get; }
 
     /// <summary>
-    /// 创建成本追踪器
+    /// Initializes a new instance of the <see cref="CostTracker"/> class.
     /// </summary>
-    /// <param name="budget">成本预算上限（USD），null 表示无限制</param>
+    /// <param name="budget">Cost budget limit (USD), or <see langword="null"/> for unlimited.</param>
     public CostTracker(decimal? budget = null)
     {
         Budget = budget;

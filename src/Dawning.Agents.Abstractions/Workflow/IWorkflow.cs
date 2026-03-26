@@ -160,7 +160,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// Node execution result（只读快照）
+    /// Node execution results (read-only snapshot)
     /// </summary>
     public IReadOnlyDictionary<string, NodeExecutionResult> NodeResults
     {
@@ -188,7 +188,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// Metadata（只读快照）
+    /// Metadata (read-only snapshot)
     /// </summary>
     public IReadOnlyDictionary<string, object?> Metadata
     {
@@ -228,7 +228,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 添加Node execution result
+    /// Add a node execution result
     /// </summary>
     public void AddNodeResult(string nodeId, NodeExecutionResult result)
     {
@@ -250,7 +250,7 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// 设置Metadata
+    /// Set metadata
     /// </summary>
     public void SetMetadata(string key, object? value)
     {

@@ -238,7 +238,7 @@ public enum ParallelMergeStrategy
 public record SubWorkflowNodeConfig
 {
     /// <summary>
-    /// 子Workflow ID
+    /// Sub-workflow ID
     /// </summary>
     public required string WorkflowId { get; init; }
 
@@ -254,7 +254,7 @@ public record SubWorkflowNodeConfig
 }
 
 /// <summary>
-/// Human approval node配置
+/// Human approval node configuration
 /// </summary>
 public record HumanApprovalNodeConfig
 {
@@ -285,7 +285,7 @@ public record HumanApprovalNodeConfig
 }
 
 /// <summary>
-/// Delay node配置
+/// Delay node configuration
 /// </summary>
 public record DelayNodeConfig
 {

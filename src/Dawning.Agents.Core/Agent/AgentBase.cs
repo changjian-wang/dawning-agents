@@ -10,58 +10,58 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Agent;
 
 /// <summary>
-/// Agent 基类，提供通用的执行框架
+/// Agent base class that provides a common execution framework.
 /// </summary>
 /// <remarks>
-/// <para>实现了 Agent 核心循环：Observe → Think → Act</para>
-/// <para>子类只需实现 <see cref="ExecuteStepAsync"/> 和 <see cref="ExtractFinalAnswer"/> 方法</para>
+/// <para>Implements the core agent loop: Observe → Think → Act.</para>
+/// <para>Subclasses only need to implement <see cref="ExecuteStepAsync"/> and <see cref="ExtractFinalAnswer"/>.</para>
 /// </remarks>
 public abstract class AgentBase : IAgent
 {
     /// <summary>
-    /// LLM 提供者，用于与语言模型交互
+    /// LLM provider for interacting with language models.
     /// </summary>
     protected readonly ILLMProvider LLMProvider;
 
     /// <summary>
-    /// 日志记录器
+    /// Logger instance.
     /// </summary>
     protected readonly ILogger Logger;
 
     /// <summary>
-    /// Agent 配置选项
+    /// Agent configuration options.
     /// </summary>
     protected readonly AgentOptions Options;
 
     /// <summary>
-    /// 对话记忆（可选），用于跨会话保持上下文
+    /// Conversation memory (optional) for maintaining context across sessions.
     /// </summary>
     protected readonly IConversationMemory? Memory;
 
     /// <summary>
-    /// 工具使用追踪器（可选），用于记录工具执行统计
+    /// Tool usage tracker (optional) for recording tool execution statistics.
     /// </summary>
     protected readonly IToolUsageTracker? UsageTracker;
 
     /// <summary>
-    /// Agent 名称
+    /// Gets the agent name.
     /// </summary>
     public virtual string Name => Options.Name;
 
     /// <summary>
-    /// Agent 系统指令
+    /// Gets the agent system instructions.
     /// </summary>
     public virtual string Instructions => Options.Instructions;
 
     /// <summary>
-    /// 初始化 Agent 基类
+    /// Initializes a new instance of the <see cref="AgentBase"/> class.
     /// </summary>
-    /// <param name="llmProvider">LLM 提供者</param>
-    /// <param name="options">Agent 配置选项</param>
-    /// <param name="memory">对话记忆（可选）</param>
-    /// <param name="logger">日志记录器（可选）</param>
-    /// <param name="usageTracker">工具使用追踪器（可选）</param>
-    /// <exception cref="ArgumentNullException">当 llmProvider 或 options 为 null 时抛出</exception>
+    /// <param name="llmProvider">LLM provider.</param>
+    /// <param name="options">Agent configuration options.</param>
+    /// <param name="memory">Conversation memory (optional).</param>
+    /// <param name="logger">Logger (optional).</param>
+    /// <param name="usageTracker">Tool usage tracker (optional).</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="llmProvider"/> or <paramref name="options"/> is <see langword="null"/>.</exception>
     protected AgentBase(
         ILLMProvider llmProvider,
         IOptions<AgentOptions> options,
@@ -78,11 +78,11 @@ public abstract class AgentBase : IAgent
     }
 
     /// <summary>
-    /// 执行 Agent 任务
+    /// Executes the agent task.
     /// </summary>
-    /// <param name="input">用户输入</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>Agent 响应</returns>
+    /// <param name="input">User input.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The agent response.</returns>
     public virtual Task<AgentResponse> RunAsync(
         string input,
         CancellationToken cancellationToken = default
@@ -93,11 +93,11 @@ public abstract class AgentBase : IAgent
     }
 
     /// <summary>
-    /// 使用指定上下文执行 Agent 任务
+    /// Executes the agent task with the specified context.
     /// </summary>
-    /// <param name="context">执行上下文，包含用户输入和历史步骤</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>Agent 响应</returns>
+    /// <param name="context">Execution context containing user input and historical steps.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The agent response.</returns>
     public virtual async Task<AgentResponse> RunAsync(
         AgentContext context,
         CancellationToken cancellationToken = default
@@ -108,7 +108,7 @@ public abstract class AgentBase : IAgent
         var stopwatch = Stopwatch.StartNew();
         var costTracker = CreateCostTracker();
         Logger.LogInformation(
-            "Agent {AgentName} 开始执行任务，输入长度: {InputLength}",
+            "Agent {AgentName} started task execution, input length: {InputLength}",
             Name,
             context.UserInput.Length
         );
@@ -120,31 +120,31 @@ public abstract class AgentBase : IAgent
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var stepNumber = context.Steps.Count + 1;
-                Logger.LogDebug("执行步骤 {StepNumber}/{MaxSteps}", stepNumber, context.MaxSteps);
+                Logger.LogDebug("Executing step {StepNumber}/{MaxSteps}", stepNumber, context.MaxSteps);
 
-                // 执行单步
+                // Execute single step
                 var step = await ExecuteStepAsync(context, stepNumber, cancellationToken)
                     .ConfigureAwait(false);
                 context.AddStep(step);
 
-                // 记录工具使用
+                // Record tool usage
                 await RecordToolUsageAsync(step, cancellationToken).ConfigureAwait(false);
 
-                // 累加成本并检查预算
+                // Accumulate cost and check budget
                 costTracker?.Add(step.Cost);
 
-                // 检查是否有最终答案
+                // Check for final answer
                 var finalAnswer = ExtractFinalAnswer(step, context.MaxSteps);
                 if (finalAnswer != null)
                 {
                     stopwatch.Stop();
                     Logger.LogInformation(
-                        "Agent {AgentName} 完成任务，共 {StepCount} 步",
+                        "Agent {AgentName} completed task in {StepCount} steps",
                         Name,
                         context.Steps.Count
                     );
 
-                    // 保存对话到记忆
+                    // Save conversation to memory
                     await SaveToMemoryAsync(context.UserInput, finalAnswer, cancellationToken)
                         .ConfigureAwait(false);
 
@@ -152,9 +152,9 @@ public abstract class AgentBase : IAgent
                 }
             }
 
-            // 超过最大步数
+            // Exceeded maximum steps
             stopwatch.Stop();
-            Logger.LogWarning("Agent {AgentName} 超过最大步数 {MaxSteps}", Name, context.MaxSteps);
+            Logger.LogWarning("Agent {AgentName} exceeded maximum steps {MaxSteps}", Name, context.MaxSteps);
             return AgentResponse.Failed(
                 $"Exceeded maximum steps ({context.MaxSteps})",
                 context.Steps,
@@ -165,7 +165,7 @@ public abstract class AgentBase : IAgent
         {
             stopwatch.Stop();
             Logger.LogWarning(
-                "Agent {AgentName} 成本超出预算: {TotalCost:F4} > {Budget:F4}",
+                "Agent {AgentName} cost exceeded budget: {TotalCost:F4} > {Budget:F4}",
                 Name,
                 ex.TotalCost,
                 ex.Budget
@@ -179,7 +179,7 @@ public abstract class AgentBase : IAgent
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             stopwatch.Stop();
-            Logger.LogWarning(ex, "Agent {AgentName} 任务被取消", Name);
+            Logger.LogWarning(ex, "Agent {AgentName} task was cancelled", Name);
             return AgentResponse.Failed(
                 "Operation cancelled",
                 context.Steps,
@@ -190,18 +190,18 @@ public abstract class AgentBase : IAgent
         catch (Exception ex)
         {
             stopwatch.Stop();
-            Logger.LogError(ex, "Agent {AgentName} 执行出错", Name);
+            Logger.LogError(ex, "Agent {AgentName} execution error", Name);
             return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
         }
     }
 
     /// <summary>
-    /// 执行单个步骤，由子类实现具体的推理和行动逻辑
+    /// Executes a single step. Subclasses implement specific reasoning and action logic.
     /// </summary>
-    /// <param name="context">当前执行上下文，包含用户输入和历史步骤</param>
-    /// <param name="stepNumber">当前步骤编号（从 1 开始）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>执行结果，包含思考、动作和观察</returns>
+    /// <param name="context">Current execution context containing user input and historical steps.</param>
+    /// <param name="stepNumber">Current step number (1-based).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Step result containing thought, action, and observation.</returns>
     protected abstract Task<AgentStep> ExecuteStepAsync(
         AgentContext context,
         int stepNumber,
@@ -209,21 +209,21 @@ public abstract class AgentBase : IAgent
     );
 
     /// <summary>
-    /// 从步骤中提取最终答案
+    /// Extracts the final answer from a step.
     /// </summary>
-    /// <param name="step">当前执行步骤</param>
-    /// <param name="maxSteps">当前上下文的最大步数</param>
-    /// <returns>最终答案字符串，如果该步骤不包含最终答案则返回 null</returns>
+    /// <param name="step">Current execution step.</param>
+    /// <param name="maxSteps">Maximum steps for the current context.</param>
+    /// <returns>The final answer string, or <see langword="null"/> if the step does not contain a final answer.</returns>
     /// <remarks>
-    /// 当返回非 null 值时，Agent 循环将终止并返回成功响应
+    /// When a non-null value is returned, the agent loop terminates and returns a successful response.
     /// </remarks>
     protected abstract string? ExtractFinalAnswer(AgentStep step, int maxSteps);
 
     /// <summary>
-    /// 从 LLM 响应估算步骤成本（USD）
+    /// Estimates step cost (USD) from an LLM response.
     /// </summary>
-    /// <param name="response">LLM 响应</param>
-    /// <returns>估算成本</returns>
+    /// <param name="response">LLM response.</param>
+    /// <returns>Estimated cost.</returns>
     protected static decimal EstimateStepCost(ChatCompletionResponse response)
     {
         return ModelPricing
@@ -232,7 +232,7 @@ public abstract class AgentBase : IAgent
     }
 
     /// <summary>
-    /// 创建成本追踪器（如果配置了预算）
+    /// Creates a cost tracker if a budget is configured.
     /// </summary>
     protected CostTracker? CreateCostTracker()
     {
@@ -240,7 +240,7 @@ public abstract class AgentBase : IAgent
     }
 
     /// <summary>
-    /// 记录工具使用到追踪器（如果已配置且步骤包含 Action）
+    /// Records tool usage to the tracker if configured and the step contains an action.
     /// </summary>
     private async Task RecordToolUsageAsync(AgentStep step, CancellationToken cancellationToken)
     {
@@ -272,11 +272,11 @@ public abstract class AgentBase : IAgent
     }
 
     /// <summary>
-    /// 保存对话到记忆（如果已配置）
+    /// Saves the conversation to memory if configured.
     /// </summary>
-    /// <param name="userInput">用户输入</param>
-    /// <param name="assistantResponse">Agent 响应</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="userInput">User input.</param>
+    /// <param name="assistantResponse">Agent response.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     protected async Task SaveToMemoryAsync(
         string userInput,
         string assistantResponse,
@@ -302,11 +302,11 @@ public abstract class AgentBase : IAgent
                     cancellationToken
                 )
                 .ConfigureAwait(false);
-            Logger.LogDebug("对话已保存到记忆，当前消息数: {Count}", Memory.MessageCount);
+            Logger.LogDebug("Conversation saved to memory, current message count: {Count}", Memory.MessageCount);
         }
         catch (Exception ex)
         {
-            Logger.LogWarning(ex, "保存对话到记忆时出错");
+            Logger.LogWarning(ex, "Error saving conversation to memory");
         }
     }
 }
