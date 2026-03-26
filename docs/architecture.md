@@ -20,9 +20,34 @@
    - [ReAct 推理流程](#react-推理流程)
    - [Tool 注册与调用](#tool-注册与调用)
    - [Memory 上下文管理](#memory-上下文管理)
-5. [依赖注入设计](#依赖注入设计)
-6. [扩展机制](#扩展机制)
-7. [设计模式应用](#设计模式应用)
+5. [端到端执行流追踪](#端到端执行流追踪)
+   - [完整请求路径](#完整请求路径)
+   - [Prompt 构建细节](#prompt-构建细节)
+   - [LLM 输出解析算法](#llm-输出解析算法)
+   - [工具执行与错误修复](#工具执行与错误修复)
+   - [最终答案提取策略](#最终答案提取策略)
+6. [错误处理机制](#错误处理机制)
+   - [异常类型层次](#异常类型层次)
+   - [AgentBase 错误处理](#agentbase-错误处理)
+   - [SafeAgent 安全层错误处理](#safeagent-安全层错误处理)
+   - [编排器错误处理](#编排器错误处理)
+   - [弹性策略](#弹性策略)
+7. [核心算法详解](#核心算法详解)
+   - [SummaryMemory 自动摘要算法](#summarymemory-自动摘要算法)
+   - [AdaptiveMemory 自适应降级算法](#adaptivememory-自适应降级算法)
+   - [DocumentChunker 文本分块算法](#documentchunker-文本分块算法)
+   - [ToolScanner 反射扫描算法](#toolscanner-反射扫描算法)
+   - [ToolRegistry 查找与缓存策略](#toolregistry-查找与缓存策略)
+8. [Redis 持久化实现](#redis-持久化实现)
+   - [RedisSharedState 分布式共享状态](#redissharedstate-分布式共享状态)
+   - [RedisMessageBus 分布式消息总线](#redismessagebus-分布式消息总线)
+   - [RedisToolUsageTracker 工具使用追踪](#redistoolusagetracker-工具使用追踪)
+   - [RedisTokenUsageTracker Token 用量追踪](#redistokenusagetracker-token-用量追踪)
+   - [FileAuditLogger 文件审计日志](#fileauditlogger-文件审计日志)
+9. [依赖注入设计](#依赖注入设计)
+10. [扩展机制](#扩展机制)
+11. [设计模式应用](#设计模式应用)
+12. [常见问题排查](#常见问题排查)
 
 ---
 
@@ -2331,6 +2356,781 @@ flowchart LR
     Buffer --> Return
     Summary --> Return
 ```
+
+---
+
+## 端到端执行流追踪
+
+本节追踪一个用户请求从进入到返回的完整路径，展示每一层的数据变换。
+
+### 完整请求路径
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Agent as AgentBase
+    participant ReAct as ReActAgent
+    participant Memory as IConversationMemory
+    participant LLM as ILLMProvider
+    participant Registry as IToolRegistry
+    participant Tool as ITool
+    participant Tracker as IToolUsageTracker
+
+    User->>Agent: RunAsync("今天北京天气怎么样？")
+    Agent->>Agent: 创建 AgentContext { UserInput, MaxSteps=5 }
+    Agent->>Agent: Stopwatch.StartNew()
+
+    loop 步骤循环 (Steps < MaxSteps)
+        Agent->>ReAct: ExecuteStepAsync(context, stepNumber)
+
+        Note over ReAct: 1. 构建 System Prompt
+        ReAct->>ReAct: BuildSystemPrompt() — 含工具列表
+        Note over ReAct: 2. 构建 User Prompt
+        ReAct->>ReAct: BuildPrompt(context) — 含历史步骤
+
+        Note over ReAct: 3. 调用 LLM
+        ReAct->>LLM: ChatAsync([system, user], options)
+        LLM-->>ReAct: ChatCompletionResponse { Content, Tokens }
+
+        Note over ReAct: 4. 正则解析输出
+        ReAct->>ReAct: ThoughtRegex / ActionRegex / FinalAnswerRegex
+
+        alt 包含 Action
+            Note over ReAct: 5. 执行工具
+            ReAct->>Registry: GetTool(action)
+            Registry-->>ReAct: ITool
+            ReAct->>Tool: ExecuteAsync(actionInput)
+            Tool-->>ReAct: ToolResult { Output / Error }
+        end
+
+        ReAct-->>Agent: AgentStep { Thought, Action, Observation }
+
+        Agent->>Tracker: RecordToolUsageAsync(step)
+        Agent->>Agent: costTracker.Add(step.Cost)
+
+        alt 包含 Final Answer
+            Agent->>Memory: SaveToMemoryAsync(input, answer)
+            Agent-->>User: AgentResponse.Successful(answer, steps, duration)
+        end
+    end
+
+    Agent-->>User: AgentResponse.Failed("Exceeded maximum steps")
+```
+
+### Prompt 构建细节
+
+ReActAgent 为每次 LLM 调用构建两条消息：
+
+**System Message** — 定义 Agent 身份 + ReAct 格式指令 + 可用工具列表：
+
+```
+{Options.Instructions}                          ← 用户自定义的系统指令
+
+You are an AI assistant that follows the ReAct pattern.
+When answering questions, use the following format:
+
+Thought: [Your reasoning about what to do]
+Action: [The action to take]
+Action Input: [The input for the action]
+
+After receiving the observation from the action, continue with:
+Thought: [Your updated reasoning]
+...
+
+When you have enough information to provide the final answer, use:
+Final Answer: [Your complete answer to the user's question]
+
+Available actions:                               ← 从 IToolRegistry 动态生成
+- GetWeather: 获取指定城市的天气信息
+- Calculator: 执行数学计算
+```
+
+> **大规模工具集优化**：当注册工具数量很大时，如果配置了 `ISkillRouter`，
+> 会调用 `BuildAvailableActionsPromptAsync()` 对工具进行语义过滤，
+> 只将与当前查询相关的工具注入 Prompt，减少 Token 开销。
+
+**User Message** — 包含原始问题 + 所有历史步骤（Observation 拼接）：
+
+```
+Question: 今天北京天气怎么样？             ← 第 1 轮：仅问题
+
+Question: 今天北京天气怎么样？             ← 第 2 轮：追加历史
+                                           
+Thought: 用户想知道天气，需要调用天气工具
+Action: GetWeather
+Action Input: city=北京
+Observation: 北京今天晴，气温 15-25°C      ← 工具输出被注入上下文
+```
+
+### LLM 输出解析算法
+
+ReActAgent 使用 4 个编译期正则表达式解析 LLM 输出：
+
+```csharp
+// C# 13 GeneratedRegex — 编译时生成，零运行时开销
+[GeneratedRegex(@"Thought:\s*(.+?)(?=Action:|Final Answer:|$)", RegexOptions.Singleline)]
+private static partial Regex ThoughtRegex();
+
+[GeneratedRegex(@"Action:\s*(.+?)(?=Action Input:|$)", RegexOptions.Singleline)]
+private static partial Regex ActionRegex();
+
+[GeneratedRegex(@"Action Input:\s*(.+?)(?=Observation:|$)", RegexOptions.Singleline)]
+private static partial Regex ActionInputRegex();
+
+[GeneratedRegex(@"Final Answer:\s*(.+?)$", RegexOptions.Singleline)]
+private static partial Regex FinalAnswerRegex();
+```
+
+**解析优先级**：
+
+1. `FinalAnswerRegex` 匹配 → 返回最终答案，循环终止
+2. `ActionRegex` + `ActionInputRegex` 匹配 → 执行工具，继续循环
+3. `ThoughtRegex` 匹配但无 Action → 无结构化输出，见下方回退策略
+
+### 工具执行与错误修复
+
+```mermaid
+flowchart TD
+    A[提取 Action + ActionInput] --> B{工具存在?}
+    B -->|是| C[tool.ExecuteAsync]
+    B -->|否| D["返回 'Tool not found'<br/>列出可用工具"]
+
+    C --> E{执行成功?}
+    E -->|是| F[返回 result.Output<br/>作为 Observation]
+    E -->|否| G{有 ReflectionEngine?}
+
+    G -->|是| H[TryReflectAndRepairAsync<br/>输入修复重试]
+    G -->|否| I["返回 'Tool error: ...'"]
+
+    H --> J{修复成功?}
+    J -->|是| F
+    J -->|否| I
+```
+
+**执行代码路径**：
+
+```csharp
+protected virtual async Task<string> ExecuteActionAsync(
+    string action, string? actionInput, CancellationToken cancellationToken)
+{
+    if (_toolRegistry != null)
+    {
+        var tool = _toolRegistry.GetTool(action);  // 不区分大小写
+        if (tool != null)
+        {
+            var result = await tool.ExecuteAsync(actionInput ?? string.Empty, cancellationToken);
+            if (result.Success) return result.Output;
+
+            // 反射修复：让 LLM 分析工具失败原因并调整输入
+            if (_reflectionEngine != null)
+            {
+                var repaired = await TryReflectAndRepairAsync(
+                    tool, actionInput ?? string.Empty, result, cancellationToken);
+                if (repaired != null) return repaired;
+            }
+
+            return $"Tool error: {result.Error}";
+        }
+    }
+
+    // 工具未找到 — 返回可用工具列表帮助 LLM 自纠正
+    var availableTools = _toolRegistry?.GetAllTools().Select(t => t.Name) ?? [];
+    return $"Tool '{action}' not found. Available tools: {string.Join(", ", availableTools)}";
+}
+```
+
+### 最终答案提取策略
+
+`ExtractFinalAnswer` 使用三级回退策略：
+
+| 优先级 | 条件 | 行为 |
+|--------|------|------|
+| **P1** | 正则匹配到 `Final Answer: ...` | 返回匹配内容，循环终止 |
+| **P2** | 无 Action + 有 Thought + 已达 MaxSteps | 返回 Thought 作为兜底答案 |
+| **P3** | 无 Action + 无 Thought + 有 RawOutput | 返回 RawOutput（LLM 直接回答） |
+
+```csharp
+protected override string? ExtractFinalAnswer(AgentStep step, int maxSteps)
+{
+    // P1: 标准 ReAct 格式
+    if (!string.IsNullOrEmpty(step.RawOutput))
+    {
+        var finalAnswer = ExtractMatch(FinalAnswerRegex(), step.RawOutput);
+        if (!string.IsNullOrEmpty(finalAnswer)) return finalAnswer;
+    }
+
+    // P2: 最后一步的 Thought 兜底
+    if (string.IsNullOrEmpty(step.Action) &&
+        !string.IsNullOrEmpty(step.Thought) &&
+        step.StepNumber >= maxSteps)
+        return step.Thought;
+
+    // P3: 非结构化输出兜底
+    if (string.IsNullOrEmpty(step.Action) &&
+        string.IsNullOrEmpty(step.Thought) &&
+        !string.IsNullOrEmpty(step.RawOutput))
+        return step.RawOutput;
+
+    return null;  // 继续循环
+}
+```
+
+---
+
+## 错误处理机制
+
+### 异常类型层次
+
+框架定义了以下自定义异常：
+
+```
+Exception
+├── InvalidOperationException
+│   └── BudgetExceededException         ← 成本超出预算
+│       Properties: TotalCost, Budget
+│
+├── OperationCanceledException          ← 用户取消 / 超时
+│
+├── AgentEscalationException            ← 人机协作升级
+│   Properties: Reason, Priority, Context
+│
+├── CircuitBreakerOpenException         ← 熔断器开启
+│
+└── OptionsValidationException          ← 配置校验失败
+```
+
+### AgentBase 错误处理
+
+`AgentBase.RunAsync` 中的异常处理按优先级排列：
+
+```csharp
+try
+{
+    // ... 执行循环 ...
+}
+catch (BudgetExceededException ex)
+{
+    // 成本超出预算 → 返回失败响应（保留完整异常）
+    Logger.LogWarning("成本超出预算: {TotalCost:F4} > {Budget:F4}", ex.TotalCost, ex.Budget);
+    return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
+}
+catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+{
+    throw;  // 用户主动取消 → 向上传播
+}
+catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+{
+    // 内部超时（非用户取消）→ 返回失败响应
+    return AgentResponse.Failed("Operation cancelled", context.Steps, stopwatch.Elapsed, ex);
+}
+catch (Exception ex)
+{
+    // 未知异常 → 记录完整日志 + 返回失败响应
+    Logger.LogError(ex, "Agent {AgentName} 执行出错", Name);
+    return AgentResponse.Failed(ex.Message, context.Steps, stopwatch.Elapsed, ex);
+}
+```
+
+**关键设计**：`AgentResponse` 包含 `Exception?` 属性，失败时保留完整异常对象（类型、堆栈、InnerException），
+便于调用方做精确的错误分类处理。
+
+```mermaid
+flowchart TD
+    Run[RunAsync] --> Loop[执行循环]
+
+    Loop --> Budget{BudgetExceededException?}
+    Budget -->|是| BFail["Failed(成本超出预算)<br/>⚠️ Warning 日志"]
+
+    Loop --> Cancel{OperationCanceledException?}
+    Cancel --> UserCancel{用户取消?}
+    UserCancel -->|是| Rethrow["throw ← 向上传播"]
+    UserCancel -->|否| CFail["Failed(Operation cancelled)<br/>⚠️ Warning 日志"]
+
+    Loop --> General{其他 Exception?}
+    General -->|是| GFail["Failed(ex.Message)<br/>❌ Error 日志 + 完整堆栈"]
+
+    Loop --> MaxSteps{超过 MaxSteps?}
+    MaxSteps -->|是| MFail["Failed(Exceeded max steps)<br/>⚠️ Warning 日志"]
+```
+
+### SafeAgent 安全层错误处理
+
+`SafeAgent` 作为装饰器包裹内部 Agent，增加 4 层安全检查：
+
+```mermaid
+flowchart LR
+    Input[用户输入] --> RL{速率限制}
+    RL -->|拒绝| R1["Failed: 速率限制<br/>AuditEventType.RateLimited"]
+    RL -->|通过| TB{Token 预算}
+    TB -->|耗尽| R2["Failed: Token 预算耗尽<br/>AuditEventType.RateLimited"]
+    TB -->|充足| IG[输入护栏管线]
+    IG -->|拦截| R3["Failed: 护栏违规<br/>AuditEventType.GuardrailViolation"]
+    IG -->|通过| Agent[内部 Agent.RunAsync]
+    Agent --> OG[输出护栏管线]
+    OG -->|拦截| R4["Failed: 输出违规<br/>AuditEventType.GuardrailViolation"]
+    OG -->|通过| OK[返回成功响应]
+```
+
+每次执行（无论成功/失败）都会通过 `IAuditLogger` 记录审计事件。
+
+### 编排器错误处理
+
+`OrchestratorBase` 使用双层超时机制：
+
+```csharp
+// 全局超时
+using var timeoutCts = new CancellationTokenSource(
+    TimeSpan.FromSeconds(Options.TimeoutSeconds));
+
+// 链接用户取消令牌
+using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+    cancellationToken, timeoutCts.Token);
+```
+
+**`ParallelOrchestrator` 失败策略**：
+
+| `ContinueOnError` | 行为 |
+|--------------------|------|
+| `false`（默认） | 任何 Agent 失败立即终止编排 |
+| `true` | 收集所有结果（含失败），最终聚合 |
+
+**`SequentialOrchestrator` 失败传播**：前序 Agent 失败时，不再执行后续 Agent。
+
+### 弹性策略
+
+框架通过 Polly 提供以下弹性模式：
+
+| 策略 | 用途 | 关键参数 |
+|------|------|----------|
+| **重试 (Retry)** | LLM 调用暂时失败 | 次数、退避间隔、可重试异常 |
+| **熔断器 (CircuitBreaker)** | 避免持续请求故障服务 | 失败阈值、开启时长 |
+| **超时 (Timeout)** | 防止无限等待 | 全局 / 单 Agent 超时 |
+| **隔舱 (Bulkhead)** | 限制并发数 | `MaxConcurrency` |
+
+```csharp
+// 熔断器使用示例
+var breaker = new CircuitBreaker(maxFailures: 5, resetTimeout: TimeSpan.FromSeconds(30));
+
+try
+{
+    await breaker.ExecuteAsync(async ct => await provider.ChatAsync(messages, ct: ct));
+}
+catch (CircuitBreakerOpenException)
+{
+    // 熔断器开启 — 快速失败，避免雪崩
+}
+```
+
+---
+
+## 核心算法详解
+
+### SummaryMemory 自动摘要算法
+
+`SummaryMemory` 在消息数达到阈值时，自动调用 LLM 对旧消息进行摘要压缩。
+
+**配置参数**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `maxRecentMessages` | 6 | 保留的最近消息数（不被摘要） |
+| `summaryThreshold` | 10 | 触发摘要的消息数阈值 |
+
+**算法流程**：
+
+```mermaid
+flowchart TD
+    Add[AddMessageAsync] --> Count[计算 Token 数]
+    Count --> Enqueue[加入 recentMessages]
+    Enqueue --> Check{消息数 >= 10?}
+
+    Check -->|否| Done[完成]
+    Check -->|是| Split["拆分：oldest 4 条 → 待摘要<br/>newest 6 条 → 保留"]
+    Split --> Semaphore[获取 SemaphoreSlim<br/>防止并发摘要]
+    Semaphore --> Summarize["LLM 摘要调用"]
+    Summarize --> Merge["合并到累计摘要"]
+    Merge --> Done
+```
+
+**摘要 Prompt 模板**：
+
+```
+请总结以下对话，保留关键信息和上下文。
+
+{previousSummary}          ← 之前的累计摘要（如有）
+
+新消息：
+{conversationText}          ← 待摘要的 4 条消息
+
+摘要：
+```
+
+**线程安全**：
+- `Lock` 保护消息列表的读写
+- `SemaphoreSlim(1, 1)` 序列化摘要操作，防止并发覆写
+
+### AdaptiveMemory 自适应降级算法
+
+`AdaptiveMemory` 从 `BufferMemory` 开始，当 Token 累计超过阈值时自动降级为 `SummaryMemory`。
+
+**关键参数**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `downgradeThreshold` | 4000 | Token 上限，超过后触发降级 |
+
+**降级流程**：
+
+```mermaid
+stateDiagram-v2
+    [*] --> BufferMemory: 初始状态
+
+    BufferMemory --> BufferMemory: Token < 4000
+    BufferMemory --> Migrating: Token >= 4000
+
+    Migrating --> SummaryMemory: 迁移完成
+
+    SummaryMemory --> SummaryMemory: 永久使用
+
+    note right of Migrating
+        1. 创建 SummaryMemory
+        2. 迁移全部消息（触发自动摘要）
+        3. 原子切换引用
+        4. hasDowngraded = true
+    end note
+```
+
+**原子切换保证**：
+
+```csharp
+// Volatile.Write 确保引用切换的可见性
+Volatile.Write(ref _currentMemory, summaryMemory);
+Volatile.Write(ref _hasDowngraded, true);
+```
+
+**设计优势**：
+- 无需预先配置策略 — 小对话用 Buffer（零开销），大对话自动切 Summary
+- 迁移期间现有消息自动被 SummaryMemory 的阈值逻辑处理
+- 降级不可逆（`_hasDowngraded` 设置后不再检查），避免来回切换
+
+### DocumentChunker 文本分块算法
+
+RAG 场景中将长文档切分为适合 Embedding 的小块。
+
+**配置参数**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `ChunkSize` | 512 | 每块最大字符数 |
+| `ChunkOverlap` | 128 | 重叠区域字符数（保持上下文连贯） |
+
+**分块算法**：
+
+```mermaid
+flowchart TD
+    Input[原始文本] --> Split["按 \\n\\n 分段"]
+    Split --> Iter[遍历每个段落]
+
+    Iter --> Large{段落 > ChunkSize?}
+    Large -->|是| SubSplit["按 ChunkSize 二次切分<br/>保留 Overlap 重叠"]
+    Large -->|否| Fit{当前块 + 段落 > ChunkSize?}
+
+    Fit -->|是| Save["保存当前块<br/>新块 = Overlap 尾部 + 段落"]
+    Fit -->|否| Append["追加到当前块"]
+
+    SubSplit --> Next[下一段]
+    Save --> Next
+    Append --> Next
+
+    Next --> Iter
+    Iter -->|结束| Flush["保存最后一块"]
+```
+
+**重叠策略**：从上一块的末尾取最后 128 个字符作为下一块的开头，确保语义不被截断。
+
+### ToolScanner 反射扫描算法
+
+`ToolScanner` 通过反射发现并注册标记了 `[FunctionTool]` 的方法。
+
+**三种扫描模式**：
+
+| 模式 | 方法 | 说明 |
+|------|------|------|
+| 实例扫描 | `ScanInstance(object)` | 扫描对象的公开实例方法 |
+| 类型扫描 | `ScanType(Type)` | 扫描类的公开静态方法 |
+| 程序集扫描 | `ScanAssembly(Assembly)` | 扫描全部导出类型 |
+
+**程序集扫描完整流程**：
+
+```mermaid
+flowchart TD
+    Asm[Assembly] --> Types["GetExportedTypes()"]
+    Types --> Iter[遍历每个类型]
+
+    Iter --> Static["扫描 Public Static 方法"]
+    Static --> Attr1{有 [FunctionTool]?}
+    Attr1 -->|是| Yield1["yield return MethodTool"]
+
+    Iter --> Instantiable{"可实例化?<br/>(非 abstract, 非 interface)"}
+    Instantiable -->|是| HasMethods{"有 Instance Tool 方法?"}
+    HasMethods -->|是| DI{DI 容器有实例?}
+    DI -->|是| UseDI["使用 DI 实例"]
+    DI -->|否| Ctor{"有无参构造?"}
+    Ctor -->|是| Activate["Activator.CreateInstance()"]
+    Ctor -->|否| Skip[跳过]
+
+    UseDI --> Instance["扫描 Public Instance 方法"]
+    Activate --> Instance
+    Instance --> Attr2{有 [FunctionTool]?}
+    Attr2 -->|是| Yield2["yield return MethodTool"]
+```
+
+**参数解析**：`[ToolParameter]` 特性标注的方法参数会被提取为工具的参数列表，
+包含名称、描述、类型信息，供 Prompt 中展示。
+
+### ToolRegistry 查找与缓存策略
+
+**存储结构**：
+
+```csharp
+// 不区分大小写的工具名查找
+private readonly ConcurrentDictionary<string, ITool> _tools =
+    new(StringComparer.OrdinalIgnoreCase);
+
+// 缓存层 — volatile 保证跨线程可见性
+private volatile IReadOnlyList<ITool>? _cachedAllTools;
+private volatile IReadOnlyDictionary<string, IReadOnlyList<ITool>>? _cachedCategories;
+```
+
+**缓存失效策略**：
+- 每次 `Register` / `Remove` 操作后调用 `InvalidateCache()`
+- `GetAllTools()` 惰性重建缓存（Double-Checked Locking）
+- 分类缓存同理：首次按 `Category` 请求时构建
+
+**查找性能**：`GetTool(name)` → `ConcurrentDictionary.GetValueOrDefault` → **O(1)** 平均时间。
+
+---
+
+## Redis 持久化实现
+
+以下 5 个实现为 InMemory-only 接口提供了生产级持久化方案，可通过配置一键切换。
+
+### RedisSharedState 分布式共享状态
+
+替代 `InMemorySharedState`，提供跨进程的数据共享和变更通知。
+
+**Redis 数据结构**：
+
+| 用途 | Redis 类型 | Key 格式 |
+|------|-----------|---------|
+| 键值存储 | Hash | `{InstanceName}shared_state` |
+| 变更通知 | Pub/Sub Channel | `{InstanceName}shared_state:change:{key}` |
+
+**操作映射**：
+
+| 方法 | Redis 命令 |
+|------|-----------|
+| `GetAsync<T>(key)` | `HGET shared_state {key}` → JSON 反序列化 |
+| `SetAsync<T>(key, value)` | `HSET shared_state {key} {json}` + `PUBLISH change:{key} {json}` |
+| `DeleteAsync(key)` | `HDEL shared_state {key}` + `PUBLISH change:{key} null` |
+| `GetKeysAsync(pattern)` | `HKEYS shared_state` + 正则过滤 |
+| `OnChange(key, handler)` | `SUBSCRIBE change:{key}` → 本地 handler 回调 |
+
+**跨进程通知**：当节点 A 修改 key 时，节点 B 通过 Pub/Sub 订阅实时收到变更事件。
+
+### RedisMessageBus 分布式消息总线
+
+替代 `InMemoryMessageBus`，提供跨进程的 4 种通信模式。
+
+**频道设计**：
+
+| 通信模式 | Channel 格式 | 说明 |
+|----------|-------------|------|
+| 点对点 | `{prefix}agent:{receiverId}` | 发送到指定 Agent |
+| 广播 | `{prefix}broadcast` | 所有 Agent 接收 |
+| 主题 | `{prefix}topic:{topicName}` | 按主题订阅 |
+| 请求-响应 | `{prefix}response:{requestId}` | 临时频道，收到回复后销毁 |
+
+**消息类型判别**（JSON 反序列化时）：
+
+```
+包含 correlationId + result  → ResponseMessage
+包含 eventType + payload     → EventMessage
+包含 task                    → TaskMessage
+其他                         → AgentMessage (基类)
+```
+
+**请求-响应流程**：
+
+```mermaid
+sequenceDiagram
+    participant A as Agent A
+    participant Redis as Redis Pub/Sub
+    participant B as Agent B
+
+    A->>A: 生成 requestId + TaskCompletionSource
+    A->>Redis: SUBSCRIBE response:{requestId}
+    A->>Redis: PUBLISH agent:{B} TaskMessage
+    Redis->>B: 投递 TaskMessage
+    B->>B: 处理请求
+    B->>Redis: PUBLISH response:{requestId} ResponseMessage
+    Redis->>A: 投递 ResponseMessage
+    A->>A: TCS.SetResult → await 返回
+```
+
+### RedisToolUsageTracker 工具使用追踪
+
+替代 `InMemoryToolUsageTracker`，提供跨节点的工具统计聚合。
+
+**Redis 数据结构**：
+
+| 用途 | Redis 类型 | Key 格式 | 字段 |
+|------|-----------|---------|------|
+| 统计计数 | Hash | `{prefix}{toolName}` | `totalCalls`, `successCount`, `failureCount`, `totalDurationMs`, `lastUsed` |
+| 错误历史 | List | `{prefix}{toolName}:errors` | 最近 N 条错误消息 |
+
+**原子记录**（使用 Batch）：
+
+```csharp
+var batch = _database.CreateBatch();
+_ = batch.HashIncrementAsync(hashKey, "totalCalls", 1);
+_ = batch.HashIncrementAsync(hashKey, record.Success ? "successCount" : "failureCount", 1);
+_ = batch.HashIncrementAsync(hashKey, "totalDurationMs", (long)record.Duration.TotalMilliseconds);
+_ = batch.HashSetAsync(hashKey, "lastUsed",
+    record.Timestamp.ToUnixTimeMilliseconds().ToString());
+
+if (!record.Success && !string.IsNullOrEmpty(record.ErrorMessage))
+{
+    _ = batch.ListLeftPushAsync(errorsKey, record.ErrorMessage);
+    _ = batch.ListTrimAsync(errorsKey, 0, maxRecentErrors - 1);  // 保留最近 N 条
+}
+batch.Execute();
+```
+
+**统计查询**：`GetStatsAsync(toolName)` → `HGETALL` 读取计数 → 计算 `avgLatency = totalDurationMs / totalCalls`。
+
+### RedisTokenUsageTracker Token 用量追踪
+
+替代 `InMemoryTokenUsageTracker`，提供分布式多维度 Token 统计。
+
+**Redis 数据结构**：
+
+| 用途 | Redis 类型 | Key 格式 | 说明 |
+|------|-----------|---------|------|
+| 全局计数 | String (INCRBY) | `{prefix}total:prompt` / `total:completion` / `total:calls` | 原子累加 |
+| 按来源统计 | Hash | `{prefix}source:{sourceName}` | 字段: `prompt`, `completion`, `calls` |
+| 按模型统计 | Hash | `{prefix}model_totals` | 字段 = 模型名, 值 = 总 Token |
+| 按会话统计 | Hash | `{prefix}session_totals` | 字段 = 会话 ID, 值 = 总 Token |
+| 详细记录 | List | `{prefix}records` | JSON 序列化的 `TokenUsageRecord`，FIFO 保留最近 N 条 |
+
+**查询模式**：
+
+| 方法 | 实现 |
+|------|------|
+| `TotalPromptTokens` (属性) | `StringGet(total:prompt)` |
+| `GetSummary()` (无过滤) | 直接读全局 Key — **O(1)** |
+| `GetSummary(source, session)` (有过滤) | 遍历 records List 过滤 — **O(N)** |
+| `Reset()` | `KEYS` scan → `DEL` 全部 |
+| `Reset(source)` | `DEL source:{name}` |
+
+### FileAuditLogger 文件审计日志
+
+替代 `InMemoryAuditLogger`，提供持久化审计日志。
+
+**存储格式**：JSON Lines (.jsonl)，一条审计记录对应一行 JSON：
+
+```json
+{"sessionId":"abc","agentName":"triage","eventType":"AgentRunComplete","status":"Success","timestamp":"2026-03-26T10:30:00Z","content":"...","metadata":{}}
+```
+
+**文件轮转机制**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `MaxFileSizeBytes` | 50 MB | 单个文件大小上限 |
+| `MaxRetainedFiles` | 30 | 保留的归档文件数 |
+| `Directory` | `./logs/audit` | 存储目录 |
+| `FilePrefix` | `audit_` | 文件名前缀 |
+
+```mermaid
+flowchart LR
+    Write[写入 LogAsync] --> Check{文件大小 >= 50MB?}
+    Check -->|否| Append[追加 JSON 行]
+    Check -->|是| Close[关闭当前文件]
+    Close --> Rename["重命名为<br/>audit_20260326_143022_123.jsonl"]
+    Rename --> Cleanup["删除超出 30 个的旧文件"]
+    Cleanup --> NewFile[创建新文件继续写入]
+```
+
+**查询支持**：`QueryAsync(AuditFilter)` 按时间倒序遍历所有 .jsonl 文件，
+支持按 SessionId / AgentName / EventType / 时间范围 / Status 过滤。
+
+**DI 注册**：
+
+```csharp
+// 方式 1：从 IConfiguration 读取
+services.AddFileAuditLogger(configuration);
+
+// 方式 2：代码配置
+services.AddFileAuditLogger(options =>
+{
+    options.Directory = "/var/log/agents/audit";
+    options.MaxFileSizeBytes = 100 * 1024 * 1024;  // 100 MB
+    options.MaxRetainedFiles = 60;
+});
+```
+
+---
+
+## 常见问题排查
+
+### 构建错误
+
+| 错误 | 原因 | 解决方案 |
+|------|------|----------|
+| `CA2024: Using member 'EndOfStream' in async method` | 在 `async` 方法中使用了 `StreamReader.EndOfStream` | 改用 `while ((line = await reader.ReadLineAsync(ct)) is not null)` 循环 |
+| `CS0104: 'Lock' is ambiguous between ...Lock and System.Threading.Lock` | 自定义命名空间与 .NET 10 新增的 `System.Threading.Lock` 冲突 | 使用 `object` 替代 `Lock` 声明锁对象 |
+| `CS1061: 'RedisValue' does not contain 'GetValueOrDefault'` | StackExchange.Redis 的 `RedisValue` 没有此方法 | 使用 `val.HasValue ? (long)val : 0` |
+| `NU1101: Package not found` | NuGet 源不可达 | 检查 `nuget.config` 和网络代理设置 |
+| `NETSDK1045: target framework not installed` | 缺少 .NET 10 SDK | 安装 `global.json` 中指定的 SDK 版本 |
+
+### 测试失败
+
+| 症状 | 原因 | 解决方案 |
+|------|------|----------|
+| `IOException: Cannot create file` (FileAuditLogger 轮转测试) | `File.Move` 时目标文件已存在 | 使用 `File.Move(src, dest, overwrite: true)` + 毫秒级时间戳 |
+| 测试间相互影响 | 共享静态状态 / 端口冲突 | 使用 `IAsyncLifetime` + 独立临时目录 |
+| Redis 测试需要真实连接 | 集成测试基础设施缺失 | Mock 模式：`Mock<IConnectionMultiplexer>` + `Mock<IDatabase>` |
+| `FluentAssertions` 浮点断言失败 | 精度问题 | 使用 `.BeApproximately(expected, precision)` |
+
+### 运行时问题
+
+| 症状 | 原因 | 解决方案 |
+|------|------|----------|
+| Agent 总是返回 "Exceeded maximum steps" | `MaxSteps` 太小 / LLM 不遵循 ReAct 格式 | 增加 `MaxSteps`；检查 System Prompt 是否完整；换用更强的模型 |
+| 工具不被调用 | 工具未注册 / 名称不匹配 | 确认 `services.AddToolsFrom<T>()` 已调用；工具名区分空格和大小写 |
+| `BudgetExceededException` 频繁触发 | `MaxCostPerRun` 设置过低 | 调整 `Agent:MaxCostPerRun` 配置值 |
+| Memory 不保留上下文 | Agent 是 Singleton，Memory 是 Scoped | 将 Memory 注册为 Singleton 或使用 `IServiceScopeFactory` |
+| LLM 响应为空 | Ollama 未启动 / API Key 无效 | 检查 `LLM:Endpoint` 连通性；验证 API Key |
+
+### LLM 调试技巧
+
+| 技巧 | 说明 |
+|------|------|
+| **启用 Debug 日志** | `"Logging:LogLevel:Dawning.Agents": "Debug"` — 打印每步的 Prompt 和 LLM 输出 |
+| **查看 AgentStep** | `response.Steps` 包含每一步的 Thought、Action、Observation 完整记录 |
+| **验证工具列表** | `toolRegistry.GetAllTools()` 确认注册了哪些工具 |
+| **检查 Token 用量** | `response.Usage` 查看输入/输出 Token 数，判断是否接近模型上限 |
+| **测试工具隔离** | 直接调用 `tool.ExecuteAsync(input)` 验证工具本身是否正常 |
+
+### Redis 连接问题
+
+| 症状 | 原因 | 解决方案 |
+|------|------|----------|
+| `RedisConnectionException: No connection available` | Redis 服务未启动 / 连接字符串错误 | 确认 `Redis:ConnectionString` 正确；`redis-cli ping` 测试连通性 |
+| `RedisTimeoutException` | 网络延迟 / Redis 负载高 | 增加 `connectTimeout` 和 `syncTimeout`；检查 Redis 慢查询日志 |
+| Pub/Sub 消息丢失 | 订阅者断连期间的消息不会重发 | Pub/Sub 不保证持久性，关键消息使用 Redis Streams 队列 |
+| 跨节点状态不一致 | 未使用 Redis 实现 | 确认注册了 `AddRedisDistributed()` 而非 InMemory 版本 |
 
 ---
 
