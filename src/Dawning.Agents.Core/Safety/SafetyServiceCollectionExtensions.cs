@@ -282,6 +282,43 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 添加文件审计日志服务（JSON Lines 持久化）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddFileAuditLogger(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddValidatedOptions<AuditOptions>(configuration, AuditOptions.SectionName);
+        services.AddValidatedOptions<FileAuditOptions>(configuration, FileAuditOptions.SectionName);
+
+        services.RemoveAll<IAuditLogger>();
+        services.AddSingleton<IAuditLogger, FileAuditLogger>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加文件审计日志服务（委托配置）
+    /// </summary>
+    public static IServiceCollection AddFileAuditLogger(
+        this IServiceCollection services,
+        Action<FileAuditOptions>? configure = null
+    )
+    {
+        services.AddValidatedOptions<AuditOptions>(_ => { });
+        services.AddValidatedOptions(configure ?? (_ => { }));
+
+        services.RemoveAll<IAuditLogger>();
+        services.AddSingleton<IAuditLogger, FileAuditLogger>();
+
+        return services;
+    }
+
+    /// <summary>
     /// 添加完整的安全基础设施（护栏 + 速率限制 + 审计日志）
     /// </summary>
     public static IServiceCollection AddSafetyInfrastructure(

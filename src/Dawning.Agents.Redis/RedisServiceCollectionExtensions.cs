@@ -1,8 +1,13 @@
+using Dawning.Agents.Abstractions.Communication;
 using Dawning.Agents.Abstractions.Distributed;
+using Dawning.Agents.Abstractions.Telemetry;
+using Dawning.Agents.Abstractions.Tools;
 using Dawning.Agents.Redis.Cache;
+using Dawning.Agents.Redis.Communication;
 using Dawning.Agents.Redis.Lock;
 using Dawning.Agents.Redis.Memory;
 using Dawning.Agents.Redis.Queue;
+using Dawning.Agents.Redis.Telemetry;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +44,10 @@ public static class RedisServiceCollectionExtensions
         services.AddRedisQueue(configuration);
         services.AddRedisLock(configuration);
         services.AddRedisMemory(configuration);
+        services.AddRedisSharedState();
+        services.AddRedisMessageBus();
+        services.AddRedisToolUsageTracker();
+        services.AddRedisTokenUsageTracker();
 
         return services;
     }
@@ -191,6 +200,46 @@ public static class RedisServiceCollectionExtensions
 
         services.TryAddSingleton<RedisMemoryStoreFactory>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Redis 分布式共享状态
+    /// </summary>
+    public static IServiceCollection AddRedisSharedState(this IServiceCollection services)
+    {
+        services.RemoveAll<ISharedState>();
+        services.AddSingleton<ISharedState, RedisSharedState>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Redis 分布式消息总线
+    /// </summary>
+    public static IServiceCollection AddRedisMessageBus(this IServiceCollection services)
+    {
+        services.RemoveAll<IMessageBus>();
+        services.AddSingleton<IMessageBus, RedisMessageBus>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Redis 工具使用追踪器
+    /// </summary>
+    public static IServiceCollection AddRedisToolUsageTracker(this IServiceCollection services)
+    {
+        services.RemoveAll<IToolUsageTracker>();
+        services.AddSingleton<IToolUsageTracker, RedisToolUsageTracker>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 Redis Token 使用追踪器
+    /// </summary>
+    public static IServiceCollection AddRedisTokenUsageTracker(this IServiceCollection services)
+    {
+        services.RemoveAll<ITokenUsageTracker>();
+        services.AddSingleton<ITokenUsageTracker, RedisTokenUsageTracker>();
         return services;
     }
 
