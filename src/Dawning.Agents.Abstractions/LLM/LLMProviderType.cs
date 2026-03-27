@@ -13,4 +13,7 @@ public enum LLMProviderType
 
     /// <summary>Azure OpenAI / Azure AI Foundry.</summary>
     AzureOpenAI,
+
+    /// <summary>OpenAI-compatible API (DeepSeek, Zhipu, Moonshot, etc.).</summary>
+    OpenAICompatible,
 }

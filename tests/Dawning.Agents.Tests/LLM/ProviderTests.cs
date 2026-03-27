@@ -155,6 +155,59 @@ public class LLMProviderDITests
             .Throw<NotSupportedException>()
             .WithMessage("*Dawning.Agents.OpenAI*AddOpenAIProvider*");
     }
+
+    [Fact]
+    public void AddOpenAICompatibleProvider_ReturnsOpenAIProviderWithCustomEndpoint()
+    {
+        var services = new ServiceCollection();
+        services.AddOpenAICompatibleProvider(
+            "fake-key",
+            "deepseek-chat",
+            "https://api.deepseek.com"
+        );
+
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
+
+        provider.Should().BeOfType<OpenAIProvider>();
+        provider.Name.Should().Be("OpenAICompatible");
+    }
+
+    [Fact]
+    public void AddOpenAICompatibleProvider_WithCustomName_UsesProviderName()
+    {
+        var services = new ServiceCollection();
+        services.AddOpenAICompatibleProvider(
+            "fake-key",
+            "glm-4",
+            "https://open.bigmodel.cn/api/paas/v4",
+            "Zhipu"
+        );
+
+        var provider = services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
+
+        provider.Should().BeOfType<OpenAIProvider>();
+        provider.Name.Should().Be("Zhipu");
+    }
+
+    [Fact]
+    public void AddLLMProvider_WithOpenAICompatibleType_ThrowsNotSupported()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddLLMProvider(options =>
+        {
+            options.ProviderType = LLMProviderType.OpenAICompatible;
+            options.Model = "deepseek-chat";
+            options.ApiKey = "fake-key";
+            options.Endpoint = "https://api.deepseek.com";
+        });
+
+        var act = () => services.BuildServiceProvider().GetRequiredService<ILLMProvider>();
+
+        act.Should()
+            .Throw<NotSupportedException>()
+            .WithMessage("*Dawning.Agents.OpenAI*AddOpenAICompatibleProvider*");
+    }
 }
 
 public class LLMOptionsTests
@@ -206,5 +259,53 @@ public class LLMOptionsTests
         options.Validate();
 
         options.Endpoint.Should().Be("http://localhost:11434");
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_WithoutApiKey_Throws()
+    {
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            Endpoint = "https://api.deepseek.com",
+            ApiKey = null,
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ApiKey*");
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_WithoutEndpoint_Throws()
+    {
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = "sk-test",
+            Endpoint = null,
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Endpoint*");
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_ValidConfig_DoesNotThrow()
+    {
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = "sk-test",
+            Endpoint = "https://api.deepseek.com",
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().NotThrow();
     }
 }

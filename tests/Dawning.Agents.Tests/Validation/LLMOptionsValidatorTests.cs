@@ -154,4 +154,83 @@ public class LLMOptionsValidatorTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "Endpoint");
     }
+
+    [Fact]
+    public void Validate_WithValidOpenAICompatibleOptions_ShouldPass()
+    {
+        // Arrange
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = "sk-test-key",
+            Endpoint = "https://api.deepseek.com",
+        };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_WithoutApiKey_ShouldFail()
+    {
+        // Arrange
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = null,
+            Endpoint = "https://api.deepseek.com",
+        };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "ApiKey");
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_WithoutEndpoint_ShouldFail()
+    {
+        // Arrange
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = "sk-test-key",
+            Endpoint = null,
+        };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Endpoint");
+    }
+
+    [Fact]
+    public void Validate_OpenAICompatible_WithInvalidEndpoint_ShouldFail()
+    {
+        // Arrange
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.OpenAICompatible,
+            Model = "deepseek-chat",
+            ApiKey = "sk-test-key",
+            Endpoint = "not-a-url",
+        };
+
+        // Act
+        var result = _validator.Validate(options);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Endpoint");
+    }
 }

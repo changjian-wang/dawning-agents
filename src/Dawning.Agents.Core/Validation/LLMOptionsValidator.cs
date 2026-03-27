@@ -49,6 +49,22 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
                     .WithMessage("Endpoint must be a valid URL.");
             }
         );
+
+        When(
+            x => x.ProviderType == LLMProviderType.OpenAICompatible,
+            () =>
+            {
+                RuleFor(x => x.ApiKey)
+                    .NotEmpty()
+                    .WithMessage("ApiKey is required for the OpenAI-compatible provider.");
+
+                RuleFor(x => x.Endpoint)
+                    .NotEmpty()
+                    .WithMessage("Endpoint is required for the OpenAI-compatible provider.")
+                    .Must(BeValidUrl)
+                    .WithMessage("Endpoint must be a valid URL.");
+            }
+        );
     }
 
     private static bool BeValidUrl(string? url)

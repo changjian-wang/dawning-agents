@@ -99,6 +99,155 @@ public static class OpenAIServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Registers an OpenAI-compatible provider with a custom endpoint.
+    /// Supports DeepSeek, Zhipu (GLM), Moonshot (Kimi), Baichuan, Qwen API, and other
+    /// providers that expose an OpenAI-compatible chat completions API.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="apiKey">The API key.</param>
+    /// <param name="model">The model name (e.g. <c>deepseek-chat</c>, <c>glm-4</c>, <c>moonshot-v1-8k</c>).</param>
+    /// <param name="endpoint">The base URL (e.g. <c>https://api.deepseek.com</c>).</param>
+    /// <param name="providerName">A display name for logging. Defaults to <c>OpenAICompatible</c>.</param>
+    /// <returns>The service collection for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// // DeepSeek
+    /// services.AddOpenAICompatibleProvider("sk-xxx", "deepseek-chat", "https://api.deepseek.com");
+    ///
+    /// // Zhipu (GLM)
+    /// services.AddOpenAICompatibleProvider("xxx.yyy", "glm-4", "https://open.bigmodel.cn/api/paas/v4");
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddOpenAICompatibleProvider(
+        this IServiceCollection services,
+        string apiKey,
+        string model,
+        string endpoint,
+        string providerName = "OpenAICompatible"
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(model);
+        ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
+
+        services.TryAddSingleton<ILLMProvider>(sp => new OpenAIProvider(
+            apiKey,
+            model,
+            endpoint,
+            providerName,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<OpenAIProvider>()
+        ));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers an OpenAI-compatible provider using a configuration delegate.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// services.AddOpenAICompatibleProvider(options =>
+    /// {
+    ///     options.ApiKey = "sk-xxx";
+    ///     options.Model = "deepseek-chat";
+    ///     options.Endpoint = "https://api.deepseek.com";
+    /// });
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddOpenAICompatibleProvider(
+        this IServiceCollection services,
+        Action<OpenAICompatibleProviderOptions> configure
+    )
+    {
+        var options = new OpenAICompatibleProviderOptions();
+        configure(options);
+        options.Validate();
+
+        return services.AddOpenAICompatibleProvider(
+            options.ApiKey!,
+            options.Model,
+            options.Endpoint!,
+            options.ProviderName
+        );
+    }
+
+    /// <summary>
+    /// Registers an OpenAI-compatible provider using an <see cref="IConfiguration"/> section.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration section.</param>
+    /// <returns>The service collection for chaining.</returns>
+    /// <example>
+    /// Configuration:
+    /// <code>
+    /// {
+    ///   "DeepSeek": {
+    ///     "ApiKey": "sk-xxx",
+    ///     "Model": "deepseek-chat",
+    ///     "Endpoint": "https://api.deepseek.com"
+    ///   }
+    /// }
+    /// </code>
+    /// Registration:
+    /// <code>
+    /// services.AddOpenAICompatibleProvider(configuration.GetSection("DeepSeek"));
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddOpenAICompatibleProvider(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var options = new OpenAICompatibleProviderOptions
+        {
+            ApiKey = configuration[nameof(OpenAICompatibleProviderOptions.ApiKey)],
+            Model = configuration[nameof(OpenAICompatibleProviderOptions.Model)] ?? "deepseek-chat",
+            Endpoint = configuration[nameof(OpenAICompatibleProviderOptions.Endpoint)],
+            ProviderName =
+                configuration[nameof(OpenAICompatibleProviderOptions.ProviderName)]
+                ?? "OpenAICompatible",
+        };
+        options.Validate();
+
+        return services.AddOpenAICompatibleProvider(
+            options.ApiKey!,
+            options.Model,
+            options.Endpoint!,
+            options.ProviderName
+        );
+    }
+
+    /// <summary>
+    /// Registers an OpenAI-compatible embedding provider with a custom endpoint.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="apiKey">The API key.</param>
+    /// <param name="model">The embedding model name.</param>
+    /// <param name="endpoint">The base URL of the OpenAI-compatible API.</param>
+    public static IServiceCollection AddOpenAICompatibleEmbedding(
+        this IServiceCollection services,
+        string apiKey,
+        string model,
+        string endpoint
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
+
+        services.TryAddSingleton<IEmbeddingProvider>(sp => new OpenAIEmbeddingProvider(
+            apiKey,
+            model,
+            endpoint,
+            sp.GetService<ILoggerFactory>()?.CreateLogger<OpenAIEmbeddingProvider>()
+        ));
+        return services;
+    }
+
+    /// <summary>
     /// Registers an OpenAI embedding provider.
     /// </summary>
     /// <param name="services">The service collection.</param>
@@ -147,6 +296,53 @@ public class OpenAIProviderOptions : IValidatableOptions
         if (string.IsNullOrWhiteSpace(Model))
         {
             throw new InvalidOperationException("OpenAI Model is required");
+        }
+    }
+}
+
+/// <summary>
+/// Configuration options for OpenAI-compatible providers (DeepSeek, Zhipu, Moonshot, etc.).
+/// </summary>
+public class OpenAICompatibleProviderOptions : IValidatableOptions
+{
+    /// <summary>
+    /// Gets or sets the API key.
+    /// </summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets the model name.
+    /// </summary>
+    public string Model { get; set; } = "deepseek-chat";
+
+    /// <summary>
+    /// Gets or sets the base URL of the OpenAI-compatible API.
+    /// </summary>
+    public string? Endpoint { get; set; }
+
+    /// <summary>
+    /// Gets or sets the display name for logging.
+    /// </summary>
+    public string ProviderName { get; set; } = "OpenAICompatible";
+
+    /// <summary>
+    /// Validates the configuration options.
+    /// </summary>
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(ApiKey))
+        {
+            throw new InvalidOperationException("OpenAI-compatible ApiKey is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(Model))
+        {
+            throw new InvalidOperationException("OpenAI-compatible Model is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(Endpoint))
+        {
+            throw new InvalidOperationException("OpenAI-compatible Endpoint is required");
         }
     }
 }

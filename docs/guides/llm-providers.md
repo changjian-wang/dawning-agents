@@ -9,6 +9,7 @@ Dawning.Agents supports multiple LLM providers out of the box.
 | Ollama | `Dawning.Agents.Core` | Local LLM inference |
 | OpenAI | `Dawning.Agents.OpenAI` | OpenAI API (GPT-4, GPT-4o, etc.) |
 | Azure OpenAI | `Dawning.Agents.Azure` | Azure-hosted OpenAI models |
+| OpenAI-Compatible | `Dawning.Agents.OpenAI` | DeepSeek, Zhipu (GLM), Moonshot (Kimi), Baichuan, Qwen API, etc. |
 
 ## Ollama Provider
 
@@ -97,6 +98,88 @@ dotnet add package Dawning.Agents.Azure
 }
 ```
 
+## OpenAI-Compatible Providers
+
+Supports any LLM provider that exposes an OpenAI-compatible chat completions API, including Chinese providers like DeepSeek, Zhipu (GLM), Moonshot (Kimi), Baichuan, and Qwen API.
+
+### Installation
+
+```bash
+dotnet add package Dawning.Agents.OpenAI
+```
+
+### Configuration Examples
+
+**DeepSeek:**
+
+```json
+{
+  "DeepSeek": {
+    "ApiKey": "sk-xxx",
+    "Model": "deepseek-chat",
+    "Endpoint": "https://api.deepseek.com"
+  }
+}
+```
+
+**Zhipu (GLM):**
+
+```json
+{
+  "Zhipu": {
+    "ApiKey": "xxx.yyy",
+    "Model": "glm-4",
+    "Endpoint": "https://open.bigmodel.cn/api/paas/v4"
+  }
+}
+```
+
+**Moonshot (Kimi):**
+
+```json
+{
+  "Moonshot": {
+    "ApiKey": "sk-xxx",
+    "Model": "moonshot-v1-8k",
+    "Endpoint": "https://api.moonshot.cn/v1"
+  }
+}
+```
+
+### Registration
+
+```csharp
+// Direct registration
+services.AddOpenAICompatibleProvider("sk-xxx", "deepseek-chat", "https://api.deepseek.com");
+
+// With custom provider name for logging
+services.AddOpenAICompatibleProvider(
+    "sk-xxx", "glm-4", "https://open.bigmodel.cn/api/paas/v4", "Zhipu");
+
+// From configuration section
+services.AddOpenAICompatibleProvider(configuration.GetSection("DeepSeek"));
+
+// Using options delegate
+services.AddOpenAICompatibleProvider(options =>
+{
+    options.ApiKey = "sk-xxx";
+    options.Model = "deepseek-chat";
+    options.Endpoint = "https://api.deepseek.com";
+    options.ProviderName = "DeepSeek";
+});
+```
+
+### Supported Providers
+
+| Provider | Endpoint | Models |
+|----------|----------|--------|
+| DeepSeek | `https://api.deepseek.com` | deepseek-chat, deepseek-reasoner |
+| Zhipu (GLM) | `https://open.bigmodel.cn/api/paas/v4` | glm-4, glm-4-flash |
+| Moonshot (Kimi) | `https://api.moonshot.cn/v1` | moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k |
+| Baichuan | `https://api.baichuan-ai.com/v1` | Baichuan4, Baichuan3-Turbo |
+| Qwen (DashScope) | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen-max, qwen-plus, qwen-turbo |
+| Yi (零一万物) | `https://api.lingyiwanwu.com/v1` | yi-large, yi-medium |
+
 ## Provider Factory Pattern
 
 Dawning.Agents uses a unified factory pattern for providers:
@@ -109,6 +192,7 @@ services.AddLLMProvider(configuration);
 services.AddOllamaProvider(configuration);
 services.AddOpenAIProvider(configuration);
 services.AddAzureOpenAIProvider(configuration);
+services.AddOpenAICompatibleProvider(apiKey, model, endpoint);
 
 // Use via DI
 var provider = serviceProvider.GetRequiredService<ILLMProvider>();

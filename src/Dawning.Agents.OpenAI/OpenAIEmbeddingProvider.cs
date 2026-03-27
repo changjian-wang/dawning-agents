@@ -65,6 +65,22 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
         string model = "text-embedding-3-small",
         ILogger<OpenAIEmbeddingProvider>? logger = null
     )
+        : this(apiKey, model, null, logger) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OpenAIEmbeddingProvider"/> class with a custom endpoint.
+    /// Use this constructor for OpenAI-compatible embedding endpoints.
+    /// </summary>
+    /// <param name="apiKey">The API key.</param>
+    /// <param name="model">The embedding model name.</param>
+    /// <param name="endpoint">The base URL of the OpenAI-compatible API, or <c>null</c> for the default OpenAI endpoint.</param>
+    /// <param name="logger">The logger instance.</param>
+    public OpenAIEmbeddingProvider(
+        string apiKey,
+        string model,
+        string? endpoint,
+        ILogger<OpenAIEmbeddingProvider>? logger = null
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
@@ -73,7 +89,17 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
         _dimensions = GetModelDimensions(model);
         _logger = logger ?? NullLogger<OpenAIEmbeddingProvider>.Instance;
 
-        var client = new OpenAIClient(apiKey);
+        OpenAIClient client;
+        if (!string.IsNullOrWhiteSpace(endpoint))
+        {
+            var options = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+            client = new OpenAIClient(new ApiKeyCredential(apiKey), options);
+        }
+        else
+        {
+            client = new OpenAIClient(apiKey);
+        }
+
         _embeddingClient = client.GetEmbeddingClient(model);
         _logger.LogDebug(
             "OpenAIEmbeddingProvider created, model: {Model}, dimensions: {Dimensions}",

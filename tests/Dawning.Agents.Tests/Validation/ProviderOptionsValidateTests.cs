@@ -179,6 +179,71 @@ public class ProviderOptionsValidateTests
 
     #endregion
 
+    #region OpenAICompatibleProviderOptions
+
+    [Fact]
+    public void OpenAICompatibleProviderOptions_ValidConfig_ShouldNotThrow()
+    {
+        var options = new OpenAICompatibleProviderOptions
+        {
+            ApiKey = "sk-test",
+            Model = "deepseek-chat",
+            Endpoint = "https://api.deepseek.com",
+        };
+        var act = () => options.Validate();
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void OpenAICompatibleProviderOptions_InvalidApiKey_ShouldThrow(string? key)
+    {
+        var options = new OpenAICompatibleProviderOptions
+        {
+            ApiKey = key,
+            Model = "deepseek-chat",
+            Endpoint = "https://api.deepseek.com",
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ApiKey*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void OpenAICompatibleProviderOptions_InvalidModel_ShouldThrow(string? model)
+    {
+        var options = new OpenAICompatibleProviderOptions
+        {
+            ApiKey = "sk-test",
+            Model = model!,
+            Endpoint = "https://api.deepseek.com",
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Model*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void OpenAICompatibleProviderOptions_InvalidEndpoint_ShouldThrow(string? endpoint)
+    {
+        var options = new OpenAICompatibleProviderOptions
+        {
+            ApiKey = "sk-test",
+            Model = "deepseek-chat",
+            Endpoint = endpoint,
+        };
+        var act = () => options.Validate();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Endpoint*");
+    }
+
+    #endregion
+
     #region OpenTelemetryOptions
 
     [Fact]

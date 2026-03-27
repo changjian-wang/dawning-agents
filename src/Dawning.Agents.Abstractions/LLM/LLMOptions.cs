@@ -80,6 +80,21 @@ public class LLMOptions : IValidatableOptions
                     );
                 }
                 break;
+
+            case LLMProviderType.OpenAICompatible:
+                if (string.IsNullOrWhiteSpace(ApiKey))
+                {
+                    throw new InvalidOperationException(
+                        "OpenAI-compatible provider requires ApiKey to be configured."
+                    );
+                }
+                if (string.IsNullOrWhiteSpace(Endpoint))
+                {
+                    throw new InvalidOperationException(
+                        "OpenAI-compatible provider requires Endpoint to be configured."
+                    );
+                }
+                break;
         }
 
         if (string.IsNullOrWhiteSpace(Model))
