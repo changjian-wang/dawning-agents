@@ -14,7 +14,8 @@ public sealed class SqliteDbContext : IAsyncDisposable
     private readonly string _connectionString;
     private readonly bool _autoCreateSchema;
     private readonly ILogger<SqliteDbContext> _logger;
-    private int _schemaEnsured;
+    private readonly SemaphoreSlim _schemaLock = new(1, 1);
+    private volatile bool _schemaEnsured;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqliteDbContext"/> class.
@@ -42,9 +43,21 @@ public sealed class SqliteDbContext : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        if (_autoCreateSchema && Interlocked.CompareExchange(ref _schemaEnsured, 1, 0) == 0)
+        if (_autoCreateSchema && !_schemaEnsured)
         {
-            await EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
+            await _schemaLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (!_schemaEnsured)
+                {
+                    await EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
+                    _schemaEnsured = true;
+                }
+            }
+            finally
+            {
+                _schemaLock.Release();
+            }
         }
 
         var connection = new SqliteConnection(_connectionString);

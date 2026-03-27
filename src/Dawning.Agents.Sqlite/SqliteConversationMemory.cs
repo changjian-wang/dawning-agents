@@ -25,9 +25,17 @@ public sealed class SqliteConversationMemory : IConversationMemory
     public string? SessionId { get; }
 
     /// <inheritdoc />
-    public int MessageCount => Volatile.Read(ref _messageCount);
+    public int MessageCount
+    {
+        get
+        {
+            EnsureMessageCountInitialized();
+            return Volatile.Read(ref _messageCount);
+        }
+    }
 
     private int _messageCount;
+    private volatile bool _messageCountInitialized;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqliteConversationMemory"/> class.
@@ -69,18 +77,21 @@ public sealed class SqliteConversationMemory : IConversationMemory
 
         await connection
             .ExecuteAsync(
-                """
-                INSERT INTO conversation_messages (session_id, role, content, token_count, created_at)
-                VALUES (@SessionId, @Role, @Content, @TokenCount, @CreatedAt)
-                """,
-                new
-                {
-                    SessionId,
-                    message.Role,
-                    message.Content,
-                    TokenCount = tokenCount,
-                    CreatedAt = message.Timestamp.UtcDateTime.ToString("o"),
-                }
+                new CommandDefinition(
+                    """
+                    INSERT INTO conversation_messages (session_id, role, content, token_count, created_at)
+                    VALUES (@SessionId, @Role, @Content, @TokenCount, @CreatedAt)
+                    """,
+                    new
+                    {
+                        SessionId,
+                        message.Role,
+                        message.Content,
+                        TokenCount = tokenCount,
+                        CreatedAt = message.Timestamp.UtcDateTime.ToString("o"),
+                    },
+                    cancellationToken: cancellationToken
+                )
             )
             .ConfigureAwait(false);
 
@@ -105,13 +116,16 @@ public sealed class SqliteConversationMemory : IConversationMemory
 
         var rows = await connection
             .QueryAsync<MessageRow>(
-                """
-                SELECT role AS Role, content AS Content, token_count AS TokenCount, created_at AS CreatedAt
-                FROM conversation_messages
-                WHERE session_id = @SessionId
-                ORDER BY id ASC
-                """,
-                new { SessionId }
+                new CommandDefinition(
+                    """
+                    SELECT role AS Role, content AS Content, token_count AS TokenCount, created_at AS CreatedAt
+                    FROM conversation_messages
+                    WHERE session_id = @SessionId
+                    ORDER BY id ASC
+                    """,
+                    new { SessionId },
+                    cancellationToken: cancellationToken
+                )
             )
             .ConfigureAwait(false);
 
@@ -169,12 +183,16 @@ public sealed class SqliteConversationMemory : IConversationMemory
 
         var deleted = await connection
             .ExecuteAsync(
-                "DELETE FROM conversation_messages WHERE session_id = @SessionId",
-                new { SessionId }
+                new CommandDefinition(
+                    "DELETE FROM conversation_messages WHERE session_id = @SessionId",
+                    new { SessionId },
+                    cancellationToken: cancellationToken
+                )
             )
             .ConfigureAwait(false);
 
         Volatile.Write(ref _messageCount, 0);
+        _messageCountInitialized = true;
 
         _logger.LogInformation(
             "Cleared {Count} messages from session {SessionId}",
@@ -192,10 +210,29 @@ public sealed class SqliteConversationMemory : IConversationMemory
 
         return await connection
             .ExecuteScalarAsync<int>(
-                "SELECT COALESCE(SUM(token_count), 0) FROM conversation_messages WHERE session_id = @SessionId",
-                new { SessionId }
+                new CommandDefinition(
+                    "SELECT COALESCE(SUM(token_count), 0) FROM conversation_messages WHERE session_id = @SessionId",
+                    new { SessionId },
+                    cancellationToken: cancellationToken
+                )
             )
             .ConfigureAwait(false);
+    }
+
+    private void EnsureMessageCountInitialized()
+    {
+        if (_messageCountInitialized)
+        {
+            return;
+        }
+
+        using var connection = _dbContext.CreateConnectionAsync().GetAwaiter().GetResult();
+        var count = connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
+            new { SessionId }
+        );
+        Volatile.Write(ref _messageCount, count);
+        _messageCountInitialized = true;
     }
 
     /// <summary>
