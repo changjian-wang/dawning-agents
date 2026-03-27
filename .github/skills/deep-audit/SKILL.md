@@ -21,7 +21,7 @@ description: |
 - **全量审计**（首轮）：逐项目逐文件阅读所有 .cs 文件
 - **增量审计**（后续轮次）：基于新颖扫描角度的定向扫描
 
-> **经验数据**：经过 48+ 轮审计共修复 ~210 个 bug，简单 bug 在前 10 轮已耗尽。后续轮次必须使用创新的扫描角度才能发现新问题。
+> **经验**：简单 bug 在前几轮即耗尽。后续轮次必须使用创新的扫描角度才能发现新问题。
 
 ---
 
@@ -53,51 +53,48 @@ description: |
 
 每轮选择 **2-3 个全新扫描角度**，用子代理并行执行。角度必须在之前轮次中未使用过。
 
-#### 已验证有效的扫描角度库（按发现率排序）
+#### 扫描角度库
 
-**高发现率角度（每轮 3-7 个 bug）：**
+> Phase 1B 角度 = 定向扫描策略（选 WHERE 看），Phase 2 维度 = 全量评估清单（查 WHAT 问题）。二者互补。
 
-| 角度 | 描述 | 典型 Bug 示例 |
-|------|------|--------------|
-| 线程安全与原子性 | 共享状态 torn reads、Interlocked 与 lock 混用、volatile 缺失 | ModelStatistics 128-bit 字段 torn read |
-| CancellationToken 传播链 | CT 参数存在但未传递到内部调用 | SearchTool 未传递 CT 给 GrepSearch |
-| DI 生命周期不匹配 | Singleton 持有 Scoped、captive dependency、Options.Create() 绕过 | WorkflowEngine Singleton 解析 Scoped IAgent |
-| 异步模式正确性 | ConfigureAwait(false)、await foreach、fire-and-forget | 6x await foreach 缺少 ConfigureAwait |
-| 资源泄漏与 Dispose | IDisposable 缺失、double-dispose、挂起的 TCS 未取消 | AsyncCallbackHandler 无 IDisposable |
-| 参数校验一致性 | 同类中有的方法校验有的不校验、null 穿透多层 | ObservableAgent→AgentLogger null 穿透两层 |
+**高发现率：**
 
-**中发现率角度（每轮 2-4 个 bug）：**
+| 角度 | 描述 |
+|------|------|
+| 线程安全与原子性 | 共享状态 torn reads、Interlocked 与 lock 混用、volatile 缺失 |
+| CancellationToken 传播链 | CT 参数存在但未传递到内部调用 |
+| DI 生命周期不匹配 | Singleton 持有 Scoped、captive dependency、Options.Create() 绕过 |
+| 异步模式正确性 | ConfigureAwait(false)、await foreach、fire-and-forget |
+| 资源泄漏与 Dispose | IDisposable 缺失、double-dispose、挂起的 TCS 未取消 |
+| 参数校验一致性 | 同类中有的方法校验有的不校验、null 穿透多层 |
 
-| 角度 | 描述 | 典型 Bug 示例 |
-|------|------|--------------|
-| 事件与回调模式 | event Invoke 异常传播、Timer 回调无 try/catch、Meter/Gauge 回调 | AgentInstrumentation 3x ObservableGauge 回调无保护 |
-| 数值溢出与截断 | ulong→int、Convert.ToInt32、Sum 溢出 | QdrantVectorStore ulong→int 截断 |
-| 错误处理与异常类型 | ChannelClosedException 未处理、OCE 吞没 | AgentRequestQueue 写入关闭的 Channel |
-| 重试与 failover 语义 | off-by-one（fencepost error）、最后一次尝试异常丢失 | DistributedLoadBalancer FailoverRetries=0 问题 |
-| 配置与序列化 | YAML/JSON 解析边界、.env 引号语义 | .env 单引号内转义字符处理错误 |
-| 防御性编程缺失 | 构造函数依赖校验、集合 null 校验 | OrchestratorBase.AddAgents 集合未校验 |
+**中发现率：**
 
-**低发现率但高价值角度：**
+| 角度 | 描述 |
+|------|------|
+| 事件与回调模式 | event Invoke 异常传播、Timer 回调无 try/catch、Meter/Gauge 回调 |
+| 数值溢出与截断 | ulong→int、Convert.ToInt32、Sum 溢出 |
+| 错误处理与异常类型 | ChannelClosedException 未处理、OCE 吞没 |
+| 重试与 failover 语义 | off-by-one（fencepost error）、最后一次尝试异常丢失 |
+| 配置与序列化 | YAML/JSON 解析边界、.env 引号语义 |
+| 防御性编程缺失 | 构造函数依赖校验、集合 null 校验 |
 
-| 角度 | 描述 | 典型 Bug 示例 |
-|------|------|--------------|
-| Polly/Resilience 交互 | 内部 CT 与外部 CT 绑定、策略覆盖范围 | ResilientLLMProvider 绑定 Polly 内部 CT |
-| 装饰器/代理模式 | 包装层信息丢失、元数据未透传 | HumanInLoopAgent metadata 丢失 |
-| 进程管理 | Process.Start 未 Kill/Dispose、shell 注入 | ToolSandbox 进程泄漏 |
-| 动态工具生命周期 | IToolSession/IToolStore 状态一致性、UpdateTool 版本递增、FileToolStore 路径穿越 | EphemeralTool Runtime 未传递到 Sandbox |
-| 多运行时注入 | ScriptRuntime.PowerShell/Python 命令注入、参数转义 | ToolSandbox GetShellForRuntime 注入风险 |
-| 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态、GetOrAdd+lock 顺序 | InMemorySharedState OnChange TOCTOU |
-| 环形缓冲区/滑动窗口 | 模数运算溢出、负索引 | HistogramMetric ring buffer 语义 |
+**低发现率但高价值：**
 
-**R39-R48 新增验证角度（已扫描，发现率低但值得复查）：**
-
-| 角度 | 描述 | 典型 Bug 示例 |
-|------|------|--------------|
-| Regex CultureInvariant | Regex 操作缺少 CultureInvariant 标志 | 6 处 Regex 缺少 RegexOptions.CultureInvariant |
-| Task.Run CancellationToken | Task.Run 未传递 CT 导致无法及时取消 | 4 处 Task.Run 缺少 CT 参数 |
-| IAsyncDisposable 缺失 | 仅实现 IDisposable 但使用异步资源 | HotReloadableLLMProvider 需要 IAsyncDisposable |
-| 数值精度与溢出 | 整数除法截断、Math.Clamp 缺失 | AgentAutoScaler 整数除法截断 |
-| 集合操作竞态与 TOCTOU | ConcurrentDictionary GetOrAdd+lock 顺序错误 | InMemorySharedState OnChange 竞态 |
+| 角度 | 描述 |
+|------|------|
+| Polly/Resilience 交互 | 内部 CT 与外部 CT 绑定、策略覆盖范围 |
+| 装饰器/代理模式 | 包装层信息丢失、元数据未透传 |
+| 进程管理 | Process.Start 未 Kill/Dispose、shell 注入 |
+| 动态工具生命周期 | IToolSession/IToolStore 状态一致性、路径穿越 |
+| 多运行时注入 | ScriptRuntime.PowerShell/Python 命令注入、参数转义 |
+| 并发集合语义 | ConcurrentDictionary TOCTOU、Channel 状态竞态 |
+| 环形缓冲区/滑动窗口 | 模数运算溢出、负索引 |
+| Regex CultureInvariant | Regex 操作缺少 CultureInvariant 标志 |
+| Task.Run CancellationToken | Task.Run 未传递 CT 导致无法及时取消 |
+| IAsyncDisposable 缺失 | 仅实现 IDisposable 但使用异步资源 |
+| 数值精度与溢出 | 整数除法截断、Math.Clamp 缺失 |
+| 集合操作竞态与 TOCTOU | ConcurrentDictionary GetOrAdd+lock 顺序错误 |
 
 ### 子代理 Prompt 模板
 
@@ -111,15 +108,13 @@ description: |
 3. 每个发现给出：文件路径、行号、代码片段、问题描述、修复建议、严重级别
 4. 按严重级别排序输出
 
-排除的已知问题 ID 列表：
-[从 conversation summary 粘贴]
+排除的已知问题：
+[从 conversation summary 中提取已修复/已推迟的问题描述]
 ```
 
 ---
 
 ## Phase 2: 检查维度（18 个）
-
-在原有 12 个维度基础上，增加 6 个从实战中提炼的高价值维度：
 
 | # | 维度 | 审查要点 |
 |---|------|---------|
@@ -156,7 +151,7 @@ description: |
 |------|------|-----------|
 | CRITICAL | 数据损坏、安全漏洞、服务崩溃 | 必须立即修复 |
 | HIGH | 功能异常、资源泄漏、竞态条件导致错误行为 | 本轮修复 |
-| MEDIUM | 防御性校验缺失、错误信息不清、不一致行为 | 本轮修复（除设计层面问题） |
+| MEDIUM | 防御性校验缺失、错误信息不清、不一致行为 | 本轮修复 |
 | LOW | 代码风格、微优化、理论上可能但实际极难触发 | 推迟 |
 
 ### 3.3 推迟条件（不修复，记入 deferred 列表）
@@ -235,14 +230,11 @@ dotnet test --nologo -v q
 
 本轮共修复 **N 个 bug**，涉及 M 个文件。
 
-### 行为/功能 Bug（N 个）
-| # | 文件 | 问题 | 修复 |
-
-### 参数校验 Bug（N 个）
-| # | 文件 | 缺失校验 |
+### 修复列表
+| # | 文件 | 级别 | 问题 | 修复 |
 
 ### 推迟问题
-- [描述] — 推迟原因
+| # | 文件 | 描述 | 推迟原因 |
 ```
 
 ---
