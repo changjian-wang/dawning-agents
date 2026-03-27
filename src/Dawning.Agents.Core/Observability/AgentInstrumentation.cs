@@ -70,19 +70,19 @@ public static class AgentInstrumentation
     // Gauges
     public static readonly ObservableGauge<int> QueueDepth = Meter.CreateObservableGauge(
         "agent_queue_depth",
-        () => Volatile.Read(ref _queueDepthCallback)?.Invoke() ?? 0,
+        () => SafeInvokeGauge(ref _queueDepthCallback),
         description: "Current depth of the agent request queue"
     );
 
     public static readonly ObservableGauge<int> ActiveRequests = Meter.CreateObservableGauge(
         "agent_active_requests",
-        () => Volatile.Read(ref _activeRequestsCallback)?.Invoke() ?? 0,
+        () => SafeInvokeGauge(ref _activeRequestsCallback),
         description: "Number of currently active agent requests"
     );
 
     public static readonly ObservableGauge<int> HealthyInstances = Meter.CreateObservableGauge(
         "agent_healthy_instances",
-        () => Volatile.Read(ref _healthyInstancesCallback)?.Invoke() ?? 0,
+        () => SafeInvokeGauge(ref _healthyInstancesCallback),
         description: "Number of healthy agent instances"
     );
 
@@ -101,6 +101,18 @@ public static class AgentInstrumentation
     /// </summary>
     public static void SetActiveRequestsCallback(Func<int> callback) =>
         Volatile.Write(ref _activeRequestsCallback, callback);
+
+    private static int SafeInvokeGauge(ref Func<int>? callbackField)
+    {
+        try
+        {
+            return Volatile.Read(ref callbackField)?.Invoke() ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 
     /// <summary>
     /// Sets the healthy instances callback.

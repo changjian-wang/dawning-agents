@@ -15,7 +15,7 @@ namespace Dawning.Agents.Sqlite;
 /// <para>Suitable for local-first applications that need conversation persistence across restarts.</para>
 /// <para>Thread-safe via connection-per-operation pattern.</para>
 /// </remarks>
-public sealed class SqliteConversationMemory : IConversationMemory
+public sealed class SqliteConversationMemory : IConversationMemory, IDisposable
 {
     private readonly SqliteDbContext _dbContext;
     private readonly ITokenCounter _tokenCounter;
@@ -279,4 +279,7 @@ public sealed class SqliteConversationMemory : IConversationMemory
         public int TokenCount { get; init; }
         public required string CreatedAt { get; init; }
     }
+
+    /// <inheritdoc />
+    public void Dispose() => _countLock.Dispose();
 }
