@@ -1,6 +1,6 @@
 ---
 description: |
-  Use when: Performing deep code audit to find bugs, security issues, design flaws, and test gaps across all 12 projects
+  Use when: Performing deep code audit to find bugs, security issues, design flaws, and test gaps across all 13 projects
   Don't use when:
     - Quick code review of a few files (use code-review)
     - Security-only audit without full scope (use security-audit)
@@ -27,7 +27,7 @@ description: |
 
 ## Phase 0: 前置检查
 
-1. **验证用户提交**：使用 `get_changed_files` 确认上一轮修改已提交
+1. **验证用户提交**：使用 `git status` 确认上一轮修改已提交
 2. **读取已知问题清单**：从 conversation summary 中加载 deferred/accepted issues 列表
 3. **选择扫描模式**：首轮用全量模式，后续用增量模式
 
@@ -38,12 +38,13 @@ description: |
 按以下顺序逐项目、逐文件完整阅读（不跳过任何 .cs 文件）：
 
 ```
-1. Dawning.Agents.Abstractions    7. Dawning.Agents.Serilog
-2. Dawning.Agents.Core            8. Dawning.Agents.Redis
-3. Dawning.Agents.OpenAI          9. Dawning.Agents.Chroma
-4. Dawning.Agents.Azure          10. Dawning.Agents.Pinecone
-5. Dawning.Agents.MCP            11. Dawning.Agents.Qdrant
-6. Dawning.Agents.OpenTelemetry  12. Dawning.Agents.Weaviate
+1. Dawning.Agents.Abstractions    8. Dawning.Agents.Serilog
+2. Dawning.Agents.Core             9. Dawning.Agents.Redis
+3. Dawning.Agents.OpenAI          10. Dawning.Agents.Chroma
+4. Dawning.Agents.Azure           11. Dawning.Agents.Pinecone
+5. Dawning.Agents.MCP             12. Dawning.Agents.Qdrant
+6. Dawning.Agents.OpenTelemetry   13. Dawning.Agents.Weaviate
+7. Dawning.Agents.Sqlite
 ```
 
 ## Phase 1B: 增量审计模式（后续轮次）
@@ -160,11 +161,9 @@ description: |
 
 ### 3.3 推迟条件（不修复，记入 deferred 列表）
 
-- 需要架构级重构（如接口变更影响所有实现）
 - 属于设计选择而非 bug（如 WeightedRoundRobin 实际是加权随机）
-- 修复风险大于收益（如改 Singleton 为 Scoped 影响所有消费者）
 - 理论极端场景（如 double 精度 >2^53）
-- 架构级延迟项已修复：`_disposed` volatile、ValidateOnStart、public API 参数验证、Options 验证增强
+- 修复所需的上下游信息不足，需要用户确认意图
 
 ---
 
@@ -220,7 +219,7 @@ description: |
 # 1. 构建（必须 0 warnings, 0 errors）
 dotnet build --nologo -v q
 
-# 2. 测试（必须全部通过，当前基线 2562）
+# 2. 测试（必须全部通过）
 dotnet test --nologo -v q
 
 # 3. 格式化
@@ -254,7 +253,7 @@ dotnet test --nologo -v q
 2. **不猜测** — 所有发现基于实际代码，给出文件名和行号
 3. **创新扫描角度** — 每轮的角度不得与之前轮次重复
 4. **使用子代理并行扫描** — 2-3 个角度同时扫描，提高效率
-5. **分批汇报** — 扫描完成后先展示分类结果，确认后再修复
+5. **扫描完成即修复** — 扫描完成后直接展示发现并修复，无需等待用户确认
 6. **单轮闭环** — 每轮必须走完 扫描→分类→修复→**回归审查**→验证 全链路
 7. **修复即审查** — 每个修复必须经过 Phase 4.5 回归检查后才能进入验证链，防止「修复引入回归」的连锁反应
 
