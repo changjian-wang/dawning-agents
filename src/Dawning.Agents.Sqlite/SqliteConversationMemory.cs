@@ -20,6 +20,7 @@ public sealed class SqliteConversationMemory : IConversationMemory
     private readonly SqliteDbContext _dbContext;
     private readonly ITokenCounter _tokenCounter;
     private readonly ILogger<SqliteConversationMemory> _logger;
+    private readonly SemaphoreSlim _countLock = new(1, 1);
 
     /// <inheritdoc />
     public string? SessionId { get; }
@@ -178,28 +179,36 @@ public sealed class SqliteConversationMemory : IConversationMemory
     /// <inheritdoc />
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        await using var connection = await _dbContext
-            .CreateConnectionAsync(cancellationToken)
-            .ConfigureAwait(false);
+        await _countLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var connection = await _dbContext
+                .CreateConnectionAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-        var deleted = await connection
-            .ExecuteAsync(
-                new CommandDefinition(
-                    "DELETE FROM conversation_messages WHERE session_id = @SessionId",
-                    new { SessionId },
-                    cancellationToken: cancellationToken
+            var deleted = await connection
+                .ExecuteAsync(
+                    new CommandDefinition(
+                        "DELETE FROM conversation_messages WHERE session_id = @SessionId",
+                        new { SessionId },
+                        cancellationToken: cancellationToken
+                    )
                 )
-            )
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-        Volatile.Write(ref _messageCount, 0);
-        _messageCountInitialized = true;
+            Volatile.Write(ref _messageCount, 0);
+            _messageCountInitialized = true;
 
-        _logger.LogInformation(
-            "Cleared {Count} messages from session {SessionId}",
-            deleted,
-            SessionId
-        );
+            _logger.LogInformation(
+                "Cleared {Count} messages from session {SessionId}",
+                deleted,
+                SessionId
+            );
+        }
+        finally
+        {
+            _countLock.Release();
+        }
     }
 
     /// <inheritdoc />
@@ -229,22 +238,35 @@ public sealed class SqliteConversationMemory : IConversationMemory
             return;
         }
 
-        await using var connection = await _dbContext
-            .CreateConnectionAsync(cancellationToken)
-            .ConfigureAwait(false);
+        await _countLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_messageCountInitialized)
+            {
+                return;
+            }
 
-        var count = await connection
-            .ExecuteScalarAsync<int>(
-                new CommandDefinition(
-                    "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
-                    new { SessionId },
-                    cancellationToken: cancellationToken
+            await using var connection = await _dbContext
+                .CreateConnectionAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var count = await connection
+                .ExecuteScalarAsync<int>(
+                    new CommandDefinition(
+                        "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
+                        new { SessionId },
+                        cancellationToken: cancellationToken
+                    )
                 )
-            )
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-        Volatile.Write(ref _messageCount, count);
-        _messageCountInitialized = true;
+            Volatile.Write(ref _messageCount, count);
+            _messageCountInitialized = true;
+        }
+        finally
+        {
+            _countLock.Release();
+        }
     }
 
     /// <summary>

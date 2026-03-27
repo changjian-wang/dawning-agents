@@ -77,27 +77,37 @@ public sealed class SqliteDbContext : IAsyncDisposable
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         // WAL mode persists on the database file; only needs to be set once
-        await connection.ExecuteAsync("PRAGMA journal_mode=WAL;").ConfigureAwait(false);
+        await connection
+            .ExecuteAsync(
+                new CommandDefinition(
+                    "PRAGMA journal_mode=WAL;",
+                    cancellationToken: cancellationToken
+                )
+            )
+            .ConfigureAwait(false);
 
         await connection
             .ExecuteAsync(
-                """
-                CREATE TABLE IF NOT EXISTS conversation_messages (
-                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_id  TEXT NOT NULL,
-                    role        TEXT NOT NULL,
-                    content     TEXT NOT NULL,
-                    token_count INTEGER NOT NULL DEFAULT 0,
-                    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-                    CONSTRAINT chk_role CHECK (role IN ('system', 'user', 'assistant', 'tool'))
-                );
+                new CommandDefinition(
+                    """
+                    CREATE TABLE IF NOT EXISTS conversation_messages (
+                        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                        session_id  TEXT NOT NULL,
+                        role        TEXT NOT NULL,
+                        content     TEXT NOT NULL,
+                        token_count INTEGER NOT NULL DEFAULT 0,
+                        created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+                        CONSTRAINT chk_role CHECK (role IN ('system', 'user', 'assistant', 'tool'))
+                    );
 
-                CREATE INDEX IF NOT EXISTS idx_messages_session_id
-                    ON conversation_messages (session_id);
+                    CREATE INDEX IF NOT EXISTS idx_messages_session_id
+                        ON conversation_messages (session_id);
 
-                CREATE INDEX IF NOT EXISTS idx_messages_session_created
-                    ON conversation_messages (session_id, created_at);
-                """
+                    CREATE INDEX IF NOT EXISTS idx_messages_session_created
+                        ON conversation_messages (session_id, created_at);
+                    """,
+                    cancellationToken: cancellationToken
+                )
             )
             .ConfigureAwait(false);
 
