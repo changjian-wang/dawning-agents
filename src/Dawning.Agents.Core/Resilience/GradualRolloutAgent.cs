@@ -20,8 +20,8 @@ public sealed class GradualRolloutAgent : IAgent
 
     // Rollback tracking
     private readonly Lock _lock = new();
-    private int _canarySuccessCount;
-    private int _canaryFailureCount;
+    private long _canarySuccessCount;
+    private long _canaryFailureCount;
     private bool _rolledBack;
 
     /// <inheritdoc />
@@ -81,7 +81,11 @@ public sealed class GradualRolloutAgent : IAgent
             useCanary =
                 !Volatile.Read(ref _rolledBack)
                 && await _featureFlag
-                    .IsEnabledAsync(_featureName, context.UserInput, cancellationToken)
+                    .IsEnabledAsync(
+                        _featureName,
+                        context.UserId ?? context.SessionId,
+                        cancellationToken
+                    )
                     .ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

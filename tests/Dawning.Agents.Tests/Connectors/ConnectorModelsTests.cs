@@ -110,6 +110,19 @@ public sealed class ConnectorModelsTests
         req.CreateOnlineMeeting.Should().BeFalse();
     }
 
+    [Fact]
+    public void UpdateEventRequest_AllFieldsOptional()
+    {
+        var req = new UpdateEventRequest();
+
+        req.Subject.Should().BeNull();
+        req.Start.Should().BeNull();
+        req.End.Should().BeNull();
+        req.Location.Should().BeNull();
+        req.Attendees.Should().BeNull();
+        req.CreateOnlineMeeting.Should().BeNull();
+    }
+
     #endregion
 
     #region KnowledgeBaseModels

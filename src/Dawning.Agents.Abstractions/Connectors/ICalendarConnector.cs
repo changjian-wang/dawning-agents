@@ -103,6 +103,47 @@ public record CreateEventRequest
 }
 
 /// <summary>
+/// Parameters for updating an existing calendar event (all fields optional for partial update).
+/// </summary>
+public record UpdateEventRequest
+{
+    /// <summary>
+    /// Event subject.
+    /// </summary>
+    public string? Subject { get; init; }
+
+    /// <summary>
+    /// Event start time.
+    /// </summary>
+    public DateTimeOffset? Start { get; init; }
+
+    /// <summary>
+    /// Event end time.
+    /// </summary>
+    public DateTimeOffset? End { get; init; }
+
+    /// <summary>
+    /// Event location.
+    /// </summary>
+    public string? Location { get; init; }
+
+    /// <summary>
+    /// Event description.
+    /// </summary>
+    public string? Description { get; init; }
+
+    /// <summary>
+    /// Attendee email addresses.
+    /// </summary>
+    public IReadOnlyList<string>? Attendees { get; init; }
+
+    /// <summary>
+    /// Whether to create an online meeting.
+    /// </summary>
+    public bool? CreateOnlineMeeting { get; init; }
+}
+
+/// <summary>
 /// Represents a free/busy time slot.
 /// </summary>
 public record FreeSlot
@@ -169,7 +210,7 @@ public interface ICalendarConnector : IConnector
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<CalendarEvent> UpdateEventAsync(
         string eventId,
-        CreateEventRequest request,
+        UpdateEventRequest request,
         CancellationToken cancellationToken = default
     );
 
