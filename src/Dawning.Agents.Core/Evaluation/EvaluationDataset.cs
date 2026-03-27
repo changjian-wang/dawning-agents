@@ -186,10 +186,7 @@ public sealed class EvaluationRunner
         EvaluationReport current
     )
     {
-        var baselineResults = baseline.Results.ToDictionary(
-            r => r.TestCaseId,
-            StringComparer.OrdinalIgnoreCase
-        );
+        var baselineResults = BuildResultLookup(baseline.Results);
         var regressions = new List<string>();
 
         foreach (var result in current.Results)
@@ -212,10 +209,7 @@ public sealed class EvaluationRunner
         EvaluationReport current
     )
     {
-        var baselineResults = baseline.Results.ToDictionary(
-            r => r.TestCaseId,
-            StringComparer.OrdinalIgnoreCase
-        );
+        var baselineResults = BuildResultLookup(baseline.Results);
         var improvements = new List<string>();
 
         foreach (var result in current.Results)
@@ -231,6 +225,22 @@ public sealed class EvaluationRunner
         }
 
         return improvements;
+    }
+
+    /// <summary>
+    /// Builds a lookup dictionary from evaluation results, keeping the first occurrence for duplicate TestCaseIds.
+    /// </summary>
+    private static Dictionary<string, EvaluationResult> BuildResultLookup(
+        IReadOnlyList<EvaluationResult> results
+    )
+    {
+        var lookup = new Dictionary<string, EvaluationResult>(StringComparer.OrdinalIgnoreCase);
+        foreach (var result in results)
+        {
+            lookup.TryAdd(result.TestCaseId, result);
+        }
+
+        return lookup;
     }
 }
 

@@ -33,6 +33,8 @@ public sealed class InMemoryFeatureFlag : IFeatureFlag
     public void SetFlag(FeatureFlagDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
+        ArgumentOutOfRangeException.ThrowIfLessThan(definition.RolloutPercentage, 0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(definition.RolloutPercentage, 100);
         _flags[definition.Name] = definition;
         _logger.LogDebug(
             "Feature flag '{Name}' set: enabled={Enabled}, rollout={Rollout}%",

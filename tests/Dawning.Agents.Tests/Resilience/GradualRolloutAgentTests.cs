@@ -219,4 +219,23 @@ public sealed class GradualRolloutAgentTests
             );
         act.Should().Throw<ArgumentException>();
     }
+
+    [Fact]
+    public void GradualRolloutOptions_InvalidThreshold_ShouldThrow()
+    {
+        var options = new GradualRolloutOptions();
+        var act = () => options.RollbackThreshold = -0.1f;
+        act.Should().Throw<ArgumentOutOfRangeException>();
+
+        var act2 = () => options.RollbackThreshold = 1.1f;
+        act2.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void GradualRolloutOptions_InvalidMinSamples_ShouldThrow()
+    {
+        var options = new GradualRolloutOptions();
+        var act = () => options.MinSamplesBeforeRollback = 0;
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
 }

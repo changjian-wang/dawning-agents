@@ -134,4 +134,21 @@ public sealed class InMemoryFeatureFlagTests
         var result = await _flag.IsEnabledAsync("f1");
         result.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(101)]
+    public void SetFlag_InvalidRolloutPercentage_ShouldThrow(int percentage)
+    {
+        var act = () =>
+            _flag.SetFlag(
+                new FeatureFlagDefinition
+                {
+                    Name = "bad",
+                    Enabled = true,
+                    RolloutPercentage = percentage,
+                }
+            );
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
 }

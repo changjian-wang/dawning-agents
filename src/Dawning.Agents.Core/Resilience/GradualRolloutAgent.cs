@@ -19,7 +19,7 @@ public sealed class GradualRolloutAgent : IAgent
     private readonly ILogger<GradualRolloutAgent> _logger;
 
     // Rollback tracking
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private int _canarySuccessCount;
     private int _canaryFailureCount;
     private bool _rolledBack;
@@ -74,7 +74,7 @@ public sealed class GradualRolloutAgent : IAgent
     )
     {
         var useCanary =
-            !_rolledBack
+            !Volatile.Read(ref _rolledBack)
             && await _featureFlag
                 .IsEnabledAsync(_featureName, context.UserInput, cancellationToken)
                 .ConfigureAwait(false);
@@ -154,7 +154,7 @@ public sealed class GradualRolloutAgent : IAgent
             var successRate = (float)_canarySuccessCount / total;
             if (successRate < _options.RollbackThreshold)
             {
-                _rolledBack = true;
+                Volatile.Write(ref _rolledBack, true);
                 _logger.LogWarning(
                     "Automatic rollback triggered: canary success rate {Rate:P0} < threshold {Threshold:P0} after {Total} requests",
                     successRate,
@@ -174,10 +174,31 @@ public sealed class GradualRolloutOptions
     /// <summary>
     /// Success rate threshold below which automatic rollback is triggered (0–1).
     /// </summary>
-    public float RollbackThreshold { get; set; } = 0.7f;
+    public float RollbackThreshold
+    {
+        get => _rollbackThreshold;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 0f);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 1f);
+            _rollbackThreshold = value;
+        }
+    }
+
+    private float _rollbackThreshold = 0.7f;
 
     /// <summary>
     /// Minimum number of canary samples before rollback evaluation starts.
     /// </summary>
-    public int MinSamplesBeforeRollback { get; set; } = 5;
+    public int MinSamplesBeforeRollback
+    {
+        get => _minSamplesBeforeRollback;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
+            _minSamplesBeforeRollback = value;
+        }
+    }
+
+    private int _minSamplesBeforeRollback = 5;
 }
