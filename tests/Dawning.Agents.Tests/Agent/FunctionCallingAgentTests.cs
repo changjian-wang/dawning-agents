@@ -99,7 +99,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public async Task RunAsync_DirectAnswer_ShouldReturnSuccess()
     {
-        // LLM 直接返回答案（无 ToolCalls）
+        // LLM returns a direct answer (no ToolCalls)
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(
@@ -124,7 +124,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public async Task RunAsync_WithToolCalls_ShouldExecuteToolsAndReturnFinalAnswer()
     {
-        // 注册测试工具
+        // Register test tool
         var calculatorTool = CreateMockTool("Calculator", "Perform math", "42");
         _toolRegistry.Register(calculatorTool.Object);
 
@@ -142,7 +142,7 @@ public class FunctionCallingAgentTests
                 callCount++;
                 if (callCount == 1)
                 {
-                    // 第一次：请求工具调用
+                    // First call: request tool invocation
                     return new ChatCompletionResponse
                     {
                         Content = "",
@@ -151,7 +151,7 @@ public class FunctionCallingAgentTests
                     };
                 }
 
-                // 第二次：返回最终答案
+                // Second call: return final answer
                 return new ChatCompletionResponse
                 {
                     Content = "The answer is 42",
@@ -167,11 +167,11 @@ public class FunctionCallingAgentTests
         response.FinalAnswer.Should().Be("The answer is 42");
         response.Steps.Should().HaveCount(2);
 
-        // 第一步应该是工具调用
+        // First step should be a tool call
         response.Steps[0].Action.Should().Contain("Calculator");
         response.Steps[0].Observation.Should().Contain("42");
 
-        // 工具应该被调用一次
+        // Tool should be called once
         calculatorTool.Verify(
             t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Once
@@ -200,7 +200,7 @@ public class FunctionCallingAgentTests
                 callCount++;
                 if (callCount == 1)
                 {
-                    // 一次返回多个工具调用
+                    // Return multiple tool calls at once
                     return new ChatCompletionResponse
                     {
                         Content = "",
@@ -223,7 +223,7 @@ public class FunctionCallingAgentTests
         response.Success.Should().BeTrue();
         response.Steps.Should().HaveCount(2);
 
-        // 两个工具都应该被调用
+        // Both tools should be called
         searchTool.Verify(
             t => t.ExecuteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Once
@@ -374,7 +374,7 @@ public class FunctionCallingAgentTests
         var searchTool = CreateMockTool("Search", "Search", "more info needed");
         _toolRegistry.Register(searchTool.Object);
 
-        // LLM 一直请求工具调用
+        // LLM keeps requesting tool calls
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(
@@ -418,7 +418,7 @@ public class FunctionCallingAgentTests
 
         var agent = CreateAgent();
 
-        // 用户取消应传播 OperationCanceledException
+        // User cancellation should propagate OperationCanceledException
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             agent.RunAsync("test", cts.Token)
         );
@@ -467,7 +467,7 @@ public class FunctionCallingAgentTests
 
         await agent.RunAsync("What is 1+1?");
 
-        // 验证传递了工具定义
+        // Verify tool definitions were passed
         _mockProvider.Verify(
             p =>
                 p.ChatAsync(
@@ -524,11 +524,11 @@ public class FunctionCallingAgentTests
 
         await agent.RunAsync("What is 6*7?");
 
-        // 第二次调用应该包含 tool result 消息
+        // Second call should contain tool result messages
         capturedMessages.Should().HaveCount(2);
         var secondCall = capturedMessages[1];
 
-        // 应有: system, user, assistant(with tool calls), tool(result)
+        // Should have: system, user, assistant(with tool calls), tool(result)
         secondCall.Should().Contain(m => m.Role == "tool" && m.Content == "42");
         secondCall.Should().Contain(m => m.Role == "assistant" && m.HasToolCalls);
     }
@@ -564,7 +564,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public async Task RunAsync_EmptyToolRegistry_ShouldWorkWithoutTools()
     {
-        // 空工具注册表，Agent 应该直接回答
+        // Empty tool registry, Agent should answer directly
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(
@@ -588,7 +588,7 @@ public class FunctionCallingAgentTests
         response.Success.Should().BeTrue();
         response.FinalAnswer.Should().Be("I'm an AI assistant");
 
-        // 不应该传递 tools 选项
+        // Should not pass tools options
         _mockProvider.Verify(
             p =>
                 p.ChatAsync(
@@ -812,7 +812,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public async Task RunAsync_ViaIAgentInterface_ShouldDispatchToFunctionCallingAgent()
     {
-        // 回归测试：通过 IAgent 接口调用 RunAsync，确保多态派发到 FunctionCallingAgent
+        // Regression test: call RunAsync via IAgent interface, verify polymorphic dispatch to FunctionCallingAgent
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(
@@ -837,7 +837,7 @@ public class FunctionCallingAgentTests
     [Fact]
     public async Task RunAsync_ViaIAgentInterface_WithContext_ShouldDispatchToFunctionCallingAgent()
     {
-        // 回归测试：通过 IAgent 接口调用 RunAsync(AgentContext)，确保多态派发正确
+        // Regression test: call RunAsync(AgentContext) via IAgent interface, verify polymorphic dispatch
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(

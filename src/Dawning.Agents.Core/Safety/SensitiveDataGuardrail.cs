@@ -41,7 +41,8 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
     public string Name => "SensitiveDataGuardrail";
 
     /// <inheritdoc />
-    public string Description => "Detects and redacts sensitive data (email, phone, credit card, ID, API keys, etc.)";
+    public string Description =>
+        "Detects and redacts sensitive data (email, phone, credit card, ID, API keys, etc.)";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.EnableSensitiveDataDetection;
@@ -94,12 +95,17 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
             }
             catch (RegexMatchTimeoutException ex)
             {
-                _logger.LogWarning(ex, "Regex pattern {PatternName} match timed out", compiled.Config.Name);
+                _logger.LogWarning(
+                    ex,
+                    "Regex pattern {PatternName} match timed out",
+                    compiled.Config.Name
+                );
                 issues.Add(
                     new GuardrailIssue
                     {
                         Type = compiled.Config.Name,
-                        Description = $"Regex match timed out; {compiled.Config.Name} detection could not be completed",
+                        Description =
+                            $"Regex match timed out; {compiled.Config.Name} detection could not be completed",
                         Severity = IssueSeverity.Error,
                     }
                 );
@@ -129,7 +135,11 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
         if (_options.FailureBehavior == GuardrailFailureBehavior.BlockAndReport)
         {
             return Task.FromResult(
-                GuardrailResult.Fail($"Detected {issues.Count} instance(s) of sensitive data", Name, issues)
+                GuardrailResult.Fail(
+                    $"Detected {issues.Count} instance(s) of sensitive data",
+                    Name,
+                    issues
+                )
             );
         }
 

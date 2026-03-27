@@ -40,7 +40,9 @@ public class MemoryOptionsValidator : AbstractValidator<MemoryOptions>
             .GreaterThan(0)
             .WithMessage("DowngradeThreshold must be greater than 0.");
 
-        RuleFor(x => x.RetrieveTopK).GreaterThan(0).WithMessage("RetrieveTopK must be greater than 0.");
+        RuleFor(x => x.RetrieveTopK)
+            .GreaterThan(0)
+            .WithMessage("RetrieveTopK must be greater than 0.");
 
         RuleFor(x => x.MinRelevanceScore)
             .InclusiveBetween(0.0f, 1.0f)

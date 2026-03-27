@@ -180,7 +180,7 @@ public class ObservableAgentTests
         }
         catch (Exception)
         {
-            // 忽略异常
+            // Ignore exception
         }
 
         // Assert

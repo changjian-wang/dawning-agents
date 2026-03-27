@@ -11,7 +11,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// MemoryServiceCollectionExtensions 单元测试
+/// Unit tests for MemoryServiceCollectionExtensions
 /// </summary>
 public class MemoryServiceCollectionExtensionsTests
 {

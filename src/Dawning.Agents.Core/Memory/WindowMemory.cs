@@ -50,7 +50,10 @@ public sealed class WindowMemory : IConversationMemory
         _windowSize =
             windowSize > 0
                 ? windowSize
-                : throw new ArgumentException("Window size must be a positive number.", nameof(windowSize));
+                : throw new ArgumentException(
+                    "Window size must be a positive number.",
+                    nameof(windowSize)
+                );
     }
 
     /// <summary>

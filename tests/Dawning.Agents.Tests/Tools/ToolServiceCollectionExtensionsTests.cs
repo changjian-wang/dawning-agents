@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// ToolServiceCollectionExtensions 单元测试
+/// ToolServiceCollectionExtensions unit tests
 /// </summary>
 public class ToolServiceCollectionExtensionsTests
 {
@@ -78,7 +78,7 @@ public class ToolServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
         var registry = provider.GetRequiredService<IToolRegistry>();
 
-        // 直接注册到 registry
+        // Register directly to registry
         registry.Register(tool);
 
         var registeredTool = registry.GetTool("test-tool");
@@ -247,11 +247,11 @@ public class ToolServiceCollectionExtensionsTests
 
         var provider = services.BuildServiceProvider();
 
-        // 注册前获取 registry
+        // Get registry before registration
         var registry = provider.GetRequiredService<IToolRegistry>();
         var toolsBefore = registry.GetAllTools().ToList();
 
-        // 触发注册
+        // Trigger registration
         provider.EnsureToolsRegistered();
 
         var toolsAfter = registry.GetAllTools().ToList();
@@ -304,7 +304,7 @@ public class ToolServiceCollectionExtensionsTests
     }
 
     /// <summary>
-    /// 测试用计算器工具
+    /// Test calculator tool
     /// </summary>
     public class TestCalculatorTool
     {

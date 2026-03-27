@@ -9,7 +9,7 @@ using Pinecone;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// PineconeVectorStore 单元测试
+/// PineconeVectorStore unit tests
 /// </summary>
 public class PineconeVectorStoreTests
 {
@@ -66,7 +66,7 @@ public class PineconeVectorStoreTests
         var options = Options.Create(
             new PineconeOptions
             {
-                ApiKey = "", // 无效
+                ApiKey = "", // Invalid
                 IndexName = "test",
                 VectorSize = 1536,
             }
@@ -272,7 +272,7 @@ public class PineconeVectorStoreTests
 }
 
 /// <summary>
-/// PineconeOptions 配置测试
+/// PineconeOptions configuration tests
 /// </summary>
 public class PineconeOptionsTests
 {
@@ -426,7 +426,7 @@ public class PineconeOptionsTests
 }
 
 /// <summary>
-/// Pinecone DI 扩展测试
+/// Pinecone DI extension tests
 /// </summary>
 public class PineconeServiceCollectionExtensionsTests
 {

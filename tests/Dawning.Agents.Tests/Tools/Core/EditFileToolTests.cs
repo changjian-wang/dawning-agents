@@ -7,7 +7,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// EditFileTool 测试
+/// EditFileTool tests
 /// </summary>
 public class EditFileToolTests : IDisposable
 {

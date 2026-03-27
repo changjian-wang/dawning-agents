@@ -7,7 +7,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// SearchTool 测试
+/// SearchTool tests
 /// </summary>
 public class SearchToolTests : IDisposable
 {

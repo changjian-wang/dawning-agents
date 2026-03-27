@@ -5,7 +5,7 @@ using Dawning.Agents.Core.Communication;
 using FluentAssertions;
 
 /// <summary>
-/// InMemoryMessageBus 测试
+/// InMemoryMessageBus tests
 /// </summary>
 public class InMemoryMessageBusTests
 {
@@ -75,7 +75,7 @@ public class InMemoryMessageBusTests
                 {
                     requestReceived.SetResult(task);
 
-                    // 模拟发送响应
+                    // Simulate sending response
                     _ = bus.SendAsync(
                         new ResponseMessage
                         {
@@ -163,7 +163,7 @@ public class InMemoryMessageBusTests
 
         var subscription = bus.Subscribe("agent1", _ => callCount++);
 
-        // 发送消息应该触发
+        // Sending a message should trigger the handler
         await bus.SendAsync(
             new TaskMessage
             {
@@ -175,10 +175,10 @@ public class InMemoryMessageBusTests
 
         callCount.Should().Be(1);
 
-        // 取消订阅
+        // Unsubscribe
         subscription.Dispose();
 
-        // 再次发送不应触发
+        // Sending again should not trigger
         await bus.SendAsync(
             new TaskMessage
             {
@@ -281,7 +281,7 @@ public class InMemoryMessageBusTests
     {
         var bus = new InMemoryMessageBus();
 
-        bus.Subscribe("agent2", _ => { }); // 订阅但不响应
+        bus.Subscribe("agent2", _ => { }); // Subscribe but do not respond
 
         var request = new TaskMessage
         {

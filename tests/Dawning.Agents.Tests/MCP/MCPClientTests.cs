@@ -110,8 +110,8 @@ public class MCPToolProxyTests
             },
         };
 
-        // Act - 我们使用一个 null client 因为只测试属性
-        // 实际使用时会有真实的 client
+        // Act - We use a null client since we're only testing properties
+        // In actual usage there would be a real client
         var proxy = new MCPToolProxy(null!, definition);
 
         // Assert

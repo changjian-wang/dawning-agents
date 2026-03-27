@@ -6,7 +6,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// DefaultSkillEvolutionPolicy 测试
+/// DefaultSkillEvolutionPolicy tests
 /// </summary>
 public sealed class DefaultSkillEvolutionPolicyTests
 {

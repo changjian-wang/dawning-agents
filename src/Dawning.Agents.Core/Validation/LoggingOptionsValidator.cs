@@ -32,7 +32,9 @@ public class LoggingOptionsValidator : AbstractValidator<LoggingOptions>
             x => x.EnableFile,
             () =>
             {
-                RuleFor(x => x.FilePath).NotEmpty().WithMessage("FilePath must not be empty when file logging is enabled.");
+                RuleFor(x => x.FilePath)
+                    .NotEmpty()
+                    .WithMessage("FilePath must not be empty when file logging is enabled.");
             }
         );
 

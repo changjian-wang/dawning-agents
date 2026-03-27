@@ -10,7 +10,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// Redis 分布式缓存测试
+/// Redis distributed cache tests
 /// </summary>
 public sealed class RedisDistributedCacheTests
 {

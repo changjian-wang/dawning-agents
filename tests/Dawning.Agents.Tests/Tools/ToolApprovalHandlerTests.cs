@@ -6,12 +6,12 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// ToolApprovalHandler 测试
+/// ToolApprovalHandler tests
 /// </summary>
 public class ToolApprovalHandlerTests
 {
     /// <summary>
-    /// 创建测试用 Mock 工具
+    /// Creates a mock tool for testing
     /// </summary>
     private static ITool CreateMockTool(
         string name,
@@ -23,7 +23,7 @@ public class ToolApprovalHandlerTests
     }
 
     /// <summary>
-    /// 简单的 Mock 工具实现用于测试
+    /// Simple mock tool implementation for testing
     /// </summary>
     private class MockTool : ITool
     {
@@ -116,7 +116,7 @@ public class ToolApprovalHandlerTests
         var approved = await handler.RequestApprovalAsync(tool, """{"a": 1, "b": 2}""");
 
         // Assert
-        approved.Should().BeFalse(); // 交互模式默认拒绝，需要 UI 实现
+        approved.Should().BeFalse(); // Interactive mode denies by default, requires UI implementation
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class ToolApprovalHandlerTests
         var approved = await handler.RequestCommandApprovalAsync(tool, "rm -rf /");
 
         // Assert
-        approved.Should().BeFalse(); // 即使 AlwaysApprove，危险命令也应被拒绝
+        approved.Should().BeFalse(); // Even with AlwaysApprove, dangerous commands should be denied
     }
 
     [Fact]

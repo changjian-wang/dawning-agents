@@ -10,7 +10,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Agent;
 
 /// <summary>
-/// LLMReflectionEngine 测试
+/// LLMReflectionEngine tests
 /// </summary>
 public sealed class LLMReflectionEngineTests
 {

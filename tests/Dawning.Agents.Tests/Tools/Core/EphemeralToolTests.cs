@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// EphemeralTool 测试
+/// EphemeralTool tests
 /// </summary>
 public class EphemeralToolTests
 {

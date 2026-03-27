@@ -106,7 +106,7 @@ public class ChatModelsTests
         // Arrange
         var response = new ChatCompletionResponse
         {
-            Content = "测试",
+            Content = "Test",
             PromptTokens = 10,
             CompletionTokens = 20,
         };

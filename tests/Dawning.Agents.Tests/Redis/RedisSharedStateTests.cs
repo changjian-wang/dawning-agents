@@ -10,7 +10,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// Redis 分布式共享状态测试
+/// Redis distributed shared state tests
 /// </summary>
 public sealed class RedisSharedStateTests : IDisposable
 {

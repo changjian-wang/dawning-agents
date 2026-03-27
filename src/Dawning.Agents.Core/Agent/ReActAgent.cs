@@ -404,7 +404,11 @@ public partial class ReActAgent : AgentBase
             if (availableTools.Count > 0)
             {
                 var toolList = string.Join(", ", availableTools.Select(t => t.Name));
-                Logger.LogWarning("Tool '{Action}' not found, available tools: {Tools}", action, toolList);
+                Logger.LogWarning(
+                    "Tool '{Action}' not found, available tools: {Tools}",
+                    action,
+                    toolList
+                );
                 return $"Error: Tool '{action}' not found. Available tools: {toolList}. Please choose a valid tool.";
             }
         }

@@ -48,7 +48,7 @@ public class AzureOpenAIProvider : OpenAIProviderBase
     /// Initializes a new instance of the <see cref="AzureOpenAIProvider"/> class using Azure AD authentication.
     /// </summary>
     /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
-    /// <param name="credential">The Azure credential (e.g. <see cref="DefaultAzureCredential"/>).</param>
+    /// <param name="credential">The Azure credential (e.g. DefaultAzureCredential).</param>
     /// <param name="deploymentName">The model deployment name.</param>
     /// <param name="logger">The logger instance.</param>
     public AzureOpenAIProvider(

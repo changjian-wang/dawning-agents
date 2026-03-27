@@ -135,7 +135,9 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
 
         if (text.Length > MaxTextLength)
         {
-            return SpeechResult.Failed($"Text too long: {text.Length} characters (max {MaxTextLength} characters)");
+            return SpeechResult.Failed(
+                $"Text too long: {text.Length} characters (max {MaxTextLength} characters)"
+            );
         }
 
         options ??= new SpeechOptions();
@@ -187,7 +189,10 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
                 .Content.ReadAsByteArrayAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            _logger.LogDebug("Speech synthesis succeeded, audio size: {Size} bytes", audioData.Length);
+            _logger.LogDebug(
+                "Speech synthesis succeeded, audio size: {Size} bytes",
+                audioData.Length
+            );
 
             var mimeType = GetMimeType(options.OutputFormat);
 

@@ -4,7 +4,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// InMemoryVectorStore 单元测试
+/// InMemoryVectorStore unit tests
 /// </summary>
 public class InMemoryVectorStoreTests
 {

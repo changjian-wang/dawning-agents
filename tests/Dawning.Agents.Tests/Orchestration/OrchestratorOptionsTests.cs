@@ -5,7 +5,7 @@ using FluentAssertions;
 using Xunit;
 
 /// <summary>
-/// OrchestratorOptions 单元测试
+/// Unit tests for OrchestratorOptions.
 /// </summary>
 public class OrchestratorOptionsTests
 {

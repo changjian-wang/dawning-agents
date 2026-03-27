@@ -58,7 +58,11 @@ public abstract class OrchestratorBase : IOrchestrator
     {
         ArgumentNullException.ThrowIfNull(agent);
         ImmutableInterlocked.Update(ref _agents, (list, a) => list.Add(a), agent);
-        Logger.LogDebug("Agent {AgentName} added to orchestrator {OrchestratorName}", agent.Name, Name);
+        Logger.LogDebug(
+            "Agent {AgentName} added to orchestrator {OrchestratorName}",
+            agent.Name,
+            Name
+        );
         return this;
     }
 
@@ -98,7 +102,11 @@ public abstract class OrchestratorBase : IOrchestrator
 
         if (Volatile.Read(ref _agents).Count == 0)
         {
-            return OrchestrationResult.Failed("No agents registered in the orchestrator", [], TimeSpan.Zero);
+            return OrchestrationResult.Failed(
+                "No agents registered in the orchestrator",
+                [],
+                TimeSpan.Zero
+            );
         }
 
         var stopwatch = Stopwatch.StartNew();

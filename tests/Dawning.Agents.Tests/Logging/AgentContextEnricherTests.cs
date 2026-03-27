@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Logging;
 
 /// <summary>
-/// AgentContextEnricher 测试
+/// AgentContextEnricher tests
 /// </summary>
 public class AgentContextEnricherTests
 {

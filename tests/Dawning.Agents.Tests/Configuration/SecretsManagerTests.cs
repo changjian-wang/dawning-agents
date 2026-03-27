@@ -13,7 +13,7 @@ public class SecretsManagerTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("managers");
     }
 
-    // 辅助方法：生成测试用的环境变量名（大写，与 NormalizeEnvName 一致）
+    // Helper method: generate test environment variable name (uppercase, consistent with NormalizeEnvName)
     private static string GenerateTestKey() =>
         "TEST_SECRET_KEY_" + Guid.NewGuid().ToString("N").ToUpperInvariant();
 
@@ -64,7 +64,7 @@ public class SecretsManagerTests
         {
             await manager.SetSecretAsync(testKey, "new-value");
 
-            // NormalizeEnvName 转大写，所以用大写 key 检查
+            // NormalizeEnvName converts to uppercase, so check with uppercase key
             Environment
                 .GetEnvironmentVariable(testKey, EnvironmentVariableTarget.Process)
                 .Should()

@@ -189,7 +189,11 @@ public sealed class RedisSharedState : ISharedState, IDisposable
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Shared state change handler failed for key: {Key}", key);
+                                _logger.LogError(
+                                    ex,
+                                    "Shared state change handler failed for key: {Key}",
+                                    key
+                                );
                             }
                         }
                     }

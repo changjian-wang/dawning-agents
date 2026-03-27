@@ -4,7 +4,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Prompts;
 
 /// <summary>
-/// AgentPrompts 单元测试
+/// AgentPrompts unit tests
 /// </summary>
 public class AgentPromptsTests
 {

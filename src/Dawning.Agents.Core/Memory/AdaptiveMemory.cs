@@ -60,11 +60,17 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
         _downgradeThreshold =
             downgradeThreshold > 0
                 ? downgradeThreshold
-                : throw new ArgumentException("Downgrade threshold must be a positive number.", nameof(downgradeThreshold));
+                : throw new ArgumentException(
+                    "Downgrade threshold must be a positive number.",
+                    nameof(downgradeThreshold)
+                );
         _maxRecentMessages =
             maxRecentMessages > 0
                 ? maxRecentMessages
-                : throw new ArgumentException("Max recent messages must be a positive number.", nameof(maxRecentMessages));
+                : throw new ArgumentException(
+                    "Max recent messages must be a positive number.",
+                    nameof(maxRecentMessages)
+                );
         _summaryThreshold =
             summaryThreshold > maxRecentMessages
                 ? summaryThreshold

@@ -4,7 +4,7 @@ using Dawning.Agents.Abstractions.Communication;
 using FluentAssertions;
 
 /// <summary>
-/// AgentMessage 及其派生类型测试
+/// AgentMessage and its derived types tests
 /// </summary>
 public class AgentMessageTests
 {

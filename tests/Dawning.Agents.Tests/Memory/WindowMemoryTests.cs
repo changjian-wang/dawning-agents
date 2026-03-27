@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// WindowMemory 单元测试
+/// Unit tests for WindowMemory
 /// </summary>
 public class WindowMemoryTests
 {

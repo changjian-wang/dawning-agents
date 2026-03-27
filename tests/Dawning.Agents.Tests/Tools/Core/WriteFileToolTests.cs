@@ -7,7 +7,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// WriteFileTool 测试
+/// WriteFileTool tests
 /// </summary>
 public class WriteFileToolTests : IDisposable
 {

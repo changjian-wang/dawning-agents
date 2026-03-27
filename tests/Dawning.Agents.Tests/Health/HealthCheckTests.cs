@@ -95,7 +95,7 @@ public class RedisHealthCheckTests
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
-        result.Description.Should().Contain("失败");
+        result.Description.Should().Contain("failed");
         result.Exception.Should().NotBeNull();
     }
 }

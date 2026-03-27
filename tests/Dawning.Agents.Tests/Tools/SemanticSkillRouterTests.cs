@@ -9,7 +9,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// SemanticSkillRouter 测试
+/// SemanticSkillRouter tests
 /// </summary>
 public sealed class SemanticSkillRouterTests
 {

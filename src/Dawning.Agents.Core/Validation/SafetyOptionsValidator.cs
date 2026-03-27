@@ -41,9 +41,13 @@ public class SensitivePatternValidator : AbstractValidator<SensitivePattern>
             .Must(BeValidRegex)
             .WithMessage("Regex pattern format is invalid.");
 
-        RuleFor(x => x.KeepFirst).GreaterThanOrEqualTo(0).WithMessage("KeepFirst must not be negative.");
+        RuleFor(x => x.KeepFirst)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("KeepFirst must not be negative.");
 
-        RuleFor(x => x.KeepLast).GreaterThanOrEqualTo(0).WithMessage("KeepLast must not be negative.");
+        RuleFor(x => x.KeepLast)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("KeepLast must not be negative.");
     }
 
     private static bool BeValidRegex(string pattern)

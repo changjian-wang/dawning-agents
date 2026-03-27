@@ -16,14 +16,14 @@ public class HealthModelsTests
         {
             Name = "LLM",
             Status = HealthStatus.Healthy,
-            Message = "响应正常",
+            Message = "Response OK",
             Data = data,
         };
 
         // Assert
         health.Name.Should().Be("LLM");
         health.Status.Should().Be(HealthStatus.Healthy);
-        health.Message.Should().Be("响应正常");
+        health.Message.Should().Be("Response OK");
         health.Data.Should().BeEquivalentTo(data);
     }
 

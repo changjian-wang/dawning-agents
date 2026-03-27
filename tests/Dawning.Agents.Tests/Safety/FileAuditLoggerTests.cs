@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Tests.Safety;
 
 /// <summary>
-/// 文件审计日志记录器测试
+/// File audit logger tests
 /// </summary>
 public sealed class FileAuditLoggerTests : IAsyncLifetime, IAsyncDisposable
 {

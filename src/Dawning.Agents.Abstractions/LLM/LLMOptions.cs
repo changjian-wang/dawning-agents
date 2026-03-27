@@ -60,18 +60,24 @@ public class LLMOptions : IValidatableOptions
             case LLMProviderType.AzureOpenAI:
                 if (string.IsNullOrWhiteSpace(Endpoint))
                 {
-                    throw new InvalidOperationException("Azure OpenAI requires Endpoint to be configured.");
+                    throw new InvalidOperationException(
+                        "Azure OpenAI requires Endpoint to be configured."
+                    );
                 }
                 if (string.IsNullOrWhiteSpace(ApiKey))
                 {
-                    throw new InvalidOperationException("Azure OpenAI requires ApiKey to be configured.");
+                    throw new InvalidOperationException(
+                        "Azure OpenAI requires ApiKey to be configured."
+                    );
                 }
                 break;
 
             case LLMProviderType.Ollama:
                 if (string.IsNullOrWhiteSpace(Endpoint))
                 {
-                    throw new InvalidOperationException("Ollama requires Endpoint to be configured.");
+                    throw new InvalidOperationException(
+                        "Ollama requires Endpoint to be configured."
+                    );
                 }
                 break;
         }

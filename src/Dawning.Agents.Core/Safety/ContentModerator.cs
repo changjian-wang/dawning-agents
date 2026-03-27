@@ -30,7 +30,8 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
     public string Name => "ContentModerator";
 
     /// <inheritdoc />
-    public string Description => "Uses an LLM for content moderation to detect harmful, violating, or inappropriate content";
+    public string Description =>
+        "Uses an LLM for content moderation to detect harmful, violating, or inappropriate content";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.Enabled;
@@ -108,7 +109,9 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             // Decide behavior on exception based on configuration
             if (_options.FailOpenOnError)
             {
-                _logger.LogWarning("Content moderation exception; allowing through per configuration");
+                _logger.LogWarning(
+                    "Content moderation exception; allowing through per configuration"
+                );
                 return GuardrailResult.Pass(content);
             }
 
@@ -261,7 +264,15 @@ public sealed class ContentModeratorOptions
     /// Gets or sets the moderation categories.
     /// </summary>
     public List<string> Categories { get; set; } =
-    ["Violence", "Sexual content", "Hate speech", "Self-harm", "Illegal activity", "Personal attacks", "Misinformation"];
+    [
+        "Violence",
+        "Sexual content",
+        "Hate speech",
+        "Self-harm",
+        "Illegal activity",
+        "Personal attacks",
+        "Misinformation",
+    ];
 
     /// <summary>
     /// Gets or sets the maximum content length to check (content beyond this is truncated).

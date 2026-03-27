@@ -6,7 +6,7 @@ using FluentAssertions;
 using Xunit;
 
 /// <summary>
-/// OrchestrationResult 和 OrchestrationContext 单元测试
+/// Unit tests for OrchestrationResult and OrchestrationContext.
 /// </summary>
 public class OrchestrationResultTests
 {
@@ -95,7 +95,7 @@ public class OrchestrationResultTests
 }
 
 /// <summary>
-/// OrchestrationContext 单元测试
+/// Unit tests for OrchestrationContext.
 /// </summary>
 public class OrchestrationContextTests
 {

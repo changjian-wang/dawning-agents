@@ -10,7 +10,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Agent;
 
 /// <summary>
-/// AgentServiceCollectionExtensions 单元测试
+/// Unit tests for AgentServiceCollectionExtensions
 /// </summary>
 public class AgentServiceCollectionExtensionsTests
 {
@@ -97,7 +97,7 @@ public class AgentServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
         var agent = provider.GetRequiredService<IAgent>();
 
-        // TryAddScoped 只添加第一个
+        // TryAddScoped only adds the first registration
         agent.Should().NotBeNull();
     }
 

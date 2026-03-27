@@ -144,7 +144,7 @@ public class PollyResilienceProviderTests
             });
         });
 
-        // 非重试异常只执行一次
+        // Non-retryable exception executes only once
         attemptCount.Should().Be(1);
     }
 }

@@ -185,7 +185,11 @@ public partial class InMemorySharedState : ISharedState
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing shared state change notification for {Key}", key);
+                    _logger.LogError(
+                        ex,
+                        "Error processing shared state change notification for {Key}",
+                        key
+                    );
                 }
             }
         }

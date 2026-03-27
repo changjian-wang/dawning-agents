@@ -91,8 +91,8 @@ public class CostOptimizedRouterTests
             NullLogger<CostOptimizedRouter>.Instance
         );
 
-        // 报告多次失败使提供者变为不健康状态
-        // UnhealthyThreshold 默认为 3，所以需要 3 次连续失败
+        // Report multiple failures to make the provider unhealthy
+        // UnhealthyThreshold defaults to 3, so 3 consecutive failures needed
         for (int i = 0; i < 5; i++)
         {
             router.ReportResult(unhealthyProvider.Object, ModelCallResult.Failed("error", 0));
@@ -104,7 +104,7 @@ public class CostOptimizedRouterTests
             EstimatedOutputTokens = 100,
         };
 
-        // 所有提供者都不健康时应抛出异常
+        // All providers are unhealthy, should throw exception
         var act = () => router.SelectProviderAsync(context);
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
@@ -142,7 +142,7 @@ public class CostOptimizedRouterTests
             ModelCallResult.Succeeded(200, 600, 300, 0.002m)
         );
 
-        // 验证统计更新（通过内部 GetHealthyProviders 方法间接验证）
+        // Verify statistics updated (indirectly via internal GetHealthyProviders method)
         router.GetAvailableProviders().Should().Contain(_cheapProvider.Object);
     }
 }
@@ -193,7 +193,7 @@ public class LatencyOptimizedRouterTests
 
         var selected = await router.SelectProviderAsync(context);
 
-        // Ollama 本地模型默认估算延迟最低
+        // Ollama local model has lowest estimated latency by default
         selected.Name.Should().Contain("ollama");
     }
 
@@ -206,7 +206,7 @@ public class LatencyOptimizedRouterTests
             NullLogger<LatencyOptimizedRouter>.Instance
         );
 
-        // 报告 slow provider 实际上更快
+        // Report that slow provider is actually faster
         for (int i = 0; i < 5; i++)
         {
             router.ReportResult(
@@ -227,7 +227,7 @@ public class LatencyOptimizedRouterTests
 
         var selected = await router.SelectProviderAsync(context);
 
-        // 应该基于历史数据选择实际更快的
+        // Should select the actually faster one based on historical data
         selected.Name.Should().Be("gpt-4-slow");
     }
 
@@ -240,7 +240,7 @@ public class LatencyOptimizedRouterTests
             NullLogger<LatencyOptimizedRouter>.Instance
         );
 
-        // 报告延迟
+        // Report latency
         router.ReportResult(_fastProvider.Object, ModelCallResult.Succeeded(100, 100, 100, 0.001m));
         router.ReportResult(
             _slowProvider.Object,
@@ -310,14 +310,14 @@ public class LoadBalancedRouterTests
         var context = new ModelRoutingContext();
         var selections = new List<string>();
 
-        // 选择 9 次
+        // Select 9 times
         for (int i = 0; i < 9; i++)
         {
             var selected = await router.SelectProviderAsync(context);
             selections.Add(selected.Name);
         }
 
-        // 应该均匀分布
+        // Should be evenly distributed
         selections.Count(s => s == "provider-1").Should().Be(3);
         selections.Count(s => s == "provider-2").Should().Be(3);
         selections.Count(s => s == "provider-3").Should().Be(3);
@@ -362,14 +362,14 @@ public class LoadBalancedRouterTests
         var context = new ModelRoutingContext();
         var selections = new HashSet<string>();
 
-        // 选择足够多次以覆盖所有提供者
+        // Select enough times to cover all providers
         for (int i = 0; i < 100; i++)
         {
             var selected = await router.SelectProviderAsync(context);
             selections.Add(selected.Name);
         }
 
-        // 随机策略应该最终选择到所有提供者
+        // Random strategy should eventually select all providers
         selections.Should().Contain("provider-1");
         selections.Should().Contain("provider-2");
         selections.Should().Contain("provider-3");
@@ -434,11 +434,11 @@ public class ModelRoutingContextTests
             ExcludedProviders = ["provider-1"],
         };
 
-        // 原始不变
+        // Original unchanged
         original.Priority.Should().Be(RequestPriority.Normal);
         original.ExcludedProviders.Should().BeEmpty();
 
-        // 新实例有修改
+        // New instance has modifications
         modified.EstimatedInputTokens.Should().Be(100);
         modified.Priority.Should().Be(RequestPriority.High);
         modified.ExcludedProviders.Should().Contain("provider-1");
@@ -550,7 +550,7 @@ public class ModelRouterDITests
         var services = new ServiceCollection();
         services.AddLogging();
 
-        // 添加一个提供者
+        // Add a provider
         services.AddSingleton<ILLMProvider>(CreateMockProvider().Object);
 
         services.AddModelRouter(ModelRoutingStrategy.CostOptimized);

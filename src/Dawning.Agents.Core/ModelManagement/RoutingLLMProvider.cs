@@ -128,7 +128,11 @@ public sealed class RoutingLLMProvider : ILLMProvider
                 )
             {
                 sw.Stop();
-                _logger.LogWarning(ex, "Provider {Provider} call failed; attempting failover", provider.Name);
+                _logger.LogWarning(
+                    ex,
+                    "Provider {Provider} call failed; attempting failover",
+                    provider.Name
+                );
 
                 // Report failure
                 Router.ReportResult(
@@ -320,7 +324,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
         {
             var stream = provider.ChatStreamAsync(messages, options, cancellationToken);
             // Async iterator methods execute no code when called; errors are deferred to the first MoveNextAsync,
-    // so ProbeStreamAsync must probe the first element to detect connection/authentication errors
+            // so ProbeStreamAsync must probe the first element to detect connection/authentication errors
             return await ProbeStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

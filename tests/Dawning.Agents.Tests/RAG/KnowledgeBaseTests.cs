@@ -7,7 +7,7 @@ using Moq;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// KnowledgeBase 单元测试
+/// KnowledgeBase unit tests
 /// </summary>
 public class KnowledgeBaseTests
 {

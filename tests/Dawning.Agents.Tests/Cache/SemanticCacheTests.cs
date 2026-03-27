@@ -9,7 +9,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Cache;
 
 /// <summary>
-/// SemanticCache 单元测试
+/// SemanticCache unit tests
 /// </summary>
 public class SemanticCacheTests
 {
@@ -25,7 +25,7 @@ public class SemanticCacheTests
             .ReturnsAsync(
                 (string text, CancellationToken _) =>
                 {
-                    // 简单的确定性伪嵌入：相同文本产生相同向量
+                    // Simple deterministic fake embedding: same text produces same vector
                     var hash = text.GetHashCode();
                     return new float[]
                     {
@@ -179,7 +179,7 @@ public class SemanticCacheTests
     [Fact]
     public async Task GetAsync_ExactMatch_ReturnsCachedResponse()
     {
-        // 设置相同文本产生相同向量
+        // Set up so same text produces same vector
         _mockEmbedding
             .Setup(x => x.EmbedAsync("What is AI?", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new float[] { 0.1f, 0.2f, 0.3f });
@@ -197,21 +197,21 @@ public class SemanticCacheTests
     [Fact]
     public async Task GetAsync_NoMatch_ReturnsNull()
     {
-        // 设置高阈值确保只有精确匹配才能命中
+        // Set high threshold to ensure only exact matches can hit
         var highThresholdOptions = Options.Create(
             new SemanticCacheOptions { Enabled = true, SimilarityThreshold = 0.99f }
         );
 
-        // 使用独立的 mock 和 store
+        // Use independent mock and store
         var mockEmbed = new Mock<IEmbeddingProvider>();
         var store = new InMemoryVectorStore();
 
-        // 缓存查询使用一个向量
+        // Cached query uses one vector
         mockEmbed
             .Setup(x => x.EmbedAsync("What is AI?", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new float[] { 1.0f, 0.0f, 0.0f });
 
-        // 不同查询使用正交向量（余弦相似度为0）
+        // Different query uses orthogonal vector (cosine similarity = 0)
         mockEmbed
             .Setup(x => x.EmbedAsync("Completely different query", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new float[] { 0.0f, 1.0f, 0.0f });
@@ -253,7 +253,7 @@ public class SemanticCacheTests
             new SemanticCacheOptions
             {
                 Enabled = true,
-                SimilarityThreshold = 0.99f, // 非常高的阈值
+                SimilarityThreshold = 0.99f, // Very high threshold
             }
         );
         var cache = new SemanticCache(_vectorStore, _mockEmbedding.Object, highThresholdOptions);
@@ -263,12 +263,12 @@ public class SemanticCacheTests
             .ReturnsAsync(new float[] { 0.1f, 0.2f, 0.3f });
         _mockEmbedding
             .Setup(x => x.EmbedAsync("What is machine learning?", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new float[] { 0.9f, -0.5f, 0.1f }); // 余弦相似度远低于 0.99
+            .ReturnsAsync(new float[] { 0.9f, -0.5f, 0.1f }); // Cosine similarity far below 0.99
 
         await cache.SetAsync("What is AI?", "AI is artificial intelligence.");
         var result = await cache.GetAsync("What is machine learning?");
 
-        // 由于阈值很高（0.99），不够相似的查询应返回 null
+        // Due to high threshold (0.99), insufficiently similar queries should return null
         result.Should().BeNull();
     }
 
@@ -348,7 +348,7 @@ public class SemanticCacheTests
     {
         var cache = new SemanticCache(_vectorStore, _mockEmbedding.Object, _options);
 
-        // 先添加一些数据
+        // Add some data first
         for (int i = 0; i < 10; i++)
         {
             await cache.SetAsync($"Question {i}", $"Answer {i}");
@@ -356,7 +356,7 @@ public class SemanticCacheTests
 
         var tasks = new List<Task>();
 
-        // 并发读写
+        // Concurrent reads and writes
         for (int i = 0; i < 50; i++)
         {
             var index = i;

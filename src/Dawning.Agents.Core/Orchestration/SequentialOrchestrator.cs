@@ -95,7 +95,10 @@ public sealed class SequentialOrchestrator : OrchestratorBase
                     );
                 }
 
-                Logger.LogWarning("Agent {AgentName} failed, but continuing to the next agent", agent.Name);
+                Logger.LogWarning(
+                    "Agent {AgentName} failed, but continuing to the next agent",
+                    agent.Name
+                );
             }
             else
             {
@@ -117,11 +120,7 @@ public sealed class SequentialOrchestrator : OrchestratorBase
         // Return failure when ContinueOnError is enabled and all agents failed
         if (lastSuccessRecord == null && executionHistory.Count > 0)
         {
-            return OrchestrationResult.Failed(
-                "All agents failed",
-                executionHistory,
-                TimeSpan.Zero
-            );
+            return OrchestrationResult.Failed("All agents failed", executionHistory, TimeSpan.Zero);
         }
 
         var finalOutput =

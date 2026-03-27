@@ -5,7 +5,7 @@ using Dawning.Agents.Core.Communication;
 using FluentAssertions;
 
 /// <summary>
-/// InMemorySharedState 测试
+/// InMemorySharedState tests
 /// </summary>
 public class InMemorySharedStateTests
 {
@@ -257,7 +257,7 @@ public class InMemorySharedStateTests
         subscription.Dispose();
 
         await state.SetAsync("key", "value2");
-        callCount.Should().Be(1); // 不应增加
+        callCount.Should().Be(1); // Should not increase
     }
 
     #endregion

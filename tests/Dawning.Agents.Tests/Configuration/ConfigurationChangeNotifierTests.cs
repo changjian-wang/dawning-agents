@@ -9,7 +9,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Configuration;
 
 /// <summary>
-/// ConfigurationChangeNotifier 测试
+/// ConfigurationChangeNotifier tests
 /// </summary>
 public class ConfigurationChangeNotifierTests
 {
@@ -298,7 +298,7 @@ public class ConfigurationChangeNotifierTests
     }
 
     /// <summary>
-    /// 测试用配置类
+    /// Test configuration class
     /// </summary>
     public class TestOptions
     {

@@ -19,7 +19,7 @@ public class WorkflowTests
     [Fact]
     public void WorkflowBuilder_Create_ReturnsBuilder()
     {
-        var builder = WorkflowBuilder.Create("test-workflow", "测试工作流");
+        var builder = WorkflowBuilder.Create("test-workflow", "Test Workflow");
 
         builder.Should().NotBeNull();
     }
@@ -28,8 +28,8 @@ public class WorkflowTests
     public void WorkflowBuilder_Build_WithStartNode_ReturnsDefinition()
     {
         var definition = WorkflowBuilder
-            .Create("test-workflow", "测试工作流")
-            .WithDescription("这是一个测试工作流")
+            .Create("test-workflow", "Test Workflow")
+            .WithDescription("This is a test workflow")
             .WithVersion("1.0.0")
             .AddStartNode("start")
             .AddEndNode("end")
@@ -38,8 +38,8 @@ public class WorkflowTests
 
         definition.Should().NotBeNull();
         definition.Id.Should().Be("test-workflow");
-        definition.Name.Should().Be("测试工作流");
-        definition.Description.Should().Be("这是一个测试工作流");
+        definition.Name.Should().Be("Test Workflow");
+        definition.Description.Should().Be("This is a test workflow");
         definition.StartNodeId.Should().Be("start");
         definition.Nodes.Should().HaveCount(2);
         definition.Edges.Should().HaveCount(1);
@@ -48,20 +48,20 @@ public class WorkflowTests
     [Fact]
     public void WorkflowBuilder_Build_WithoutStartNode_ThrowsException()
     {
-        var builder = WorkflowBuilder.Create("test-workflow", "测试工作流");
+        var builder = WorkflowBuilder.Create("test-workflow", "Test Workflow");
 
         var action = () => builder.Build();
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("*起始节点*");
+        action.Should().Throw<InvalidOperationException>().WithMessage("*start node*");
     }
 
     [Fact]
     public void WorkflowBuilder_AddAgentNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddAgentNode("agent1", "Agent 节点", "TestAgent", "{{input}}", maxRetries: 3)
+            .AddAgentNode("agent1", "Agent Node", "TestAgent", "{{input}}", maxRetries: 3)
             .AddEndNode("end")
             .Connect("start", "agent1")
             .Connect("agent1", "end")
@@ -77,9 +77,9 @@ public class WorkflowTests
     public void WorkflowBuilder_AddToolNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddToolNode("tool1", "工具节点", "Calculator", "2+2")
+            .AddToolNode("tool1", "Tool Node", "Calculator", "2+2")
             .AddEndNode("end")
             .Connect("start", "tool1")
             .Connect("tool1", "end")
@@ -95,11 +95,11 @@ public class WorkflowTests
     public void WorkflowBuilder_AddConditionNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddConditionNode(
                 "condition1",
-                "条件判断",
+                "Condition",
                 c =>
                     c.InputFrom("lastOutput")
                         .AddBranch("Yes", "contains:yes", "yes_branch")
@@ -119,11 +119,11 @@ public class WorkflowTests
     public void WorkflowBuilder_AddParallelNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddParallelNode(
                 "parallel1",
-                "并行执行",
+                "Parallel Execution",
                 p =>
                     p.AddBranch("Branch1", "branch1_start")
                         .AddBranch("Branch2", "branch2_start")
@@ -143,9 +143,9 @@ public class WorkflowTests
     public void WorkflowBuilder_AddLoopNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddLoopNode("loop1", "循环节点", "loop_body", maxIterations: 5)
+            .AddLoopNode("loop1", "Loop Node", "loop_body", maxIterations: 5)
             .AddEndNode("end")
             .StartWith("start")
             .Build();
@@ -159,9 +159,9 @@ public class WorkflowTests
     public void WorkflowBuilder_AddDelayNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddDelayNode("delay1", "延迟", 5000)
+            .AddDelayNode("delay1", "Delay", 5000)
             .AddEndNode("end")
             .Connect("start", "delay1")
             .Connect("delay1", "end")
@@ -176,14 +176,14 @@ public class WorkflowTests
     public void WorkflowBuilder_AddHumanApprovalNode_AddsCorrectNode()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddHumanApprovalNode(
                 "approval1",
-                "人工审批",
+                "Human Approval",
                 "approved_node",
                 "rejected_node",
-                "请确认操作"
+                "Please confirm the operation"
             )
             .AddEndNode("end")
             .StartWith("start")
@@ -198,7 +198,7 @@ public class WorkflowTests
     public void WorkflowBuilder_WithMetadata_AddsMetadata()
     {
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .WithMetadata("author", "Test")
             .WithMetadata("category", "Testing")
             .AddStartNode("start")
@@ -223,7 +223,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -246,9 +246,9 @@ public class WorkflowTests
         var definition = new WorkflowDefinition
         {
             Id = "test",
-            Name = "测试",
+            Name = "Test",
             StartNodeId = "nonexistent",
-            Nodes = [new WorkflowNodeDefinition { Id = "start", Name = "开始" }],
+            Nodes = [new WorkflowNodeDefinition { Id = "start", Name = "Start" }],
             Edges = [],
         };
 
@@ -269,9 +269,9 @@ public class WorkflowTests
         var definition = new WorkflowDefinition
         {
             Id = "test",
-            Name = "测试",
+            Name = "Test",
             StartNodeId = "start",
-            Nodes = [new WorkflowNodeDefinition { Id = "start", Name = "开始" }],
+            Nodes = [new WorkflowNodeDefinition { Id = "start", Name = "Start" }],
             Edges = [new WorkflowEdgeDefinition { FromNodeId = "start", ToNodeId = "nonexistent" }],
         };
 
@@ -290,7 +290,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddAgentNode("agent1", "Agent", "TestAgent")
             .Connect("start", "agent1")
@@ -311,7 +311,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -335,9 +335,9 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddDelayNode("delay", "延迟", 100)
+            .AddDelayNode("delay", "Delay", 100)
             .AddEndNode("end")
             .Connect("start", "delay")
             .Connect("delay", "end")
@@ -348,7 +348,7 @@ public class WorkflowTests
         var result = await engine.ExecuteAsync(definition, context);
 
         result.Success.Should().BeTrue();
-        // 允许少量时间误差（由于系统调度）
+        // Allow small timing tolerance (due to system scheduling)
         result.TotalDurationMs.Should().BeGreaterThanOrEqualTo(95);
     }
 
@@ -366,7 +366,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddAgentNode("agent", "Agent", "TestAgent")
             .AddEndNode("end")
@@ -394,7 +394,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp, toolRegistry);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddToolNode("tool", "Tool", "CancelableTool")
             .AddEndNode("end")
@@ -417,7 +417,7 @@ public class WorkflowTests
 
         var engine = new WorkflowEngine(sp);
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -427,7 +427,7 @@ public class WorkflowTests
 
         workflow.Should().NotBeNull();
         workflow.Id.Should().Be("test");
-        workflow.Name.Should().Be("测试");
+        workflow.Name.Should().Be("Test");
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public class WorkflowTests
         var definition = new WorkflowDefinition
         {
             Id = "test",
-            Name = "测试",
+            Name = "Test",
             StartNodeId = "nonexistent",
             Nodes = [],
             Edges = [],
@@ -449,7 +449,7 @@ public class WorkflowTests
 
         var action = () => engine.CreateWorkflow(definition);
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("*无效*");
+        action.Should().Throw<InvalidOperationException>().WithMessage("*Invalid*");
     }
 
     [Fact]
@@ -503,7 +503,7 @@ public class WorkflowTests
             new WorkflowExecutionStep
             {
                 NodeId = "node1",
-                NodeName = "节点1",
+                NodeName = "Node 1",
                 StartedAt = DateTimeOffset.UtcNow,
             }
         );
@@ -559,8 +559,8 @@ public class WorkflowTests
     {
         var serializer = new WorkflowSerializer();
         var definition = WorkflowBuilder
-            .Create("test", "测试工作流")
-            .WithDescription("测试描述")
+            .Create("test", "Test Workflow")
+            .WithDescription("Test Description")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -569,7 +569,7 @@ public class WorkflowTests
         var json = serializer.SerializeToJson(definition);
 
         json.Should().Contain("\"id\": \"test\"");
-        // JSON 序列化使用 Unicode 编码
+        // JSON serialization uses Unicode encoding
         json.Should().Contain("\"name\":");
     }
 
@@ -580,11 +580,11 @@ public class WorkflowTests
         var json = """
             {
                 "id": "test",
-                "name": "测试工作流",
+                "name": "Test Workflow",
                 "startNodeId": "start",
                 "nodes": [
-                    { "id": "start", "name": "开始", "type": "start" },
-                    { "id": "end", "name": "结束", "type": "end" }
+                    { "id": "start", "name": "Start", "type": "start" },
+                    { "id": "end", "name": "End", "type": "end" }
                 ],
                 "edges": [
                     { "fromNodeId": "start", "toNodeId": "end" }
@@ -595,7 +595,7 @@ public class WorkflowTests
         var definition = serializer.DeserializeFromJson(json);
 
         definition.Id.Should().Be("test");
-        definition.Name.Should().Be("测试工作流");
+        definition.Name.Should().Be("Test Workflow");
         definition.Nodes.Should().HaveCount(2);
     }
 
@@ -604,11 +604,11 @@ public class WorkflowTests
     {
         var serializer = new WorkflowSerializer();
         var original = WorkflowBuilder
-            .Create("test", "测试工作流")
-            .WithDescription("测试描述")
+            .Create("test", "Test Workflow")
+            .WithDescription("Test Description")
             .WithVersion("2.0.0")
             .AddStartNode("start")
-            .AddAgentNode("agent1", "Agent 节点", "TestAgent")
+            .AddAgentNode("agent1", "Agent Node", "TestAgent")
             .AddEndNode("end")
             .Connect("start", "agent1")
             .Connect("agent1", "end")
@@ -630,7 +630,7 @@ public class WorkflowTests
     {
         var serializer = new WorkflowSerializer();
         var definition = WorkflowBuilder
-            .Create("test", "测试工作流")
+            .Create("test", "Test Workflow")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -639,7 +639,7 @@ public class WorkflowTests
         var yaml = serializer.SerializeToYaml(definition);
 
         yaml.Should().Contain("id: test");
-        yaml.Should().Contain("name: 测试工作流");
+        yaml.Should().Contain("name: Test Workflow");
         yaml.Should().Contain("nodes:");
         yaml.Should().Contain("edges:");
     }
@@ -650,15 +650,15 @@ public class WorkflowTests
         var serializer = new WorkflowSerializer();
         var yaml = """
             id: test
-            name: 测试工作流
+            name: Test Workflow
             startNodeId: start
 
             nodes:
               - id: start
-                name: 开始
+                name: Start
                 type: Start
               - id: end
-                name: 结束
+                name: End
                 type: End
 
             edges:
@@ -669,7 +669,7 @@ public class WorkflowTests
         var definition = serializer.DeserializeFromYaml(yaml);
 
         definition.Id.Should().Be("test");
-        definition.Name.Should().Be("测试工作流");
+        definition.Name.Should().Be("Test Workflow");
         definition.Nodes.Should().HaveCount(2);
         definition.Edges.Should().HaveCount(1);
     }
@@ -683,18 +683,18 @@ public class WorkflowTests
     {
         var visualizer = new WorkflowVisualizer();
         var definition = WorkflowBuilder
-            .Create("test", "测试工作流")
+            .Create("test", "Test Workflow")
             .AddStartNode("start")
-            .AddAgentNode("agent1", "处理请求", "TestAgent")
+            .AddAgentNode("agent1", "Process Request", "TestAgent")
             .AddConditionNode(
                 "check",
-                "检查结果",
+                "Check Result",
                 c => c.AddBranch("Yes", "contains:yes", "end").DefaultTo("agent1")
             )
             .AddEndNode("end")
             .Connect("start", "agent1")
             .Connect("agent1", "check")
-            .Connect("check", "end", "成功")
+            .Connect("check", "end", "Success")
             .Build();
 
         var mermaid = visualizer.GenerateMermaid(definition);
@@ -711,7 +711,7 @@ public class WorkflowTests
     {
         var visualizer = new WorkflowVisualizer();
         var definition = WorkflowBuilder
-            .Create("test", "测试工作流")
+            .Create("test", "Test Workflow")
             .AddStartNode("start")
             .AddEndNode("end")
             .Connect("start", "end")
@@ -730,22 +730,22 @@ public class WorkflowTests
     {
         var visualizer = new WorkflowVisualizer();
         var definition = WorkflowBuilder
-            .Create("test", "测试")
+            .Create("test", "Test")
             .AddStartNode("start")
-            .AddConditionNode("cond", "条件", c => c.DefaultTo("end"))
-            .AddParallelNode("parallel", "并行", p => p.AddBranch("B1", "end"))
-            .AddLoopNode("loop", "循环", "end")
+            .AddConditionNode("cond", "Condition", c => c.DefaultTo("end"))
+            .AddParallelNode("parallel", "Parallel", p => p.AddBranch("B1", "end"))
+            .AddLoopNode("loop", "Loop", "end")
             .AddEndNode("end")
             .StartWith("start")
             .Build();
 
         var mermaid = visualizer.GenerateMermaid(definition);
 
-        // 检查不同节点类型有不同的形状
-        mermaid.Should().Contain("(("); // 圆形（开始/结束）
-        mermaid.Should().Contain("{"); // 菱形（条件）
-        mermaid.Should().Contain("[["); // 双边框（并行）
-        mermaid.Should().Contain("(["); // 药丸形（循环）
+        // Verify different node types have different shapes
+        mermaid.Should().Contain("(("); // Circle (start/end)
+        mermaid.Should().Contain("{"); // Diamond (condition)
+        mermaid.Should().Contain("[["); // Double border (parallel)
+        mermaid.Should().Contain("(["); // Stadium/pill shape (loop)
     }
 
     #endregion
@@ -777,7 +777,7 @@ public class WorkflowTests
         services.AddWorkflowEngine();
         services.AddWorkflow(
             "test-workflow",
-            "测试工作流",
+            "Test Workflow",
             builder =>
             {
                 builder.AddStartNode("start").AddEndNode("end").Connect("start", "end");

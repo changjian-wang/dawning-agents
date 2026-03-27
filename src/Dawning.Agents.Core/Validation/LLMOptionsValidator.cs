@@ -16,7 +16,9 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
             x => x.ProviderType == LLMProviderType.OpenAI,
             () =>
             {
-                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("ApiKey is required for the OpenAI provider.");
+                RuleFor(x => x.ApiKey)
+                    .NotEmpty()
+                    .WithMessage("ApiKey is required for the OpenAI provider.");
             }
         );
 
@@ -30,7 +32,9 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
                     .Must(BeValidUrl)
                     .WithMessage("Endpoint must be a valid URL.");
 
-                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("ApiKey is required for the Azure OpenAI provider.");
+                RuleFor(x => x.ApiKey)
+                    .NotEmpty()
+                    .WithMessage("ApiKey is required for the Azure OpenAI provider.");
             }
         );
 

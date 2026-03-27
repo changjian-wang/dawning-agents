@@ -69,7 +69,7 @@ public class AgentTelemetryTests : IDisposable
         using var activity = _telemetry.StartAgentSpan("TestAgent", "Run");
 
         // Assert
-        // Activity 可能为 null（如果没有 listener），但不应该抛出异常
+        // Activity may be null (if there's no listener), but should not throw
     }
 
     [Fact]

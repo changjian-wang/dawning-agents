@@ -22,7 +22,8 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
+            section["ApiKey"]
+            ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["VisionModel"] ?? "gpt-4o";
 
@@ -68,7 +69,8 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("AzureOpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
+            section["ApiKey"]
+            ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
         var endpoint =
             section["Endpoint"]
             ?? throw new InvalidOperationException("AzureOpenAI:Endpoint is not configured");
@@ -137,7 +139,8 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
+            section["ApiKey"]
+            ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["WhisperModel"] ?? "whisper-1";
 
@@ -184,7 +187,8 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("AzureOpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
+            section["ApiKey"]
+            ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
         var endpoint =
             section["Endpoint"]
             ?? throw new InvalidOperationException("AzureOpenAI:Endpoint is not configured");
@@ -257,7 +261,8 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
+            section["ApiKey"]
+            ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["TTSModel"] ?? "tts-1";
 

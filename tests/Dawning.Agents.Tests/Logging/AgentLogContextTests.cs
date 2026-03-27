@@ -5,7 +5,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Logging;
 
 /// <summary>
-/// AgentLogContext 测试
+/// AgentLogContext tests
 /// </summary>
 public class AgentLogContextTests
 {

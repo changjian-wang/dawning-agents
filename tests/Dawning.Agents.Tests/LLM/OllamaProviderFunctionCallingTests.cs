@@ -67,7 +67,7 @@ public class OllamaProviderFunctionCallingTests
     [Fact]
     public async Task ChatAsync_WithToolCalls_ShouldReturnToolCalls()
     {
-        // Ollama 返回 tool_calls 的 JSON 格式
+        // Ollama returns tool_calls in JSON format
         var responseJson = """
             {
                 "model": "llama3",
@@ -240,7 +240,7 @@ public class OllamaProviderFunctionCallingTests
             new ChatCompletionOptions { Tools = tools }
         );
 
-        // 验证发送了请求
+        // Verify the request was sent
         handlerMock
             .Protected()
             .Verify(
@@ -303,7 +303,7 @@ public class OllamaProviderFunctionCallingTests
             NullLogger<OllamaProvider>.Instance
         );
 
-        // 模拟 Function Calling 的第二轮对话：包含 assistant+tool_calls 和 tool 消息
+        // Simulate the second round of Function Calling: includes assistant+tool_calls and tool messages
         var messages = new List<ChatMessage>
         {
             ChatMessage.User("What's the weather?"),
@@ -317,12 +317,12 @@ public class OllamaProviderFunctionCallingTests
 
         capturedBody.Should().NotBeNull();
 
-        // 验证请求 body 包含正确的 tool 消息结构
+        // Verify the request body contains the correct tool message structure
         var bodyJson = JsonDocument.Parse(capturedBody!);
         var messagesArray = bodyJson.RootElement.GetProperty("messages");
         messagesArray.GetArrayLength().Should().Be(3);
 
-        // 验证 tool role 消息
+        // Verify tool role message
         var toolMsg = messagesArray[2];
         toolMsg.GetProperty("role").GetString().Should().Be("tool");
         toolMsg.GetProperty("content").GetString().Should().Be("Sunny, 25°C");

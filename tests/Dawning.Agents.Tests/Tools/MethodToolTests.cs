@@ -6,11 +6,11 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// MethodTool 单元测试
+/// MethodTool unit tests
 /// </summary>
 public sealed class MethodToolTests
 {
-    #region 构造函数测试
+    #region Constructor Tests
 
     [Fact]
     public void Constructor_ShouldSetPropertiesFromAttribute()
@@ -25,7 +25,7 @@ public sealed class MethodToolTests
 
         // Assert
         tool.Name.Should().Be("simple_method");
-        tool.Description.Should().Be("一个简单的方法");
+        tool.Description.Should().Be("A simple method");
         tool.RequiresConfirmation.Should().BeFalse();
         tool.RiskLevel.Should().Be(ToolRiskLevel.Low);
     }
@@ -107,7 +107,7 @@ public sealed class MethodToolTests
 
     #endregion
 
-    #region ExecuteAsync 测试
+    #region ExecuteAsync Tests
 
     [Fact]
     public async Task ExecuteAsync_SimpleStringMethod_ShouldExecute()
@@ -370,7 +370,7 @@ public sealed class MethodToolTests
 
     #endregion
 
-    #region 静态方法测试
+    #region Static Method Tests
 
     [Fact]
     public async Task ExecuteAsync_StaticMethod_ShouldExecuteWithoutInstance()
@@ -390,7 +390,7 @@ public sealed class MethodToolTests
 
     #endregion
 
-    #region JSON Schema 类型测试
+    #region JSON Schema Type Tests
 
     [Fact]
     public void ParametersSchema_ShouldContainCorrectTypes()
@@ -412,45 +412,45 @@ public sealed class MethodToolTests
 
     #endregion
 
-    #region 辅助测试类
+    #region Helper Test Classes
 
     private sealed class TestToolClass
     {
-        [FunctionTool("一个简单的方法", Name = "simple_method")]
+        [FunctionTool("A simple method", Name = "simple_method")]
         public string SimpleMethod() => "simple";
 
-        [FunctionTool("无名称描述")]
+        [FunctionTool("No name description")]
         public string MethodWithoutName() => "no name";
 
-        [FunctionTool("回显输入", Name = "echo")]
+        [FunctionTool("Echo input", Name = "echo")]
         public string EchoMethod(string input) => $"Echo: {input}";
 
-        [FunctionTool("带参数的方法", Name = "params")]
+        [FunctionTool("Method with parameters", Name = "params")]
         public string MethodWithParameters(string name, int age) => $"Name: {name}, Age: {age}";
 
-        [FunctionTool("异步方法", Name = "async_method")]
+        [FunctionTool("Async method", Name = "async_method")]
         public async Task<string> AsyncMethod(string input)
         {
             await Task.Delay(1);
             return $"Async: {input}";
         }
 
-        [FunctionTool("异步无返回值方法", Name = "async_void")]
+        [FunctionTool("Async void method", Name = "async_void")]
         public async Task AsyncVoidMethod(string input)
         {
             await Task.Delay(1);
         }
 
-        [FunctionTool("返回 ToolResult", Name = "tool_result")]
+        [FunctionTool("Returns ToolResult", Name = "tool_result")]
         public ToolResult ReturnsToolResult() => ToolResult.Ok("Custom result");
 
-        [FunctionTool("返回 null", Name = "returns_null")]
+        [FunctionTool("Returns null", Name = "returns_null")]
         public string? ReturnsNull() => null;
 
-        [FunctionTool("抛出异常", Name = "throwing")]
+        [FunctionTool("Throws exception", Name = "throwing")]
         public string ThrowingMethod() => throw new InvalidOperationException("Test exception");
 
-        [FunctionTool("带 CancellationToken", Name = "with_ct")]
+        [FunctionTool("With CancellationToken", Name = "with_ct")]
         public async Task<string> MethodWithCancellationToken(
             string input,
             CancellationToken ct = default
@@ -461,38 +461,38 @@ public sealed class MethodToolTests
             return input;
         }
 
-        [FunctionTool("带默认参数", Name = "default_param")]
+        [FunctionTool("With default parameter", Name = "default_param")]
         public string MethodWithDefaultParameter(string name, int age = 25) =>
             $"Name: {name}, Age: {age}";
 
-        [FunctionTool("带分类", Name = "with_category", Category = "TestCategory")]
+        [FunctionTool("With category", Name = "with_category", Category = "TestCategory")]
         public string MethodWithCategory() => "categorized";
 
-        [FunctionTool("无参数方法", Name = "no_params")]
+        [FunctionTool("No parameters method", Name = "no_params")]
         public string NoParamsMethod() => "no params";
 
-        [FunctionTool("整数方法", Name = "int_method")]
+        [FunctionTool("Integer method", Name = "int_method")]
         public string IntMethod(int value) => value.ToString();
 
-        [FunctionTool("布尔方法", Name = "bool_method")]
+        [FunctionTool("Boolean method", Name = "bool_method")]
         public string BoolMethod(bool flag) => flag.ToString();
 
-        [FunctionTool("双精度方法", Name = "double_method")]
+        [FunctionTool("Double method", Name = "double_method")]
         public string DoubleMethod(double value) => value.ToString();
 
-        [FunctionTool("长整型方法", Name = "long_method")]
+        [FunctionTool("Long method", Name = "long_method")]
         public string LongMethod(long value) => value.ToString();
 
-        [FunctionTool("小数方法", Name = "decimal_method")]
+        [FunctionTool("Decimal method", Name = "decimal_method")]
         public string DecimalMethod(decimal value) => value.ToString();
 
-        [FunctionTool("浮点方法", Name = "float_method")]
+        [FunctionTool("Float method", Name = "float_method")]
         public string FloatMethod(float value) => value.ToString();
 
-        [FunctionTool("静态方法", Name = "static")]
+        [FunctionTool("Static method", Name = "static")]
         public static string StaticMethod(string input) => $"Static: {input}";
 
-        [FunctionTool("所有类型参数", Name = "all_types")]
+        [FunctionTool("All types parameters", Name = "all_types")]
         public string AllTypesMethod(string s, int i, double d, bool b) => $"{s},{i},{d},{b}";
     }
 

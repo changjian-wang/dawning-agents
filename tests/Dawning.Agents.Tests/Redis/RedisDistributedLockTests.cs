@@ -9,7 +9,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// Redis 分布式锁测试 - 单元测试（无需 Redis 连接）
+/// Redis distributed lock tests - unit tests (no Redis connection required)
 /// </summary>
 public sealed class RedisDistributedLockTests
 {
@@ -216,7 +216,7 @@ public sealed class RedisDistributedLockTests
 }
 
 /// <summary>
-/// Redis 分布式锁工厂测试
+/// Redis distributed lock factory tests
 /// </summary>
 public sealed class RedisDistributedLockFactoryTests
 {

@@ -71,7 +71,11 @@ public sealed class AgentLoadBalancer : IAgentLoadBalancer
 
             var index = (int)((uint)(++_roundRobinIndex) % (uint)healthyInstances.Count);
             var instance = healthyInstances[index];
-            _logger.LogDebug("Selected instance {InstanceId} (round-robin index: {Index})", instance.Id, index);
+            _logger.LogDebug(
+                "Selected instance {InstanceId} (round-robin index: {Index})",
+                instance.Id,
+                index
+            );
             return instance;
         }
     }

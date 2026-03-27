@@ -148,7 +148,7 @@ public class HumanInLoopAgentTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("未批准");
+        result.Error.Should().Contain("Task not approved");
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class HumanInLoopAgentTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("被审查者拒绝");
+        result.Error.Should().Contain("Response rejected by reviewer");
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class HumanInLoopAgentTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("发生错误");
+        result.Error.Should().Contain("Error occurred");
     }
 
     [Fact]
@@ -342,7 +342,7 @@ public class HumanInLoopAgentTests
 
         // Assert
         result.Success.Should().BeTrue();
-        result.FinalAnswer.Should().Contain("跳过");
+        result.FinalAnswer.Should().Contain("Step skipped by human");
     }
 
     [Fact]
@@ -369,7 +369,7 @@ public class HumanInLoopAgentTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("中止");
+        result.Error.Should().Contain("Operation aborted by human");
     }
 
     [Fact]

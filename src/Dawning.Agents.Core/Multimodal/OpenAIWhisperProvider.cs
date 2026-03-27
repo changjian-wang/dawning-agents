@@ -104,7 +104,9 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
                 || (audioUri.Scheme != Uri.UriSchemeHttps && audioUri.Scheme != Uri.UriSchemeHttp)
             )
             {
-                return TranscriptionResult.Failed("Unsupported audio URL scheme; only http/https allowed");
+                return TranscriptionResult.Failed(
+                    "Unsupported audio URL scheme; only http/https allowed"
+                );
             }
 
             try

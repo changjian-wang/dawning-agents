@@ -7,7 +7,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// ToolSession 测试
+/// ToolSession tests
 /// </summary>
 public class ToolSessionTests : IDisposable
 {

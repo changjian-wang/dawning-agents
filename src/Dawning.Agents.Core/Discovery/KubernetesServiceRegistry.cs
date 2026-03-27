@@ -36,14 +36,18 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
     )
     {
         // Kubernetes auto-registers via Pods; this is a no-op
-        _logger.LogDebug("In Kubernetes mode, services are managed by K8s; skipping manual registration");
+        _logger.LogDebug(
+            "In Kubernetes mode, services are managed by K8s; skipping manual registration"
+        );
         return Task.CompletedTask;
     }
 
     public Task DeregisterAsync(string instanceId, CancellationToken cancellationToken = default)
     {
         // Kubernetes auto-deregisters via Pods
-        _logger.LogDebug("In Kubernetes mode, services are managed by K8s; skipping manual deregistration");
+        _logger.LogDebug(
+            "In Kubernetes mode, services are managed by K8s; skipping manual deregistration"
+        );
         return Task.CompletedTask;
     }
 
@@ -107,7 +111,11 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
                 }
             }
 
-            _logger.LogDebug("Discovered {Count} {ServiceName} instances", instances.Count, serviceName);
+            _logger.LogDebug(
+                "Discovered {Count} {ServiceName} instances",
+                instances.Count,
+                serviceName
+            );
             return instances;
         }
         catch (OperationCanceledException)

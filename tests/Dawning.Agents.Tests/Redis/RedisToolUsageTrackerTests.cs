@@ -10,7 +10,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// Redis 工具使用追踪器测试
+/// Redis tool usage tracker tests
 /// </summary>
 public sealed class RedisToolUsageTrackerTests
 {

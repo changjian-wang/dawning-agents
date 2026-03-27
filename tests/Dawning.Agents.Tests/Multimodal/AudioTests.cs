@@ -329,7 +329,7 @@ public class AudioTests
         var result = await provider.TranscribeAsync(emptyAudio);
 
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("音频内容为空");
+        result.Error.Should().Contain("Audio content is empty");
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class AudioTests
         var result = await provider.TranscribeFileAsync("/nonexistent/file.mp3");
 
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("文件不存在");
+        result.Error.Should().Contain("File not found");
     }
 
     [Fact]
@@ -356,7 +356,7 @@ public class AudioTests
             var result = await provider.TranscribeFileAsync(tempFile);
 
             result.Success.Should().BeFalse();
-            result.Error.Should().Contain("不支持的格式");
+            result.Error.Should().Contain("Unsupported format");
         }
         finally
         {
@@ -446,7 +446,7 @@ public class AudioTests
         var result = await provider.SynthesizeAsync("");
 
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("文本内容为空");
+        result.Error.Should().Contain("Text content is empty");
     }
 
     [Fact]
@@ -459,7 +459,7 @@ public class AudioTests
         var result = await provider.SynthesizeAsync(longText);
 
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("文本过长");
+        result.Error.Should().Contain("Text too long");
     }
 
     #endregion

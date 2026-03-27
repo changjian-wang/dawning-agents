@@ -9,7 +9,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// VectorMemory 单元测试
+/// Unit tests for VectorMemory
 /// </summary>
 public class VectorMemoryTests
 {
@@ -25,7 +25,7 @@ public class VectorMemoryTests
             .ReturnsAsync(
                 (string text, CancellationToken _) =>
                 {
-                    // 简单的模拟嵌入：基于文本哈希生成伪向量
+                    // Simple mock embedding: generate pseudo-vector based on text hash
                     var hash = text.GetHashCode();
                     return new float[]
                     {
@@ -172,7 +172,7 @@ public class VectorMemoryTests
             recentWindowSize: 3
         );
 
-        // 添加 5 条消息，窗口大小为 3
+        // Add 5 messages with window size of 3
         for (int i = 0; i < 5; i++)
         {
             await memory.AddMessageAsync(
@@ -180,9 +180,9 @@ public class VectorMemoryTests
             );
         }
 
-        // 最近消息应该只有 3 条
+        // Recent messages should only have 3
         memory.RecentMessageCount.Should().Be(3);
-        // 应该有 2 条消息被归档到向量存储
+        // 2 messages should be archived to vector store
         memory.VectorStoreCount.Should().Be(2);
     }
 
@@ -276,10 +276,10 @@ public class VectorMemoryTests
             _mockEmbedding.Object,
             _tokenCounter,
             recentWindowSize: 2,
-            minRelevanceScore: 0.0f // 设置为 0 以确保检索到结果
+            minRelevanceScore: 0.0f // Set to 0 to ensure retrieval results
         );
 
-        // 添加消息并触发归档
+        // Add messages and trigger archival
         await memory.AddMessageAsync(
             new ConversationMessage { Role = "user", Content = "What is AI?" }
         );
@@ -301,12 +301,12 @@ public class VectorMemoryTests
             }
         );
 
-        // 应该有 2 条消息被归档
+        // 2 messages should be archived
         memory.VectorStoreCount.Should().Be(2);
 
         var context = await memory.GetContextAsync();
 
-        // 上下文应该包含历史标记 + 相关历史 + 最近消息
+        // Context should contain history marker + relevant history + recent messages
         context.Should().NotBeEmpty();
     }
 
@@ -324,7 +324,7 @@ public class VectorMemoryTests
 
         var context = await memory.GetContextAsync(maxTokens: 3);
 
-        // 应该只返回能在 token 限制内的消息
+        // Should only return messages that fit within the token limit
         context.Count.Should().BeLessThanOrEqualTo(2);
     }
 
@@ -430,7 +430,7 @@ public class VectorMemoryTests
             minRelevanceScore: 0.0f
         );
 
-        // 添加消息触发归档
+        // Add messages to trigger archival
         await memory.AddMessageAsync(
             new ConversationMessage { Role = "user", Content = "Old question" }
         );
@@ -441,10 +441,10 @@ public class VectorMemoryTests
             new ConversationMessage { Role = "user", Content = "New question" }
         );
 
-        // 获取上下文会触发检索
+        // Getting context triggers retrieval
         await memory.GetContextAsync();
 
-        // 验证嵌入调用包含查询（用户消息）
+        // Verify embedding calls include query (user message)
         embeddingCalls.Should().Contain(c => c.Contains("New question"));
     }
 
@@ -456,10 +456,10 @@ public class VectorMemoryTests
             _mockEmbedding.Object,
             _tokenCounter,
             recentWindowSize: 2,
-            minRelevanceScore: 0.99f // 非常高的阈值
+            minRelevanceScore: 0.99f // Very high threshold
         );
 
-        // 添加消息触发归档
+        // Add messages to trigger archival
         await memory.AddMessageAsync(
             new ConversationMessage { Role = "user", Content = "Question 1" }
         );
@@ -475,8 +475,8 @@ public class VectorMemoryTests
 
         var context = await memory.GetContextAsync();
 
-        // 由于高阈值，可能不包含历史上下文标记
-        // 只包含最近消息
+        // Due to high threshold, may not include history context marker
+        // Only includes recent messages
         context.Count.Should().BeGreaterThanOrEqualTo(2);
     }
 
@@ -532,7 +532,7 @@ public class VectorMemoryTests
         );
 
         var session2 = new VectorMemory(
-            new InMemoryVectorStore(), // 使用不同的存储
+            new InMemoryVectorStore(), // Use a different store
             _mockEmbedding.Object,
             _tokenCounter,
             sessionId: "session-2"

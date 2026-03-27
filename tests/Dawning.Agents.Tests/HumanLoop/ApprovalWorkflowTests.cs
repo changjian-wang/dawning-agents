@@ -365,7 +365,7 @@ public class ApprovalWorkflowTests
 
         // Assert
         result.IsApproved.Should().BeFalse();
-        result.RejectionReason.Should().Contain("审批数量不足");
+        result.RejectionReason.Should().Contain("Insufficient approvals");
     }
 
     [Fact]

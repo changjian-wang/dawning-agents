@@ -9,7 +9,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Logging;
 
 /// <summary>
-/// LoggingServiceCollectionExtensions 测试
+/// LoggingServiceCollectionExtensions tests
 /// </summary>
 public class LoggingServiceCollectionExtensionsTests
 {

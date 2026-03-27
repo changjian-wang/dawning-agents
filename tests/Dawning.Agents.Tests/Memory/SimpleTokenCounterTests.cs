@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// SimpleTokenCounter 单元测试
+/// Unit tests for SimpleTokenCounter
 /// </summary>
 public class SimpleTokenCounterTests
 {

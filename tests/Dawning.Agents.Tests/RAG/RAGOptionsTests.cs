@@ -4,7 +4,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// RAGOptions 单元测试
+/// RAGOptions unit tests
 /// </summary>
 public class RAGOptionsTests
 {

@@ -139,7 +139,7 @@ public class LLMOptionsValidatorTests
     [Fact]
     public void Validate_Ollama_WithEmptyEndpoint_ShouldFail()
     {
-        // Arrange - Ollama 需要配置 Endpoint
+        // Arrange - Ollama requires Endpoint configuration
         var options = new LLMOptions
         {
             ProviderType = LLMProviderType.Ollama,

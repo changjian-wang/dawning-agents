@@ -109,7 +109,7 @@ public class SafeAgentTests
 
         // Assert
         response.Success.Should().BeFalse();
-        response.Error.Should().Contain("速率限制");
+        response.Error.Should().Contain("Rate limited");
         _mockAgent.Verify(
             a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
             Times.Never
@@ -120,7 +120,7 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldBlockRequest_WhenInputGuardrailFails()
     {
         // Arrange
-        var failResult = GuardrailResult.Fail("输入过长", "MaxLengthGuardrail");
+        var failResult = GuardrailResult.Fail("Input too long", "MaxLengthGuardrail");
         _mockPipeline
             .Setup(p => p.CheckInputAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(failResult);
@@ -132,7 +132,7 @@ public class SafeAgentTests
 
         // Assert
         response.Success.Should().BeFalse();
-        response.Error.Should().Contain("输入未通过安全检查");
+        response.Error.Should().Contain("Input failed safety check");
         _mockAgent.Verify(
             a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
             Times.Never
@@ -143,7 +143,7 @@ public class SafeAgentTests
     public async Task RunAsync_ShouldUseProcessedInput_WhenGuardrailModifiesInput()
     {
         // Arrange
-        var processedResult = GuardrailResult.PassWithContent("[已脱敏]Email: ***");
+        var processedResult = GuardrailResult.PassWithContent("[Redacted]Email: ***");
         _mockPipeline
             .Setup(p => p.CheckInputAsync("Email: test@example.com", It.IsAny<CancellationToken>()))
             .ReturnsAsync(processedResult);
@@ -152,7 +152,7 @@ public class SafeAgentTests
         _mockAgent
             .Setup(a =>
                 a.RunAsync(
-                    It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"),
+                    It.Is<AgentContext>(c => c.UserInput == "[Redacted]Email: ***"),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -167,7 +167,7 @@ public class SafeAgentTests
         _mockAgent.Verify(
             a =>
                 a.RunAsync(
-                    It.Is<AgentContext>(c => c.UserInput == "[已脱敏]Email: ***"),
+                    It.Is<AgentContext>(c => c.UserInput == "[Redacted]Email: ***"),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -187,7 +187,7 @@ public class SafeAgentTests
             .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(agentResponse);
 
-        var failResult = GuardrailResult.Fail("检测到敏感信息", "SensitiveDataGuardrail");
+        var failResult = GuardrailResult.Fail("Sensitive data detected", "SensitiveDataGuardrail");
         _mockPipeline
             .Setup(p =>
                 p.CheckOutputAsync(
@@ -204,7 +204,7 @@ public class SafeAgentTests
 
         // Assert
         response.Success.Should().BeFalse();
-        response.Error.Should().Contain("输出未通过安全检查");
+        response.Error.Should().Contain("Output failed safety check");
     }
 
     [Fact]
@@ -358,7 +358,7 @@ public class SafeAgentTests
 
         // Assert
         response.Success.Should().BeFalse();
-        response.Error.Should().Contain("执行过程中发生错误");
+        response.Error.Should().Contain("An error occurred during execution");
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public class SafeAgentTests
 
         // Assert
         response.Success.Should().BeFalse();
-        response.Error.Should().Contain("Token 预算耗尽");
+        response.Error.Should().Contain("Token budget exhausted");
         _mockAgent.Verify(
             a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
             Times.Never

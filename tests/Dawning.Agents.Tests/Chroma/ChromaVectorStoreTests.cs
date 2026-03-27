@@ -13,7 +13,7 @@ using Moq.Protected;
 namespace Dawning.Agents.Tests.Chroma;
 
 /// <summary>
-/// ChromaOptions 单元测试
+/// ChromaOptions unit tests
 /// </summary>
 public class ChromaOptionsTests
 {
@@ -118,7 +118,7 @@ public class ChromaOptionsTests
 }
 
 /// <summary>
-/// ChromaVectorStore 单元测试
+/// ChromaVectorStore unit tests
 /// </summary>
 public class ChromaVectorStoreTests
 {
@@ -197,7 +197,7 @@ public class ChromaVectorStoreTests
 }
 
 /// <summary>
-/// Chroma DI 扩展测试
+/// Chroma DI extension tests
 /// </summary>
 public class ChromaServiceCollectionExtensionsTests
 {

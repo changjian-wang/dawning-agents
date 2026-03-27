@@ -10,7 +10,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Cache;
 
 /// <summary>
-/// SemanticCache DI 扩展测试
+/// SemanticCache DI extension tests
 /// </summary>
 public class SemanticCacheServiceCollectionExtensionsTests
 {
@@ -29,7 +29,7 @@ public class SemanticCacheServiceCollectionExtensionsTests
             )
             .Build();
 
-        // 先注册依赖
+        // Register dependencies first
         services.AddSingleton<IVectorStore>(new InMemoryVectorStore());
         services.AddSingleton(new Mock<IEmbeddingProvider>().Object);
         services.AddSemanticCache(config);

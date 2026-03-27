@@ -7,7 +7,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Validation;
 
 /// <summary>
-/// 向量存储 Options Validate() 测试
+/// Vector store Options Validate() tests
 /// </summary>
 public class VectorStoreOptionsValidateTests
 {

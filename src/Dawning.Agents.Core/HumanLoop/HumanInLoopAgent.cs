@@ -200,7 +200,11 @@ public class HumanInLoopAgent : IAgent
             {
                 lastException = ex;
                 attemptedSolutions.Add($"Attempt {attempt + 1} failed: {ex.Message}");
-                _logger.LogWarning(ex, "Attempt {Attempt} failed, requesting guidance", attempt + 1);
+                _logger.LogWarning(
+                    ex,
+                    "Attempt {Attempt} failed, requesting guidance",
+                    attempt + 1
+                );
 
                 // Last retry failed, exit loop so subsequent code throws escalation exception
                 if (attempt >= _options.MaxRetries)
@@ -304,7 +308,11 @@ public class HumanInLoopAgent : IAgent
             {
                 FinalAnswer = review.ModifiedContent ?? response.FinalAnswer,
             },
-            "reject" => AgentResponse.Failed("Response rejected by reviewer", response.Steps, currentDuration),
+            "reject" => AgentResponse.Failed(
+                "Response rejected by reviewer",
+                response.Steps,
+                currentDuration
+            ),
             _ => response,
         };
     }
@@ -321,7 +329,11 @@ public class HumanInLoopAgent : IAgent
                 [],
                 duration
             ),
-            EscalationAction.Skipped => AgentResponse.Successful("Step skipped by human", [], duration),
+            EscalationAction.Skipped => AgentResponse.Successful(
+                "Step skipped by human",
+                [],
+                duration
+            ),
             _ => AgentResponse.Failed("Operation aborted by human", [], duration),
         };
     }

@@ -55,7 +55,11 @@ public class ApprovalWorkflow
             return ApprovalResult.AutoApproved(action);
         }
 
-        _logger.LogInformation("Requesting approval for {Action} (risk: {Risk})", action, riskLevel);
+        _logger.LogInformation(
+            "Requesting approval for {Action} (risk: {Risk})",
+            action,
+            riskLevel
+        );
 
         var request = new ConfirmationRequest
         {
@@ -158,7 +162,10 @@ public class ApprovalWorkflow
 
         if (approvals.Count >= requiredApprovals)
         {
-            _logger.LogInformation("Multi-party approval granted: {Approvers}", string.Join(", ", approvals));
+            _logger.LogInformation(
+                "Multi-party approval granted: {Approvers}",
+                string.Join(", ", approvals)
+            );
             return ApprovalResult.Approved(action, string.Join(", ", approvals));
         }
 

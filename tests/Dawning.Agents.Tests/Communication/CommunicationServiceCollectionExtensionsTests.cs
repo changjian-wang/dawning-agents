@@ -6,7 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Communication DI 扩展测试
+/// Communication DI extension tests
 /// </summary>
 public class CommunicationServiceCollectionExtensionsTests
 {
@@ -92,7 +92,7 @@ public class CommunicationServiceCollectionExtensionsTests
 
         var provider = services.BuildServiceProvider();
 
-        // 应该只有一个实例
+        // Should only have one instance
         var bus1 = provider.GetRequiredService<IMessageBus>();
         var bus2 = provider.GetRequiredService<IMessageBus>();
         bus1.Should().BeSameAs(bus2);

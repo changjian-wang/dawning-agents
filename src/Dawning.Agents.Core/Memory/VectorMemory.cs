@@ -95,11 +95,17 @@ public class VectorMemory : IConversationMemory
         _recentWindowSize =
             recentWindowSize > 0
                 ? recentWindowSize
-                : throw new ArgumentException("Window size must be a positive number.", nameof(recentWindowSize));
+                : throw new ArgumentException(
+                    "Window size must be a positive number.",
+                    nameof(recentWindowSize)
+                );
         _retrieveTopK =
             retrieveTopK > 0
                 ? retrieveTopK
-                : throw new ArgumentException("Retrieve count must be a positive number.", nameof(retrieveTopK));
+                : throw new ArgumentException(
+                    "Retrieve count must be a positive number.",
+                    nameof(retrieveTopK)
+                );
         _minRelevanceScore =
             minRelevanceScore >= 0 && minRelevanceScore <= 1
                 ? minRelevanceScore
@@ -200,7 +206,11 @@ public class VectorMemory : IConversationMemory
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to archive message; message will be kept in recent messages: {MessageId}", message.Id);
+            _logger.LogWarning(
+                ex,
+                "Failed to archive message; message will be kept in recent messages: {MessageId}",
+                message.Id
+            );
 
             // On archive failure, return the message to the recent messages list to prevent data loss
             lock (_lock)
@@ -350,8 +360,11 @@ public class VectorMemory : IConversationMemory
                 new ConversationMessage
                 {
                     Role = "system",
-                    Content = "[The following is historical context relevant to the current conversation]",
-                    TokenCount = _tokenCounter.CountTokens("[The following is historical context relevant to the current conversation]"),
+                    Content =
+                        "[The following is historical context relevant to the current conversation]",
+                    TokenCount = _tokenCounter.CountTokens(
+                        "[The following is historical context relevant to the current conversation]"
+                    ),
                 }
             );
 
@@ -361,8 +374,11 @@ public class VectorMemory : IConversationMemory
                 new ConversationMessage
                 {
                     Role = "system",
-                    Content = "[End of historical context; the following is the current conversation]",
-                    TokenCount = _tokenCounter.CountTokens("[End of historical context; the following is the current conversation]"),
+                    Content =
+                        "[End of historical context; the following is the current conversation]",
+                    TokenCount = _tokenCounter.CountTokens(
+                        "[End of historical context; the following is the current conversation]"
+                    ),
                 }
             );
         }

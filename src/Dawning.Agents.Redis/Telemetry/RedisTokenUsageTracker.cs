@@ -261,7 +261,10 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
         else if (!string.IsNullOrEmpty(source))
         {
             _database.KeyDelete($"{_prefix}source:{source}");
-            _logger.LogInformation("Token usage statistics have been reset: source={Source}", source);
+            _logger.LogInformation(
+                "Token usage statistics have been reset: source={Source}",
+                source
+            );
         }
     }
 

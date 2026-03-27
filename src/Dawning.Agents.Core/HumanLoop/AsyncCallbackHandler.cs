@@ -74,7 +74,11 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Confirmation request event handler failed {RequestId}", request.Id);
+            _logger.LogError(
+                ex,
+                "Confirmation request event handler failed {RequestId}",
+                request.Id
+            );
         }
 
         try

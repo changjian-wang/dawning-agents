@@ -126,7 +126,7 @@ public class AgentAutoScalerTests
 
         var scaledTo = 0;
         var scaler = CreateScaler(options, metrics, count => scaledTo = count);
-        scaler.SetCurrentInstances(5); // 需要有多于最小实例才能缩容
+        scaler.SetCurrentInstances(5); // Need more than min instances to scale down
 
         var decision = await scaler.EvaluateAsync();
 

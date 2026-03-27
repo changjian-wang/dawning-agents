@@ -20,7 +20,7 @@ public class ResilientLLMProviderTests
 
         _resilienceProviderMock = new Mock<IResilienceProvider>();
 
-        // 默认：直接执行操作
+        // Default: execute operation directly
         _resilienceProviderMock
             .Setup(x =>
                 x.ExecuteAsync(

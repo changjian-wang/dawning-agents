@@ -9,7 +9,7 @@ using Moq;
 using Xunit;
 
 /// <summary>
-/// SequentialOrchestrator 单元测试
+/// Unit tests for SequentialOrchestrator.
 /// </summary>
 public class SequentialOrchestratorTests
 {
@@ -36,7 +36,7 @@ public class SequentialOrchestratorTests
 
         // Assert
         orchestrator.Name.Should().Be("test-orchestrator");
-        orchestrator.Description.Should().Contain("顺序执行");
+        orchestrator.Description.Should().Contain("sequentially");
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class SequentialOrchestratorTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("没有 Agent");
+        result.Error.Should().Contain("No agents");
     }
 
     [Fact]

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// DocumentChunker 单元测试
+/// DocumentChunker unit tests
 /// </summary>
 public class DocumentChunkerTests
 {

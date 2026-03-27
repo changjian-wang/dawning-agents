@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// BashTool 测试（使用模拟 IToolSandbox）
+/// BashTool tests (using mocked IToolSandbox)
 /// </summary>
 public class BashToolTests
 {

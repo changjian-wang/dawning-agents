@@ -7,7 +7,7 @@ using Moq;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// VectorRetriever 单元测试
+/// VectorRetriever unit tests
 /// </summary>
 public class VectorRetrieverTests
 {

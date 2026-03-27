@@ -47,7 +47,10 @@ public sealed class InMemoryMessageBus : IMessageBus
     {
         if (string.IsNullOrEmpty(message.ReceiverId))
         {
-            throw new ArgumentException("Point-to-point messages must specify a ReceiverId.", nameof(message));
+            throw new ArgumentException(
+                "Point-to-point messages must specify a ReceiverId.",
+                nameof(message)
+            );
         }
 
         _logger.LogDebug(
@@ -89,7 +92,11 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public Task BroadcastAsync(AgentMessage message, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Broadcasting message {MessageId} from {Sender}", message.Id, message.SenderId);
+        _logger.LogDebug(
+            "Broadcasting message {MessageId} from {Sender}",
+            message.Id,
+            message.SenderId
+        );
 
         foreach (var handlers in _subscribers.Values)
         {
@@ -102,7 +109,11 @@ public sealed class InMemoryMessageBus : IMessageBus
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing broadcast message {MessageId}", message.Id);
+                    _logger.LogError(
+                        ex,
+                        "Error processing broadcast message {MessageId}",
+                        message.Id
+                    );
                 }
             }
         }

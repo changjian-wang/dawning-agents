@@ -28,7 +28,7 @@ public class AgentLoadBalancerTests
 
         balancer.RegisterInstance(instance);
 
-        // 更新同一实例
+        // Update the same instance
         var updated = new AgentInstance
         {
             Id = instance.Id,
@@ -112,7 +112,7 @@ public class AgentLoadBalancerTests
             results.Add(result!.Id);
         }
 
-        // 应该轮询
+        // Should round-robin
         results.Should().Contain(instance1.Id);
         results.Should().Contain(instance2.Id);
     }

@@ -719,6 +719,6 @@ public class ABTestResultTests
         };
 
         // Assert
-        result.Winner.Should().BeNull(); // 差距小于 1 分
+        result.Winner.Should().BeNull(); // Difference less than 1 point
     }
 }

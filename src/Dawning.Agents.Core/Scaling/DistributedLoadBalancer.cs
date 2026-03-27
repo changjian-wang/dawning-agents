@@ -142,7 +142,10 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
                 AddToHashRing(agent);
             }
 
-            _logger.LogInformation("Synchronized {Count} instances from ServiceRegistry", instances.Count);
+            _logger.LogInformation(
+                "Synchronized {Count} instances from ServiceRegistry",
+                instances.Count
+            );
         }
         finally
         {
@@ -399,7 +402,11 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Instance {InstanceId} execution failed; attempting failover", instance.Id);
+                _logger.LogWarning(
+                    ex,
+                    "Instance {InstanceId} execution failed; attempting failover",
+                    instance.Id
+                );
                 UpdateInstanceHealth(instance.Id, false);
             }
         }

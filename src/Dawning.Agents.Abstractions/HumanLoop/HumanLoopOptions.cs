@@ -67,14 +67,7 @@ public class HumanLoopOptions : IValidatableOptions
     /// High-risk keywords (for automatic risk level detection).
     /// </summary>
     public string[] HighRiskKeywords { get; set; } =
-    [
-        "delete",
-        "remove",
-        "destroy",
-        "execute",
-        "transfer",
-        "payment",
-    ];
+    ["delete", "remove", "destroy", "execute", "transfer", "payment"];
 
     /// <summary>
     /// Critical-risk keywords.

@@ -72,7 +72,10 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             }
             catch (RegexMatchTimeoutException)
             {
-                _logger.LogWarning("Regex match timed out: Category={Category}, skipping pattern", pattern.Category);
+                _logger.LogWarning(
+                    "Regex match timed out: Category={Category}, skipping pattern",
+                    pattern.Category
+                );
                 issues.Add(
                     new GuardrailIssue
                     {
@@ -247,7 +250,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 }
                 catch (ArgumentException ex)
                 {
-                    _logger.LogWarning(ex, "Failed to compile custom pattern: {Pattern}", custom.Pattern);
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to compile custom pattern: {Pattern}",
+                        custom.Pattern
+                    );
                 }
             }
         }

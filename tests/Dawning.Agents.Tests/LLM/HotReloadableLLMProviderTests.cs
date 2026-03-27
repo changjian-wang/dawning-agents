@@ -11,7 +11,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.LLM;
 
 /// <summary>
-/// HotReloadableLLMProvider 测试
+/// HotReloadableLLMProvider tests
 /// </summary>
 public class HotReloadableLLMProviderTests
 {

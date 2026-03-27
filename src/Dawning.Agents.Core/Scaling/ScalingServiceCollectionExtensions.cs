@@ -27,6 +27,18 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Adds scaling configuration from <see cref="IConfiguration"/>.
+    /// </summary>
+    public static IServiceCollection AddScaling(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddValidatedOptions<ScalingOptions>(configuration, "Scaling");
+        return services;
+    }
+
+    /// <summary>
     /// Adds the request queue.
     /// </summary>
     public static IServiceCollection AddAgentRequestQueue(

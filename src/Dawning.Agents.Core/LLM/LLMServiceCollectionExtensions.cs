@@ -230,7 +230,9 @@ public static class LLMServiceCollectionExtensions
             LLMProviderType.AzureOpenAI => throw new NotSupportedException(
                 "The Azure OpenAI provider has been moved to a separate package. Install Dawning.Agents.Azure and call services.AddAzureOpenAIProvider(endpoint, apiKey, deployment)."
             ),
-            _ => throw new NotSupportedException($"Unsupported provider type: {options.ProviderType}"),
+            _ => throw new NotSupportedException(
+                $"Unsupported provider type: {options.ProviderType}"
+            ),
         };
     }
 

@@ -17,7 +17,7 @@ public class DistributedTracerTests
         using var span = tracer.StartSpan("TestSpan");
 
         // Assert
-        // Note: 可能返回 NoOpSpan 如果没有 listener
+        // Note: May return NoOpSpan if there's no listener
         span.Should().NotBeNull();
     }
 
@@ -81,7 +81,7 @@ public class DistributedTracerTests
         // Act
         using var span = tracer.StartSpan("Test");
 
-        // Assert - 所有方法应该不抛出异常
+        // Assert - All methods should not throw
         span.SpanId.Should().BeEmpty();
 
         var act = () =>

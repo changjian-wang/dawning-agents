@@ -58,8 +58,8 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
     /// <inheritdoc />
     public string Description =>
         _isInputGuardrail
-? $"Limits input length to a maximum of {_maxLength} characters"
-        : $"Limits output length to a maximum of {_maxLength} characters";
+            ? $"Limits input length to a maximum of {_maxLength} characters"
+            : $"Limits output length to a maximum of {_maxLength} characters";
 
     /// <inheritdoc />
     public bool IsEnabled => true;
@@ -103,7 +103,11 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
         );
 
         return Task.FromResult(
-            GuardrailResult.Fail($"Content length ({length}) exceeds maximum limit ({_maxLength})", Name, [issue])
+            GuardrailResult.Fail(
+                $"Content length ({length}) exceeds maximum limit ({_maxLength})",
+                Name,
+                [issue]
+            )
         );
     }
 }

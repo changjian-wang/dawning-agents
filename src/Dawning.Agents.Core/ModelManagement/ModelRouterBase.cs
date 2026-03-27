@@ -107,7 +107,10 @@ public abstract class ModelRouterBase : IModelRouter
                     )
                     {
                         health.IsHealthy = true;
-                        _logger.LogInformation("Provider {Provider} has recovered to healthy", name);
+                        _logger.LogInformation(
+                            "Provider {Provider} has recovered to healthy",
+                            name
+                        );
                     }
                 }
                 else

@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// FileToolStore 测试
+/// FileToolStore tests
 /// </summary>
 public class FileToolStoreTests : IDisposable
 {

@@ -9,7 +9,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Configuration;
 
 /// <summary>
-/// HotReloadServiceCollectionExtensions 测试
+/// HotReloadServiceCollectionExtensions tests
 /// </summary>
 public class HotReloadServiceCollectionExtensionsTests
 {
@@ -242,7 +242,7 @@ public class HotReloadServiceCollectionExtensionsTests
     }
 
     /// <summary>
-    /// 测试用配置类
+    /// Test configuration class
     /// </summary>
     public class TestOptions
     {
@@ -251,7 +251,7 @@ public class HotReloadServiceCollectionExtensionsTests
     }
 
     /// <summary>
-    /// 另一个测试用配置类
+    /// Another test configuration class
     /// </summary>
     public class OtherOptions
     {

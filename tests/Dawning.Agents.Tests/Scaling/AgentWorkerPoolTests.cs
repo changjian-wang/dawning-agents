@@ -9,7 +9,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Scaling;
 
 /// <summary>
-/// AgentWorkerPool 单元测试
+/// Unit tests for AgentWorkerPool.
 /// </summary>
 public class AgentWorkerPoolTests : IDisposable
 {

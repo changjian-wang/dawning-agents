@@ -86,7 +86,9 @@ public sealed class CircuitBreaker : ICircuitBreaker
             {
                 if (_halfOpenTrialActive)
                 {
-                    throw new CircuitBreakerOpenException("Circuit breaker is half-open; trial request in progress");
+                    throw new CircuitBreakerOpenException(
+                        "Circuit breaker is half-open; trial request in progress"
+                    );
                 }
                 _halfOpenTrialActive = true;
             }
@@ -187,7 +189,10 @@ public sealed class CircuitBreaker : ICircuitBreaker
             if (_failureCount >= _failureThreshold)
             {
                 _state = CircuitState.Open;
-                _logger.LogWarning("Circuit breaker opened after {FailureCount} failures", _failureCount);
+                _logger.LogWarning(
+                    "Circuit breaker opened after {FailureCount} failures",
+                    _failureCount
+                );
             }
         }
     }

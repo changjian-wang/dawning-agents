@@ -6,11 +6,11 @@ using Moq;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// DefaultToolApprovalHandler 单元测试
+/// DefaultToolApprovalHandler unit tests
 /// </summary>
 public sealed class DefaultToolApprovalHandlerTests
 {
-    #region 构造函数测试
+    #region Constructor Tests
 
     [Fact]
     public void Constructor_WithDefaults_ShouldUseRiskBasedStrategy()
@@ -38,7 +38,7 @@ public sealed class DefaultToolApprovalHandlerTests
 
     #endregion
 
-    #region RequestApprovalAsync 测试
+    #region RequestApprovalAsync Tests
 
     [Fact]
     public async Task RequestApprovalAsync_AlwaysApprove_ShouldReturnTrue()
@@ -138,7 +138,7 @@ public sealed class DefaultToolApprovalHandlerTests
 
     #endregion
 
-    #region RequestUrlApprovalAsync 测试
+    #region RequestUrlApprovalAsync Tests
 
     [Fact]
     public async Task RequestUrlApprovalAsync_AlwaysApprove_ShouldReturnTrue()
@@ -266,7 +266,7 @@ public sealed class DefaultToolApprovalHandlerTests
 
     #endregion
 
-    #region RequestCommandApprovalAsync 测试
+    #region RequestCommandApprovalAsync Tests
 
     [Fact]
     public async Task RequestCommandApprovalAsync_AlwaysApprove_ShouldReturnTrue()
@@ -422,7 +422,7 @@ public sealed class DefaultToolApprovalHandlerTests
 
     #endregion
 
-    #region AddAutoApproved 测试
+    #region AddAutoApproved Tests
 
     [Fact]
     public void AddAutoApprovedUrl_ShouldAddToList()
@@ -433,7 +433,7 @@ public sealed class DefaultToolApprovalHandlerTests
         // Act
         handler.AddAutoApprovedUrl("http://example.com");
 
-        // Assert - 验证通过后续调用
+        // Assert - verify via subsequent calls
         handler.Should().NotBeNull();
     }
 
@@ -446,13 +446,13 @@ public sealed class DefaultToolApprovalHandlerTests
         // Act
         handler.AddAutoApprovedCommand("custom-command");
 
-        // Assert - 验证通过后续调用
+        // Assert - verify via subsequent calls
         handler.Should().NotBeNull();
     }
 
     #endregion
 
-    #region 辅助方法
+    #region Helper Methods
 
     private static ITool CreateMockTool(
         ToolRiskLevel riskLevel = ToolRiskLevel.Low,

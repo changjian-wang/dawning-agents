@@ -147,7 +147,7 @@ public class PerformanceProfilerTests
         // Act
         using (profiler.StartOperation("TimedOperation", "Test"))
         {
-            Thread.Sleep(50); // 模拟工作
+            Thread.Sleep(50); // Simulate work
         }
 
         var stats = profiler.GetStatistics();
@@ -251,7 +251,7 @@ public class PerformanceProfilerTests
         // Act
         using (profiler.ProfileLLMCall("gpt-4", "OpenAI"))
         {
-            // 模拟工作
+            // Simulate work
         }
 
         var stats = profiler.GetStatistics(OperationCategories.LLM);
@@ -269,7 +269,7 @@ public class PerformanceProfilerTests
         // Act
         using (profiler.ProfileToolExecution("web_search"))
         {
-            // 模拟工作
+            // Simulate work
         }
 
         var stats = profiler.GetStatistics(OperationCategories.Tool);

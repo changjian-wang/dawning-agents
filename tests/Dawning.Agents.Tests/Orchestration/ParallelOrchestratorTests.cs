@@ -9,7 +9,7 @@ using Moq;
 using Xunit;
 
 /// <summary>
-/// ParallelOrchestrator 单元测试
+/// Unit tests for ParallelOrchestrator.
 /// </summary>
 public class ParallelOrchestratorTests
 {
@@ -37,7 +37,7 @@ public class ParallelOrchestratorTests
 
         // Assert
         orchestrator.Name.Should().Be("test-parallel");
-        orchestrator.Description.Should().Contain("并行执行");
+        orchestrator.Description.Should().Contain("parallel");
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class ParallelOrchestratorTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("没有 Agent");
+        result.Error.Should().Contain("No agents");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class ParallelOrchestratorTests
         result.Success.Should().BeTrue();
         result.AgentResults.Should().HaveCount(3);
 
-        // 所有 Agent 应该几乎同时开始（50ms 内）
+        // All agents should start nearly simultaneously (within 50ms)
         var timeDifference = (startTimes.Max() - startTimes.Min()).TotalMilliseconds;
         timeDifference.Should().BeLessThan(100);
     }
@@ -247,7 +247,7 @@ public class ParallelOrchestratorTests
         orchestrator.WithAggregator(records =>
         {
             var count = records.Count(r => r.Response.Success);
-            return $"成功: {count}/{records.Count}";
+            return $"Success: {count}/{records.Count}";
         });
 
         orchestrator.AddAgent(CreateMockAgent("Agent1", "A").Object);
@@ -257,7 +257,7 @@ public class ParallelOrchestratorTests
         var result = await orchestrator.RunAsync("input");
 
         // Assert
-        result.FinalOutput.Should().Be("成功: 2/2");
+        result.FinalOutput.Should().Be("Success: 2/2");
     }
 
     [Fact]
@@ -286,7 +286,7 @@ public class ParallelOrchestratorTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("都执行失败");
+        result.Error.Should().Contain("All agents failed");
     }
 
     [Fact]
@@ -421,7 +421,7 @@ public class ParallelOrchestratorTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("都执行失败");
+        result.Error.Should().Contain("All agents failed");
         result.AgentResults.Should().HaveCount(2);
     }
 

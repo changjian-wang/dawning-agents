@@ -11,7 +11,7 @@ using Qdrant.Client.Grpc;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// QdrantVectorStore 单元测试
+/// QdrantVectorStore unit tests
 /// </summary>
 public class QdrantVectorStoreTests
 {
@@ -29,8 +29,8 @@ public class QdrantVectorStoreTests
             }
         );
 
-        // Act - 注意：这会尝试连接到 Qdrant，在没有 Qdrant 运行时会失败
-        // 这里只测试对象创建，不测试实际连接
+        // Act - Note: This will try to connect to Qdrant and will fail when no Qdrant is running
+        // Here we only test object creation, not actual connection
         var store = new QdrantVectorStore(
             new QdrantClient("localhost", 6334),
             options,
@@ -70,7 +70,7 @@ public class QdrantVectorStoreTests
         var options = Options.Create(
             new QdrantOptions
             {
-                Host = "", // 无效的 Host
+                Host = "", // Invalid Host
                 CollectionName = "test",
                 VectorSize = 384,
             }
@@ -285,7 +285,7 @@ public class QdrantVectorStoreTests
 }
 
 /// <summary>
-/// QdrantOptions 配置测试
+/// QdrantOptions configuration tests
 /// </summary>
 public class QdrantOptionsTests
 {
@@ -418,7 +418,7 @@ public class QdrantOptionsTests
 }
 
 /// <summary>
-/// Qdrant DI 扩展测试
+/// Qdrant DI extension tests
 /// </summary>
 public class QdrantServiceCollectionExtensionsTests
 {

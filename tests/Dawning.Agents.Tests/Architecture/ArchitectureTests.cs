@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Architecture;
 
 /// <summary>
-/// 架构约束测试 — 使用 NetArchTest 验证项目间依赖、命名规范等
+/// Architecture constraint tests — uses NetArchTest to verify inter-project dependencies, naming conventions, etc.
 /// </summary>
 public class ArchitectureTests
 {

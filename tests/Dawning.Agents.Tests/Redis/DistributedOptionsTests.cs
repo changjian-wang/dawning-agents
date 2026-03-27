@@ -4,7 +4,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// 分布式配置选项测试
+/// Distributed configuration options tests
 /// </summary>
 public sealed class DistributedOptionsTests
 {

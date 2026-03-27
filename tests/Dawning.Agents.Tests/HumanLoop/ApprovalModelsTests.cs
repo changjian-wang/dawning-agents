@@ -94,7 +94,7 @@ public class ApprovalResultTests
         result.Action.Should().Be("test-action");
         result.IsApproved.Should().BeFalse();
         result.IsTimedOut.Should().BeTrue();
-        result.RejectionReason.Should().Be("审批请求超时");
+        result.RejectionReason.Should().Be("Approval request timed out");
     }
 }
 
@@ -166,9 +166,9 @@ public class HumanLoopOptionsTests
 
         // Assert
         options.HighRiskKeywords.Should().Contain("delete");
-        options.HighRiskKeywords.Should().Contain("删除");
+        options.HighRiskKeywords.Should().Contain("remove");
         options.HighRiskKeywords.Should().Contain("transfer");
-        options.HighRiskKeywords.Should().Contain("转账");
+        options.HighRiskKeywords.Should().Contain("payment");
     }
 
     [Fact]
@@ -179,8 +179,8 @@ public class HumanLoopOptionsTests
 
         // Assert
         options.CriticalRiskKeywords.Should().Contain("production");
-        options.CriticalRiskKeywords.Should().Contain("生产");
+        options.CriticalRiskKeywords.Should().Contain("financial");
         options.CriticalRiskKeywords.Should().Contain("credentials");
-        options.CriticalRiskKeywords.Should().Contain("凭证");
+        options.CriticalRiskKeywords.Should().Contain("customer data");
     }
 }

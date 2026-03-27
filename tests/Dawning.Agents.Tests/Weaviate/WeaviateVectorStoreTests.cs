@@ -12,7 +12,7 @@ using Moq.Protected;
 namespace Dawning.Agents.Tests.Weaviate;
 
 /// <summary>
-/// WeaviateOptions 单元测试
+/// WeaviateOptions unit tests
 /// </summary>
 public class WeaviateOptionsTests
 {
@@ -117,7 +117,7 @@ public class WeaviateOptionsTests
 }
 
 /// <summary>
-/// WeaviateVectorStore 单元测试
+/// WeaviateVectorStore unit tests
 /// </summary>
 public class WeaviateVectorStoreTests
 {
@@ -288,7 +288,7 @@ public class WeaviateVectorStoreTests
 }
 
 /// <summary>
-/// Weaviate DI 扩展测试
+/// Weaviate DI extension tests
 /// </summary>
 public class WeaviateServiceCollectionExtensionsTests
 {
@@ -331,7 +331,7 @@ public class WeaviateServiceCollectionExtensionsTests
 }
 
 /// <summary>
-/// WeaviateDistanceMetric 枚举测试
+/// WeaviateDistanceMetric enum tests
 /// </summary>
 public class WeaviateDistanceMetricTests
 {
@@ -348,7 +348,7 @@ public class WeaviateDistanceMetricTests
 }
 
 /// <summary>
-/// WeaviateVectorIndexType 枚举测试
+/// WeaviateVectorIndexType enum tests
 /// </summary>
 public class WeaviateVectorIndexTypeTests
 {

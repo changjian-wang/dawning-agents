@@ -208,7 +208,7 @@ public class EnvironmentConfigurationExtensionsTests : IDisposable
     [Fact]
     public void AddEnvFiles_WithMultipleFiles_LoadsInCorrectOrder()
     {
-        // Arrange - 创建多个 .env 文件
+        // Arrange - Create multiple .env files
         CreateEnvFile(".env", "KEY=base");
         CreateEnvFile(".env.local", "KEY=local");
         CreateEnvFile(".env.development", "KEY=development");
@@ -222,7 +222,7 @@ public class EnvironmentConfigurationExtensionsTests : IDisposable
             // Act
             var config = new ConfigurationBuilder().AddEnvFiles("Development").Build();
 
-            // Assert - 后加载的文件应该覆盖前面的值
+            // Assert - Later loaded files should override earlier values
             config["KEY"].Should().Be("development-local");
         }
         finally

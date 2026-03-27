@@ -8,7 +8,7 @@ using Moq;
 namespace Dawning.Agents.Tests.HumanLoop;
 
 /// <summary>
-/// AutoApprovalHandler 单元测试
+/// AutoApprovalHandler unit tests
 /// </summary>
 public class AutoApprovalHandlerTests
 {
@@ -276,7 +276,7 @@ public class AutoApprovalHandlerTests
 
         result.RequestId.Should().Be(request.Id);
         result.Action.Should().Be(EscalationAction.Skipped);
-        result.Resolution.Should().Contain("跳过");
+        result.Resolution.Should().Contain("Auto-skipped");
     }
 
     #endregion

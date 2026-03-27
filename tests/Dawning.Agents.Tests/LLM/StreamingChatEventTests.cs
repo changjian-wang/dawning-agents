@@ -4,11 +4,11 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.LLM;
 
 /// <summary>
-/// StreamingChatEvent、扩展方法、累积器测试
+/// Tests for StreamingChatEvent, extension methods, and accumulator
 /// </summary>
 public class StreamingChatEventTests
 {
-    #region StreamingChatEvent 工厂方法
+    #region StreamingChatEvent Factory Methods
 
     [Fact]
     public void Content_ShouldCreateContentDeltaEvent()
@@ -95,7 +95,7 @@ public class StreamingChatEventTests
 
     #endregion
 
-    #region ToStreamingEvents 扩展方法
+    #region ToStreamingEvents Extension Method
 
     [Fact]
     public async Task ToStreamingEvents_ShouldWrapTextAsContentDelta()
@@ -145,7 +145,7 @@ public class StreamingChatEventTests
 
     #endregion
 
-    #region AsTextStream 扩展方法
+    #region AsTextStream Extension Method
 
     [Fact]
     public async Task AsTextStream_ShouldExtractOnlyContentDelta()
@@ -337,7 +337,7 @@ public class StreamingChatEventTests
     }
 
     /// <summary>
-    /// 最小 ILLMProvider 实现，只实现基本方法，验证 ChatStreamEventsAsync 的默认实现
+    /// Minimal ILLMProvider implementation, only implements basic methods, verifies the default implementation of ChatStreamEventsAsync
     /// </summary>
     private class MinimalProvider : ILLMProvider
     {

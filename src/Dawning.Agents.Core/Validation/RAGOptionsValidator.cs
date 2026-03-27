@@ -34,6 +34,8 @@ public class RAGOptionsValidator : AbstractValidator<RAGOptions>
 
         RuleFor(x => x.EmbeddingModel).NotEmpty().WithMessage("EmbeddingModel must not be empty.");
 
-        RuleFor(x => x.ContextTemplate).NotEmpty().WithMessage("ContextTemplate must not be empty.");
+        RuleFor(x => x.ContextTemplate)
+            .NotEmpty()
+            .WithMessage("ContextTemplate must not be empty.");
     }
 }

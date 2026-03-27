@@ -183,7 +183,7 @@ public class ScalingServiceCollectionExtensionsTests
         );
         var provider = services.BuildServiceProvider();
 
-        // 验证服务已注册
+        // Verify services are registered
         provider.GetService<IAgentRequestQueue>().Should().NotBeNull();
         provider.GetService<ICircuitBreaker>().Should().NotBeNull();
     }

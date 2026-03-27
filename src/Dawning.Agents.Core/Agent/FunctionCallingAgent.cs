@@ -126,7 +126,8 @@ public class FunctionCallingAgent : AgentBase
                             StepNumber = step + 1,
                             Thought = "Message count exceeded limit, terminating loop",
                             Action = "Overflow",
-                            Observation = $"Message count {messages.Count} exceeded limit {maxMessages}",
+                            Observation =
+                                $"Message count {messages.Count} exceeded limit {maxMessages}",
                         }
                     );
                     break;
@@ -157,7 +158,10 @@ public class FunctionCallingAgent : AgentBase
                 if (response.HasToolCalls)
                 {
                     // LLM requested tool calls
-                    Logger.LogDebug("Received {Count} tool call requests", response.ToolCalls!.Count);
+                    Logger.LogDebug(
+                        "Received {Count} tool call requests",
+                        response.ToolCalls!.Count
+                    );
 
                     // Add assistant message (with tool calls)
                     messages.Add(

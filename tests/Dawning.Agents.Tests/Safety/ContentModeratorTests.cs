@@ -8,7 +8,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Safety;
 
 /// <summary>
-/// ContentModerator 单元测试
+/// ContentModerator unit tests
 /// </summary>
 public class ContentModeratorTests
 {
@@ -143,29 +143,29 @@ public class ContentModeratorTests
     public async Task CheckAsync_DisallowedContent_ReturnsFail()
     {
         SetupLLMResponse(
-            """{"allowed": false, "categories": ["暴力内容"], "reason": "包含暴力描述"}"""
+            """{"allowed": false, "categories": ["Violent content"], "reason": "Contains violent descriptions"}"""
         );
         var moderator = new ContentModerator(_mockLLM.Object);
 
         var result = await moderator.CheckAsync("Violent content here");
 
         result.Passed.Should().BeFalse();
-        result.Message.Should().Contain("暴力描述");
+        result.Message.Should().Contain("violent descriptions");
     }
 
     [Fact]
     public async Task CheckAsync_DisallowedContent_IncludesIssues()
     {
         SetupLLMResponse(
-            """{"allowed": false, "categories": ["暴力内容", "仇恨言论"], "reason": "违规"}"""
+            """{"allowed": false, "categories": ["Violent content", "Hate speech"], "reason": "Violation"}"""
         );
         var moderator = new ContentModerator(_mockLLM.Object);
 
         var result = await moderator.CheckAsync("Bad content");
 
         result.Issues.Should().HaveCount(2);
-        result.Issues.Should().Contain(i => i.Description == "暴力内容");
-        result.Issues.Should().Contain(i => i.Description == "仇恨言论");
+        result.Issues.Should().Contain(i => i.Description == "Violent content");
+        result.Issues.Should().Contain(i => i.Description == "Hate speech");
     }
 
     #endregion
@@ -212,7 +212,7 @@ public class ContentModeratorTests
         var result = await moderator.CheckAsync("Some content");
 
         result.Passed.Should().BeFalse();
-        result.Message.Should().Contain("异常");
+        result.Message.Should().Contain("Content moderation service error");
     }
 
     #endregion
@@ -282,13 +282,15 @@ public class ContentModeratorTests
     [Fact]
     public async Task CheckAsync_WithStringCategories_ShouldParseSingleCategory()
     {
-        SetupLLMResponse("""{"allowed": false, "categories": "暴力内容", "reason": "违规"}""");
+        SetupLLMResponse(
+            """{"allowed": false, "categories": "Violent content", "reason": "Violation"}"""
+        );
         var moderator = new ContentModerator(_mockLLM.Object, null, _mockLogger.Object);
 
         var result = await moderator.CheckAsync("unsafe content");
 
         result.Passed.Should().BeFalse();
-        result.Issues.Should().ContainSingle(i => i.Description == "暴力内容");
+        result.Issues.Should().ContainSingle(i => i.Description == "Violent content");
     }
 
     #endregion
@@ -301,7 +303,7 @@ public class ContentModeratorTests
         var options = new ContentModeratorOptions();
 
         options.Categories.Should().NotBeEmpty();
-        options.Categories.Should().Contain("暴力内容");
+        options.Categories.Should().Contain("Violence");
     }
 
     [Fact]

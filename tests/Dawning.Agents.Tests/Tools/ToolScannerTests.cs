@@ -8,7 +8,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// ToolScanner 单元测试
+/// ToolScanner unit tests
 /// </summary>
 public class ToolScannerTests
 {
@@ -206,7 +206,7 @@ public class ToolScannerTests
     }
 
     /// <summary>
-    /// 测试用计算器工具（替代已删除的 MathTool）
+    /// Test calculator tool (replaces the deleted MathTool)
     /// </summary>
     private class TestCalculatorTool
     {
@@ -224,7 +224,7 @@ public class ToolScannerTests
     }
 
     /// <summary>
-    /// 测试用问候工具（替代已删除的 DateTimeTool）
+    /// Test greeting tool (replaces the deleted DateTimeTool)
     /// </summary>
     private class TestGreetingTool
     {

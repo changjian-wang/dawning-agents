@@ -46,11 +46,11 @@ public class MultimodalTests
     [Fact]
     public async Task ImageContent_FromFileAsync_LoadsFile()
     {
-        // 创建临时测试文件
+        // Create temporary test file
         var tempFile = Path.GetTempFileName() + ".png";
         try
         {
-            var testData = new byte[] { 0x89, 0x50, 0x4E, 0x47 }; // PNG 魔数
+            var testData = new byte[] { 0x89, 0x50, 0x4E, 0x47 }; // PNG magic number
             await File.WriteAllBytesAsync(tempFile, testData);
 
             var content = await ImageContentExtensions.FromFileAsync(tempFile);
@@ -130,7 +130,7 @@ public class MultimodalTests
     public void MultimodalMessage_User_CreatesUserMessage()
     {
         var message = MultimodalMessage.User(
-            TextContent.Create("描述这张图片"),
+            TextContent.Create("Describe this image"),
             ImageContent.FromUrl("https://example.com/image.png")
         );
 
@@ -143,18 +143,18 @@ public class MultimodalTests
     [Fact]
     public void MultimodalMessage_Assistant_CreatesAssistantMessage()
     {
-        var message = MultimodalMessage.Assistant("这是一张猫的图片");
+        var message = MultimodalMessage.Assistant("This is a picture of a cat");
 
         message.Role.Should().Be("assistant");
         message.Content.Should().HaveCount(1);
         message.Content[0].Should().BeOfType<TextContent>();
-        ((TextContent)message.Content[0]).Text.Should().Be("这是一张猫的图片");
+        ((TextContent)message.Content[0]).Text.Should().Be("This is a picture of a cat");
     }
 
     [Fact]
     public void MultimodalMessage_System_CreatesSystemMessage()
     {
-        var message = MultimodalMessage.System("你是一个图像分析助手");
+        var message = MultimodalMessage.System("You are an image analysis assistant");
 
         message.Role.Should().Be("system");
         message.Content.Should().HaveCount(1);
@@ -163,7 +163,10 @@ public class MultimodalTests
     [Fact]
     public void MultimodalMessage_AddText_ChainsCorrectly()
     {
-        var message = MultimodalMessage.User().AddText("第一段文本").AddText("第二段文本");
+        var message = MultimodalMessage
+            .User()
+            .AddText("First paragraph")
+            .AddText("Second paragraph");
 
         message.Content.Should().HaveCount(2);
         message.Content.All(c => c is TextContent).Should().BeTrue();
@@ -173,7 +176,7 @@ public class MultimodalTests
     public void MultimodalMessage_AddImageUrl_ChainsCorrectly()
     {
         var message = MultimodalMessage
-            .User(TextContent.Create("分析这些图片"))
+            .User(TextContent.Create("Analyze these images"))
             .AddImageUrl("https://example.com/image1.png")
             .AddImageUrl("https://example.com/image2.png", ImageDetail.High);
 
@@ -188,7 +191,7 @@ public class MultimodalTests
     {
         var base64 = Convert.ToBase64String(new byte[] { 1, 2, 3 });
         var message = MultimodalMessage
-            .User(TextContent.Create("分析"))
+            .User(TextContent.Create("Analyze"))
             .AddImageBase64(base64, "image/png");
 
         message.Content.Should().HaveCount(2);
@@ -219,20 +222,20 @@ public class MultimodalTests
     [Fact]
     public void VisionAnalysisResult_Ok_CreatesSuccessResult()
     {
-        var result = VisionAnalysisResult.Ok("这是一只橙色的猫");
+        var result = VisionAnalysisResult.Ok("This is an orange cat");
 
         result.Success.Should().BeTrue();
-        result.Description.Should().Be("这是一只橙色的猫");
+        result.Description.Should().Be("This is an orange cat");
         result.Error.Should().BeNull();
     }
 
     [Fact]
     public void VisionAnalysisResult_Fail_CreatesFailureResult()
     {
-        var result = VisionAnalysisResult.Fail("图像格式不支持");
+        var result = VisionAnalysisResult.Fail("Unsupported image format");
 
         result.Success.Should().BeFalse();
-        result.Error.Should().Be("图像格式不支持");
+        result.Error.Should().Be("Unsupported image format");
     }
 
     #endregion

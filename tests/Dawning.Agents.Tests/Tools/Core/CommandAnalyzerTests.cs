@@ -5,7 +5,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// CommandAnalyzer 单元测试
+/// CommandAnalyzer unit tests
 /// </summary>
 public class CommandAnalyzerTests
 {

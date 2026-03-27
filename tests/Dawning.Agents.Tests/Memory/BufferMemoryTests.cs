@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// BufferMemory 单元测试
+/// Unit tests for BufferMemory
 /// </summary>
 public class BufferMemoryTests
 {

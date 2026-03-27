@@ -120,7 +120,11 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
             }
         }
 
-        _logger.LogDebug("{Phase} guardrail checks all passed, {Count} issue(s) total", phase, allIssues.Count);
+        _logger.LogDebug(
+            "{Phase} guardrail checks all passed, {Count} issue(s) total",
+            phase,
+            allIssues.Count
+        );
 
         return new GuardrailResult
         {

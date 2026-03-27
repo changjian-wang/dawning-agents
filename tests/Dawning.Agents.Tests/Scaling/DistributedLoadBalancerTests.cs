@@ -324,7 +324,7 @@ public class DistributedLoadBalancerTests : IDisposable
                 throw new Exception("Always fail")
             );
 
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*故障转移失败*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Failover failed*");
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class DistributedLoadBalancerTests : IDisposable
 
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
-            .WithMessage("*没有可用的健康实例*");
+            .WithMessage("*No healthy instances available*");
     }
 
     [Fact]

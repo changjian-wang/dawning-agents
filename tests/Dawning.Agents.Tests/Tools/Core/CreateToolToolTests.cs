@@ -8,7 +8,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// CreateToolTool 测试
+/// CreateToolTool tests
 /// </summary>
 public class CreateToolToolTests
 {

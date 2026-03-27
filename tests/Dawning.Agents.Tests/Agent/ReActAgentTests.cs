@@ -42,7 +42,7 @@ public class ReActAgentTests
     [Fact]
     public async Task RunAsync_ShouldReturnFailedWhenExceedsMaxSteps()
     {
-        // Arrange - LLM 一直返回需要继续执行的响应
+        // Arrange - LLM keeps returning responses that need continued execution
         _mockProvider
             .Setup(p =>
                 p.ChatAsync(
@@ -91,7 +91,7 @@ public class ReActAgentTests
             NullLogger<ReActAgent>.Instance
         );
 
-        // Act & Assert — 用户取消应传播 OperationCanceledException
+        // Act & Assert — User cancellation should propagate OperationCanceledException
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             agent.RunAsync("test", cts.Token)
         );
@@ -237,7 +237,7 @@ public class ReActAgentTests
         response.Success.Should().BeTrue();
         response.FinalAnswer.Should().Be("The answer is 42");
 
-        // 验证 Memory 保存了对话
+        // Verify Memory saved the conversation
         memory.MessageCount.Should().Be(2);
         var messages = await memory.GetMessagesAsync();
         messages[0].Role.Should().Be("user");
@@ -307,7 +307,7 @@ public class ReActAgentTests
             NullLogger<ReActAgent>.Instance
         );
 
-        // Act - 执行两次对话
+        // Act - Execute two conversations
         await agent.RunAsync("Question 1");
         await agent.RunAsync("Question 2");
 

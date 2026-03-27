@@ -10,7 +10,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Tests.Redis;
 
 /// <summary>
-/// Redis 分布式消息总线测试
+/// Redis distributed message bus tests
 /// </summary>
 public sealed class RedisMessageBusTests : IDisposable
 {

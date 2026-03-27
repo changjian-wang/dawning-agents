@@ -81,7 +81,10 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         _maxRecentMessages =
             maxRecentMessages > 0
                 ? maxRecentMessages
-                : throw new ArgumentException("Max recent messages must be a positive number.", nameof(maxRecentMessages));
+                : throw new ArgumentException(
+                    "Max recent messages must be a positive number.",
+                    nameof(maxRecentMessages)
+                );
         _summaryThreshold =
             summaryThreshold > maxRecentMessages
                 ? summaryThreshold
@@ -196,7 +199,10 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
                 _summary = response.Content ?? string.Empty;
             }
 
-            _logger.LogDebug("Summary generated successfully, Length: {Length} characters", _summary.Length);
+            _logger.LogDebug(
+                "Summary generated successfully, Length: {Length} characters",
+                _summary.Length
+            );
         }
         catch (OperationCanceledException)
         {
@@ -209,7 +215,10 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to generate summary; original messages will be retained");
+            _logger.LogWarning(
+                ex,
+                "Failed to generate summary; original messages will be retained"
+            );
             // On summary failure, return messages to the list
             lock (_lock)
             {

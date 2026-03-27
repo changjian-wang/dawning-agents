@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// RAG DI 扩展方法单元测试
+/// RAG DI extension methods unit tests
 /// </summary>
 public class RAGServiceCollectionExtensionsTests
 {

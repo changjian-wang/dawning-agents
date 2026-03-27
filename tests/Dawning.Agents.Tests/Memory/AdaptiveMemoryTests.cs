@@ -7,7 +7,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// AdaptiveMemory 单元测试
+/// Unit tests for AdaptiveMemory
 /// </summary>
 public class AdaptiveMemoryTests
 {
@@ -26,7 +26,10 @@ public class AdaptiveMemoryTests
                 )
             )
             .ReturnsAsync(
-                new ChatCompletionResponse { Content = "摘要：这是一段压缩后的对话内容。" }
+                new ChatCompletionResponse
+                {
+                    Content = "Summary: This is compressed conversation content.",
+                }
             );
     }
 
@@ -134,10 +137,10 @@ public class AdaptiveMemoryTests
     [Fact]
     public async Task AddMessageAsync_BelowThreshold_StaysAsBufferMemory()
     {
-        // 设置较高的降级阈值
+        // Set a high downgrade threshold
         var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter, downgradeThreshold: 10000);
 
-        // 添加一些消息
+        // Add some messages
         for (int i = 0; i < 5; i++)
         {
             await memory.AddMessageAsync(
@@ -151,7 +154,7 @@ public class AdaptiveMemoryTests
     [Fact]
     public async Task AddMessageAsync_ExceedsThreshold_TriggersDowngrade()
     {
-        // 设置较低的降级阈值（100 tokens）
+        // Set a low downgrade threshold (100 tokens)
         var memory = new AdaptiveMemory(
             _mockLLM.Object,
             _tokenCounter,
@@ -160,8 +163,8 @@ public class AdaptiveMemoryTests
             summaryThreshold: 4
         );
 
-        // 添加足够多的消息以超过阈值
-        // 简单估算：每条消息约 20-30 tokens
+        // Add enough messages to exceed the threshold
+        // Simple estimate: each message is about 20-30 tokens
         for (int i = 0; i < 10; i++)
         {
             await memory.AddMessageAsync(
@@ -188,7 +191,7 @@ public class AdaptiveMemoryTests
             summaryThreshold: 4
         );
 
-        // 添加足够消息触发降级
+        // Add enough messages to trigger downgrade
         for (int i = 0; i < 10; i++)
         {
             await memory.AddMessageAsync(
@@ -202,7 +205,7 @@ public class AdaptiveMemoryTests
 
         var downgradeOccurred = memory.HasDowngraded;
 
-        // 继续添加更多消息
+        // Continue adding more messages
         await memory.AddMessageAsync(
             new ConversationMessage
             {
@@ -302,7 +305,7 @@ public class AdaptiveMemoryTests
             summaryThreshold: 4
         );
 
-        // 触发降级
+        // Trigger downgrade
         for (int i = 0; i < 10; i++)
         {
             await memory.AddMessageAsync(
@@ -316,10 +319,10 @@ public class AdaptiveMemoryTests
 
         memory.HasDowngraded.Should().BeTrue();
 
-        // 清空
+        // Clear
         await memory.ClearAsync();
 
-        // 验证已重置
+        // Verify reset
         memory.HasDowngraded.Should().BeFalse();
         memory.MessageCount.Should().Be(0);
     }
@@ -335,7 +338,7 @@ public class AdaptiveMemoryTests
             summaryThreshold: 4
         );
 
-        // 触发降级
+        // Trigger downgrade
         for (int i = 0; i < 10; i++)
         {
             await memory.AddMessageAsync(
@@ -345,7 +348,7 @@ public class AdaptiveMemoryTests
 
         await memory.ClearAsync();
 
-        // 添加新消息
+        // Add new messages
         await memory.AddMessageAsync(
             new ConversationMessage { Role = "user", Content = "New message" }
         );
@@ -397,7 +400,7 @@ public class AdaptiveMemoryTests
             summaryThreshold: 4
         );
 
-        // 添加大量消息，多次超过阈值
+        // Add a large number of messages, exceeding the threshold multiple times
         for (int i = 0; i < 20; i++)
         {
             await memory.AddMessageAsync(
@@ -409,7 +412,7 @@ public class AdaptiveMemoryTests
             );
         }
 
-        // 验证 LLM 被调用（用于摘要），但降级只发生一次
+        // Verify LLM was called (for summarization), but downgrade only happens once
         memory.HasDowngraded.Should().BeTrue();
     }
 
@@ -424,7 +427,7 @@ public class AdaptiveMemoryTests
             summaryThreshold: 5
         );
 
-        // 添加消息
+        // Add messages
         await memory.AddMessageAsync(
             new ConversationMessage { Role = "user", Content = "First message" }
         );
@@ -442,7 +445,7 @@ public class AdaptiveMemoryTests
             new ConversationMessage { Role = "assistant", Content = "Second response with details" }
         );
 
-        // 触发降级
+        // Trigger downgrade
         for (int i = 0; i < 10; i++)
         {
             await memory.AddMessageAsync(
@@ -455,7 +458,7 @@ public class AdaptiveMemoryTests
             );
         }
 
-        // 降级后仍然可以获取上下文
+        // After downgrade, context should still be retrievable
         var context = await memory.GetContextAsync();
         context.Should().NotBeEmpty();
     }

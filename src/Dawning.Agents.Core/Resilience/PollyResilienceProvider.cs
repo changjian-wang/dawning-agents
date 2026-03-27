@@ -191,7 +191,9 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     },
                     OnClosed = _ =>
                     {
-                        _logger.LogInformation("Circuit breaker closed; service restored to normal");
+                        _logger.LogInformation(
+                            "Circuit breaker closed; service restored to normal"
+                        );
                         return default;
                     },
                     OnHalfOpened = _ =>

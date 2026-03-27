@@ -7,7 +7,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Validation;
 
 /// <summary>
-/// Provider/Infrastructure Options Validate() 测试
+/// Provider/Infrastructure Options Validate() tests
 /// </summary>
 public class ProviderOptionsValidateTests
 {

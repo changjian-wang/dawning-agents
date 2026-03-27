@@ -176,7 +176,12 @@ public sealed class WorkflowEngine : IWorkflowEngine
         catch (OperationCanceledException)
         {
             _logger.LogWarning("Workflow {WorkflowId} was canceled", definition.Id);
-            return CreateFailedResult(definition.Id, "Workflow execution was canceled", stopwatch, context);
+            return CreateFailedResult(
+                definition.Id,
+                "Workflow execution was canceled",
+                stopwatch,
+                context
+            );
         }
         catch (Exception ex)
         {
@@ -363,7 +368,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null || !config.TryGetValue("agentName", out var agentNameObj))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent node is missing agentName configuration");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                "Agent node is missing agentName configuration"
+            );
         }
 
         var agentName = agentNameObj?.ToString();
@@ -396,7 +404,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         cancellationToken.ThrowIfCancellationRequested();
         if (!response.Success)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, response.Error ?? "Agent execution failed");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                response.Error ?? "Agent execution failed"
+            );
         }
 
         return NodeExecutionResult.Ok(nodeDefinition.Id, response.FinalAnswer);
@@ -411,13 +422,19 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Tool node is missing configuration");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                "Tool node is missing configuration"
+            );
         }
 
         var toolName = GetConfigString(config, "toolName");
         if (string.IsNullOrEmpty(toolName))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Tool node is missing toolName configuration");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                "Tool node is missing toolName configuration"
+            );
         }
 
         if (_toolRegistry == null)
@@ -448,7 +465,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         }
         else
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, toolResult.Error ?? "Tool execution failed");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                toolResult.Error ?? "Tool execution failed"
+            );
         }
     }
 
@@ -460,7 +480,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Condition node is missing configuration");
+            return NodeExecutionResult.Fail(
+                nodeDefinition.Id,
+                "Condition node is missing configuration"
+            );
         }
 
         // Get input value

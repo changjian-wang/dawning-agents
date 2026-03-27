@@ -85,7 +85,11 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
         _logger.LogWarning("Content contains {Count} blocked keyword(s)", issues.Count);
 
         return Task.FromResult(
-            GuardrailResult.Fail($"Content contains {issues.Count} blocked keyword(s)", Name, issues)
+            GuardrailResult.Fail(
+                $"Content contains {issues.Count} blocked keyword(s)",
+                Name,
+                issues
+            )
         );
     }
 

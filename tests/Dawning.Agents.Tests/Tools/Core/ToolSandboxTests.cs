@@ -6,7 +6,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// ToolSandbox 集成测试（实际执行进程）
+/// ToolSandbox integration tests (actual process execution)
 /// </summary>
 public class ToolSandboxTests : IDisposable
 {

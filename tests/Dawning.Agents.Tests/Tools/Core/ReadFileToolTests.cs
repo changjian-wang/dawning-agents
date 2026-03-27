@@ -7,7 +7,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools.Core;
 
 /// <summary>
-/// ReadFileTool 测试
+/// ReadFileTool tests
 /// </summary>
 public class ReadFileToolTests : IDisposable
 {

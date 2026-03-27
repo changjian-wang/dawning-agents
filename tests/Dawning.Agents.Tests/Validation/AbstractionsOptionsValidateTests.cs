@@ -10,7 +10,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.Validation;
 
 /// <summary>
-/// Abstractions 层 Options Validate() 测试
+/// Abstractions layer Options Validate() tests
 /// </summary>
 public class AbstractionsOptionsValidateTests
 {

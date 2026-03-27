@@ -177,12 +177,12 @@ public class EmbeddingProviderDITests
         // Arrange
         var services = new ServiceCollection();
 
-        // Act - 先注册 OpenAI，再注册 RAG
+        // Act - Register OpenAI first, then register RAG
         services.AddOpenAIEmbedding("sk-test-key");
         services.AddRAG();
         var provider = services.BuildServiceProvider().GetRequiredService<IEmbeddingProvider>();
 
-        // Assert - 应该使用先注册的 OpenAI
+        // Assert - Should use the previously registered OpenAI
         provider.Should().BeOfType<OpenAIEmbeddingProvider>();
     }
 }

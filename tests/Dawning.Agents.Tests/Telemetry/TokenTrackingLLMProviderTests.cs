@@ -192,7 +192,7 @@ public class TokenTrackingLLMProviderTests
         // Assert
         newProvider.Should().NotBeSameAs(_sut);
         newProvider.Source.Should().Be("NewSource");
-        newProvider.SessionId.Should().Be("test-session"); // 保留原 sessionId
+        newProvider.SessionId.Should().Be("test-session"); // Preserves original sessionId
         newProvider.InnerProvider.Should().BeSameAs(_mockProvider.Object);
         newProvider.Tracker.Should().BeSameAs(_mockTracker.Object);
     }
@@ -205,7 +205,7 @@ public class TokenTrackingLLMProviderTests
 
         // Assert
         newProvider.Should().NotBeSameAs(_sut);
-        newProvider.Source.Should().Be("TestSource"); // 保留原 source
+        newProvider.Source.Should().Be("TestSource"); // Preserves original source
         newProvider.SessionId.Should().Be("new-session");
         newProvider.InnerProvider.Should().BeSameAs(_mockProvider.Object);
         newProvider.Tracker.Should().BeSameAs(_mockTracker.Object);

@@ -120,7 +120,11 @@ public abstract class AgentBase : IAgent
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var stepNumber = context.Steps.Count + 1;
-                Logger.LogDebug("Executing step {StepNumber}/{MaxSteps}", stepNumber, context.MaxSteps);
+                Logger.LogDebug(
+                    "Executing step {StepNumber}/{MaxSteps}",
+                    stepNumber,
+                    context.MaxSteps
+                );
 
                 // Execute single step
                 var step = await ExecuteStepAsync(context, stepNumber, cancellationToken)
@@ -154,7 +158,11 @@ public abstract class AgentBase : IAgent
 
             // Exceeded maximum steps
             stopwatch.Stop();
-            Logger.LogWarning("Agent {AgentName} exceeded maximum steps {MaxSteps}", Name, context.MaxSteps);
+            Logger.LogWarning(
+                "Agent {AgentName} exceeded maximum steps {MaxSteps}",
+                Name,
+                context.MaxSteps
+            );
             return AgentResponse.Failed(
                 $"Exceeded maximum steps ({context.MaxSteps})",
                 context.Steps,
@@ -302,7 +310,10 @@ public abstract class AgentBase : IAgent
                     cancellationToken
                 )
                 .ConfigureAwait(false);
-            Logger.LogDebug("Conversation saved to memory, current message count: {Count}", Memory.MessageCount);
+            Logger.LogDebug(
+                "Conversation saved to memory, current message count: {Count}",
+                Memory.MessageCount
+            );
         }
         catch (Exception ex)
         {

@@ -35,7 +35,7 @@ public sealed class RedisHealthCheck : IHealthCheck
             return HealthCheckResult.Healthy(
                 string.Create(
                     CultureInfo.InvariantCulture,
-                $"Redis healthy, Ping={pong.TotalMilliseconds}ms"
+                    $"Redis healthy, Ping={pong.TotalMilliseconds}ms"
                 )
             );
         }

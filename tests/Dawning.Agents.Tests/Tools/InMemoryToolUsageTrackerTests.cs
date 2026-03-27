@@ -6,7 +6,7 @@ using Xunit;
 namespace Dawning.Agents.Tests.Tools;
 
 /// <summary>
-/// InMemoryToolUsageTracker 测试
+/// InMemoryToolUsageTracker tests
 /// </summary>
 public sealed class InMemoryToolUsageTrackerTests
 {

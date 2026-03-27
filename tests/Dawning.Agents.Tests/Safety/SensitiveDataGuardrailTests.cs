@@ -91,7 +91,7 @@ public class SensitiveDataGuardrailTests
         var guardrail = new SensitiveDataGuardrail(options);
 
         // Act
-        var result = await guardrail.CheckAsync("手机号: 13812345678");
+        var result = await guardrail.CheckAsync("Phone: 13812345678");
 
         // Assert
         result.Passed.Should().BeTrue();
@@ -107,7 +107,7 @@ public class SensitiveDataGuardrailTests
         var guardrail = new SensitiveDataGuardrail(options);
 
         // Act
-        var result = await guardrail.CheckAsync("手机号: 13812345678");
+        var result = await guardrail.CheckAsync("Phone: 13812345678");
 
         // Assert
         // Phone pattern: KeepFirst=3, KeepLast=4 -> 138****5678
@@ -122,7 +122,7 @@ public class SensitiveDataGuardrailTests
         var guardrail = new SensitiveDataGuardrail(options);
 
         // Act
-        var result = await guardrail.CheckAsync("身份证: 110101199001011234");
+        var result = await guardrail.CheckAsync("ID Card: 110101199001011234");
 
         // Assert
         result.Issues.Should().Contain(i => i.Type == "IDCard");
@@ -134,7 +134,7 @@ public class SensitiveDataGuardrailTests
         // Arrange
         var options = CreateOptions();
         var guardrail = new SensitiveDataGuardrail(options);
-        var content = "联系方式: test@example.com, 手机: 13812345678";
+        var content = "Contact: test@example.com, Phone: 13812345678";
 
         // Act
         var result = await guardrail.CheckAsync(content);

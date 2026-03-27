@@ -147,12 +147,18 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             }
             catch (Exception eventEx)
             {
-                _logger.LogWarning(eventEx, "ConfigurationChanged event handler threw an exception");
+                _logger.LogWarning(
+                    eventEx,
+                    "ConfigurationChanged event handler threw an exception"
+                );
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to rebuild LLM provider; continuing with the existing provider");
+            _logger.LogError(
+                ex,
+                "Failed to rebuild LLM provider; continuing with the existing provider"
+            );
         }
     }
 

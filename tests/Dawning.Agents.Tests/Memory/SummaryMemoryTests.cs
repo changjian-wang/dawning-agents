@@ -7,7 +7,7 @@ using Moq;
 namespace Dawning.Agents.Tests.Memory;
 
 /// <summary>
-/// SummaryMemory 单元测试
+/// Unit tests for SummaryMemory
 /// </summary>
 public class SummaryMemoryTests
 {

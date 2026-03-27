@@ -240,7 +240,9 @@ public abstract class OpenAIProviderBase : ILLMProvider
                     "system" => new SystemChatMessage(msg.Content),
                     "tool" => new ToolChatMessage(
                         msg.ToolCallId
-                            ?? throw new ArgumentException("Tool message must contain a ToolCallId"),
+                            ?? throw new ArgumentException(
+                                "Tool message must contain a ToolCallId"
+                            ),
                         msg.Content
                     ),
                     _ => throw new ArgumentException($"Unknown role: {msg.Role}"),

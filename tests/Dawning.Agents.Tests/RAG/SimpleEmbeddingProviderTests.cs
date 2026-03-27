@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace Dawning.Agents.Tests.RAG;
 
 /// <summary>
-/// SimpleEmbeddingProvider 单元测试
+/// SimpleEmbeddingProvider unit tests
 /// </summary>
 public class SimpleEmbeddingProviderTests
 {

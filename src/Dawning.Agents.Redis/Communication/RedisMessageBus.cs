@@ -74,7 +74,10 @@ public sealed class RedisMessageBus : IMessageBus, IDisposable
 
         if (string.IsNullOrEmpty(message.ReceiverId))
         {
-            throw new ArgumentException("ReceiverId is required for point-to-point messages.", nameof(message));
+            throw new ArgumentException(
+                "ReceiverId is required for point-to-point messages.",
+                nameof(message)
+            );
         }
 
         _logger.LogDebug(
@@ -99,7 +102,11 @@ public sealed class RedisMessageBus : IMessageBus, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(message);
 
-                _logger.LogDebug("Broadcasting message {MessageId} from {Sender}", message.Id, message.SenderId);
+        _logger.LogDebug(
+            "Broadcasting message {MessageId} from {Sender}",
+            message.Id,
+            message.SenderId
+        );
 
         var channel = RedisChannel.Literal($"{_prefix}broadcast");
         var json = SerializeMessage(message);
@@ -266,7 +273,9 @@ public sealed class RedisMessageBus : IMessageBus, IDisposable
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                throw new TimeoutException($"Request {correlationId} timed out waiting for response ({timeout})");
+                throw new TimeoutException(
+                    $"Request {correlationId} timed out waiting for response ({timeout})"
+                );
             }
         }
         finally

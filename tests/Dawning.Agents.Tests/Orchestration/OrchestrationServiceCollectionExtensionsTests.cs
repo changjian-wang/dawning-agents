@@ -11,7 +11,7 @@ using Moq;
 using Xunit;
 
 /// <summary>
-/// OrchestrationServiceCollectionExtensions 单元测试
+/// Unit tests for OrchestrationServiceCollectionExtensions.
 /// </summary>
 public class OrchestrationServiceCollectionExtensionsTests
 {

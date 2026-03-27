@@ -11,11 +11,11 @@ using Moq.Protected;
 namespace Dawning.Agents.Tests.LLM;
 
 /// <summary>
-/// ResponseFormat / Structured Output 相关测试
+/// Tests for ResponseFormat / Structured Output
 /// </summary>
 public class StructuredOutputTests
 {
-    #region ResponseFormat 模型测试
+    #region ResponseFormat Model Tests
 
     [Fact]
     public void ResponseFormat_Text_ShouldHaveCorrectType()
@@ -72,7 +72,7 @@ public class StructuredOutputTests
 
     #endregion
 
-    #region OllamaProvider ResponseFormat 测试
+    #region OllamaProvider ResponseFormat Tests
 
     [Fact]
     public async Task OllamaProvider_ChatAsync_WithJsonObjectFormat_ShouldSendFormatJson()
@@ -319,7 +319,7 @@ public class StructuredOutputTests
 
     #endregion
 
-    #region ResponseFormatType 枚举测试
+    #region ResponseFormatType Enum Tests
 
     [Theory]
     [InlineData(ResponseFormatType.Text, 0)]
