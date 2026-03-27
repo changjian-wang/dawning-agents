@@ -1,3 +1,4 @@
+using System.Globalization;
 using Dapper;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Abstractions.Memory;
@@ -24,7 +25,9 @@ public sealed class SqliteConversationMemory : IConversationMemory
     public string? SessionId { get; }
 
     /// <inheritdoc />
-    public int MessageCount => GetMessageCountSync();
+    public int MessageCount => Volatile.Read(ref _messageCount);
+
+    private int _messageCount;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqliteConversationMemory"/> class.
@@ -81,6 +84,8 @@ public sealed class SqliteConversationMemory : IConversationMemory
             )
             .ConfigureAwait(false);
 
+        Interlocked.Increment(ref _messageCount);
+
         _logger.LogDebug(
             "Added {Role} message to session {SessionId} ({TokenCount} tokens)",
             message.Role,
@@ -115,7 +120,7 @@ public sealed class SqliteConversationMemory : IConversationMemory
                 Role = r.Role,
                 Content = r.Content,
                 TokenCount = r.TokenCount,
-                Timestamp = DateTimeOffset.Parse(r.CreatedAt),
+                Timestamp = DateTimeOffset.Parse(r.CreatedAt, CultureInfo.InvariantCulture),
             })
             .ToList()
             .AsReadOnly();
@@ -169,6 +174,8 @@ public sealed class SqliteConversationMemory : IConversationMemory
             )
             .ConfigureAwait(false);
 
+        Volatile.Write(ref _messageCount, 0);
+
         _logger.LogInformation(
             "Cleared {Count} messages from session {SessionId}",
             deleted,
@@ -191,16 +198,6 @@ public sealed class SqliteConversationMemory : IConversationMemory
             .ConfigureAwait(false);
     }
 
-    private int GetMessageCountSync()
-    {
-        using var connection = _dbContext.CreateConnectionAsync().GetAwaiter().GetResult();
-
-        return connection.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
-            new { SessionId }
-        );
-    }
-
     /// <summary>
     /// Internal row type for Dapper mapping.
     /// </summary>
@@ -208,19 +205,7 @@ public sealed class SqliteConversationMemory : IConversationMemory
     {
         public required string Role { get; init; }
         public required string Content { get; init; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Style",
-            "IDE1006:Naming Styles",
-            Justification = "Maps to snake_case column name"
-        )]
         public int TokenCount { get; init; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Style",
-            "IDE1006:Naming Styles",
-            Justification = "Maps to snake_case column name"
-        )]
         public required string CreatedAt { get; init; }
     }
 }

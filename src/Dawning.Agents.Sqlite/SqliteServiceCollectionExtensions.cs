@@ -35,13 +35,7 @@ public static class SqliteServiceCollectionExtensions
             SqliteMemoryOptionsValidator
         >();
 
-        services.TryAddSingleton<SqliteDbContext>();
-        services.TryAddScoped<IConversationMemory>(sp =>
-        {
-            var dbContext = sp.GetRequiredService<SqliteDbContext>();
-            var tokenCounter = sp.GetRequiredService<ITokenCounter>();
-            return new SqliteConversationMemory(dbContext, tokenCounter, Guid.NewGuid().ToString());
-        });
+        RegisterCoreServices(services);
 
         return services;
     }
@@ -66,6 +60,13 @@ public static class SqliteServiceCollectionExtensions
             SqliteMemoryOptionsValidator
         >();
 
+        RegisterCoreServices(services);
+
+        return services;
+    }
+
+    private static void RegisterCoreServices(IServiceCollection services)
+    {
         services.TryAddSingleton<SqliteDbContext>();
         services.TryAddScoped<IConversationMemory>(sp =>
         {
@@ -73,8 +74,6 @@ public static class SqliteServiceCollectionExtensions
             var tokenCounter = sp.GetRequiredService<ITokenCounter>();
             return new SqliteConversationMemory(dbContext, tokenCounter, Guid.NewGuid().ToString());
         });
-
-        return services;
     }
 }
 

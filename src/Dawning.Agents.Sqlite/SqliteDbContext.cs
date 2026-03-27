@@ -12,7 +12,9 @@ namespace Dawning.Agents.Sqlite;
 public sealed class SqliteDbContext : IAsyncDisposable
 {
     private readonly string _connectionString;
+    private readonly bool _autoCreateSchema;
     private readonly ILogger<SqliteDbContext> _logger;
+    private int _schemaEnsured;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqliteDbContext"/> class.
@@ -26,11 +28,13 @@ public sealed class SqliteDbContext : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(options);
         _connectionString = options.Value.ConnectionString;
+        _autoCreateSchema = options.Value.AutoCreateSchema;
         _logger = logger ?? NullLogger<SqliteDbContext>.Instance;
     }
 
     /// <summary>
     /// Creates and opens a new SQLite connection.
+    /// Automatically ensures schema on first call when <see cref="SqliteMemoryOptions.AutoCreateSchema"/> is enabled.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An open <see cref="SqliteConnection"/>.</returns>
@@ -38,10 +42,13 @@ public sealed class SqliteDbContext : IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
+        if (_autoCreateSchema && Interlocked.CompareExchange(ref _schemaEnsured, 1, 0) == 0)
+        {
+            await EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         var connection = new SqliteConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        // Enable WAL mode for better concurrent read performance
-        await connection.ExecuteAsync("PRAGMA journal_mode=WAL;").ConfigureAwait(false);
         return connection;
     }
 
@@ -53,8 +60,11 @@ public sealed class SqliteDbContext : IAsyncDisposable
     {
         _logger.LogInformation("Ensuring SQLite schema for conversation memory");
 
-        await using var connection = await CreateConnectionAsync(cancellationToken)
-            .ConfigureAwait(false);
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        // WAL mode persists on the database file; only needs to be set once
+        await connection.ExecuteAsync("PRAGMA journal_mode=WAL;").ConfigureAwait(false);
 
         await connection
             .ExecuteAsync(
