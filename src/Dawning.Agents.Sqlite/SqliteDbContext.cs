@@ -101,13 +101,14 @@ public sealed class SqliteDbContext : IAsyncDisposable
             )
             .ConfigureAwait(false);
 
+        _schemaEnsured = true;
         _logger.LogInformation("SQLite schema ensured successfully");
     }
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
-        // SqliteConnection is created per-operation, nothing to dispose here
+        _schemaLock.Dispose();
         return ValueTask.CompletedTask;
     }
 }

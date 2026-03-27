@@ -25,14 +25,11 @@ public sealed class SqliteConversationMemory : IConversationMemory
     public string? SessionId { get; }
 
     /// <inheritdoc />
-    public int MessageCount
-    {
-        get
-        {
-            EnsureMessageCountInitialized();
-            return Volatile.Read(ref _messageCount);
-        }
-    }
+    /// <remarks>
+    /// Returns the cached count. The count is lazy-initialized from the database
+    /// on the first async operation (e.g., <see cref="AddMessageAsync"/>, <see cref="GetMessagesAsync"/>).
+    /// </remarks>
+    public int MessageCount => Volatile.Read(ref _messageCount);
 
     private int _messageCount;
     private volatile bool _messageCountInitialized;
@@ -68,6 +65,8 @@ public sealed class SqliteConversationMemory : IConversationMemory
     )
     {
         ArgumentNullException.ThrowIfNull(message);
+
+        await EnsureMessageCountInitializedAsync(cancellationToken).ConfigureAwait(false);
 
         var tokenCount = message.TokenCount ?? _tokenCounter.CountTokens(message.Content);
 
@@ -110,6 +109,8 @@ public sealed class SqliteConversationMemory : IConversationMemory
         CancellationToken cancellationToken = default
     )
     {
+        await EnsureMessageCountInitializedAsync(cancellationToken).ConfigureAwait(false);
+
         await using var connection = await _dbContext
             .CreateConnectionAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -204,6 +205,8 @@ public sealed class SqliteConversationMemory : IConversationMemory
     /// <inheritdoc />
     public async Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
+        await EnsureMessageCountInitializedAsync(cancellationToken).ConfigureAwait(false);
+
         await using var connection = await _dbContext
             .CreateConnectionAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -219,18 +222,27 @@ public sealed class SqliteConversationMemory : IConversationMemory
             .ConfigureAwait(false);
     }
 
-    private void EnsureMessageCountInitialized()
+    private async Task EnsureMessageCountInitializedAsync(CancellationToken cancellationToken)
     {
         if (_messageCountInitialized)
         {
             return;
         }
 
-        using var connection = _dbContext.CreateConnectionAsync().GetAwaiter().GetResult();
-        var count = connection.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
-            new { SessionId }
-        );
+        await using var connection = await _dbContext
+            .CreateConnectionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var count = await connection
+            .ExecuteScalarAsync<int>(
+                new CommandDefinition(
+                    "SELECT COUNT(*) FROM conversation_messages WHERE session_id = @SessionId",
+                    new { SessionId },
+                    cancellationToken: cancellationToken
+                )
+            )
+            .ConfigureAwait(false);
+
         Volatile.Write(ref _messageCount, count);
         _messageCountInitialized = true;
     }

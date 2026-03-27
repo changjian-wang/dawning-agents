@@ -3,6 +3,7 @@ using Dawning.Agents.Abstractions.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Dawning.Agents.Sqlite;
@@ -72,7 +73,13 @@ public static class SqliteServiceCollectionExtensions
         {
             var dbContext = sp.GetRequiredService<SqliteDbContext>();
             var tokenCounter = sp.GetRequiredService<ITokenCounter>();
-            return new SqliteConversationMemory(dbContext, tokenCounter, Guid.NewGuid().ToString());
+            var logger = sp.GetService<ILogger<SqliteConversationMemory>>();
+            return new SqliteConversationMemory(
+                dbContext,
+                tokenCounter,
+                Guid.NewGuid().ToString(),
+                logger
+            );
         });
     }
 }
