@@ -1,4 +1,5 @@
 ---
+name: code-review
 description: |
   Use when: Reviewing code for architecture compliance, naming conventions, DI patterns, forbidden patterns, or best practices
   Don't use when:

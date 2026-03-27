@@ -1,4 +1,5 @@
 ---
+name: markdown
 description: |
   Use when: Writing or formatting Markdown documentation, XML doc comments, README files, or API docs
   Don't use when:

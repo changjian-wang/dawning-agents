@@ -1,4 +1,5 @@
 ---
+name: deep-audit
 description: |
   Use when: Performing deep code audit to find bugs, security issues, design flaws, and test gaps across all 13 projects
   Don't use when:

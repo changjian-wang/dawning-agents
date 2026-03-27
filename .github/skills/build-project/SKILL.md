@@ -1,4 +1,5 @@
 ---
+name: build-project
 description: |
   Use when: Building the solution, fixing compilation errors, restoring packages, or checking project references
   Don't use when:

@@ -1,4 +1,5 @@
 ---
+name: run-tests
 description: |
   Use when: Running xUnit tests, checking coverage, debugging test failures, or running targeted test subsets
   Don't use when:

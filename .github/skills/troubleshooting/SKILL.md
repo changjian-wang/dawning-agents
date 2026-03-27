@@ -1,4 +1,5 @@
 ---
+name: troubleshooting
 description: |
   Use when: Diagnosing build failures, test failures, deployment issues, LLM integration problems, or performance degradation
   Don't use when:

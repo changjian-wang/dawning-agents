@@ -1,4 +1,5 @@
 ---
+name: nuget-release
 description: |
   Use when: Managing package versions, packing NuGet packages, publishing releases, creating git tags, or running release CI/CD
   Don't use when:

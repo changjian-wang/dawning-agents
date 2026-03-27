@@ -1,4 +1,5 @@
 ---
+name: performance
 description: |
   Use when: Running BenchmarkDotNet benchmarks, analyzing hot paths, memory allocation, LINQ optimization, async overhead, or creating new benchmarks
   Don't use when:

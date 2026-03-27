@@ -1,4 +1,5 @@
 ---
+name: deployment
 description: |
   Use when: Creating or modifying Docker configs, K8s manifests, observability stack (Prometheus/Grafana/Loki/Tempo), health checks, or rollback procedures
   Don't use when:

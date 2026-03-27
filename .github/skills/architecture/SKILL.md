@@ -1,4 +1,5 @@
 ---
+name: architecture
 description: |
   Use when: Understanding project structure, finding where to place new code, checking module boundaries, reviewing namespace rules, or exploring core interfaces and DI registration API
   Don't use when:

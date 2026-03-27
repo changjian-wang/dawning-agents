@@ -1,4 +1,5 @@
 ---
+name: csharpier
 description: |
   Use when: Formatting C# code with CSharpier, checking formatting rules, or fixing style violations
   Don't use when:

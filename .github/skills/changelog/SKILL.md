@@ -1,4 +1,5 @@
 ---
+name: changelog
 description: |
   Use when: Writing or updating CHANGELOG.md, generating release notes, or managing DocFX documentation
   Don't use when:

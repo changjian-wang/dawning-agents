@@ -1,4 +1,5 @@
 ---
+name: code-update
 description: |
   Use when: Writing new code, implementing features, fixing bugs, refactoring, adding services/interfaces, or applying required DI/logging/cancellation patterns
   Don't use when:

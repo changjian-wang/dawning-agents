@@ -1,4 +1,5 @@
 ---
+name: security-audit
 description: |
   Use when: Auditing for OWASP Top 10 vulnerabilities, dependency CVEs, secrets leakage, input validation, or injection attacks
   Don't use when:

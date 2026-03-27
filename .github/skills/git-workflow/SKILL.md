@@ -1,4 +1,5 @@
 ---
+name: git-workflow
 description: |
   Use when: Making git commits with conventional format, running pre-commit checks, creating branches or tags
   Don't use when:

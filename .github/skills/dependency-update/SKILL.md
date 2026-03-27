@@ -1,4 +1,5 @@
 ---
+name: dependency-update
 description: |
   Use when: Checking for outdated NuGet packages, upgrading dependencies, assessing breaking changes, or patching CVE vulnerabilities
   Don't use when:
