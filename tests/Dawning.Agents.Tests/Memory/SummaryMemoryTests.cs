@@ -264,4 +264,17 @@ public class SummaryMemoryTests
 
         memory.MaxRecentMessages.Should().Be(8);
     }
+
+    [Fact]
+    public void SessionId_ReturnsNull()
+    {
+        var memory = new SummaryMemory(
+            _mockLlm.Object,
+            _tokenCounter,
+            maxRecentMessages: 6,
+            summaryThreshold: 10
+        );
+
+        memory.SessionId.Should().BeNull();
+    }
 }

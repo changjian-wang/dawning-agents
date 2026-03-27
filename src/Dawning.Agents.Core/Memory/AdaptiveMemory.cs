@@ -27,6 +27,9 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     private bool _hasDowngraded;
     private volatile bool _disposed;
 
+    /// <inheritdoc />
+    public string? SessionId => null;
+
     /// <summary>
     /// Gets the current stored message count.
     /// </summary>

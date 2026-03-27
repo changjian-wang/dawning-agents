@@ -27,6 +27,9 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     private readonly ILogger<SummaryMemory> _logger;
     private volatile bool _disposed;
 
+    /// <inheritdoc />
+    public string? SessionId => null;
+
     /// <summary>
     /// Gets the message count (including the summary system message and recent messages).
     /// </summary>

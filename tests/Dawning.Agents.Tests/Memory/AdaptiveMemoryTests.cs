@@ -496,4 +496,11 @@ public class AdaptiveMemoryTests
     }
 
     #endregion
+
+    [Fact]
+    public void SessionId_ReturnsNull()
+    {
+        var memory = new AdaptiveMemory(_mockLLM.Object, _tokenCounter);
+        memory.SessionId.Should().BeNull();
+    }
 }

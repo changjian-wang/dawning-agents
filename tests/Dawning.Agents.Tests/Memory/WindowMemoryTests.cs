@@ -160,4 +160,11 @@ public class WindowMemoryTests
         var action = () => new WindowMemory(_tokenCounter, windowSize);
         action.Should().Throw<ArgumentException>();
     }
+
+    [Fact]
+    public void SessionId_ReturnsNull()
+    {
+        var memory = new WindowMemory(_tokenCounter, windowSize: 5);
+        memory.SessionId.Should().BeNull();
+    }
 }

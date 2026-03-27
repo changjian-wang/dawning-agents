@@ -15,6 +15,11 @@ public class AgentContext
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
 
     /// <summary>
+    /// User ID for identifying the current user (used by rate limiting, audit logging, and memory isolation).
+    /// </summary>
+    public string? UserId { get; init; }
+
+    /// <summary>
     /// Original user input.
     /// </summary>
     public required string UserInput { get; init; }

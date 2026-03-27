@@ -28,6 +28,9 @@ public class VectorMemory : IConversationMemory
     private readonly Lock _lock = new();
     private readonly string _sessionId;
 
+    /// <inheritdoc />
+    public string? SessionId => _sessionId;
+
     /// <summary>
     /// Gets the current message count (recent window + vector store).
     /// </summary>
@@ -60,11 +63,6 @@ public class VectorMemory : IConversationMemory
     /// Gets the number of messages in the vector store.
     /// </summary>
     public int VectorStoreCount => _vectorStore.Count;
-
-    /// <summary>
-    /// Gets the session identifier.
-    /// </summary>
-    public string SessionId => _sessionId;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VectorMemory"/> class.

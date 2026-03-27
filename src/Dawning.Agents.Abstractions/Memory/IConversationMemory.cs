@@ -8,9 +8,15 @@ namespace Dawning.Agents.Abstractions.Memory;
 /// <remarks>
 /// <para>The Memory system manages an Agent's conversation history and context.</para>
 /// <para>Implementation types include: BufferMemory, WindowMemory, SummaryMemory.</para>
+/// <para>Implementations should scope data by <see cref="SessionId"/> when set.</para>
 /// </remarks>
 public interface IConversationMemory
 {
+    /// <summary>
+    /// Gets the session ID that scopes this memory instance. Null means unscoped (in-process only).
+    /// </summary>
+    string? SessionId { get; }
+
     /// <summary>
     /// Adds a message to memory.
     /// </summary>

@@ -56,11 +56,7 @@ public sealed class SafeAgent : IAgent
         CancellationToken cancellationToken = default
     )
     {
-        var context = new AgentContext { UserInput = input };
-        if (userId != null)
-        {
-            context.SetMetadata("userId", userId);
-        }
+        var context = new AgentContext { UserInput = input, UserId = userId };
 
         return RunAsync(context, cancellationToken);
     }
@@ -72,8 +68,7 @@ public sealed class SafeAgent : IAgent
     )
     {
         var stopwatch = Stopwatch.StartNew();
-        var userId = context.Metadata.TryGetValue("userId", out var uid) ? uid?.ToString() : null;
-        var rateLimitKey = userId ?? $"anonymous:{Name}";
+        var rateLimitKey = context.UserId ?? $"anonymous:{Name}";
 
         try
         {

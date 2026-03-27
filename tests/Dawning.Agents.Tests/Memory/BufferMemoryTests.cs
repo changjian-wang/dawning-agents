@@ -185,4 +185,10 @@ public class BufferMemoryTests
         var action = () => new BufferMemory(null!);
         action.Should().Throw<ArgumentNullException>();
     }
+
+    [Fact]
+    public void SessionId_ReturnsNull()
+    {
+        _memory.SessionId.Should().BeNull();
+    }
 }

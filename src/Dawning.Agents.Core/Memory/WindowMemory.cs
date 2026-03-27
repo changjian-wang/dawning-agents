@@ -19,6 +19,9 @@ public sealed class WindowMemory : IConversationMemory
     private readonly int _windowSize;
     private readonly Lock _lock = new();
 
+    /// <inheritdoc />
+    public string? SessionId => null;
+
     /// <summary>
     /// Gets the current message count within the window (maximum is <see cref="WindowSize"/>).
     /// </summary>

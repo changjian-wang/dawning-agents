@@ -14,6 +14,7 @@ public class AgentModelsTests
         // Assert
         context.SessionId.Should().NotBeNullOrEmpty();
         context.UserInput.Should().Be("test input");
+        context.UserId.Should().BeNull();
         context.Steps.Should().BeEmpty();
         context.MaxSteps.Should().Be(10);
         context.Metadata.Should().BeEmpty();

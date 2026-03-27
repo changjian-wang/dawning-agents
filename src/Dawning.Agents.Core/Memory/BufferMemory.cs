@@ -17,6 +17,9 @@ public class BufferMemory : IConversationMemory
     private readonly ITokenCounter _tokenCounter;
     private readonly Lock _lock = new();
 
+    /// <inheritdoc />
+    public string? SessionId => null;
+
     /// <summary>
     /// Gets the current stored message count.
     /// </summary>

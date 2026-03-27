@@ -12,9 +12,9 @@ namespace Dawning.Agents.Abstractions.Distributed;
 public interface IDistributedMemory : IConversationMemory
 {
     /// <summary>
-    /// The session ID.
+    /// The session ID (always non-null for distributed memory).
     /// </summary>
-    string SessionId { get; }
+    new string SessionId { get; }
 
     /// <summary>
     /// Attempts to acquire a session lock.
