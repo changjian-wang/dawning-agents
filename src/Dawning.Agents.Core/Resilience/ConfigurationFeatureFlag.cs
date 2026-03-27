@@ -37,12 +37,13 @@ public sealed class ConfigurationFeatureFlag : IFeatureFlag
     /// <param name="logger">The logger.</param>
     public ConfigurationFeatureFlag(
         IConfiguration configuration,
-        ILogger<ConfigurationFeatureFlag>? logger = null
+        ILogger<ConfigurationFeatureFlag>? logger = null,
+        ILoggerFactory? loggerFactory = null
     )
     {
         ArgumentNullException.ThrowIfNull(configuration);
         _configuration = configuration;
-        _inner = new InMemoryFeatureFlag();
+        _inner = new InMemoryFeatureFlag(loggerFactory?.CreateLogger<InMemoryFeatureFlag>());
         _logger = logger ?? NullLogger<ConfigurationFeatureFlag>.Instance;
 
         LoadFlags();
@@ -63,25 +64,38 @@ public sealed class ConfigurationFeatureFlag : IFeatureFlag
     private void LoadFlags()
     {
         var section = _configuration.GetSection(SectionName);
-        if (!section.Exists())
-        {
-            return;
-        }
+        var currentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var child in section.GetChildren())
+        if (section.Exists())
         {
-            var name = child.Key;
-            var enabled = child.GetValue<bool>("Enabled");
-            var rollout = child.GetValue("RolloutPercentage", 100);
+            foreach (var child in section.GetChildren())
+            {
+                var name = child.Key;
+                var enabled = child.GetValue<bool>("Enabled");
+                var rollout = child.GetValue("RolloutPercentage", 100);
 
-            _inner.SetFlag(
-                new FeatureFlagDefinition
+                if (rollout < 0 || rollout > 100)
                 {
-                    Name = name,
-                    Enabled = enabled,
-                    RolloutPercentage = rollout,
+                    _logger.LogWarning(
+                        "Feature flag '{Name}' has invalid RolloutPercentage {Value}, skipping",
+                        name,
+                        rollout
+                    );
+                    continue;
                 }
-            );
+
+                currentNames.Add(name);
+                _inner.SetFlag(
+                    new FeatureFlagDefinition
+                    {
+                        Name = name,
+                        Enabled = enabled,
+                        RolloutPercentage = rollout,
+                    }
+                );
+            }
         }
+
+        _inner.RemoveFlagsNotIn(currentNames);
     }
 }

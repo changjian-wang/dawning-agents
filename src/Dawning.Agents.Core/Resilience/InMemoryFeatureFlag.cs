@@ -33,6 +33,7 @@ public sealed class InMemoryFeatureFlag : IFeatureFlag
     public void SetFlag(FeatureFlagDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
+        ArgumentException.ThrowIfNullOrWhiteSpace(definition.Name);
         ArgumentOutOfRangeException.ThrowIfLessThan(definition.RolloutPercentage, 0);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(definition.RolloutPercentage, 100);
         _flags[definition.Name] = definition;
@@ -87,6 +88,22 @@ public sealed class InMemoryFeatureFlag : IFeatureFlag
         );
 
         return Task.FromResult(enabled);
+    }
+
+    /// <summary>
+    /// Removes all flags whose names are not in the provided set.
+    /// </summary>
+    /// <param name="validNames">Set of flag names to keep.</param>
+    public void RemoveFlagsNotIn(IReadOnlySet<string> validNames)
+    {
+        ArgumentNullException.ThrowIfNull(validNames);
+        foreach (var key in _flags.Keys)
+        {
+            if (!validNames.Contains(key))
+            {
+                _flags.TryRemove(key, out _);
+            }
+        }
     }
 
     /// <summary>

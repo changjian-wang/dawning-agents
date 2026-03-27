@@ -73,6 +73,8 @@ public sealed class GradualRolloutAgent : IAgent
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         var useCanary =
             !Volatile.Read(ref _rolledBack)
             && await _featureFlag

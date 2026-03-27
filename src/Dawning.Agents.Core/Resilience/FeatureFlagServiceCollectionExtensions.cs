@@ -42,10 +42,15 @@ public static class FeatureFlagServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.TryAddSingleton<IFeatureFlag>(sp => new ConfigurationFeatureFlag(
-            configuration,
-            sp.GetService<ILoggerFactory>()?.CreateLogger<ConfigurationFeatureFlag>()
-        ));
+        services.TryAddSingleton<IFeatureFlag>(sp =>
+        {
+            var loggerFactory = sp.GetService<ILoggerFactory>();
+            return new ConfigurationFeatureFlag(
+                configuration,
+                loggerFactory?.CreateLogger<ConfigurationFeatureFlag>(),
+                loggerFactory
+            );
+        });
 
         return services;
     }

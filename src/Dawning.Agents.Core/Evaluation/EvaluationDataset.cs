@@ -41,6 +41,7 @@ public sealed class EvaluationDataset
     /// <param name="tags">Tags to filter by (any match).</param>
     public IReadOnlyList<EvaluationTestCase> FilterByTags(IEnumerable<string> tags)
     {
+        ArgumentNullException.ThrowIfNull(tags);
         var tagSet = new HashSet<string>(tags, StringComparer.OrdinalIgnoreCase);
         return _testCases.Where(tc => tc.Tags?.Any(t => tagSet.Contains(t)) == true).ToList();
     }

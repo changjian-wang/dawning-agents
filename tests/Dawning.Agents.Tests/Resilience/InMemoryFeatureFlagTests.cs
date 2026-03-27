@@ -151,4 +151,48 @@ public sealed class InMemoryFeatureFlagTests
             );
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SetFlag_InvalidName_ShouldThrow(string? name)
+    {
+        var act = () =>
+            _flag.SetFlag(
+                new FeatureFlagDefinition
+                {
+                    Name = name!,
+                    Enabled = true,
+                    RolloutPercentage = 50,
+                }
+            );
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task RemoveFlagsNotIn_RemovesStaleFlagsOnly()
+    {
+        _flag.SetFlag(
+            new FeatureFlagDefinition
+            {
+                Name = "keep",
+                Enabled = true,
+                RolloutPercentage = 100,
+            }
+        );
+        _flag.SetFlag(
+            new FeatureFlagDefinition
+            {
+                Name = "remove",
+                Enabled = true,
+                RolloutPercentage = 100,
+            }
+        );
+
+        _flag.RemoveFlagsNotIn(new HashSet<string>(["keep"], StringComparer.OrdinalIgnoreCase));
+
+        (await _flag.IsEnabledAsync("keep")).Should().BeTrue();
+        (await _flag.IsEnabledAsync("remove")).Should().BeFalse();
+    }
 }
