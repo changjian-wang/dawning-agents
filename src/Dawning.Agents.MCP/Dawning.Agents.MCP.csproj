@@ -5,6 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Dawning.Agents.Abstractions\Dawning.Agents.Abstractions.csproj" />
     </ItemGroup>
 

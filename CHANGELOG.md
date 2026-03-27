@@ -4,7 +4,83 @@
 
 ---
 
-## [Unreleased] - 2026-02-18
+## [0.1.0-preview.2] - 2026-03-27
+
+### 🏗️ 新功能
+
+#### OpenAI 兼容 Provider ✅
+- **新增**: `OpenAICompatible` Provider 类型，支持 DeepSeek、智谱 GLM、Moonshot 等国内大模型
+- **新增**: `OpenAICompatibleProviderOptions` 配置类（`IValidatableOptions` 校验）
+- **DI 扩展**: `AddOpenAICompatibleProvider()` 3 个重载（直接/委托/配置节）
+- **DI 扩展**: `AddOpenAICompatibleEmbedding()` 嵌入 Provider 支持
+- **变更**: `OpenAIProvider` / `OpenAIEmbeddingProvider` 支持自定义 Endpoint 构造
+
+#### Connector 抽象层 ✅
+- **新增**: `IConnector` 基础连接器接口（Name, IsConnected, ConnectAsync, DisconnectAsync）
+- **新增**: `IConnectorAuthProvider` OAuth2/API Key 认证抽象
+- **新增**: `IEmailConnector` 邮件连接器（ListMails, ReadMail, SendMail, SearchMail）
+- **新增**: `ICalendarConnector` 日历连接器（GetEvents, CreateEvent, FindFreeSlots, UpdateEvent, CancelEvent）
+- **新增**: `IKnowledgeBaseConnector` 知识库连接器（Search, GetDocument, ListCollections）
+- **新增**: `ConnectorOptions` 配置类（ApiKey/OAuth 校验）
+- **新增**: `UpdateEventRequest` 全可选字段的部分更新 DTO
+- **数据模型**: `EmailMessage`, `EmailQuery`, `DraftEmail`, `CalendarEvent`, `CreateEventRequest`, `FreeSlot`, `KnowledgeDocument`, `KnowledgeSearchResult`
+
+#### Feature Flags + 渐进式发布 ✅
+- **新增**: `IFeatureFlag` 接口（百分比灰度 + 上下文路由）
+- **新增**: `InMemoryFeatureFlag`（SHA256 确定性哈希分桶, `RemoveFlagsNotIn` 清理过期标志）
+- **新增**: `ConfigurationFeatureFlag`（从 `appsettings.json` 热加载，无效配置跳过+告警）
+- **新增**: `GradualRolloutAgent`（stable/canary 路由、失败回退、自动回滚）
+- **新增**: `GradualRolloutOptions`（RollbackThreshold 0–1 校验, MinSamplesBeforeRollback ≥1 校验）
+- **DI 扩展**: `AddFeatureFlags()`, `AddConfigurationFeatureFlags()`
+
+#### 评估数据集 + Runner ✅
+- **新增**: `EvaluationDataset`（JSON 加载/保存, 标签过滤）
+- **新增**: `EvaluationRunner`（批量评估, 对比报告）
+- **新增**: `EvaluationComparison`（PassRateDelta, 回归检测 >5% 阈值, 结果去重）
+
+### 🐛 修复（深度审计 R1–R5, 共 18 个 bug）
+
+#### R1: 线程安全 & 输入校验
+- `GradualRolloutAgent`: 使用 `Volatile.Read/Write` + `Lock` 类型保护 `_rolledBack`
+- `GradualRolloutOptions`: 属性 setter 添加 `ArgumentOutOfRangeException`
+- `InMemoryFeatureFlag.SetFlag`: 添加 `RolloutPercentage` 0–100 范围校验
+- `EvaluationRunner`: `BuildResultLookup` 使用 `TryAdd` 处理重复 `TestCaseId`
+
+#### R2: 防御性编程 & DI 生命周期
+- `ConfigurationFeatureFlag`: 无效 `RolloutPercentage` 跳过而非崩溃
+- `ConfigurationFeatureFlag`: 热加载时移除过期 flag（`RemoveFlagsNotIn`）
+- `ConfigurationFeatureFlag`: 转发 `ILoggerFactory` 到内部 `InMemoryFeatureFlag`
+- `InMemoryFeatureFlag.SetFlag`: 校验 `Name` 非空
+- `EvaluationDataset.FilterByTags`: 添加 null guard
+- `GradualRolloutAgent.RunAsync`: 添加 `context` null guard
+
+#### R3: 错误处理弹性
+- `GradualRolloutAgent`: feature flag 评估失败时捕获异常并回退到 stable agent
+- `EvaluationRunner`: 回归/改进列表使用 `HashSet` 去重
+
+#### R4: 安全 & API 设计
+- `GradualRolloutAgent`: 使用 `UserId/SessionId` 代替 `UserInput` 作为 feature flag 上下文（修复 PII 泄露 + 路由一致性）
+- `GradualRolloutAgent`: canary 计数器从 `int` 改为 `long` 防止溢出
+- `ICalendarConnector`: 新增 `UpdateEventRequest` 全可选字段 DTO
+
+#### R5: 回归检查
+- `ConfigurationFeatureFlag.LoadFlags`: 跳过空/空白 flag 名称
+
+### 📖 文档
+- 90 天企业级个人助手 Roadmap (`docs/ROADMAP_90_DAYS.md`)
+- LLM Provider 指南更新（新增 OpenAI-compatible 表格）
+
+### 🧪 测试
+- 新增 OpenAI-compatible Provider 测试 (15+)
+- 新增 Connector 模型测试 (9)
+- 新增 Feature Flag 测试 (13)
+- 新增 GradualRolloutAgent 测试 (12)
+- 新增 EvaluationDataset/Runner 测试 (12)
+- 总测试数: **2,637** (1,896 → 2,637)
+
+---
+
+## [0.1.0-preview.1] - 2026-02-18
 
 ### 🏗️ Tools Redesign (Phase A+B)
 
@@ -41,7 +117,7 @@
 
 ---
 
-## [Unreleased] - 2026-02-11
+## [0.1.0-preview.1] - 2026-02-11
 
 ### 🏗️ 架构重构 (Phase 1 企业级转型)
 
@@ -87,7 +163,7 @@
 
 ---
 
-## [Unreleased] - 2026-02-04
+## [0.1.0-preview.1] - 2026-02-04
 
 ### 🎉 新增功能
 
