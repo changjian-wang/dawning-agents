@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// 熔断器实现
+/// Circuit breaker implementation.
 /// </summary>
 public sealed class CircuitBreaker : ICircuitBreaker
 {
@@ -75,18 +75,18 @@ public sealed class CircuitBreaker : ICircuitBreaker
         var currentState = GetCurrentState();
         if (currentState == CircuitState.Open)
         {
-            _logger.LogWarning("熔断器处于打开状态，拒绝请求");
-            throw new CircuitBreakerOpenException("熔断器处于打开状态");
+            _logger.LogWarning("Circuit breaker is open; rejecting request");
+            throw new CircuitBreakerOpenException("Circuit breaker is open");
         }
 
-        // HalfOpen 状态只允许一个试探请求通过，防止惊群效应
+        // HalfOpen state allows only one trial request to prevent thundering herd
         if (currentState == CircuitState.HalfOpen)
         {
             lock (_lock)
             {
                 if (_halfOpenTrialActive)
                 {
-                    throw new CircuitBreakerOpenException("熔断器处于半开状态，试探请求进行中");
+                    throw new CircuitBreakerOpenException("Circuit breaker is half-open; trial request in progress");
                 }
                 _halfOpenTrialActive = true;
             }
@@ -101,8 +101,8 @@ public sealed class CircuitBreaker : ICircuitBreaker
         }
         catch (OperationCanceledException)
         {
-            // 取消操作不计入失败，但必须释放 HalfOpen 试探锁
-            // 否则 _halfOpenTrialActive 永远为 true，熔断器永久卡死
+            // Cancellation does not count as failure, but must release the HalfOpen trial lock;
+            // otherwise _halfOpenTrialActive stays true forever, permanently blocking the breaker
             lock (_lock)
             {
                 _halfOpenTrialActive = false;
@@ -138,12 +138,12 @@ public sealed class CircuitBreaker : ICircuitBreaker
             _failureCount = 0;
             _halfOpenTrialActive = false;
             _state = CircuitState.Closed;
-            _logger.LogInformation("熔断器已重置");
+            _logger.LogInformation("Circuit breaker has been reset");
         }
     }
 
     /// <summary>
-    /// 获取当前状态（检查是否需要从 Open 转换为 HalfOpen）
+    /// Gets the current state, checking whether to transition from Open to HalfOpen.
     /// </summary>
     private CircuitState GetCurrentState()
     {
@@ -156,7 +156,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
             {
                 _state = CircuitState.HalfOpen;
                 _halfOpenTrialActive = false;
-                _logger.LogInformation("熔断器转换为半开状态");
+                _logger.LogInformation("Circuit breaker transitioned to half-open state");
             }
             return _state;
         }
@@ -171,7 +171,7 @@ public sealed class CircuitBreaker : ICircuitBreaker
             if (_state == CircuitState.HalfOpen)
             {
                 _state = CircuitState.Closed;
-                _logger.LogInformation("熔断器在成功请求后关闭");
+                _logger.LogInformation("Circuit breaker closed after successful request");
             }
         }
     }
@@ -187,14 +187,14 @@ public sealed class CircuitBreaker : ICircuitBreaker
             if (_failureCount >= _failureThreshold)
             {
                 _state = CircuitState.Open;
-                _logger.LogWarning("熔断器在 {FailureCount} 次失败后打开", _failureCount);
+                _logger.LogWarning("Circuit breaker opened after {FailureCount} failures", _failureCount);
             }
         }
     }
 }
 
 /// <summary>
-/// 熔断器打开异常
+/// Circuit breaker open exception.
 /// </summary>
 public sealed class CircuitBreakerOpenException : Exception
 {

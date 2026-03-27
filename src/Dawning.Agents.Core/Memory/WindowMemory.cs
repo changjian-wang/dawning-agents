@@ -4,13 +4,13 @@ using Dawning.Agents.Abstractions.Memory;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 只保留最后 N 条消息的滑动窗口记忆
+/// Sliding window memory that retains only the last N messages.
 /// </summary>
 /// <remarks>
-/// <para>适用于需要控制内存使用的长对话场景</para>
-/// <para>当消息数量超过窗口大小时，自动丢弃最旧的消息</para>
-/// <para>使用 LinkedList 实现 O(1) 的头部删除性能</para>
-/// <para>线程安全</para>
+/// <para>Suitable for long conversation scenarios that require controlled memory usage.</para>
+/// <para>Automatically discards the oldest messages when the message count exceeds the window size.</para>
+/// <para>Uses a <see cref="LinkedList{T}"/> for O(1) head removal performance.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public sealed class WindowMemory : IConversationMemory
 {
@@ -20,7 +20,7 @@ public sealed class WindowMemory : IConversationMemory
     private readonly Lock _lock = new();
 
     /// <summary>
-    /// 获取当前窗口内的消息数量（最大为 WindowSize）
+    /// Gets the current message count within the window (maximum is <see cref="WindowSize"/>).
     /// </summary>
     public int MessageCount
     {
@@ -34,27 +34,27 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取窗口大小
+    /// Gets the window size.
     /// </summary>
     public int WindowSize => _windowSize;
 
     /// <summary>
-    /// 初始化滑动窗口记忆
+    /// Initializes a new instance of the <see cref="WindowMemory"/> class.
     /// </summary>
-    /// <param name="tokenCounter">Token 计数器</param>
-    /// <param name="windowSize">窗口大小（保留的最大消息数）</param>
-    /// <exception cref="ArgumentException">窗口大小必须为正数</exception>
+    /// <param name="tokenCounter">The token counter.</param>
+    /// <param name="windowSize">The window size (maximum number of messages to retain).</param>
+    /// <exception cref="ArgumentException">Window size must be a positive number.</exception>
     public WindowMemory(ITokenCounter tokenCounter, int windowSize = 10)
     {
         _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
         _windowSize =
             windowSize > 0
                 ? windowSize
-                : throw new ArgumentException("窗口大小必须为正数", nameof(windowSize));
+                : throw new ArgumentException("Window size must be a positive number.", nameof(windowSize));
     }
 
     /// <summary>
-    /// 向窗口添加消息，超出窗口大小时自动移除最旧的消息
+    /// Adds a message to the window. Automatically removes the oldest messages when the window size is exceeded.
     /// </summary>
     public Task AddMessageAsync(
         ConversationMessage message,
@@ -71,7 +71,7 @@ public sealed class WindowMemory : IConversationMemory
 
             _messages.AddLast(message);
 
-            // 裁剪到窗口大小 - O(1) 操作
+            // Trim to window size - O(1) operation
             while (_messages.Count > _windowSize)
             {
                 _messages.RemoveFirst();
@@ -82,7 +82,7 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取窗口内所有消息的副本
+    /// Gets a copy of all messages within the window.
     /// </summary>
     public Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
@@ -95,7 +95,7 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取用于 LLM 调用的消息上下文
+    /// Gets the message context for LLM calls.
     /// </summary>
     public Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
@@ -118,7 +118,7 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 清空窗口内的所有消息
+    /// Clears all messages within the window.
     /// </summary>
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {
@@ -131,7 +131,7 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取窗口内所有消息的 token 总数
+    /// Gets the total token count of all messages within the window.
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
@@ -142,14 +142,14 @@ public sealed class WindowMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 裁剪消息以适应 token 限制（从最近的消息开始，调用方须持有 _lock）
+    /// Trims messages to fit within the token limit, starting from the most recent. Caller must hold _lock.
     /// </summary>
     private IEnumerable<ConversationMessage> TrimToTokenLimit(int maxTokens)
     {
         var result = new LinkedList<ConversationMessage>();
         var tokenCount = 0;
 
-        // 从最近的消息开始倒序遍历
+        // Traverse in reverse order starting from the most recent message
         var node = _messages.Last;
         while (node != null)
         {

@@ -6,11 +6,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 文件写入工具 — 创建文件或覆盖文件内容
+/// File writing tool — creates a file or overwrites file contents.
 /// </summary>
 /// <remarks>
-/// <para>Risk: Medium — 创建/覆盖文件</para>
-/// <para>自动创建不存在的父目录</para>
+/// <para>Risk: Medium — creates/overwrites files.</para>
+/// <para>Automatically creates parent directories that do not exist.</para>
 /// </remarks>
 public sealed class WriteFileTool : ITool
 {
@@ -18,10 +18,10 @@ public sealed class WriteFileTool : ITool
     private readonly string? _workingDirectory;
 
     /// <summary>
-    /// 创建 WriteFileTool
+    /// Creates a <see cref="WriteFileTool"/>.
     /// </summary>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="workingDirectory">工作目录（沙箱根目录），设置后将禁止访问此目录外的路径</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="workingDirectory">Working directory (sandbox root); when set, access to paths outside this directory is denied.</param>
     public WriteFileTool(ILogger<WriteFileTool>? logger = null, string? workingDirectory = null)
     {
         _logger = logger ?? NullLogger<WriteFileTool>.Instance;

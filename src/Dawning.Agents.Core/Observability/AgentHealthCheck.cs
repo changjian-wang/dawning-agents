@@ -5,7 +5,7 @@ namespace Dawning.Agents.Core.Observability;
 using Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// Agent 系统健康检查
+/// Performs health checks for the agent system.
 /// </summary>
 public sealed class AgentHealthCheck
 {
@@ -13,7 +13,7 @@ public sealed class AgentHealthCheck
         ImmutableList<IHealthCheckProvider>.Empty;
 
     /// <summary>
-    /// 添加健康检查提供者
+    /// Adds a health check provider.
     /// </summary>
     public void AddProvider(IHealthCheckProvider provider)
     {
@@ -21,7 +21,7 @@ public sealed class AgentHealthCheck
     }
 
     /// <summary>
-    /// 检查系统健康
+    /// Checks the overall system health.
     /// </summary>
     public async Task<HealthCheckResult> CheckHealthAsync(
         CancellationToken cancellationToken = default
@@ -66,7 +66,7 @@ public sealed class AgentHealthCheck
     }
 
     /// <summary>
-    /// 获取所有提供者
+    /// Gets all registered providers.
     /// </summary>
     public IReadOnlyList<IHealthCheckProvider> Providers => _providers;
 }

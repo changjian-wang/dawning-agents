@@ -8,18 +8,18 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Cache;
 
 /// <summary>
-/// 语义缓存的 DI 扩展方法
+/// Dependency injection extension methods for semantic cache.
 /// </summary>
 public static class SemanticCacheServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加语义缓存服务
+    /// Adds semantic cache services.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <remarks>
-    /// 使用前需要先注册 IVectorStore 和 IEmbeddingProvider
+    /// Requires <see cref="IVectorStore"/> and <see cref="IEmbeddingProvider"/> to be registered first.
     /// </remarks>
     public static IServiceCollection AddSemanticCache(
         this IServiceCollection services,
@@ -37,11 +37,11 @@ public static class SemanticCacheServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加语义缓存服务（使用自定义配置）
+    /// Adds semantic cache services with a custom configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddSemanticCache(
         this IServiceCollection services,
         Action<SemanticCacheOptions> configure
@@ -54,13 +54,13 @@ public static class SemanticCacheServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加语义缓存服务（使用默认配置）
+    /// Adds semantic cache services with default configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="similarityThreshold">相似度阈值（默认 0.95）</param>
-    /// <param name="maxEntries">最大条目数（默认 10000）</param>
-    /// <param name="expirationMinutes">过期时间（分钟，默认 1440）</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="similarityThreshold">The similarity threshold (default 0.95).</param>
+    /// <param name="maxEntries">The maximum number of entries (default 10000).</param>
+    /// <param name="expirationMinutes">The expiration time in minutes (default 1440).</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddSemanticCache(
         this IServiceCollection services,
         float similarityThreshold = 0.95f,

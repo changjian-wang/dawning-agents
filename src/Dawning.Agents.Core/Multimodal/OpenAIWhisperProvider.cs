@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Multimodal;
 
 /// <summary>
-/// OpenAI Whisper 音频转录提供者
+/// OpenAI Whisper audio transcription provider.
 /// </summary>
 /// <remarks>
-/// 使用 OpenAI Whisper API 将音频转录为文本。
-/// 支持 mp3, mp4, mpeg, mpga, m4a, wav, webm 格式。
+/// Uses the OpenAI Whisper API to transcribe audio to text.
+/// Supports mp3, mp4, mpeg, mpga, m4a, wav, webm formats.
 /// </remarks>
 public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
 {
@@ -85,7 +85,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
     {
         if (string.IsNullOrEmpty(audio.Base64Data) && string.IsNullOrEmpty(audio.Url))
         {
-            return TranscriptionResult.Failed("音频内容为空");
+            return TranscriptionResult.Failed("Audio content is empty");
         }
 
         byte[] audioData;
@@ -98,13 +98,13 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
         else
         {
-            // 从 URL 下载（验证 URL 方案防止 SSRF）
+            // Download from URL (validate URL scheme to prevent SSRF)
             if (
                 !Uri.TryCreate(audio.Url, UriKind.Absolute, out var audioUri)
                 || (audioUri.Scheme != Uri.UriSchemeHttps && audioUri.Scheme != Uri.UriSchemeHttp)
             )
             {
-                return TranscriptionResult.Failed("不支持的音频 URL 方案，仅允许 http/https");
+                return TranscriptionResult.Failed("Unsupported audio URL scheme; only http/https allowed");
             }
 
             try
@@ -125,8 +125,8 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "从 URL 下载音频失败: {Url}", audio.Url);
-                return TranscriptionResult.Failed($"下载音频失败: {ex.Message}");
+                _logger.LogError(ex, "Failed to download audio from URL: {Url}", audio.Url);
+                return TranscriptionResult.Failed($"Failed to download audio: {ex.Message}");
             }
         }
 
@@ -144,24 +144,24 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
     {
         if (!File.Exists(filePath))
         {
-            return TranscriptionResult.Failed($"文件不存在: {filePath}");
+            return TranscriptionResult.Failed($"File not found: {filePath}");
         }
 
         var fileInfo = new FileInfo(filePath);
         if (fileInfo.Length > MaxFileSize)
         {
             return TranscriptionResult.Failed(
-                $"文件过大: {fileInfo.Length} 字节 (最大 {MaxFileSize} 字节)"
+                $"File too large: {fileInfo.Length} bytes (max {MaxFileSize} bytes)"
             );
         }
 
         var extension = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
         if (!s_supportedFormats.Contains(extension))
         {
-            return TranscriptionResult.Failed($"不支持的格式: {extension}");
+            return TranscriptionResult.Failed($"Unsupported format: {extension}");
         }
 
-        _logger.LogDebug("开始转录文件: {FilePath}", filePath);
+        _logger.LogDebug("Starting file transcription: {FilePath}", filePath);
 
         await using var stream = File.OpenRead(filePath);
         return await TranscribeStreamAsync(
@@ -185,7 +185,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
         var model = options.Model ?? _defaultModel;
 
         _logger.LogDebug(
-            "开始转录，模型: {Model}，文件: {FileName}，语言: {Language}",
+            "Starting transcription, model: {Model}, file: {FileName}, language: {Language}",
             model,
             fileName,
             options.Language ?? "auto"
@@ -193,17 +193,17 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
 
         using var content = new MultipartFormDataContent();
 
-        // 添加音频文件
+        // Add audio file
         var fileContent = new StreamContent(audioStream);
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(
             GetMimeTypeFromExtension(Path.GetExtension(fileName))
         );
         content.Add(fileContent, "file", fileName);
 
-        // 添加模型
+        // Add model
         content.Add(new StringContent(model), "model");
 
-        // 添加可选参数
+        // Add optional parameters
         if (!string.IsNullOrEmpty(options.Language))
         {
             content.Add(new StringContent(options.Language), "language");
@@ -214,7 +214,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
             content.Add(new StringContent(options.Prompt), "prompt");
         }
 
-        // 响应格式
+        // Response format
         var responseFormat = options.ResponseFormat switch
         {
             TranscriptionFormat.Json => "json",
@@ -233,7 +233,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
             );
         }
 
-        // 时间戳粒度
+        // Timestamp granularity
         if (options.IncludeTimestamps && options.ResponseFormat == TranscriptionFormat.VerboseJson)
         {
             var granularity =
@@ -260,12 +260,12 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(
-                    "Whisper API 返回错误: {StatusCode} - {Response}",
+                    "Whisper API returned error: {StatusCode} - {Response}",
                     response.StatusCode,
                     responseText
                 );
                 return TranscriptionResult.Failed(
-                    $"API 错误: {response.StatusCode} - {responseText}"
+                    $"API error: {response.StatusCode} - {responseText}"
                 );
             }
 
@@ -277,7 +277,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "转录请求失败");
+            _logger.LogError(ex, "Transcription request failed");
             return TranscriptionResult.Failed(ex.Message);
         }
     }
@@ -365,7 +365,7 @@ public sealed class OpenAIWhisperProvider : IAudioTranscriptionProvider
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "解析转录响应失败");
+            _logger.LogWarning(ex, "Failed to parse transcription response");
             return TranscriptionResult.Ok(responseText);
         }
     }

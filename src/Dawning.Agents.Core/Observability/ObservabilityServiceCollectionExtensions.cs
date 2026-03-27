@@ -8,12 +8,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// 可观测性 DI 扩展方法
+/// Dependency injection extension methods for observability services.
 /// </summary>
 public static class ObservabilityServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加可观测性服务
+    /// Adds observability services to the service collection.
     /// </summary>
     public static IServiceCollection AddObservability(
         this IServiceCollection services,
@@ -31,7 +31,7 @@ public static class ObservabilityServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加可观测性服务（使用配置操作）
+    /// Adds observability services to the service collection using a configuration action.
     /// </summary>
     public static IServiceCollection AddObservability(
         this IServiceCollection services,
@@ -48,7 +48,7 @@ public static class ObservabilityServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加健康检查提供者
+    /// Adds a health check provider.
     /// </summary>
     public static IServiceCollection AddHealthCheckProvider<T>(this IServiceCollection services)
         where T : class, IHealthCheckProvider
@@ -58,7 +58,7 @@ public static class ObservabilityServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 包装 Agent 为可观测 Agent
+    /// Wraps an agent as an observable agent.
     /// </summary>
     public static IServiceCollection AddObservableAgent<TAgent>(this IServiceCollection services)
         where TAgent : class, IAgent
@@ -80,23 +80,23 @@ public static class ObservabilityServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 包装已注册的 Agent 为可观测 Agent
+    /// Wraps the registered agent with observability.
     /// </summary>
     public static IServiceCollection WrapAgentWithObservability(this IServiceCollection services)
     {
-        // 查找并替换 IAgent 注册
+        // Find and replace IAgent registration
         var agentDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAgent));
         if (agentDescriptor != null)
         {
             services.Remove(agentDescriptor);
 
-            // 重新注册为内部 Agent
+            // Re-register as inner agent
             services.Add(
                 new ServiceDescriptor(
                     typeof(InnerAgentMarker),
                     sp =>
                     {
-                        // 根据原始注册创建实例
+                        // Create instance based on original registration
                         if (agentDescriptor.ImplementationInstance != null)
                         {
                             return new InnerAgentMarker(
@@ -120,13 +120,13 @@ public static class ObservabilityServiceCollectionExtensions
                             );
                         }
 
-                        throw new InvalidOperationException("无法创建内部 Agent");
+                        throw new InvalidOperationException("Unable to create inner agent.");
                     },
                     agentDescriptor.Lifetime
                 )
             );
 
-            // 注册可观测 Agent（保留原始生命周期）
+            // Register observable agent (preserving original lifetime)
             services.Add(
                 new ServiceDescriptor(
                     typeof(IAgent),
@@ -151,7 +151,7 @@ public static class ObservabilityServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 创建可观测 Agent 包装器
+    /// Creates an observable agent wrapper.
     /// </summary>
     public static ObservableAgent CreateObservableAgent(
         this IServiceProvider serviceProvider,

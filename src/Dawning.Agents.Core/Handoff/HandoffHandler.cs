@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Handoff;
 
 /// <summary>
-/// Handoff 处理器实现 - 管理 Agent 间的任务转交
+/// Handoff handler implementation - manages task transfers between agents.
 /// </summary>
 public sealed class HandoffHandler : IHandoffHandler
 {
@@ -78,7 +78,7 @@ public sealed class HandoffHandler : IHandoffHandler
         var stopwatch = Stopwatch.StartNew();
         var chain = new List<HandoffRecord>();
 
-        // 添加初始 Handoff 记录
+        // Add initial handoff record
         chain.Add(
             new HandoffRecord
             {
@@ -121,7 +121,7 @@ public sealed class HandoffHandler : IHandoffHandler
     }
 
     /// <summary>
-    /// 递归执行 Handoff 链
+    /// Recursively executes the handoff chain.
     /// </summary>
     private async Task<HandoffResult> ExecuteHandoffChainAsync(
         string agentName,
@@ -131,7 +131,7 @@ public sealed class HandoffHandler : IHandoffHandler
         CancellationToken cancellationToken
     )
     {
-        // 检查深度限制（chain 包含入口记录，实际 handoff 次数 = Count - 1）
+        // Check depth limit (chain includes entry record, actual handoff count = Count - 1)
         if (chain.Count - 1 > _options.MaxHandoffDepth)
         {
             _logger.LogWarning(
@@ -148,7 +148,7 @@ public sealed class HandoffHandler : IHandoffHandler
             );
         }
 
-        // 检查循环
+        // Check for cycles
         if (!_options.AllowCycles && visitedAgents.Contains(agentName))
         {
             _logger.LogWarning("Handoff cycle detected: {AgentName}", agentName);
@@ -161,7 +161,7 @@ public sealed class HandoffHandler : IHandoffHandler
             );
         }
 
-        // 获取目标 Agent
+        // Get target agent
         var agent = GetAgent(agentName);
         if (agent == null)
         {
@@ -185,7 +185,7 @@ public sealed class HandoffHandler : IHandoffHandler
 
         try
         {
-            // 创建超时令牌
+            // Create timeout token
             using var timeoutCts = new CancellationTokenSource(
                 TimeSpan.FromSeconds(_options.TimeoutSeconds)
             );
@@ -194,10 +194,10 @@ public sealed class HandoffHandler : IHandoffHandler
                 timeoutCts.Token
             );
 
-            // 执行 Agent
+            // Execute agent
             var response = await agent.RunAsync(input, linkedCts.Token).ConfigureAwait(false);
 
-            // 检查是否需要继续 Handoff
+            // Check if handoff continuation is needed
             if (response.IsHandoffRequest())
             {
                 var handoffRequest = response.ParseHandoffRequest();
@@ -210,7 +210,7 @@ public sealed class HandoffHandler : IHandoffHandler
                         handoffRequest.Reason ?? "N/A"
                     );
 
-                    // 验证 Handoff 目标是否允许
+                    // Validate handoff target is allowed
                     if (agent is IHandoffAgent handoffAgent)
                     {
                         if (
@@ -236,7 +236,7 @@ public sealed class HandoffHandler : IHandoffHandler
                         }
                     }
 
-                    // 添加 Handoff 记录
+                    // Add handoff record
                     chain.Add(
                         new HandoffRecord
                         {
@@ -247,7 +247,7 @@ public sealed class HandoffHandler : IHandoffHandler
                         }
                     );
 
-                    // 递归执行下一个 Agent（传递 linkedCts.Token 保持超时约束）
+                    // Recursively execute next agent (pass linkedCts.Token to maintain timeout constraint)
                     return await ExecuteHandoffChainAsync(
                             handoffRequest.TargetAgentName,
                             handoffRequest.Input,
@@ -273,7 +273,7 @@ public sealed class HandoffHandler : IHandoffHandler
                 }
             }
 
-            // 返回最终结果
+            // Return final result
             return HandoffResult.Successful(agentName, response, chain, TimeSpan.Zero);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -304,7 +304,7 @@ public sealed class HandoffHandler : IHandoffHandler
                         "Falling back to source agent: {AgentName}",
                         previousRecord.FromAgent
                     );
-                    // 可以在这里实现回退逻辑
+                    // Fallback logic can be implemented here
                 }
             }
 

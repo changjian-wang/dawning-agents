@@ -5,7 +5,7 @@ using Serilog.Events;
 namespace Dawning.Agents.Serilog;
 
 /// <summary>
-/// 日志级别控制器实现
+/// Log level controller implementation.
 /// </summary>
 public sealed class LogLevelController : ILogLevelController
 {
@@ -100,7 +100,7 @@ public sealed class LogLevelController : ILogLevelController
             _scopeId = scopeId;
             _cts = new CancellationTokenSource();
 
-            // 自动恢复任务
+            // Auto-restore task
             _restoreTask = Task.Delay(duration, _cts.Token)
                 .ContinueWith(
                     _ =>

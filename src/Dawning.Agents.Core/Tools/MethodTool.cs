@@ -5,10 +5,10 @@ using Dawning.Agents.Abstractions.Tools;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 基于方法反射的工具实现
+/// Reflection-based method tool implementation.
 /// </summary>
 /// <remarks>
-/// 将标记了 [FunctionTool] 的方法包装为 ITool 实例
+/// Wraps methods marked with <see cref="FunctionToolAttribute"/> as <see cref="ITool"/> instances.
 /// </remarks>
 public sealed class MethodTool : ITool
 {
@@ -17,41 +17,41 @@ public sealed class MethodTool : ITool
     private readonly ParameterInfo[] _parameters;
 
     /// <summary>
-    /// 工具名称（唯一标识符）
+    /// Gets the tool name (unique identifier).
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 工具描述（供 LLM 理解工具用途）
+    /// Gets the tool description (for LLM to understand the tool's purpose).
     /// </summary>
     public string Description { get; }
 
     /// <summary>
-    /// 参数的 JSON Schema（供 LLM 理解参数格式）
+    /// Gets the parameter JSON Schema (for LLM to understand parameter format).
     /// </summary>
     public string ParametersSchema { get; }
 
     /// <summary>
-    /// 是否需要用户确认才能执行
+    /// Gets a value indicating whether user confirmation is required before execution.
     /// </summary>
     public bool RequiresConfirmation { get; }
 
     /// <summary>
-    /// 工具的风险等级
+    /// Gets the risk level of the tool.
     /// </summary>
     public ToolRiskLevel RiskLevel { get; }
 
     /// <summary>
-    /// 工具分类
+    /// Gets the tool category.
     /// </summary>
     public string? Category { get; }
 
     /// <summary>
-    /// 创建方法工具
+    /// Creates a method tool.
     /// </summary>
-    /// <param name="method">方法信息</param>
-    /// <param name="instance">方法所属实例（静态方法为 null）</param>
-    /// <param name="attribute">FunctionTool 特性</param>
+    /// <param name="method">The method info.</param>
+    /// <param name="instance">The instance the method belongs to (<see langword="null"/> for static methods).</param>
+    /// <param name="attribute">The <see cref="FunctionToolAttribute"/>.</param>
     public MethodTool(MethodInfo method, object? instance, FunctionToolAttribute attribute)
     {
         _method = method ?? throw new ArgumentNullException(nameof(method));
@@ -63,7 +63,7 @@ public sealed class MethodTool : ITool
         RiskLevel = attribute.RiskLevel;
         Category = attribute.Category;
 
-        // 过滤掉 CancellationToken 参数
+        // Filter out CancellationToken parameters
         _parameters = method
             .GetParameters()
             .Where(p => p.ParameterType != typeof(CancellationToken))
@@ -73,11 +73,11 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 执行工具
+    /// Executes the tool.
     /// </summary>
-    /// <param name="input">输入参数（字符串或 JSON）</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>执行结果</returns>
+    /// <param name="input">Input parameters (string or JSON).</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The execution result.</returns>
     public async Task<ToolResult> ExecuteAsync(
         string input,
         CancellationToken cancellationToken = default
@@ -88,12 +88,12 @@ public sealed class MethodTool : ITool
             var args = ParseArguments(input, cancellationToken);
             var result = _method.Invoke(_instance, args);
 
-            // 处理异步方法
+            // Handle async methods
             if (result is Task task)
             {
                 await task.ConfigureAwait(false);
 
-                // 使用类型检查获取泛型 Task<T> 的结果
+                // Use type check to get the result of generic Task<T>
                 var taskType = task.GetType();
                 if (taskType.IsGenericType)
                 {
@@ -107,7 +107,7 @@ public sealed class MethodTool : ITool
             }
             else if (result is not null && result.GetType() is { IsValueType: true } valueType)
             {
-                // 处理 ValueTask / ValueTask<T>
+                // Handle ValueTask / ValueTask<T>
                 if (
                     valueType.IsGenericType
                     && valueType.GetGenericTypeDefinition() == typeof(ValueTask<>)
@@ -125,7 +125,7 @@ public sealed class MethodTool : ITool
                 }
             }
 
-            // 处理返回值
+            // Handle return value
             return result switch
             {
                 ToolResult toolResult => toolResult,
@@ -136,12 +136,12 @@ public sealed class MethodTool : ITool
         }
         catch (OperationCanceledException)
         {
-            // 取消操作不视为错误，重新抛出
+            // Cancellation is not treated as an error; rethrow
             throw;
         }
         catch (TargetInvocationException ex) when (ex.InnerException is OperationCanceledException)
         {
-            // 内部方法的取消操作（保留原始堆栈信息）
+            // Cancellation from inner method (preserves original stack trace)
             System
                 .Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException)
                 .Throw();
@@ -158,14 +158,14 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 解析输入参数
+    /// Parses input arguments.
     /// </summary>
     private object?[] ParseArguments(string input, CancellationToken cancellationToken)
     {
         var methodParams = _method.GetParameters();
         var args = new object?[methodParams.Length];
 
-        // 如果只有一个非 CancellationToken 参数且是字符串类型，直接使用输入
+        // If there is only one non-CancellationToken parameter of type string, use input directly
         if (_parameters.Length == 1 && _parameters[0].ParameterType == typeof(string))
         {
             for (int i = 0; i < methodParams.Length; i++)
@@ -182,7 +182,7 @@ public sealed class MethodTool : ITool
             return args;
         }
 
-        // 尝试解析 JSON 输入（使用 using 确保释放）
+        // Try to parse JSON input (using ensures disposal)
         using var jsonDoc = TryParseJson(input);
 
         for (int i = 0; i < methodParams.Length; i++)
@@ -195,7 +195,7 @@ public sealed class MethodTool : ITool
                 continue;
             }
 
-            // 尝试从 JSON 获取值
+            // Try to get value from JSON
             if (jsonDoc?.RootElement.TryGetProperty(param.Name!, out var jsonValue) == true)
             {
                 args[i] = ConvertJsonValue(jsonValue, param.ParameterType);
@@ -206,7 +206,7 @@ public sealed class MethodTool : ITool
             }
             else if (param.ParameterType == typeof(string) && methodParams.Length == 1)
             {
-                // 单参数字符串方法，直接使用输入
+                // Single-parameter string method; use input directly
                 args[i] = input;
             }
             else
@@ -219,7 +219,7 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 尝试解析 JSON，失败返回 null
+    /// Tries to parse JSON; returns <see langword="null"/> on failure.
     /// </summary>
     private static JsonDocument? TryParseJson(string input)
     {
@@ -234,11 +234,11 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 转换 JSON 值到目标类型
+    /// Converts a JSON value to the target type.
     /// </summary>
     private static object? ConvertJsonValue(JsonElement element, Type targetType)
     {
-        // 处理 Nullable<T>：提取底层类型
+        // Handle Nullable<T>: extract the underlying type
         var underlyingType = Nullable.GetUnderlyingType(targetType);
         if (underlyingType is not null)
         {
@@ -264,7 +264,7 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 获取类型的默认值
+    /// Gets the default value for a type.
     /// </summary>
     private static object? GetDefaultValue(Type type)
     {
@@ -272,7 +272,7 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 构建参数的 JSON Schema
+    /// Builds the JSON Schema for parameters.
     /// </summary>
     private string BuildParametersSchema()
     {
@@ -291,7 +291,7 @@ public sealed class MethodTool : ITool
                 ["type"] = GetJsonType(param.ParameterType),
             };
 
-            // 获取参数描述
+            // Get parameter description
             var descAttr = param.GetCustomAttribute<ToolParameterAttribute>();
             if (descAttr != null)
             {
@@ -321,11 +321,11 @@ public sealed class MethodTool : ITool
     }
 
     /// <summary>
-    /// 获取 .NET 类型对应的 JSON Schema 类型
+    /// Gets the corresponding JSON Schema type for a .NET type.
     /// </summary>
     private static string GetJsonType(Type type)
     {
-        // 先解包 Nullable<T>，确保 int? / bool? 等生成正确的 schema 类型
+        // Unwrap Nullable<T> first to ensure int?/bool? etc. generate the correct schema type
         var underlying = Nullable.GetUnderlyingType(type);
         if (underlying is not null)
         {

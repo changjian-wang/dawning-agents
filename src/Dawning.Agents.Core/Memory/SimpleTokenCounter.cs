@@ -4,11 +4,11 @@ using Dawning.Agents.Abstractions.Memory;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 使用基于字符估算的简单 Token 计数器
+/// A simple token counter that uses character-based estimation.
 /// </summary>
 /// <remarks>
-/// <para>用于 tiktoken 不可用的场景</para>
-/// <para>英文约 4 字符/token，中文约 1.5 字符/token</para>
+/// <para>Used when tiktoken is not available.</para>
+/// <para>Estimates approximately 4 characters per token for English and 1.5 characters per token for Chinese.</para>
 /// </remarks>
 public class SimpleTokenCounter : ITokenCounter
 {
@@ -17,20 +17,20 @@ public class SimpleTokenCounter : ITokenCounter
     private const int _tokensPerMessage = 4;
 
     /// <summary>
-    /// 获取此计数器关联的模型名称
+    /// Gets the model name associated with this counter.
     /// </summary>
     public string ModelName { get; }
 
     /// <summary>
-    /// 获取模型的最大上下文 token 数
+    /// Gets the maximum context token count for the model.
     /// </summary>
     public int MaxContextTokens { get; }
 
     /// <summary>
-    /// 初始化简单 Token 计数器
+    /// Initializes a new instance of the <see cref="SimpleTokenCounter"/> class.
     /// </summary>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
     public SimpleTokenCounter(string modelName = "gpt-4", int maxContextTokens = 8192)
     {
         ModelName = modelName;
@@ -38,7 +38,7 @@ public class SimpleTokenCounter : ITokenCounter
     }
 
     /// <summary>
-    /// 估算文本的 token 数量（英文约 4 字符/token，中文约 1.5 字符/token）
+    /// Estimates the token count for the given text (approximately 4 characters per token for English, 1.5 for Chinese).
     /// </summary>
     public int CountTokens(string text)
     {
@@ -71,7 +71,7 @@ public class SimpleTokenCounter : ITokenCounter
     }
 
     /// <summary>
-    /// 估算消息列表的 token 数量（包括每条消息的开销和回复预备）
+    /// Estimates the token count for a list of messages (including per-message overhead and reply priming).
     /// </summary>
     public int CountTokens(IEnumerable<ChatMessage> messages)
     {
@@ -83,22 +83,22 @@ public class SimpleTokenCounter : ITokenCounter
             total += CountTokens(message.Content);
         }
 
-        // 回复预备 token
+        // Reply priming tokens
         return total + 3;
     }
 
     /// <summary>
-    /// 判断是否为 CJK（中日韩）字符
+    /// Determines whether the character is a CJK (Chinese, Japanese, Korean) character.
     /// </summary>
     private static bool IsCjkChar(char c)
     {
-        // CJK 统一汉字范围
+        // CJK Unified Ideographs
         return c >= 0x4E00 && c <= 0x9FFF
-            // CJK 扩展 A
+            // CJK Unified Ideographs Extension A
             || c >= 0x3400 && c <= 0x4DBF
-            // 日文假名
+            // Japanese Kana
             || c >= 0x3040 && c <= 0x30FF
-            // 韩文
+            // Korean Hangul Syllables
             || c >= 0xAC00 && c <= 0xD7AF;
     }
 }

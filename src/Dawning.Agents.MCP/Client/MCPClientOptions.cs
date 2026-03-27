@@ -3,52 +3,52 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.MCP.Client;
 
 /// <summary>
-/// MCP Client 配置选项
+/// Configuration options for the MCP Client.
 /// </summary>
 public sealed class MCPClientOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// Gets the configuration section name.
     /// </summary>
     public const string SectionName = "MCPClient";
 
     /// <summary>
-    /// 客户端名称
+    /// Gets or sets the client name.
     /// </summary>
     public string Name { get; set; } = "Dawning.Agents";
 
     /// <summary>
-    /// 客户端版本
+    /// Gets or sets the client version.
     /// </summary>
     public string Version { get; set; } = "1.0.0";
 
     /// <summary>
-    /// 连接超时时间（秒）
+    /// Gets or sets the connection timeout in seconds.
     /// </summary>
     public int ConnectionTimeoutSeconds { get; set; } = 30;
 
     /// <summary>
-    /// 请求超时时间（秒）
+    /// Gets or sets the request timeout in seconds.
     /// </summary>
     public int RequestTimeoutSeconds { get; set; } = 60;
 
     /// <summary>
-    /// 工具调用超时时间（秒）
+    /// Gets or sets the tool call timeout in seconds.
     /// </summary>
     public int ToolCallTimeoutSeconds { get; set; } = 120;
 
     /// <summary>
-    /// 是否自动重连
+    /// Gets or sets a value indicating whether auto-reconnect is enabled.
     /// </summary>
     public bool AutoReconnect { get; set; } = true;
 
     /// <summary>
-    /// 最大重连次数
+    /// Gets or sets the maximum number of reconnect attempts.
     /// </summary>
     public int MaxReconnectAttempts { get; set; } = 3;
 
     /// <summary>
-    /// 重连间隔（秒）
+    /// Gets or sets the reconnect interval in seconds.
     /// </summary>
     public int ReconnectIntervalSeconds { get; set; } = 5;
 

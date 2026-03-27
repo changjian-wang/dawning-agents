@@ -7,35 +7,37 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// 并行编排器：同时执行多个 Agent，然后聚合结果
+/// Parallel orchestrator that executes multiple agents concurrently and aggregates results.
 /// </summary>
 /// <remarks>
-/// 执行流程：
+/// Execution flow:
 /// <code>
 ///           ┌─→ Agent A ─→ Result A ─┐
 /// Input ────┼─→ Agent B ─→ Result B ─┼──→ Aggregator → Output
 ///           └─→ Agent C ─→ Result C ─┘
 /// </code>
 ///
-/// 使用场景：
-/// - 多角度分析：多个专家 Agent 同时分析问题
-/// - 冗余执行：多个 Agent 执行相同任务，选择最优结果
-/// - 分而治之：将大任务分解给多个 Agent 并行处理
+/// Usage scenarios:
+/// <list type="bullet">
+///   <item>Multi-perspective analysis: multiple expert agents analyze the problem concurrently.</item>
+///   <item>Redundant execution: multiple agents perform the same task, selecting the best result.</item>
+///   <item>Divide and conquer: decompose a large task for parallel processing by multiple agents.</item>
+/// </list>
 /// </remarks>
 public sealed class ParallelOrchestrator : OrchestratorBase
 {
     /// <summary>
-    /// 自定义结果聚合器
+    /// Custom result aggregator.
     /// </summary>
     private Func<IReadOnlyList<AgentExecutionRecord>, string>? _customAggregator;
 
     /// <summary>
-    /// 本地聚合策略（避免修改共享 Options）
+    /// Local aggregation strategy (avoids mutating shared options).
     /// </summary>
     private ResultAggregationStrategy? _localAggregationStrategy;
 
     /// <summary>
-    /// 创建并行编排器
+    /// Initializes a new instance of the <see cref="ParallelOrchestrator"/> class.
     /// </summary>
     public ParallelOrchestrator(
         string name,
@@ -44,11 +46,11 @@ public sealed class ParallelOrchestrator : OrchestratorBase
     )
         : base(name, options, logger)
     {
-        Description = "并行执行多个 Agent，然后聚合结果";
+        Description = "Executes multiple agents in parallel and aggregates the results";
     }
 
     /// <summary>
-    /// 设置自定义结果聚合器
+    /// Sets a custom result aggregator.
     /// </summary>
     public ParallelOrchestrator WithAggregator(
         Func<IReadOnlyList<AgentExecutionRecord>, string> aggregator
@@ -67,7 +69,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
     {
         var input = context.CurrentInput;
 
-        // 使用 SemaphoreSlim 控制并发度
+        // Throttle concurrency with SemaphoreSlim
         using var semaphore = new SemaphoreSlim(Options.MaxConcurrency);
 
         var agents = Volatile.Read(ref _agents);
@@ -117,12 +119,12 @@ public sealed class ParallelOrchestrator : OrchestratorBase
         {
             // This should rarely happen now since per-task errors are caught above,
             // but guard against unexpected aggregate exceptions
-            Logger.LogError(ex, "并行执行 Agent 时发生意外错误");
+            Logger.LogError(ex, "Unexpected error during parallel agent execution");
 
             if (!Options.ContinueOnError)
             {
                 return OrchestrationResult.Failed(
-                    $"并行执行失败: {ex.Message}",
+                    $"Parallel execution failed: {ex.Message}",
                     context.ExecutionHistory,
                     TimeSpan.Zero
                 );
@@ -132,24 +134,24 @@ public sealed class ParallelOrchestrator : OrchestratorBase
             results = tasks.Where(t => t.IsCompletedSuccessfully).Select(t => t.Result).ToArray();
         }
 
-        // 添加到执行历史
+        // Add to execution history
         foreach (var record in results)
         {
             context.AddExecutionRecord(record);
         }
 
-        // 检查是否所有都失败了
+        // Check whether all agents failed
         var successfulResults = results.Where(r => r.Response.Success).ToList();
         if (successfulResults.Count == 0 && results.Length > 0)
         {
             return OrchestrationResult.Failed(
-                "所有 Agent 都执行失败",
+                "All agents failed",
                 context.ExecutionHistory,
                 TimeSpan.Zero
             );
         }
 
-        // 聚合结果
+        // Aggregate results
         var finalOutput = AggregateResults(results);
 
         return OrchestrationResult.Successful(
@@ -161,7 +163,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
     }
 
     /// <summary>
-    /// 根据策略聚合结果
+    /// Aggregates results according to the configured strategy.
     /// </summary>
     private string AggregateResults(AgentExecutionRecord[] results)
     {
@@ -219,7 +221,7 @@ public sealed class ParallelOrchestrator : OrchestratorBase
 
     private static string AggregateVote(AgentExecutionRecord[] results)
     {
-        // 简单投票：选择出现次数最多的答案
+        // Simple voting: select the most frequent answer
         var answers = results
             .Where(r => r.Response.Success && !string.IsNullOrWhiteSpace(r.Response.FinalAnswer))
             .GroupBy(r => r.Response.FinalAnswer!.Trim())

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 语义技能路由器 — 基于向量相似度检索最相关的工具
+/// Semantic skill router — retrieves the most relevant tools based on vector similarity.
 /// </summary>
 public sealed class SemanticSkillRouter : ISkillRouter
 {
@@ -20,7 +20,7 @@ public sealed class SemanticSkillRouter : ISkillRouter
     private volatile bool _indexBuilt;
 
     /// <summary>
-    /// 创建语义技能路由器
+    /// Creates a semantic skill router.
     /// </summary>
     public SemanticSkillRouter(
         IToolReader toolReader,
@@ -54,7 +54,7 @@ public sealed class SemanticSkillRouter : ISkillRouter
 
         var allTools = _toolReader.GetAllTools();
 
-        // 工具数不足阈值，全量返回（无需语义检索）
+        // Tool count below threshold; return all tools (no semantic retrieval needed)
         if (allTools.Count < _options.ActivationThreshold)
         {
             _logger.LogDebug(
@@ -65,13 +65,13 @@ public sealed class SemanticSkillRouter : ISkillRouter
             return allTools.Select(t => new ScoredTool(t, 1.0f)).ToList();
         }
 
-        // 延迟构建索引
+        // Lazily build index
         if (!_indexBuilt)
         {
             await RebuildIndexAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        // 语义检索
+        // Semantic retrieval
         var queryEmbedding = await _embeddingProvider
             .EmbedAsync(taskDescription, cancellationToken)
             .ConfigureAwait(false);

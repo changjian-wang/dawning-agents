@@ -8,16 +8,16 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Weaviate;
 
 /// <summary>
-/// Weaviate 向量存储 DI 扩展方法
+/// Dependency injection extension methods for Weaviate vector store.
 /// </summary>
 public static class WeaviateServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Weaviate 向量存储（通过配置）
+    /// Adds the Weaviate vector store using configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddWeaviateVectorStore(
         this IServiceCollection services,
         IConfiguration configuration
@@ -66,11 +66,11 @@ public static class WeaviateServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Weaviate 向量存储（通过委托配置）
+    /// Adds the Weaviate vector store using a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddWeaviateVectorStore(
         this IServiceCollection services,
         Action<WeaviateOptions> configure

@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// 内存共享状态实现
+/// In-memory shared state implementation.
 /// </summary>
 /// <remarks>
-/// 适用于单进程内的状态共享，支持：
+/// Designed for intra-process state sharing. Supports:
 /// <list type="bullet">
-/// <item>类型安全的键值存储</item>
-/// <item>通配符模式匹配</item>
-/// <item>变更通知</item>
+/// <item>Type-safe key-value storage</item>
+/// <item>Wildcard pattern matching</item>
+/// <item>Change notifications</item>
 /// </list>
 /// </remarks>
 public partial class InMemorySharedState : ISharedState
@@ -29,7 +29,7 @@ public partial class InMemorySharedState : ISharedState
     private readonly ConcurrentDictionary<string, Lock> _watcherLocks = new();
 
     /// <summary>
-    /// 创建内存共享状态
+    /// Initializes a new instance of the <see cref="InMemorySharedState"/> class.
     /// </summary>
     public InMemorySharedState(ILogger<InMemorySharedState>? logger = null)
     {
@@ -46,12 +46,12 @@ public partial class InMemorySharedState : ISharedState
             try
             {
                 var value = JsonSerializer.Deserialize<T>(json);
-                _logger.LogDebug("获取共享状态 {Key}", key);
+                _logger.LogDebug("Retrieved shared state {Key}", key);
                 return Task.FromResult(value);
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning(ex, "反序列化共享状态 {Key} 失败", key);
+                _logger.LogWarning(ex, "Failed to deserialize shared state {Key}", key);
             }
         }
 
@@ -66,9 +66,9 @@ public partial class InMemorySharedState : ISharedState
         var json = JsonSerializer.Serialize(value);
         _store[key] = json;
 
-        _logger.LogDebug("设置共享状态 {Key}", key);
+        _logger.LogDebug("Set shared state {Key}", key);
 
-        // 通知变更
+        // Notify change watchers
         NotifyChange(key, value);
 
         return Task.CompletedTask;
@@ -83,7 +83,7 @@ public partial class InMemorySharedState : ISharedState
 
         if (removed)
         {
-            _logger.LogDebug("删除共享状态 {Key}", key);
+            _logger.LogDebug("Deleted shared state {Key}", key);
             NotifyChange(key, null);
         }
 
@@ -133,7 +133,7 @@ public partial class InMemorySharedState : ISharedState
             handlers.Add(handler);
         }
 
-        _logger.LogDebug("注册共享状态变更监听 {Key}", key);
+        _logger.LogDebug("Registered change watcher for shared state {Key}", key);
 
         return new Subscription(() =>
         {
@@ -148,7 +148,7 @@ public partial class InMemorySharedState : ISharedState
                     }
                 }
             }
-            _logger.LogDebug("取消共享状态变更监听 {Key}", key);
+            _logger.LogDebug("Unregistered change watcher for shared state {Key}", key);
         });
     }
 
@@ -156,7 +156,7 @@ public partial class InMemorySharedState : ISharedState
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {
         _store.Clear();
-        _logger.LogDebug("清除所有共享状态");
+        _logger.LogDebug("Cleared all shared state");
         return Task.CompletedTask;
     }
 
@@ -164,7 +164,7 @@ public partial class InMemorySharedState : ISharedState
     public int Count => _store.Count;
 
     /// <summary>
-    /// 通知变更
+    /// Notifies change watchers.
     /// </summary>
     private void NotifyChange(string key, object? value)
     {
@@ -185,14 +185,14 @@ public partial class InMemorySharedState : ISharedState
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "处理共享状态变更通知时出错 {Key}", key);
+                    _logger.LogError(ex, "Error processing shared state change notification for {Key}", key);
                 }
             }
         }
     }
 
     /// <summary>
-    /// 将通配符模式转换为正则表达式
+    /// Converts a wildcard pattern to a regular expression.
     /// </summary>
     private static Regex PatternToRegex(string pattern)
     {
@@ -227,7 +227,7 @@ public partial class InMemorySharedState : ISharedState
     }
 
     /// <summary>
-    /// 订阅取消器
+    /// Subscription disposer.
     /// </summary>
     private sealed class Subscription : IDisposable
     {

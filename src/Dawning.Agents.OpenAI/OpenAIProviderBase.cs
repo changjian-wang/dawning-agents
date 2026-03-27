@@ -6,13 +6,13 @@ using OpenAI.Chat;
 
 namespace Dawning.Agents.OpenAI;
 
-// 类型别名消除歧义
+// Type aliases to disambiguate
 using OpenAIChatMessage = global::OpenAI.Chat.ChatMessage;
 using OpenAIChatOptions = global::OpenAI.Chat.ChatCompletionOptions;
 
 /// <summary>
-/// OpenAI SDK 基础提供者，封装 ChatClient 的通用交互逻辑。
-/// 用于 OpenAI 和 Azure OpenAI 提供者的共享基类。
+/// Base provider for OpenAI SDK that encapsulates common <see cref="ChatClient"/> interaction logic.
+/// Serves as a shared base class for OpenAI and Azure OpenAI providers.
 /// </summary>
 public abstract class OpenAIProviderBase : ILLMProvider
 {
@@ -23,15 +23,15 @@ public abstract class OpenAIProviderBase : ILLMProvider
     public abstract string Name { get; }
 
     /// <summary>
-    /// 模型/部署标识名（用于日志）
+    /// Gets the model or deployment identifier used for logging.
     /// </summary>
     protected abstract string ModelIdentifier { get; }
 
     /// <summary>
-    /// 创建 OpenAI 基础提供者
+    /// Initializes a new instance of the <see cref="OpenAIProviderBase"/> class.
     /// </summary>
-    /// <param name="chatClient">OpenAI ChatClient 实例</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="chatClient">The OpenAI <see cref="ChatClient"/> instance.</param>
+    /// <param name="logger">The logger instance.</param>
     protected OpenAIProviderBase(ChatClient chatClient, ILogger logger)
     {
         _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
@@ -51,7 +51,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
         var requestOptions = BuildRequestOptions(options);
 
         _logger.LogDebug(
-            "{Provider} ChatAsync 开始，标识: {Identifier}，消息数: {Count}",
+            "{Provider} ChatAsync started, identifier: {Identifier}, message count: {Count}",
             Name,
             ModelIdentifier,
             chatMessages.Count
@@ -65,13 +65,13 @@ public abstract class OpenAIProviderBase : ILLMProvider
 
             var completion = response.Value;
 
-            // 安全提取文本内容（Content 可能为空，如 tool call 响应）
+            // Safely extract text content (Content may be empty, e.g. in tool call responses)
             var content =
                 completion.Content.Count > 0
                     ? completion.Content[0].Text ?? string.Empty
                     : string.Empty;
 
-            // 提取 tool calls（如有）
+            // Extract tool calls if present
             IReadOnlyList<Abstractions.LLM.ToolCall>? toolCalls = null;
             if (completion.ToolCalls.Count > 0)
             {
@@ -83,11 +83,11 @@ public abstract class OpenAIProviderBase : ILLMProvider
                     ))
                     .ToList();
 
-                _logger.LogDebug("收到 {Count} 个 tool calls", toolCalls.Count);
+                _logger.LogDebug("Received {Count} tool call(s)", toolCalls.Count);
             }
 
             _logger.LogDebug(
-                "{Provider} ChatAsync 完成，输入 tokens: {Input}，输出 tokens: {Output}，FinishReason: {Reason}",
+                "{Provider} ChatAsync completed, input tokens: {Input}, output tokens: {Output}, FinishReason: {Reason}",
                 Name,
                 completion.Usage.InputTokenCount,
                 completion.Usage.OutputTokenCount,
@@ -107,7 +107,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
         {
             _logger.LogError(
                 ex,
-                "{Provider} API 调用失败，标识: {Identifier}，状态码: {StatusCode}",
+                "{Provider} API call failed, identifier: {Identifier}, status code: {StatusCode}",
                 Name,
                 ModelIdentifier,
                 ex.Status
@@ -148,7 +148,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
         var requestOptions = BuildRequestOptions(options);
 
         _logger.LogDebug(
-            "{Provider} ChatStreamEventsAsync 开始，标识: {Identifier}，消息数: {Count}",
+            "{Provider} ChatStreamEventsAsync started, identifier: {Identifier}, message count: {Count}",
             Name,
             ModelIdentifier,
             chatMessages.Count
@@ -215,7 +215,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
     }
 
     /// <summary>
-    /// 构建 OpenAI SDK 消息列表
+    /// Builds the OpenAI SDK message list from the specified messages.
     /// </summary>
     protected static List<OpenAIChatMessage> BuildMessages(
         IEnumerable<Abstractions.LLM.ChatMessage> messages,
@@ -240,10 +240,10 @@ public abstract class OpenAIProviderBase : ILLMProvider
                     "system" => new SystemChatMessage(msg.Content),
                     "tool" => new ToolChatMessage(
                         msg.ToolCallId
-                            ?? throw new ArgumentException("Tool 消息必须包含 ToolCallId"),
+                            ?? throw new ArgumentException("Tool message must contain a ToolCallId"),
                         msg.Content
                     ),
-                    _ => throw new ArgumentException($"未知角色: {msg.Role}"),
+                    _ => throw new ArgumentException($"Unknown role: {msg.Role}"),
                 }
             );
         }
@@ -252,7 +252,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
     }
 
     /// <summary>
-    /// 创建包含 tool calls 的助手消息
+    /// Creates an assistant message containing tool calls.
     /// </summary>
     protected static AssistantChatMessage CreateAssistantWithToolCalls(
         Abstractions.LLM.ChatMessage msg
@@ -271,7 +271,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
     }
 
     /// <summary>
-    /// 构建请求选项
+    /// Builds the request options from the specified chat completion options.
     /// </summary>
     protected static OpenAIChatOptions BuildRequestOptions(
         Abstractions.LLM.ChatCompletionOptions options
@@ -283,7 +283,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
             MaxOutputTokenCount = options.MaxTokens,
         };
 
-        // 设置响应格式
+        // Set response format
         if (options.ResponseFormat is { } format)
         {
             requestOptions.ResponseFormat = format.Type switch
@@ -303,7 +303,7 @@ public abstract class OpenAIProviderBase : ILLMProvider
             };
         }
 
-        // 设置工具定义
+        // Set tool definitions
         if (options.Tools is { Count: > 0 })
         {
             foreach (var tool in options.Tools)

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// 分布式追踪器
+/// Distributed tracer.
 /// </summary>
 public sealed class DistributedTracer : IDisposable
 {
@@ -12,7 +12,7 @@ public sealed class DistributedTracer : IDisposable
     private readonly TelemetryConfig _config;
 
     /// <summary>
-    /// 创建分布式追踪器
+    /// Initializes a new instance of the <see cref="DistributedTracer"/> class.
     /// </summary>
     public DistributedTracer(TelemetryConfig config)
     {
@@ -22,7 +22,7 @@ public sealed class DistributedTracer : IDisposable
     }
 
     /// <summary>
-    /// 启动新的追踪 span
+    /// Starts a new trace span.
     /// </summary>
     public ITraceSpan StartSpan(string name, SpanKind kind = SpanKind.Internal)
     {
@@ -50,7 +50,7 @@ public sealed class DistributedTracer : IDisposable
     }
 
     /// <summary>
-    /// 获取当前追踪上下文用于传播
+    /// Gets the current trace context for propagation.
     /// </summary>
     public TraceContext? GetCurrentContext()
     {
@@ -69,7 +69,7 @@ public sealed class DistributedTracer : IDisposable
     }
 
     /// <summary>
-    /// 从传播的上下文继续
+    /// Starts a span from a propagated trace context.
     /// </summary>
     public ITraceSpan StartSpanFromContext(
         string name,
@@ -119,7 +119,7 @@ public sealed class DistributedTracer : IDisposable
     }
 
     /// <summary>
-    /// 释放 ActivitySource 资源
+    /// Releases the <see cref="ActivitySource"/> resources.
     /// </summary>
     public void Dispose()
     {
@@ -128,7 +128,7 @@ public sealed class DistributedTracer : IDisposable
 }
 
 /// <summary>
-/// Activity 包装的 Span
+/// Span backed by an <see cref="Activity"/>.
 /// </summary>
 internal class ActivitySpan : ITraceSpan
 {
@@ -195,7 +195,7 @@ internal class ActivitySpan : ITraceSpan
 }
 
 /// <summary>
-/// 空操作 Span（追踪禁用时使用）
+/// No-op span used when tracing is disabled.
 /// </summary>
 internal class NoOpSpan : ITraceSpan
 {

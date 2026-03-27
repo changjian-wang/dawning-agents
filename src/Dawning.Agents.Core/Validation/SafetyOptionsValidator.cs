@@ -4,7 +4,7 @@ using FluentValidation;
 namespace Dawning.Agents.Core.Validation;
 
 /// <summary>
-/// 安全护栏配置选项验证器
+/// Validator for <see cref="SafetyOptions"/>.
 /// </summary>
 public class SafetyOptionsValidator : AbstractValidator<SafetyOptions>
 {
@@ -12,38 +12,38 @@ public class SafetyOptionsValidator : AbstractValidator<SafetyOptions>
     {
         RuleFor(x => x.MaxInputLength)
             .GreaterThan(0)
-            .WithMessage("MaxInputLength 必须大于 0")
+            .WithMessage("MaxInputLength must be greater than 0.")
             .LessThanOrEqualTo(1000000)
-            .WithMessage("MaxInputLength 不能超过 1000000");
+            .WithMessage("MaxInputLength must not exceed 1000000.");
 
         RuleFor(x => x.MaxOutputLength)
             .GreaterThan(0)
-            .WithMessage("MaxOutputLength 必须大于 0")
+            .WithMessage("MaxOutputLength must be greater than 0.")
             .LessThanOrEqualTo(10000000)
-            .WithMessage("MaxOutputLength 不能超过 10000000");
+            .WithMessage("MaxOutputLength must not exceed 10000000.");
 
         RuleForEach(x => x.SensitivePatterns).SetValidator(new SensitivePatternValidator());
     }
 }
 
 /// <summary>
-/// 敏感数据模式验证器
+/// Validator for <see cref="SensitivePattern"/>.
 /// </summary>
 public class SensitivePatternValidator : AbstractValidator<SensitivePattern>
 {
     public SensitivePatternValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("模式名称不能为空");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Pattern name must not be empty.");
 
         RuleFor(x => x.Pattern)
             .NotEmpty()
-            .WithMessage("正则表达式模式不能为空")
+            .WithMessage("Regex pattern must not be empty.")
             .Must(BeValidRegex)
-            .WithMessage("正则表达式模式格式无效");
+            .WithMessage("Regex pattern format is invalid.");
 
-        RuleFor(x => x.KeepFirst).GreaterThanOrEqualTo(0).WithMessage("KeepFirst 不能为负数");
+        RuleFor(x => x.KeepFirst).GreaterThanOrEqualTo(0).WithMessage("KeepFirst must not be negative.");
 
-        RuleFor(x => x.KeepLast).GreaterThanOrEqualTo(0).WithMessage("KeepLast 不能为负数");
+        RuleFor(x => x.KeepLast).GreaterThanOrEqualTo(0).WithMessage("KeepLast must not be negative.");
     }
 
     private static bool BeValidRegex(string pattern)

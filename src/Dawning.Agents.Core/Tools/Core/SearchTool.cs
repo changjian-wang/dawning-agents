@@ -8,12 +8,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 搜索工具 — 支持文本搜索（grep）和文件搜索（glob）两种模式
+/// Search tool — supports text search (grep) and file search (glob) modes.
 /// </summary>
 /// <remarks>
-/// <para>Risk: Low — 只读操作</para>
-/// <para>grep 模式: 在文件内容中搜索文本或正则表达式</para>
-/// <para>glob 模式: 搜索匹配模式的文件路径</para>
+/// <para>Risk: Low — read-only operation.</para>
+/// <para>grep mode: searches for text or regular expressions in file contents.</para>
+/// <para>glob mode: searches for file paths matching a pattern.</para>
 /// </remarks>
 public sealed class SearchTool : ITool
 {
@@ -22,7 +22,7 @@ public sealed class SearchTool : ITool
     private readonly ILogger<SearchTool> _logger;
 
     /// <summary>
-    /// 创建 SearchTool
+    /// Creates a <see cref="SearchTool"/>.
     /// </summary>
     public SearchTool(ILogger<SearchTool>? logger = null)
     {

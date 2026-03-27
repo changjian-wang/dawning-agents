@@ -7,12 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 /// <summary>
-/// 评估框架 DI 扩展方法
+/// Dependency injection extension methods for the evaluation framework.
 /// </summary>
 public static class EvaluationServiceCollectionExtensions
 {
     /// <summary>
-    /// 注册 Agent 评估框架
+    /// Registers the agent evaluation framework.
     /// </summary>
     public static IServiceCollection AddAgentEvaluation(
         this IServiceCollection services,
@@ -45,7 +45,7 @@ public static class EvaluationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 Agent 评估框架
+    /// Registers the agent evaluation framework.
     /// </summary>
     public static IServiceCollection AddAgentEvaluation(
         this IServiceCollection services,
@@ -82,7 +82,7 @@ public static class EvaluationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义指标评估器
+    /// Adds a custom metric evaluator.
     /// </summary>
     public static IServiceCollection AddMetricEvaluator<TEvaluator>(
         this IServiceCollection services

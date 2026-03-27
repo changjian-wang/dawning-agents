@@ -5,12 +5,12 @@ using Dawning.Agents.Abstractions.Telemetry;
 namespace Dawning.Agents.Core.Telemetry;
 
 /// <summary>
-/// 带 Token 追踪功能的 LLM Provider 装饰器
+/// Token-tracking LLM provider decorator.
 /// </summary>
 /// <remarks>
-/// 包装任意 ILLMProvider，自动记录每次调用的 Token 使用情况。
+/// Wraps any <see cref="ILLMProvider"/> to automatically record token usage for each call.
 ///
-/// 使用示例:
+/// Usage example:
 /// <code>
 /// var tracker = new InMemoryTokenUsageTracker();
 /// var trackingProvider = new TokenTrackingLLMProvider(originalProvider, tracker, "MyAgent");
@@ -24,12 +24,12 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     private readonly string? _sessionId;
 
     /// <summary>
-    /// 创建带 Token 追踪功能的 LLM Provider
+    /// Creates a token-tracking LLM provider.
     /// </summary>
-    /// <param name="innerProvider">被包装的 LLM Provider</param>
-    /// <param name="tracker">Token 使用追踪器</param>
-    /// <param name="source">来源标识（用于区分不同的调用者）</param>
-    /// <param name="sessionId">会话 ID（可选）</param>
+    /// <param name="innerProvider">The wrapped LLM provider.</param>
+    /// <param name="tracker">The token usage tracker.</param>
+    /// <param name="source">Source identifier to distinguish different callers.</param>
+    /// <param name="sessionId">Optional session ID.</param>
     public TokenTrackingLLMProvider(
         ILLMProvider innerProvider,
         ITokenUsageTracker tracker,
@@ -47,22 +47,22 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     public string Name => _innerProvider.Name;
 
     /// <summary>
-    /// 获取内部的 LLM Provider
+    /// Gets the inner LLM provider.
     /// </summary>
     public ILLMProvider InnerProvider => _innerProvider;
 
     /// <summary>
-    /// 获取 Token 追踪器
+    /// Gets the token usage tracker.
     /// </summary>
     public ITokenUsageTracker Tracker => _tracker;
 
     /// <summary>
-    /// 来源标识
+    /// Gets the source identifier.
     /// </summary>
     public string Source => _source;
 
     /// <summary>
-    /// 会话 ID
+    /// Gets the session ID.
     /// </summary>
     public string? SessionId => _sessionId;
 
@@ -77,7 +77,7 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
             .ChatAsync(messages, options, cancellationToken)
             .ConfigureAwait(false);
 
-        // 记录 Token 使用
+        // Record token usage
         _tracker.Record(
             TokenUsageRecord.Create(
                 _source,
@@ -98,8 +98,8 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        // 流式响应通常不返回 Token 统计，但我们仍然转发请求
-        // 如果需要估算，可以在流结束后手动计算
+        // Streaming responses typically don't return token statistics, but we still forward the request
+        // If estimation is needed, it can be calculated manually after the stream ends
         await foreach (
             var chunk in _innerProvider
                 .ChatStreamAsync(messages, options, cancellationToken)
@@ -109,8 +109,8 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
             yield return chunk;
         }
 
-        // 注意：流式 API 通常不返回 token 统计
-        // 这里不记录，或者可以实现估算逻辑
+        // Note: streaming APIs typically don't return token statistics
+        // No recording here, or estimation logic can be implemented
     }
 
     /// <inheritdoc />
@@ -136,7 +136,7 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
             yield return evt;
         }
 
-        // 如果最后一个事件包含 token 用量，记录它
+        // If the last event contains token usage, record it
         if (lastUsage is not null)
         {
             _tracker.Record(
@@ -152,10 +152,10 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     }
 
     /// <summary>
-    /// 创建一个新的带不同来源标识的装饰器实例
+    /// Creates a new decorator instance with a different source identifier.
     /// </summary>
-    /// <param name="source">新的来源标识</param>
-    /// <returns>新的装饰器实例</returns>
+    /// <param name="source">The new source identifier.</param>
+    /// <returns>A new decorator instance.</returns>
     public TokenTrackingLLMProvider WithSource(string source)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(source);
@@ -164,10 +164,10 @@ public sealed class TokenTrackingLLMProvider : ILLMProvider
     }
 
     /// <summary>
-    /// 创建一个新的带不同会话 ID 的装饰器实例
+    /// Creates a new decorator instance with a different session ID.
     /// </summary>
-    /// <param name="sessionId">新的会话 ID</param>
-    /// <returns>新的装饰器实例</returns>
+    /// <param name="sessionId">The new session ID.</param>
+    /// <returns>A new decorator instance.</returns>
     public TokenTrackingLLMProvider WithSession(string sessionId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);

@@ -9,27 +9,27 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// 编排器基类，提供通用功能
+/// Base class for orchestrators providing common functionality.
 /// </summary>
 public abstract class OrchestratorBase : IOrchestrator
 {
     /// <summary>
-    /// 日志记录器
+    /// The logger instance.
     /// </summary>
     protected readonly ILogger Logger;
 
     /// <summary>
-    /// 编排器配置
+    /// The orchestrator options.
     /// </summary>
     protected readonly OrchestratorOptions Options;
 
     /// <summary>
-    /// Agent 列表
+    /// The list of registered agents.
     /// </summary>
     protected ImmutableList<IAgent> _agents = [];
 
     /// <summary>
-    /// 创建编排器基类
+    /// Initializes a new instance of the <see cref="OrchestratorBase"/> class.
     /// </summary>
     protected OrchestratorBase(
         string name,
@@ -52,18 +52,18 @@ public abstract class OrchestratorBase : IOrchestrator
     public IReadOnlyList<IAgent> Agents => Volatile.Read(ref _agents);
 
     /// <summary>
-    /// 添加 Agent 到编排器
+    /// Adds an agent to the orchestrator.
     /// </summary>
     public OrchestratorBase AddAgent(IAgent agent)
     {
         ArgumentNullException.ThrowIfNull(agent);
         ImmutableInterlocked.Update(ref _agents, (list, a) => list.Add(a), agent);
-        Logger.LogDebug("Agent {AgentName} 已添加到编排器 {OrchestratorName}", agent.Name, Name);
+        Logger.LogDebug("Agent {AgentName} added to orchestrator {OrchestratorName}", agent.Name, Name);
         return this;
     }
 
     /// <summary>
-    /// 添加多个 Agent
+    /// Adds multiple agents to the orchestrator.
     /// </summary>
     public OrchestratorBase AddAgents(IEnumerable<IAgent> agents)
     {
@@ -98,7 +98,7 @@ public abstract class OrchestratorBase : IOrchestrator
 
         if (Volatile.Read(ref _agents).Count == 0)
         {
-            return OrchestrationResult.Failed("编排器中没有 Agent", [], TimeSpan.Zero);
+            return OrchestrationResult.Failed("No agents registered in the orchestrator", [], TimeSpan.Zero);
         }
 
         var stopwatch = Stopwatch.StartNew();
@@ -114,7 +114,7 @@ public abstract class OrchestratorBase : IOrchestrator
         try
         {
             Logger.LogInformation(
-                "编排器 {OrchestratorName} 开始执行，共 {AgentCount} 个 Agent",
+                "Orchestrator {OrchestratorName} starting execution with {AgentCount} agents",
                 Name,
                 Volatile.Read(ref _agents).Count
             );
@@ -125,7 +125,7 @@ public abstract class OrchestratorBase : IOrchestrator
             stopwatch.Stop();
 
             Logger.LogInformation(
-                "编排器 {OrchestratorName} 执行完成，耗时 {Duration}ms，结果: {Success}",
+                "Orchestrator {OrchestratorName} completed in {Duration}ms, success: {Success}",
                 Name,
                 stopwatch.ElapsedMilliseconds,
                 result.Success
@@ -139,10 +139,10 @@ public abstract class OrchestratorBase : IOrchestrator
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
         {
             stopwatch.Stop();
-            Logger.LogWarning("编排器 {OrchestratorName} 执行超时", Name);
+            Logger.LogWarning("Orchestrator {OrchestratorName} timed out", Name);
 
             return OrchestrationResult.Failed(
-                $"编排执行超时（{Options.TimeoutSeconds}秒）",
+                $"Orchestration timed out ({Options.TimeoutSeconds}s)",
                 context.ExecutionHistory,
                 stopwatch.Elapsed
             );
@@ -154,7 +154,7 @@ public abstract class OrchestratorBase : IOrchestrator
         catch (Exception ex)
         {
             stopwatch.Stop();
-            Logger.LogError(ex, "编排器 {OrchestratorName} 执行出错", Name);
+            Logger.LogError(ex, "Orchestrator {OrchestratorName} encountered an error", Name);
 
             return OrchestrationResult.Failed(
                 ex.Message,
@@ -165,7 +165,7 @@ public abstract class OrchestratorBase : IOrchestrator
     }
 
     /// <summary>
-    /// 执行具体的编排逻辑（由子类实现）
+    /// Executes the orchestration logic. Implemented by derived classes.
     /// </summary>
     protected abstract Task<OrchestrationResult> ExecuteOrchestratedAsync(
         OrchestrationContext context,
@@ -173,7 +173,7 @@ public abstract class OrchestratorBase : IOrchestrator
     );
 
     /// <summary>
-    /// 执行单个 Agent
+    /// Executes a single agent.
     /// </summary>
     protected async Task<AgentExecutionRecord> ExecuteAgentAsync(
         IAgent agent,
@@ -192,7 +192,7 @@ public abstract class OrchestratorBase : IOrchestrator
             agentCts.Token
         );
 
-        Logger.LogDebug("开始执行 Agent {AgentName}，顺序: {Order}", agent.Name, executionOrder);
+        Logger.LogDebug("Executing agent {AgentName}, order: {Order}", agent.Name, executionOrder);
 
         AgentResponse response;
         try
@@ -206,7 +206,7 @@ public abstract class OrchestratorBase : IOrchestrator
         catch (OperationCanceledException) when (agentCts.IsCancellationRequested)
         {
             response = AgentResponse.Failed(
-                $"Agent {agent.Name} 执行超时（{Options.AgentTimeoutSeconds}秒）",
+                $"Agent {agent.Name} timed out ({Options.AgentTimeoutSeconds}s)",
                 [],
                 TimeSpan.FromSeconds(Options.AgentTimeoutSeconds)
             );
@@ -219,7 +219,7 @@ public abstract class OrchestratorBase : IOrchestrator
         var endTime = DateTimeOffset.UtcNow;
 
         Logger.LogDebug(
-            "Agent {AgentName} 执行完成，结果: {Success}",
+            "Agent {AgentName} completed, success: {Success}",
             agent.Name,
             response.Success
         );

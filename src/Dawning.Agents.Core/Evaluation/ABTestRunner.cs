@@ -5,10 +5,10 @@ using Dawning.Agents.Abstractions.Evaluation;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// A/B 测试运行器
+/// A/B test runner.
 /// </summary>
 /// <remarks>
-/// 用于比较两个 Agent 或配置的效果差异。
+/// Used to compare the effectiveness of two agents or configurations.
 /// </remarks>
 public sealed class ABTestRunner
 {
@@ -21,7 +21,7 @@ public sealed class ABTestRunner
     }
 
     /// <summary>
-    /// 运行 A/B 测试
+    /// Runs an A/B test.
     /// </summary>
     public async Task<ABTestResult> RunAsync(
         IAgentEvaluator evaluatorA,
@@ -37,7 +37,7 @@ public sealed class ABTestRunner
 
         var testCaseList = testCases.ToList();
 
-        // 并行评估 A 和 B
+        // Evaluate A and B in parallel
         var taskA = evaluatorA.EvaluateBatchAsync(testCaseList, cancellationToken);
         var taskB = evaluatorB.EvaluateBatchAsync(testCaseList, cancellationToken);
 
@@ -67,27 +67,27 @@ public sealed class ABTestRunner
 }
 
 /// <summary>
-/// A/B 测试结果
+/// A/B test result.
 /// </summary>
 public record ABTestResult
 {
     /// <summary>
-    /// 变体 A
+    /// Gets variant A.
     /// </summary>
     public required ABVariant VariantA { get; init; }
 
     /// <summary>
-    /// 变体 B
+    /// Gets variant B.
     /// </summary>
     public required ABVariant VariantB { get; init; }
 
     /// <summary>
-    /// 测试用例数
+    /// Gets the test case count.
     /// </summary>
     public int TestCaseCount { get; init; }
 
     /// <summary>
-    /// 获胜者（得分更高的变体）
+    /// Gets the winner (variant with higher score).
     /// </summary>
     public ABVariant? Winner
     {
@@ -95,7 +95,7 @@ public record ABTestResult
         {
             if (Math.Abs(VariantA.Report.AverageScore - VariantB.Report.AverageScore) < 1.0)
             {
-                return null; // 平局（差距小于 1 分）
+                return null; // Tie (difference less than 1 point)
             }
 
             return VariantA.Report.AverageScore > VariantB.Report.AverageScore
@@ -105,45 +105,45 @@ public record ABTestResult
     }
 
     /// <summary>
-    /// 得分差异
+    /// Gets the score difference.
     /// </summary>
     public double ScoreDifference => VariantA.Report.AverageScore - VariantB.Report.AverageScore;
 
     /// <summary>
-    /// 通过率差异
+    /// Gets the pass rate difference.
     /// </summary>
     public double PassRateDifference => VariantA.Report.PassRate - VariantB.Report.PassRate;
 
     /// <summary>
-    /// 延迟差异（毫秒）
+    /// Gets the latency difference in milliseconds.
     /// </summary>
     public double LatencyDifference =>
         VariantA.Report.AverageLatencyMs - VariantB.Report.AverageLatencyMs;
 
     /// <summary>
-    /// 比较时间
+    /// Gets the comparison timestamp.
     /// </summary>
     public DateTimeOffset ComparedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// A/B 测试变体
+/// A/B test variant.
 /// </summary>
 public record ABVariant
 {
     /// <summary>
-    /// 变体名称
+    /// Gets the variant name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// 评估报告
+    /// Gets the evaluation report.
     /// </summary>
     public required EvaluationReport Report { get; init; }
 }
 
 /// <summary>
-/// 评估报告生成器
+/// Evaluation report generator.
 /// </summary>
 public sealed class EvaluationReportGenerator
 {
@@ -162,7 +162,7 @@ public sealed class EvaluationReportGenerator
     }
 
     /// <summary>
-    /// 生成 JSON 格式报告
+    /// Generates a JSON-formatted report.
     /// </summary>
     public string GenerateJson(EvaluationReport report)
     {
@@ -177,7 +177,7 @@ public sealed class EvaluationReportGenerator
     }
 
     /// <summary>
-    /// 生成 Markdown 格式报告
+    /// Generates a Markdown-formatted report.
     /// </summary>
     public string GenerateMarkdown(EvaluationReport report)
     {
@@ -190,7 +190,7 @@ public sealed class EvaluationReportGenerator
         sb.AppendLine($"**Duration:** {report.DurationMs}ms");
         sb.AppendLine();
 
-        // 摘要
+        // Summary
         sb.AppendLine("## Summary");
         sb.AppendLine();
         sb.AppendLine("| Metric | Value |");
@@ -208,7 +208,7 @@ public sealed class EvaluationReportGenerator
         sb.AppendLine($"| Est. Cost | ${report.TotalEstimatedCost:F4} |");
         sb.AppendLine();
 
-        // 详细结果
+        // Detailed results
         sb.AppendLine("## Detailed Results");
         sb.AppendLine();
         sb.AppendLine("| Test Case | Status | Score | Latency | Tools Called |");
@@ -225,7 +225,7 @@ public sealed class EvaluationReportGenerator
 
         sb.AppendLine();
 
-        // 失败详情
+        // Failure details
         var failedResults = report.Results.Where(r => !r.Passed).ToList();
         if (failedResults.Count > 0)
         {
@@ -255,7 +255,7 @@ public sealed class EvaluationReportGenerator
     }
 
     /// <summary>
-    /// 保存报告到文件
+    /// Saves the report to files.
     /// </summary>
     public async Task SaveToFileAsync(
         EvaluationReport report,
@@ -267,13 +267,13 @@ public sealed class EvaluationReportGenerator
 
         var baseName = $"evaluation_{report.Id}";
 
-        // 保存 JSON
+        // Save JSON
         var jsonPath = Path.Combine(directory, $"{baseName}.json");
         await File.WriteAllTextAsync(jsonPath, GenerateJson(report), cancellationToken)
             .ConfigureAwait(false);
         _logger.LogInformation("Saved JSON report to {Path}", jsonPath);
 
-        // 保存 Markdown
+        // Save Markdown
         var mdPath = Path.Combine(directory, $"{baseName}.md");
         await File.WriteAllTextAsync(mdPath, GenerateMarkdown(report), cancellationToken)
             .ConfigureAwait(false);

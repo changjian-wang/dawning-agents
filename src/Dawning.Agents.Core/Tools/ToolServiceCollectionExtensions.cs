@@ -7,12 +7,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// Tools 系统的 DI 扩展方法
+/// DI extension methods for the tools system.
 /// </summary>
 public static class ToolServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加工具注册表（单例）
+    /// Adds the tool registry (singleton).
     /// </summary>
     public static IServiceCollection AddToolRegistry(this IServiceCollection services)
     {
@@ -25,14 +25,14 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 6 个核心工具 + 工具基础设施（IToolSandbox, IToolSession, IToolStore）
+    /// Registers 6 core tools + tool infrastructure (IToolSandbox, IToolSession, IToolStore).
     /// </summary>
     /// <remarks>
-    /// <para>核心工具: read_file, write_file, edit_file, search, bash, create_tool</para>
-    /// <para>基础设施: ToolSandbox, ToolSession, FileToolStore</para>
+    /// <para>Core tools: read_file, write_file, edit_file, search, bash, create_tool</para>
+    /// <para>Infrastructure: ToolSandbox, ToolSession, FileToolStore</para>
     /// </remarks>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">沙箱选项配置（可选）</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configureOptions">Sandbox options configuration (optional).</param>
     public static IServiceCollection AddCoreTools(
         this IServiceCollection services,
         Action<ToolSandboxOptions>? configureOptions = null
@@ -40,17 +40,17 @@ public static class ToolServiceCollectionExtensions
     {
         services.AddToolRegistry();
 
-        // 配置沙箱选项
+        // Configure sandbox options
         var sandboxOptions = new ToolSandboxOptions();
         configureOptions?.Invoke(sandboxOptions);
         services.AddSingleton(sandboxOptions);
 
-        // 基础设施
+        // Infrastructure
         services.TryAddSingleton<IToolSandbox, ToolSandbox>();
         services.TryAddSingleton<IToolStore, FileToolStore>();
         services.TryAddScoped<IToolSession, ToolSession>();
 
-        // 核心工具注册
+        // Core tool registration
         services.AddSingleton<IToolRegistration>(sp =>
         {
             var registry = sp.GetRequiredService<IToolRegistry>();
@@ -107,10 +107,10 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册单个工具实例
+    /// Registers a single tool instance.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="tool">工具实例</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="tool">The tool instance.</param>
     public static IServiceCollection AddTool(this IServiceCollection services, ITool tool)
     {
         services.AddToolRegistry();
@@ -126,18 +126,18 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册包含 [FunctionTool] 方法的工具类
+    /// Registers a tool class containing <see cref="FunctionToolAttribute"/> methods.
     /// </summary>
-    /// <typeparam name="T">工具类类型</typeparam>
+    /// <typeparam name="T">The tool class type.</typeparam>
     public static IServiceCollection AddToolsFrom<T>(this IServiceCollection services)
         where T : class
     {
         services.AddToolRegistry();
 
-        // 注册工具类本身
+        // Register the tool class itself
         services.TryAddSingleton<T>();
 
-        // 扫描并注册工具
+        // Scan and register tools
         services.AddSingleton<IToolRegistration>(sp =>
         {
             var instance = sp.GetRequiredService<T>();
@@ -156,10 +156,10 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 从程序集扫描并注册所有 [FunctionTool] 标记的方法
+    /// Scans and registers all methods marked with <see cref="FunctionToolAttribute"/> from an assembly.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="assembly">要扫描的程序集</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="assembly">The assembly to scan.</param>
     public static IServiceCollection AddToolsFromAssembly(
         this IServiceCollection services,
         Assembly assembly
@@ -184,10 +184,10 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加工具审批处理器（默认实现）
+    /// Adds the tool approval handler (default implementation).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="strategy">审批策略</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="strategy">The approval strategy.</param>
     public static IServiceCollection AddToolApprovalHandler(
         this IServiceCollection services,
         ApprovalStrategy strategy = ApprovalStrategy.RiskBased
@@ -201,17 +201,17 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 确保所有工具已注册（在构建 Host 后调用）
+    /// Ensures all tools are registered (call after building the Host).
     /// </summary>
     public static IServiceProvider EnsureToolsRegistered(this IServiceProvider serviceProvider)
     {
-        // 触发所有 IToolRegistration 的创建，从而触发工具注册
+        // Trigger creation of all IToolRegistration instances, which triggers tool registration
         _ = serviceProvider.GetServices<IToolRegistration>().ToList();
         return serviceProvider;
     }
 
     /// <summary>
-    /// 添加工具使用追踪器（内存实现，单例）
+    /// Adds the tool usage tracker (in-memory, singleton).
     /// </summary>
     public static IServiceCollection AddToolUsageTracking(this IServiceCollection services)
     {
@@ -220,10 +220,10 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加语义技能路由器
+    /// Adds the semantic skill router.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">路由器配置（可选）</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">Router configuration (optional).</param>
     public static IServiceCollection AddSkillRouter(
         this IServiceCollection services,
         Action<SkillRouterOptions>? configure = null
@@ -243,7 +243,7 @@ public static class ToolServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加技能演化策略（默认实现）
+    /// Adds the skill evolution policy (default implementation).
     /// </summary>
     public static IServiceCollection AddSkillEvolution(this IServiceCollection services)
     {
@@ -254,7 +254,7 @@ public static class ToolServiceCollectionExtensions
 }
 
 /// <summary>
-/// 工具注册标记接口（用于 DI 触发注册）
+/// Marker interface for tool registration (used to trigger DI registration).
 /// </summary>
 public interface IToolRegistration
 {
@@ -262,7 +262,7 @@ public interface IToolRegistration
 }
 
 /// <summary>
-/// 工具注册实现
+/// Tool registration implementation.
 /// </summary>
 internal class ToolRegistration : IToolRegistration
 {

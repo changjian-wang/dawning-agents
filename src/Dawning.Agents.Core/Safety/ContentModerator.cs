@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 基于 LLM 的内容审核护栏
+/// LLM-based content moderation guardrail.
 /// </summary>
 public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
 {
@@ -30,7 +30,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
     public string Name => "ContentModerator";
 
     /// <inheritdoc />
-    public string Description => "使用 LLM 进行内容审核，检测有害、违规或不当内容";
+    public string Description => "Uses an LLM for content moderation to detect harmful, violating, or inappropriate content";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.Enabled;
@@ -46,7 +46,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             return GuardrailResult.Pass(content);
         }
 
-        // 内容过长时截断（节省 Token）
+        // Truncate content if too long (to save tokens)
         var contentToCheck =
             content.Length > _options.MaxContentToCheck
                 ? content[.._options.MaxContentToCheck] + "..."
@@ -63,8 +63,8 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
                     messages,
                     new ChatCompletionOptions
                     {
-                        Temperature = 0, // 确定性输出
-                        MaxTokens = 200, // 审核响应不需要很长
+                        Temperature = 0, // Deterministic output
+                        MaxTokens = 200, // Moderation response does not need to be long
                     },
                     cancellationToken
                 )
@@ -75,13 +75,13 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             if (!result.IsAllowed)
             {
                 _logger.LogWarning(
-                    "内容审核未通过: Categories={Categories}, Reason={Reason}",
+                    "Content moderation failed: Categories={Categories}, Reason={Reason}",
                     string.Join(", ", result.ViolatedCategories),
                     result.Reason
                 );
 
                 return GuardrailResult.Fail(
-                    result.Reason ?? "内容审核未通过",
+                    result.Reason ?? "Content moderation failed",
                     Name,
                     result
                         .ViolatedCategories.Select(c => new GuardrailIssue
@@ -94,7 +94,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
                 );
             }
 
-            _logger.LogDebug("内容审核通过");
+            _logger.LogDebug("Content moderation passed");
             return GuardrailResult.Pass(content);
         }
         catch (OperationCanceledException)
@@ -103,16 +103,16 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "内容审核发生异常");
+            _logger.LogError(ex, "Content moderation encountered an exception");
 
-            // 根据配置决定异常时的行为
+            // Decide behavior on exception based on configuration
             if (_options.FailOpenOnError)
             {
-                _logger.LogWarning("内容审核异常，根据配置允许通过");
+                _logger.LogWarning("Content moderation exception; allowing through per configuration");
                 return GuardrailResult.Pass(content);
             }
 
-            return GuardrailResult.Fail($"内容审核服务异常: {ex.Message}", Name);
+            return GuardrailResult.Fail($"Content moderation service error: {ex.Message}", Name);
         }
     }
 
@@ -123,25 +123,25 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
         var jsonFormat = """
             {
               "allowed": true/false,
-              "categories": ["违反的类别列表"],
-              "reason": "如果不允许，说明原因"
+              "categories": ["list of violated categories"],
+              "reason": "if not allowed, explain why"
             }
             """;
 
         return $"""
-            你是一个内容审核助手。请分析以下内容是否违反任何审核规则。
+            You are a content moderation assistant. Analyze the following content for any moderation rule violations.
 
-            审核类别: {categories}
+            Moderation categories: {categories}
 
-            请以 JSON 格式回复：
+            Reply in JSON format:
             {jsonFormat}
 
-            待审核内容:
+            Content to moderate:
             {boundary}
             {content}
             {boundary}
 
-            请只返回 JSON，不要有其他内容。
+            Return only JSON, nothing else.
             """;
     }
 
@@ -149,7 +149,7 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
     {
         try
         {
-            // 提取 JSON 部分
+            // Extract JSON portion
             var jsonStart = response.IndexOf('{');
             var jsonEnd = response.LastIndexOf('}');
 
@@ -212,10 +212,10 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "解析审核响应失败: {Response}", response);
+            _logger.LogWarning(ex, "Failed to parse moderation response: {Response}", response);
         }
 
-        // 解析失败，根据响应内容做简单判断
+        // Parsing failed; make a simple judgment based on response content
         var lowerResponse = response.ToLowerInvariant();
         if (
             lowerResponse.Contains("\"allowed\": false", StringComparison.Ordinal)
@@ -226,16 +226,16 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
             {
                 IsAllowed = false,
                 ViolatedCategories = ["Unknown"],
-                Reason = "内容审核未通过",
+                Reason = "Content moderation failed",
             };
         }
 
-        // 默认拒绝（fail-closed：无法确认安全时拒绝通过）
+        // Default deny (fail-closed: deny when safety cannot be confirmed)
         return new ModerationResult
         {
             IsAllowed = false,
             ViolatedCategories = ["ParseError"],
-            Reason = "无法解析审核响应，默认拒绝",
+            Reason = "Unable to parse moderation response; denied by default",
         };
     }
 
@@ -248,28 +248,28 @@ public sealed class ContentModerator : IInputGuardrail, IOutputGuardrail
 }
 
 /// <summary>
-/// 内容审核配置选项
+/// Content moderation configuration options.
 /// </summary>
 public sealed class ContentModeratorOptions
 {
     /// <summary>
-    /// 启用内容审核
+    /// Gets or sets a value indicating whether content moderation is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// 审核类别
+    /// Gets or sets the moderation categories.
     /// </summary>
     public List<string> Categories { get; set; } =
-    ["暴力内容", "色情内容", "仇恨言论", "自我伤害", "非法活动", "个人攻击", "虚假信息"];
+    ["Violence", "Sexual content", "Hate speech", "Self-harm", "Illegal activity", "Personal attacks", "Misinformation"];
 
     /// <summary>
-    /// 最大检查内容长度（超过则截断）
+    /// Gets or sets the maximum content length to check (content beyond this is truncated).
     /// </summary>
     public int MaxContentToCheck { get; set; } = 2000;
 
     /// <summary>
-    /// 发生错误时是否允许通过（fail-open vs fail-close）
+    /// Gets or sets a value indicating whether to allow content through on error (fail-open vs fail-closed).
     /// </summary>
     public bool FailOpenOnError { get; set; } = false;
 }

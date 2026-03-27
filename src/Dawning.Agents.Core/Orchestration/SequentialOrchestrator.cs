@@ -6,30 +6,32 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// 顺序编排器：按顺序执行 Agent，前一个的输出作为后一个的输入
+/// Sequential orchestrator that executes agents in order, passing each output as the next input.
 /// </summary>
 /// <remarks>
-/// 执行流程：
+/// Execution flow:
 /// <code>
 /// Input → Agent A → Agent B → Agent C → Output
 ///         ↓          ↓          ↓
 ///       Result A   Result B   Result C (Final)
 /// </code>
 ///
-/// 使用场景：
-/// - 流水线处理：翻译 → 润色 → 格式化
-/// - 逐步推理：分析 → 计划 → 执行
-/// - 数据转换：提取 → 清洗 → 存储
+/// Usage scenarios:
+/// <list type="bullet">
+///   <item>Pipeline processing: translate -> refine -> format.</item>
+///   <item>Step-by-step reasoning: analyze -> plan -> execute.</item>
+///   <item>Data transformation: extract -> clean -> store.</item>
+/// </list>
 /// </remarks>
 public sealed class SequentialOrchestrator : OrchestratorBase
 {
     /// <summary>
-    /// 输入转换器（在传递给下一个 Agent 前转换输出）
+    /// Input transformer that converts output before passing it to the next agent.
     /// </summary>
     private Func<AgentExecutionRecord, string>? _inputTransformer;
 
     /// <summary>
-    /// 创建顺序编排器
+    /// Initializes a new instance of the <see cref="SequentialOrchestrator"/> class.
     /// </summary>
     public SequentialOrchestrator(
         string name,
@@ -38,13 +40,13 @@ public sealed class SequentialOrchestrator : OrchestratorBase
     )
         : base(name, options, logger)
     {
-        Description = "顺序执行多个 Agent，将前一个的输出作为后一个的输入";
+        Description = "Executes agents sequentially, passing each output as the next input";
     }
 
     /// <summary>
-    /// 设置输入转换器
+    /// Sets the input transformer.
     /// </summary>
-    /// <param name="transformer">转换函数，将 Agent 执行记录转换为下一个 Agent 的输入</param>
+    /// <param name="transformer">Transform function that converts an agent execution record to the next agent's input.</param>
     public SequentialOrchestrator WithInputTransformer(
         Func<AgentExecutionRecord, string> transformer
     )
@@ -69,7 +71,7 @@ public sealed class SequentialOrchestrator : OrchestratorBase
             if (context.ShouldStop)
             {
                 Logger.LogInformation(
-                    "编排在 Agent {Index}/{Total} 处停止，原因: {Reason}",
+                    "Orchestration stopped at agent {Index}/{Total}, reason: {Reason}",
                     i + 1,
                     agents.Count,
                     context.StopReason
@@ -87,17 +89,17 @@ public sealed class SequentialOrchestrator : OrchestratorBase
                 if (!Options.ContinueOnError)
                 {
                     return OrchestrationResult.Failed(
-                        $"Agent {agent.Name} 执行失败: {record.Response.Error}",
+                        $"Agent {agent.Name} failed: {record.Response.Error}",
                         context.ExecutionHistory,
                         TimeSpan.Zero
                     );
                 }
 
-                Logger.LogWarning("Agent {AgentName} 执行失败，但继续执行下一个 Agent", agent.Name);
+                Logger.LogWarning("Agent {AgentName} failed, but continuing to the next agent", agent.Name);
             }
             else
             {
-                // 转换输出作为下一个 Agent 的输入
+                // Transform output as input for the next agent
                 var transformed =
                     _inputTransformer != null
                         ? _inputTransformer(record)
@@ -108,15 +110,15 @@ public sealed class SequentialOrchestrator : OrchestratorBase
             }
         }
 
-        // 获取最终结果：优先使用最后成功的答案
+        // Get final result: prefer the last successful answer
         var executionHistory = context.ExecutionHistory;
         var lastSuccessRecord = executionHistory.LastOrDefault(r => r.Response.Success);
 
-        // ContinueOnError 且全部失败时返回失败
+        // Return failure when ContinueOnError is enabled and all agents failed
         if (lastSuccessRecord == null && executionHistory.Count > 0)
         {
             return OrchestrationResult.Failed(
-                "所有 Agent 都执行失败",
+                "All agents failed",
                 executionHistory,
                 TimeSpan.Zero
             );

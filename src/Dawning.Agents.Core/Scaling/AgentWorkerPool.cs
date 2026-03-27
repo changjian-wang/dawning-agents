@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// Agent 工作池实现
+/// Agent worker pool implementation.
 /// </summary>
 public sealed class AgentWorkerPool : IAgentWorkerPool
 {
@@ -53,7 +53,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
 
             if (_isRunning)
             {
-                _logger.LogWarning("工作池已在运行中");
+                _logger.LogWarning("Worker pool is already running");
                 return;
             }
 
@@ -71,7 +71,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _isRunning = true;
         }
 
-        _logger.LogInformation("已启动 {WorkerCount} 个 Agent 工作线程", _workerCount);
+        _logger.LogInformation("Started {WorkerCount} agent worker threads", _workerCount);
     }
 
     /// <inheritdoc />
@@ -93,7 +93,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             _runCts = null;
         }
 
-        _logger.LogInformation("正在停止工作池...");
+        _logger.LogInformation("Stopping worker pool...");
 
         if (runCts != null)
         {
@@ -108,21 +108,21 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         }
         catch (TimeoutException)
         {
-            _logger.LogWarning("工作池停止超时");
+            _logger.LogWarning("Worker pool stop timed out");
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("工作池停止被取消");
+            _logger.LogWarning("Worker pool stop was cancelled");
         }
 
         runCts?.Dispose();
 
-        _logger.LogInformation("工作池已停止");
+        _logger.LogInformation("Worker pool stopped");
     }
 
     private async Task WorkerLoopAsync(int workerId, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("工作线程 {WorkerId} 已启动", workerId);
+        _logger.LogDebug("Worker {WorkerId} started", workerId);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -154,7 +154,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
                 {
                     _logger.LogError(
                         ex,
-                        "工作线程 {WorkerId} 处理项 {ItemId} 失败",
+                        "Worker {WorkerId} failed to process item {ItemId}",
                         workerId,
                         item.Id
                     );
@@ -167,12 +167,12 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "工作线程 {WorkerId} 遇到意外错误", workerId);
+                _logger.LogError(ex, "Worker {WorkerId} encountered an unexpected error", workerId);
                 await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        _logger.LogDebug("工作线程 {WorkerId} 已停止", workerId);
+        _logger.LogDebug("Worker {WorkerId} stopped", workerId);
     }
 
     /// <inheritdoc />
@@ -230,7 +230,7 @@ public sealed class AgentWorkerPool : IAgentWorkerPool
         }
         catch (Exception)
         {
-            // 忽略停止时的异常
+            // Ignore exceptions during shutdown
         }
 
         runCts?.Dispose();

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 敏感数据检测护栏 - 检测并脱敏敏感信息
+/// Sensitive data detection guardrail that detects and redacts sensitive information.
 /// </summary>
 public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
 {
@@ -23,7 +23,7 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
         _options = options.Value;
         _logger = logger ?? NullLogger<SensitiveDataGuardrail>.Instance;
 
-        // 预编译正则表达式
+        // Pre-compile regular expressions
         _compiledPatterns = _options
             .SensitivePatterns.Select(p => new CompiledPattern
             {
@@ -41,7 +41,7 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
     public string Name => "SensitiveDataGuardrail";
 
     /// <inheritdoc />
-    public string Description => "检测并脱敏敏感数据（邮箱、手机号、信用卡、身份证、API密钥等）";
+    public string Description => "Detects and redacts sensitive data (email, phone, credit card, ID, API keys, etc.)";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.EnableSensitiveDataDetection;
@@ -60,7 +60,7 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
         var issues = new List<GuardrailIssue>();
         var processedContent = content;
 
-        // 第一遍：在原始内容上检测所有敏感数据（确保 Position 与原始内容对齐）
+        // First pass: detect all sensitive data on original content (ensure Position aligns with original content)
         foreach (var compiled in _compiledPatterns)
         {
             try
@@ -77,16 +77,16 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
                         new GuardrailIssue
                         {
                             Type = compiled.Config.Name,
-                            Description = $"检测到 {compiled.Config.Name}",
+                            Description = $"Detected {compiled.Config.Name}",
                             Position = match.Index,
                             Length = match.Length,
-                            MatchedContent = maskedValue, // 已脱敏的值
+                            MatchedContent = maskedValue, // Redacted value
                             Severity = IssueSeverity.Warning,
                         }
                     );
 
                     _logger.LogDebug(
-                        "检测到敏感数据 {PatternName} 在位置 {Position}",
+                        "Sensitive data {PatternName} detected at position {Position}",
                         compiled.Config.Name,
                         match.Index
                     );
@@ -94,19 +94,19 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
             }
             catch (RegexMatchTimeoutException ex)
             {
-                _logger.LogWarning(ex, "正则表达式 {PatternName} 匹配超时", compiled.Config.Name);
+                _logger.LogWarning(ex, "Regex pattern {PatternName} match timed out", compiled.Config.Name);
                 issues.Add(
                     new GuardrailIssue
                     {
                         Type = compiled.Config.Name,
-                        Description = $"正则匹配超时，无法完成 {compiled.Config.Name} 检测",
+                        Description = $"Regex match timed out; {compiled.Config.Name} detection could not be completed",
                         Severity = IssueSeverity.Error,
                     }
                 );
             }
         }
 
-        // 第二遍：如果配置了自动脱敏，在 processedContent 上执行替换
+        // Second pass: if auto-redaction is configured, perform replacement on processedContent
         if (_options.AutoMaskSensitiveData && issues.Count > 0)
         {
             foreach (var compiled in _compiledPatterns)
@@ -123,30 +123,30 @@ public sealed class SensitiveDataGuardrail : IInputGuardrail, IOutputGuardrail
             return Task.FromResult(GuardrailResult.Pass(content));
         }
 
-        _logger.LogInformation("检测到 {Count} 处敏感数据", issues.Count);
+        _logger.LogInformation("Detected {Count} instance(s) of sensitive data", issues.Count);
 
-        // 根据配置决定行为
+        // Decide behavior based on configuration
         if (_options.FailureBehavior == GuardrailFailureBehavior.BlockAndReport)
         {
             return Task.FromResult(
-                GuardrailResult.Fail($"检测到 {issues.Count} 处敏感数据", Name, issues)
+                GuardrailResult.Fail($"Detected {issues.Count} instance(s) of sensitive data", Name, issues)
             );
         }
 
-        // WarnAndContinue 或 SilentProcess - 返回脱敏后的内容
+        // WarnAndContinue or SilentProcess - return redacted content
         return Task.FromResult(
             new GuardrailResult
             {
                 Passed = true,
                 ProcessedContent = processedContent,
                 Issues = issues,
-                Message = $"已脱敏 {issues.Count} 处敏感数据",
+                Message = $"Redacted {issues.Count} instance(s) of sensitive data",
             }
         );
     }
 
     /// <summary>
-    /// 脱敏值
+    /// Redacts the given value.
     /// </summary>
     private static string MaskValue(string value, SensitivePattern config)
     {

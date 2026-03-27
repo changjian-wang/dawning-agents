@@ -6,12 +6,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// 知识库 - 整合文档管理、分块、嵌入和检索
+/// Knowledge base that integrates document management, chunking, embedding, and retrieval.
 /// </summary>
 /// <remarks>
-/// 提供端到端的 RAG 工作流：
-/// 1. 添加文档 → 自动分块 → 生成嵌入 → 存储
-/// 2. 查询 → 语义检索 → 返回相关内容
+/// Provides an end-to-end RAG workflow:
+/// <list type="number">
+///   <item>Add document -> auto-chunk -> generate embeddings -> store.</item>
+///   <item>Query -> semantic retrieval -> return relevant content.</item>
+/// </list>
 /// </remarks>
 public sealed class KnowledgeBase
 {
@@ -22,7 +24,7 @@ public sealed class KnowledgeBase
     private readonly ILogger<KnowledgeBase> _logger;
 
     /// <summary>
-    /// 创建知识库
+    /// Initializes a new instance of the <see cref="KnowledgeBase"/> class.
     /// </summary>
     public KnowledgeBase(
         IEmbeddingProvider embeddingProvider,
@@ -41,23 +43,23 @@ public sealed class KnowledgeBase
     }
 
     /// <summary>
-    /// 知识库名称
+    /// Gets the knowledge base name.
     /// </summary>
     public string Name => $"KnowledgeBase({_vectorStore.Name})";
 
     /// <summary>
-    /// 文档块数量
+    /// Gets the number of document chunks.
     /// </summary>
     public int ChunkCount => _vectorStore.Count;
 
     /// <summary>
-    /// 添加文档到知识库
+    /// Adds a document to the knowledge base.
     /// </summary>
-    /// <param name="content">文档内容</param>
-    /// <param name="documentId">文档 ID（可选，自动生成）</param>
-    /// <param name="metadata">元数据</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>添加的块数量</returns>
+    /// <param name="content">The document content.</param>
+    /// <param name="documentId">Optional document ID. Auto-generated if not specified.</param>
+    /// <param name="metadata">Optional metadata.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of chunks added.</returns>
     public async Task<int> AddDocumentAsync(
         string content,
         string? documentId = null,
@@ -75,7 +77,7 @@ public sealed class KnowledgeBase
 
         _logger.LogDebug("Adding document {DocumentId} to knowledge base", documentId);
 
-        // 1. 分块
+        // 1. Chunk
         var chunks = _chunker.ChunkText(content, documentId, metadata);
 
         if (chunks.Count == 0)
@@ -83,7 +85,7 @@ public sealed class KnowledgeBase
             return 0;
         }
 
-        // 2. 批量生成嵌入
+        // 2. Generate embeddings in batch
         var texts = chunks.Select(c => c.Content).ToList();
         var embeddings = await _embeddingProvider
             .EmbedBatchAsync(texts, cancellationToken)
@@ -97,12 +99,12 @@ public sealed class KnowledgeBase
             );
         }
 
-        // 3. 添加嵌入向量到块
+        // 3. Attach embedding vectors to chunks
         var chunksWithEmbeddings = chunks
             .Zip(embeddingList, (chunk, embedding) => chunk with { Embedding = embedding })
             .ToList();
 
-        // 4. 存储到向量数据库
+        // 4. Store in vector database
         await _vectorStore
             .AddBatchAsync(chunksWithEmbeddings, cancellationToken)
             .ConfigureAwait(false);
@@ -117,7 +119,7 @@ public sealed class KnowledgeBase
     }
 
     /// <summary>
-    /// 从文件添加文档
+    /// Adds a document from a file.
     /// </summary>
     public async Task<int> AddDocumentFromFileAsync(
         string filePath,
@@ -144,12 +146,12 @@ public sealed class KnowledgeBase
     }
 
     /// <summary>
-    /// 查询知识库
+    /// Queries the knowledge base.
     /// </summary>
-    /// <param name="query">查询文本</param>
-    /// <param name="topK">返回的最大结果数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>搜索结果</returns>
+    /// <param name="query">The query text.</param>
+    /// <param name="topK">The maximum number of results to return.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The search results.</returns>
     public async Task<IReadOnlyList<SearchResult>> QueryAsync(
         string query,
         int topK = 5,
@@ -163,12 +165,12 @@ public sealed class KnowledgeBase
 
         _logger.LogDebug("Querying knowledge base: {Query}", query);
 
-        // 生成查询向量
+        // Generate query embedding
         var queryEmbedding = await _embeddingProvider
             .EmbedAsync(query, cancellationToken)
             .ConfigureAwait(false);
 
-        // 向量搜索
+        // Vector search
         var results = await _vectorStore
             .SearchAsync(queryEmbedding, topK, _options.MinScore, cancellationToken)
             .ConfigureAwait(false);
@@ -179,7 +181,7 @@ public sealed class KnowledgeBase
     }
 
     /// <summary>
-    /// 查询并返回格式化的上下文
+    /// Queries and returns formatted context.
     /// </summary>
     public async Task<string> QueryContextAsync(
         string query,
@@ -196,12 +198,12 @@ public sealed class KnowledgeBase
 
         return string.Join(
             "\n\n",
-            results.Select((r, i) => $"[{i + 1}] (相似度: {r.Score:F2})\n{r.Chunk.Content}")
+            results.Select((r, i) => $"[{i + 1}] (score: {r.Score:F2})\n{r.Chunk.Content}")
         );
     }
 
     /// <summary>
-    /// 删除文档
+    /// Removes a document.
     /// </summary>
     public Task<int> DeleteDocumentAsync(
         string documentId,
@@ -214,7 +216,7 @@ public sealed class KnowledgeBase
     }
 
     /// <summary>
-    /// 清空知识库
+    /// Clears the knowledge base.
     /// </summary>
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {

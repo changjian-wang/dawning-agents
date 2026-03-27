@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Workflow;
 
 /// <summary>
-/// 工作流引擎
+/// Workflow execution engine.
 /// </summary>
 public sealed class WorkflowEngine : IWorkflowEngine
 {
@@ -37,7 +37,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
         if (!validation.IsValid)
         {
             var errors = string.Join("; ", validation.Errors.Select(e => e.Message));
-            throw new InvalidOperationException($"工作流定义无效: {errors}");
+            throw new InvalidOperationException($"Invalid workflow definition: {errors}");
         }
 
         return new ExecutableWorkflow(definition, this);
@@ -57,7 +57,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var executionStepCount = 0;
 
         _logger.LogInformation(
-            "开始执行工作流 {WorkflowId}: {WorkflowName}",
+            "Starting workflow {WorkflowId}: {WorkflowName}",
             definition.Id,
             definition.Name
         );
@@ -72,7 +72,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 {
                     return CreateFailedResult(
                         definition.Id,
-                        $"工作流执行超过最大步骤数 ({maxExecutionSteps})，可能存在循环",
+                        $"Workflow exceeded maximum execution steps ({maxExecutionSteps}), possible cycle detected",
                         stopwatch,
                         context
                     );
@@ -82,13 +82,13 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 {
                     return CreateFailedResult(
                         definition.Id,
-                        $"找不到节点: {currentNodeId}",
+                        $"Node not found: {currentNodeId}",
                         stopwatch,
                         context
                     );
                 }
 
-                // 记录执行步骤开始
+                // Record execution step start
                 var step = new WorkflowExecutionStep
                 {
                     NodeId = nodeDefinition.Id,
@@ -98,18 +98,18 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 };
 
                 _logger.LogDebug(
-                    "执行节点 {NodeId}: {NodeName} ({NodeType})",
+                    "Executing node {NodeId}: {NodeName} ({NodeType})",
                     nodeDefinition.Id,
                     nodeDefinition.Name,
                     nodeDefinition.Type
                 );
 
-                // 执行节点
+                // Execute node
                 var result = await ExecuteNodeAsync(nodeDefinition, context, cancellationToken)
                     .ConfigureAwait(false);
                 context.AddNodeResult(nodeDefinition.Id, result);
 
-                // 更新执行步骤
+                // Update execution step
                 context.AddExecutionStep(
                     step with
                     {
@@ -121,22 +121,22 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 if (!result.Success)
                 {
                     _logger.LogWarning(
-                        "节点 {NodeId} 执行失败: {Error}",
+                        "Node {NodeId} failed: {Error}",
                         nodeDefinition.Id,
                         result.Error
                     );
                     return CreateFailedResult(
                         definition.Id,
-                        result.Error ?? "节点执行失败",
+                        result.Error ?? "Node execution failed",
                         stopwatch,
                         context
                     );
                 }
 
-                // 决定下一个节点
+                // Determine next node
                 currentNodeId = DetermineNextNode(nodeDefinition, result, definition.Edges);
 
-                // 结束节点
+                // End node
                 if (nodeDefinition.Type == WorkflowNodeType.End)
                 {
                     break;
@@ -145,13 +145,13 @@ public sealed class WorkflowEngine : IWorkflowEngine
 
             stopwatch.Stop();
 
-            // 统一取消语义：始终抛出 OperationCanceledException
+            // Unified cancellation semantics: always throw OperationCanceledException
             cancellationToken.ThrowIfCancellationRequested();
 
             var finalOutput = context.GetLastResult()?.Output;
 
             _logger.LogInformation(
-                "工作流 {WorkflowId} 执行完成，耗时 {Duration}ms，执行了 {NodeCount} 个节点",
+                "Workflow {WorkflowId} completed in {Duration}ms, executed {NodeCount} nodes",
                 definition.Id,
                 stopwatch.ElapsedMilliseconds,
                 context.ExecutionHistory.Count
@@ -170,17 +170,17 @@ public sealed class WorkflowEngine : IWorkflowEngine
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogWarning("工作流 {WorkflowId} 被取消", definition.Id);
+            _logger.LogWarning("Workflow {WorkflowId} was canceled", definition.Id);
             throw;
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("工作流 {WorkflowId} 被取消", definition.Id);
-            return CreateFailedResult(definition.Id, "工作流执行被取消", stopwatch, context);
+            _logger.LogWarning("Workflow {WorkflowId} was canceled", definition.Id);
+            return CreateFailedResult(definition.Id, "Workflow execution was canceled", stopwatch, context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "工作流 {WorkflowId} 执行异常", definition.Id);
+            _logger.LogError(ex, "Workflow {WorkflowId} encountered an exception", definition.Id);
             return CreateFailedResult(definition.Id, ex.Message, stopwatch, context);
         }
     }
@@ -192,19 +192,19 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var warnings = new List<WorkflowValidationWarning>();
         var nodeIds = definition.Nodes.Select(n => n.Id).ToHashSet();
 
-        // 检查起始节点
+        // Validate start node
         if (!nodeIds.Contains(definition.StartNodeId))
         {
             errors.Add(
                 new WorkflowValidationError
                 {
                     Code = "INVALID_START_NODE",
-                    Message = $"起始节点 '{definition.StartNodeId}' 不存在",
+                    Message = $"Start node '{definition.StartNodeId}' does not exist",
                 }
             );
         }
 
-        // 检查边的有效性
+        // Validate edges
         foreach (var edge in definition.Edges)
         {
             if (!nodeIds.Contains(edge.FromNodeId))
@@ -213,7 +213,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
                     new WorkflowValidationError
                     {
                         Code = "INVALID_EDGE_SOURCE",
-                        Message = $"边的源节点 '{edge.FromNodeId}' 不存在",
+                        Message = $"Edge source node '{edge.FromNodeId}' does not exist",
                     }
                 );
             }
@@ -224,13 +224,13 @@ public sealed class WorkflowEngine : IWorkflowEngine
                     new WorkflowValidationError
                     {
                         Code = "INVALID_EDGE_TARGET",
-                        Message = $"边的目标节点 '{edge.ToNodeId}' 不存在",
+                        Message = $"Edge target node '{edge.ToNodeId}' does not exist",
                     }
                 );
             }
         }
 
-        // 检查结束节点
+        // Validate end node
         var hasEndNode = definition.Nodes.Any(n => n.Type == WorkflowNodeType.End);
         if (!hasEndNode)
         {
@@ -238,12 +238,12 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 new WorkflowValidationWarning
                 {
                     Code = "NO_END_NODE",
-                    Message = "工作流没有结束节点，可能会导致无限执行",
+                    Message = "Workflow has no end node, which may cause infinite execution",
                 }
             );
         }
 
-        // 检查孤立节点
+        // Check for orphan nodes
         var referencedNodes = definition
             .Edges.SelectMany(e => new[] { e.FromNodeId, e.ToNodeId })
             .ToHashSet();
@@ -257,20 +257,20 @@ public sealed class WorkflowEngine : IWorkflowEngine
                     new WorkflowValidationWarning
                     {
                         Code = "ORPHAN_NODE",
-                        Message = $"节点 '{node.Id}' 未被任何边引用",
+                        Message = $"Node '{node.Id}' is not referenced by any edge",
                         NodeId = node.Id,
                     }
                 );
             }
 
-            // 检查未实现的节点类型
+            // Check for unsupported node types
             if (node.Type is WorkflowNodeType.Parallel or WorkflowNodeType.Loop)
             {
                 errors.Add(
                     new WorkflowValidationError
                     {
                         Code = "UNSUPPORTED_NODE_TYPE",
-                        Message = $"节点 '{node.Id}' 的类型 {node.Type} 尚未实现",
+                        Message = $"Node '{node.Id}' type {node.Type} is not yet implemented",
                     }
                 );
             }
@@ -333,7 +333,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
                     .ConfigureAwait(false),
                 _ => NodeExecutionResult.Fail(
                     nodeDefinition.Id,
-                    $"不支持的节点类型: {nodeDefinition.Type}"
+                    $"Unsupported node type: {nodeDefinition.Type}"
                 ),
             };
 
@@ -363,16 +363,16 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null || !config.TryGetValue("agentName", out var agentNameObj))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent 节点缺少 agentName 配置");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent node is missing agentName configuration");
         }
 
         var agentName = agentNameObj?.ToString();
         if (string.IsNullOrEmpty(agentName))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent 名称不能为空");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Agent name cannot be empty");
         }
 
-        // 从 DI 获取 Agent（按名称匹配，需要创建 scope 以解析 Scoped 服务）
+        // Resolve agent from DI by name (create scope to resolve scoped services)
         using var scope = _serviceProvider.CreateScope();
         var agents = scope.ServiceProvider.GetServices<IAgent>();
         var agent = agents.FirstOrDefault(a =>
@@ -380,10 +380,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         );
         if (agent == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, $"找不到 Agent: {agentName}");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, $"Agent not found: {agentName}");
         }
 
-        // 构建输入
+        // Build input
         var input = context.GetLastResult()?.Output ?? context.Input;
         var template = GetConfigString(config, "inputTemplate");
         if (template != null)
@@ -391,12 +391,12 @@ public sealed class WorkflowEngine : IWorkflowEngine
             input = ReplaceVariables(template, context);
         }
 
-        // 执行 Agent
+        // Execute agent
         var response = await agent.RunAsync(input, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         if (!response.Success)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, response.Error ?? "Agent 执行失败");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, response.Error ?? "Agent execution failed");
         }
 
         return NodeExecutionResult.Ok(nodeDefinition.Id, response.FinalAnswer);
@@ -411,27 +411,27 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具节点缺少配置");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Tool node is missing configuration");
         }
 
         var toolName = GetConfigString(config, "toolName");
         if (string.IsNullOrEmpty(toolName))
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "工具节点缺少 toolName 配置");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Tool node is missing toolName configuration");
         }
 
         if (_toolRegistry == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "未配置工具注册表");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Tool registry is not configured");
         }
 
         var tool = _toolRegistry.GetTool(toolName);
         if (tool == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, $"找不到工具: {toolName}");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, $"Tool not found: {toolName}");
         }
 
-        // 构建输入
+        // Build input
         var input = context.GetLastResult()?.Output ?? context.Input;
         var template = GetConfigString(config, "inputTemplate");
         if (template != null)
@@ -439,7 +439,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
             input = ReplaceVariables(template, context);
         }
 
-        // 执行工具
+        // Execute tool
         var toolResult = await tool.ExecuteAsync(input, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         if (toolResult.Success)
@@ -448,7 +448,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
         }
         else
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, toolResult.Error ?? "工具执行失败");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, toolResult.Error ?? "Tool execution failed");
         }
     }
 
@@ -460,10 +460,10 @@ public sealed class WorkflowEngine : IWorkflowEngine
         var config = nodeDefinition.Config;
         if (config == null)
         {
-            return NodeExecutionResult.Fail(nodeDefinition.Id, "条件节点缺少配置");
+            return NodeExecutionResult.Fail(nodeDefinition.Id, "Condition node is missing configuration");
         }
 
-        // 获取输入值
+        // Get input value
         var inputValue = context.GetLastResult()?.Output ?? context.Input;
         var inputSource = GetConfigString(config, "inputSource");
         if (inputSource != null)
@@ -471,7 +471,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
             inputValue = context.GetState<string>(inputSource) ?? inputValue;
         }
 
-        // 检查分支条件
+        // Evaluate branch conditions
         var branches = GetConfigBranches(config, "branches");
         if (branches != null)
         {
@@ -490,14 +490,14 @@ public sealed class WorkflowEngine : IWorkflowEngine
             }
         }
 
-        // 默认分支
+        // Default branch
         var defaultNodeId = GetConfigString(config, "defaultBranchNodeId");
         if (defaultNodeId != null)
         {
             return NodeExecutionResult.Branch(nodeDefinition.Id, defaultNodeId);
         }
 
-        return NodeExecutionResult.Fail(nodeDefinition.Id, "条件节点没有匹配的分支");
+        return NodeExecutionResult.Fail(nodeDefinition.Id, "Condition node has no matching branch");
     }
 
     private async Task<NodeExecutionResult> ExecuteDelayNodeAsync(
@@ -521,7 +521,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
     )
     {
         throw new NotSupportedException(
-            $"并行节点 '{nodeDefinition.Id}' 执行未实现，请勿在工作流中添加 Parallel 类型节点"
+            $"Parallel node '{nodeDefinition.Id}' is not implemented. Do not add Parallel type nodes to workflows."
         );
     }
 
@@ -532,7 +532,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
     )
     {
         throw new NotSupportedException(
-            $"循环节点 '{nodeDefinition.Id}' 执行未实现，请勿在工作流中添加 Loop 类型节点"
+            $"Loop node '{nodeDefinition.Id}' is not implemented. Do not add Loop type nodes to workflows."
         );
     }
 
@@ -542,13 +542,13 @@ public sealed class WorkflowEngine : IWorkflowEngine
         IReadOnlyList<WorkflowEdgeDefinition> edges
     )
     {
-        // 如果节点指定了下一个节点（条件分支）
+        // If the node specified the next node (conditional branch)
         if (!string.IsNullOrEmpty(result.NextNodeId))
         {
             return result.NextNodeId;
         }
 
-        // 查找边
+        // Find outgoing edge
         var outgoingEdge = edges.FirstOrDefault(e => e.FromNodeId == currentNode.Id);
         return outgoingEdge?.ToNodeId;
     }
@@ -557,15 +557,15 @@ public sealed class WorkflowEngine : IWorkflowEngine
     {
         if (string.IsNullOrEmpty(inputValue))
         {
-            // inputValue 为 null/empty 时，仅支持 state: 条件
+            // When inputValue is null/empty, only state: conditions are supported
             var stateParts = condition.Split(':', 2);
             return stateParts.Length == 2
                 && stateParts[0].Equals("state", StringComparison.OrdinalIgnoreCase)
                 && context.GetState<string>(stateParts[1]) != null;
         }
 
-        // 简单的条件评估
-        // 支持: contains:xxx, equals:xxx, startsWith:xxx, endsWith:xxx
+        // Simple condition evaluation
+        // Supports: contains:xxx, equals:xxx, startsWith:xxx, endsWith:xxx
         var parts = condition.Split(':', 2);
         if (parts.Length != 2)
         {
@@ -590,13 +590,13 @@ public sealed class WorkflowEngine : IWorkflowEngine
     {
         var result = template;
 
-        // 替换 {{input}}
+        // Replace {{input}}
         result = result.Replace("{{input}}", context.Input ?? "");
 
-        // 替换 {{lastOutput}}
+        // Replace {{lastOutput}}
         result = result.Replace("{{lastOutput}}", context.GetLastResult()?.Output ?? "");
 
-        // 替换 {{state.xxx}}
+        // Replace {{state.xxx}}
         foreach (var kvp in context.State)
         {
             result = result.Replace($"{{{{state.{kvp.Key}}}}}", kvp.Value?.ToString() ?? "");
@@ -626,7 +626,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
     }
 
     /// <summary>
-    /// 从 Config 字典中安全读取字符串值（兼容 JsonElement 和 CLR 类型）
+    /// Safely reads a string value from a config dictionary (compatible with JsonElement and CLR types).
     /// </summary>
     private static string? GetConfigString(IReadOnlyDictionary<string, object?> config, string key)
     {
@@ -649,7 +649,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
     }
 
     /// <summary>
-    /// 从 Config 字典中安全读取整数值（兼容 JsonElement 和 CLR 类型）
+    /// Safely reads an integer value from a config dictionary (compatible with JsonElement and CLR types).
     /// </summary>
     private static int? GetConfigInt(IReadOnlyDictionary<string, object?> config, string key)
     {
@@ -674,7 +674,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
     }
 
     /// <summary>
-    /// 从 Config 字典中安全读取条件分支列表（兼容 JsonElement 和 CLR 类型）
+    /// Safely reads a condition branch list from a config dictionary (compatible with JsonElement and CLR types).
     /// </summary>
     private static List<Dictionary<string, string>>? GetConfigBranches(
         IReadOnlyDictionary<string, object?> config,
@@ -686,7 +686,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
             return null;
         }
 
-        // CLR 类型：List<Dictionary<string, object?>>
+        // CLR type: List<Dictionary<string, object?>>
         if (value is List<Dictionary<string, object?>> clrBranches)
         {
             return clrBranches
@@ -697,7 +697,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 .ToList();
         }
 
-        // JSON 反序列化后：JsonElement (Array)
+        // Deserialized from JSON: JsonElement (Array)
         if (value is JsonElement je && je.ValueKind == JsonValueKind.Array)
         {
             var branches = new List<Dictionary<string, string>>();
@@ -728,7 +728,7 @@ public sealed class WorkflowEngine : IWorkflowEngine
 }
 
 /// <summary>
-/// 可执行工作流（包装 WorkflowDefinition）
+/// Executable workflow (wraps a <see cref="WorkflowDefinition"/>).
 /// </summary>
 internal class ExecutableWorkflow : IWorkflow
 {

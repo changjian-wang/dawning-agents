@@ -4,7 +4,7 @@ using Dawning.Agents.Abstractions.Observability;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Agent 结构化日志器
+/// Structured logger for agent operations.
 /// </summary>
 public sealed class AgentLogger
 {
@@ -13,7 +13,7 @@ public sealed class AgentLogger
     private readonly TelemetryConfig _config;
 
     /// <summary>
-    /// 创建 Agent 日志器
+    /// Initializes a new instance of the <see cref="AgentLogger"/> class.
     /// </summary>
     public AgentLogger(ILogger logger, string agentName, TelemetryConfig config)
     {
@@ -26,7 +26,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录请求开始
+    /// Logs the start of a request.
     /// </summary>
     public void LogRequestStart(string requestId, string input)
     {
@@ -36,7 +36,7 @@ public sealed class AgentLogger
         }
 
         _logger.LogInformation(
-            "Agent {AgentName} 开始请求 {RequestId}。输入长度：{InputLength}",
+            "Agent {AgentName} started request {RequestId}. Input length: {InputLength}",
             _agentName,
             requestId,
             input.Length
@@ -44,7 +44,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录请求完成
+    /// Logs the completion of a request.
     /// </summary>
     public void LogRequestComplete(
         string requestId,
@@ -61,7 +61,7 @@ public sealed class AgentLogger
         if (success)
         {
             _logger.LogInformation(
-                "Agent {AgentName} 完成请求 {RequestId}，耗时 {DurationMs}ms。Token数：{TokensUsed}",
+                "Agent {AgentName} completed request {RequestId} in {DurationMs}ms. Tokens used: {TokensUsed}",
                 _agentName,
                 requestId,
                 duration.TotalMilliseconds,
@@ -71,7 +71,7 @@ public sealed class AgentLogger
         else
         {
             _logger.LogWarning(
-                "Agent {AgentName} 请求 {RequestId} 失败，耗时 {DurationMs}ms",
+                "Agent {AgentName} request {RequestId} failed in {DurationMs}ms",
                 _agentName,
                 requestId,
                 duration.TotalMilliseconds
@@ -80,7 +80,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录工具调用
+    /// Logs a tool invocation.
     /// </summary>
     public void LogToolCall(string requestId, string toolName, bool success, TimeSpan duration)
     {
@@ -90,7 +90,7 @@ public sealed class AgentLogger
         }
 
         _logger.LogDebug(
-            "Agent {AgentName} 为请求 {RequestId} 调用工具 {ToolName}。成功：{Success}，耗时：{DurationMs}ms",
+            "Agent {AgentName} invoked tool {ToolName} for request {RequestId}. Success: {Success}, Duration: {DurationMs}ms",
             _agentName,
             requestId,
             toolName,
@@ -100,7 +100,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录迭代
+    /// Logs an iteration.
     /// </summary>
     public void LogIteration(string requestId, int iteration, string thought)
     {
@@ -110,7 +110,7 @@ public sealed class AgentLogger
         }
 
         _logger.LogDebug(
-            "Agent {AgentName} 请求 {RequestId} 第 {Iteration} 次迭代。思考：{Thought}",
+            "Agent {AgentName} request {RequestId} iteration {Iteration}. Thought: {Thought}",
             _agentName,
             requestId,
             iteration,
@@ -119,7 +119,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录错误
+    /// Logs an error.
     /// </summary>
     public void LogError(string requestId, Exception ex, string context)
     {
@@ -130,7 +130,7 @@ public sealed class AgentLogger
 
         _logger.LogError(
             ex,
-            "Agent {AgentName} 请求 {RequestId} 错误。上下文：{Context}",
+            "Agent {AgentName} request {RequestId} error. Context: {Context}",
             _agentName,
             requestId,
             context
@@ -138,7 +138,7 @@ public sealed class AgentLogger
     }
 
     /// <summary>
-    /// 记录护栏触发
+    /// Logs a guardrail trigger.
     /// </summary>
     public void LogGuardrailTriggered(
         string requestId,
@@ -153,17 +153,17 @@ public sealed class AgentLogger
         }
 
         _logger.LogWarning(
-            "Agent {AgentName} 护栏 {GuardrailName} 在请求 {RequestId} 触发。操作：{Action}，原因：{Reason}",
+            "Agent {AgentName} guardrail {GuardrailName} triggered for request {RequestId}. Action: {Action}, Reason: {Reason}",
             _agentName,
             guardrailName,
             requestId,
             action,
-            reason ?? "无"
+            reason ?? "N/A"
         );
     }
 
     /// <summary>
-    /// 记录 LLM 调用
+    /// Logs an LLM call.
     /// </summary>
     public void LogLLMCall(
         string requestId,
@@ -179,7 +179,7 @@ public sealed class AgentLogger
         }
 
         _logger.LogDebug(
-            "Agent {AgentName} 请求 {RequestId} LLM调用。模型：{Model}，提示词：{PromptTokens}，补全：{CompletionTokens}，耗时：{DurationMs}ms",
+            "Agent {AgentName} request {RequestId} LLM call. Model: {Model}, Prompt tokens: {PromptTokens}, Completion tokens: {CompletionTokens}, Duration: {DurationMs}ms",
             _agentName,
             requestId,
             model,

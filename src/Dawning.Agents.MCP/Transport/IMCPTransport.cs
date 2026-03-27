@@ -1,27 +1,27 @@
 namespace Dawning.Agents.MCP.Transport;
 
 /// <summary>
-/// MCP 传输层接口
+/// Defines the MCP transport layer interface.
 /// </summary>
 public interface IMCPTransport : IAsyncDisposable
 {
     /// <summary>
-    /// 启动传输
+    /// Starts the transport.
     /// </summary>
     Task StartAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 发送消息
+    /// Sends a message.
     /// </summary>
     Task SendAsync(string message, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 接收消息
+    /// Receives a message.
     /// </summary>
     Task<string?> ReceiveAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 是否已连接
+    /// Gets a value indicating whether the transport is connected.
     /// </summary>
     bool IsConnected { get; }
 }

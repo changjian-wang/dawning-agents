@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 文件读取工具 — 读取文件内容并显示行号
+/// File reading tool — reads file contents and displays line numbers.
 /// </summary>
 /// <remarks>
-/// <para>Risk: Low — 只读操作</para>
-/// <para>支持分段读取（offset + limit），适用于大文件</para>
+/// <para>Risk: Low — read-only operation.</para>
+/// <para>Supports paginated reading (offset + limit), suitable for large files.</para>
 /// </remarks>
 public sealed class ReadFileTool : ITool
 {
@@ -21,10 +21,10 @@ public sealed class ReadFileTool : ITool
     private readonly string? _workingDirectory;
 
     /// <summary>
-    /// 创建 ReadFileTool
+    /// Creates a <see cref="ReadFileTool"/>.
     /// </summary>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="workingDirectory">工作目录（沙箱根目录），设置后将禁止访问此目录外的路径</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="workingDirectory">Working directory (sandbox root); when set, access to paths outside this directory is denied.</param>
     public ReadFileTool(ILogger<ReadFileTool>? logger = null, string? workingDirectory = null)
     {
         _logger = logger ?? NullLogger<ReadFileTool>.Instance;

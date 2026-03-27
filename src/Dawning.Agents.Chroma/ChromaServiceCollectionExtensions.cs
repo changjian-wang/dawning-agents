@@ -8,16 +8,16 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Chroma;
 
 /// <summary>
-/// Chroma 向量存储 DI 扩展
+/// Dependency injection extension methods for Chroma vector store.
 /// </summary>
 public static class ChromaServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Chroma 向量存储
+    /// Adds the Chroma vector store.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddChromaVectorStore(
         this IServiceCollection services,
         IConfiguration configuration
@@ -67,11 +67,11 @@ public static class ChromaServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Chroma 向量存储
+    /// Adds the Chroma vector store.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configureOptions">The configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddChromaVectorStore(
         this IServiceCollection services,
         Action<ChromaOptions> configureOptions

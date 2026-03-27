@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
-/// 在决策点引入人工参与的 Agent 包装器
+/// An agent wrapper that introduces human participation at decision points.
 /// </summary>
 public class HumanInLoopAgent : IAgent
 {
@@ -25,7 +25,7 @@ public class HumanInLoopAgent : IAgent
     public string Instructions => _innerAgent.Instructions;
 
     /// <summary>
-    /// 创建人机协作 Agent 实例
+    /// Initializes a new instance of the <see cref="HumanInLoopAgent"/> class.
     /// </summary>
     public HumanInLoopAgent(
         IAgent innerAgent,
@@ -52,7 +52,7 @@ public class HumanInLoopAgent : IAgent
     }
 
     /// <summary>
-    /// 创建人机协作 Agent 实例（带自定义工作流）
+    /// Initializes a new instance of the <see cref="HumanInLoopAgent"/> class with a custom workflow.
     /// </summary>
     public HumanInLoopAgent(
         IAgent innerAgent,
@@ -92,13 +92,13 @@ public class HumanInLoopAgent : IAgent
 
         try
         {
-            // 执行前确认（如果配置）
+            // Pre-execution confirmation (if configured)
             if (_options.ConfirmBeforeExecution)
             {
                 var approval = await _workflow
                     .RequestApprovalAsync(
-                        "执行 Agent 任务",
-                        $"Agent '{_innerAgent.Name}' 将处理：{context.UserInput}",
+                        "Execute agent task",
+                        $"Agent '{_innerAgent.Name}' will process: {context.UserInput}",
                         new Dictionary<string, object> { ["sessionId"] = context.SessionId },
                         cancellationToken
                     )
@@ -106,22 +106,22 @@ public class HumanInLoopAgent : IAgent
 
                 if (!approval.IsApproved)
                 {
-                    _logger.LogWarning("任务未获得批准：{Reason}", approval.RejectionReason);
+                    _logger.LogWarning("Task not approved: {Reason}", approval.RejectionReason);
                     return AgentResponse.Failed(
-                        $"任务未批准：{approval.RejectionReason}",
+                        $"Task not approved: {approval.RejectionReason}",
                         [],
                         stopwatch.Elapsed
                     );
                 }
 
-                _logger.LogInformation("任务已获得批准");
+                _logger.LogInformation("Task approved");
             }
 
-            // 带升级处理的执行
+            // Execute with escalation handling
             var response = await ExecuteWithEscalationAsync(context, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 返回前审查（如果配置）
+            // Pre-return review (if configured)
             if (_options.ReviewBeforeReturn && response.Success)
             {
                 response = await ReviewResponseAsync(response, stopwatch.Elapsed, cancellationToken)
@@ -136,7 +136,7 @@ public class HumanInLoopAgent : IAgent
         }
         catch (AgentEscalationException ex)
         {
-            _logger.LogWarning("Agent 升级：{Reason}", ex.Reason);
+            _logger.LogWarning("Agent escalation: {Reason}", ex.Reason);
 
             var escalation = await _handler
                 .EscalateAsync(
@@ -158,9 +158,9 @@ public class HumanInLoopAgent : IAgent
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Agent 执行过程中发生错误");
+            _logger.LogError(ex, "Error occurred during agent execution");
             return AgentResponse.Failed(
-                $"执行过程中发生错误：{ex.Message}",
+                $"Error occurred during execution: {ex.Message}",
                 [],
                 stopwatch.Elapsed,
                 ex
@@ -169,7 +169,7 @@ public class HumanInLoopAgent : IAgent
     }
 
     /// <summary>
-    /// 带升级处理的执行
+    /// Executes with escalation handling.
     /// </summary>
     private async Task<AgentResponse> ExecuteWithEscalationAsync(
         AgentContext context,
@@ -183,26 +183,26 @@ public class HumanInLoopAgent : IAgent
         {
             try
             {
-                _logger.LogDebug("执行第 {Attempt} 次尝试", attempt + 1);
+                _logger.LogDebug("Executing attempt {Attempt}", attempt + 1);
                 return await _innerAgent.RunAsync(context, cancellationToken).ConfigureAwait(false);
             }
             catch (AgentEscalationException)
             {
-                // AgentEscalationException 应该直接向上传播
+                // AgentEscalationException should propagate directly
                 throw;
             }
             catch (OperationCanceledException)
             {
-                // 取消操作应该直接向上传播
+                // Cancellation should propagate directly
                 throw;
             }
             catch (Exception ex)
             {
                 lastException = ex;
-                attemptedSolutions.Add($"第 {attempt + 1} 次尝试失败：{ex.Message}");
-                _logger.LogWarning(ex, "第 {Attempt} 次尝试失败，请求指导", attempt + 1);
+                attemptedSolutions.Add($"Attempt {attempt + 1} failed: {ex.Message}");
+                _logger.LogWarning(ex, "Attempt {Attempt} failed, requesting guidance", attempt + 1);
 
-                // 最后一次重试失败，退出循环由后续代码抛出升级异常
+                // Last retry failed, exit loop so subsequent code throws escalation exception
                 if (attempt >= _options.MaxRetries)
                 {
                     break;
@@ -210,27 +210,27 @@ public class HumanInLoopAgent : IAgent
 
                 var input = await _handler
                     .RequestInputAsync(
-                        $"Agent 遇到错误：{ex.Message}\n请提供指导或输入 'abort' 停止：",
+                        $"Agent encountered an error: {ex.Message}\nPlease provide guidance or enter 'abort' to stop:",
                         cancellationToken: cancellationToken
                     )
                     .ConfigureAwait(false);
 
                 if (input.Equals("abort", StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogInformation("用户选择中止操作");
-                    throw new OperationCanceledException("用户中止");
+                    _logger.LogInformation("User chose to abort operation");
+                    throw new OperationCanceledException("User aborted");
                 }
 
-                // 带指导重试 - 保存旧元数据后创建新的上下文
+                // Retry with guidance - save old metadata and create new context
                 var oldMetadata = context.Metadata;
                 context = new AgentContext
                 {
                     SessionId = context.SessionId,
-                    UserInput = $"{context.UserInput}\n\n额外指导：{input}",
+                    UserInput = $"{context.UserInput}\n\nAdditional guidance: {input}",
                     MaxSteps = context.MaxSteps,
                 };
 
-                // 复制元数据
+                // Copy metadata
                 foreach (var kvp in oldMetadata)
                 {
                     context.SetMetadata(kvp.Key, kvp.Value);
@@ -238,11 +238,11 @@ public class HumanInLoopAgent : IAgent
             }
         }
 
-        // 所有重试都失败，抛出升级异常
+        // All retries failed, throw escalation exception
         if (lastException != null)
         {
             throw new AgentEscalationException(
-                "多次尝试后仍然失败",
+                "Failed after multiple attempts",
                 lastException.Message,
                 lastException,
                 new Dictionary<string, object>
@@ -256,8 +256,8 @@ public class HumanInLoopAgent : IAgent
         else
         {
             throw new AgentEscalationException(
-                "多次尝试后仍然失败",
-                "未知错误",
+                "Failed after multiple attempts",
+                "Unknown error",
                 new Dictionary<string, object> { ["attempts"] = _options.MaxRetries + 1 },
                 attemptedSolutions
             );
@@ -265,7 +265,7 @@ public class HumanInLoopAgent : IAgent
     }
 
     /// <summary>
-    /// 审查响应
+    /// Reviews the response.
     /// </summary>
     private async Task<AgentResponse> ReviewResponseAsync(
         AgentResponse response,
@@ -278,19 +278,19 @@ public class HumanInLoopAgent : IAgent
                 new ConfirmationRequest
                 {
                     Type = ConfirmationType.Review,
-                    Action = "审查响应",
-                    Description = $"Agent 响应：\n\n{response.FinalAnswer}",
+                    Action = "Review response",
+                    Description = $"Agent response:\n\n{response.FinalAnswer}",
                     RiskLevel = RiskLevel.Low,
                     Options =
                     [
                         new ConfirmationOption
                         {
                             Id = "approve",
-                            Label = "批准",
+                            Label = "Approve",
                             IsDefault = true,
                         },
-                        new ConfirmationOption { Id = "edit", Label = "编辑响应" },
-                        new ConfirmationOption { Id = "reject", Label = "拒绝" },
+                        new ConfirmationOption { Id = "edit", Label = "Edit response" },
+                        new ConfirmationOption { Id = "reject", Label = "Reject" },
                     ],
                 },
                 cancellationToken
@@ -304,25 +304,25 @@ public class HumanInLoopAgent : IAgent
             {
                 FinalAnswer = review.ModifiedContent ?? response.FinalAnswer,
             },
-            "reject" => AgentResponse.Failed("响应被审查者拒绝", response.Steps, currentDuration),
+            "reject" => AgentResponse.Failed("Response rejected by reviewer", response.Steps, currentDuration),
             _ => response,
         };
     }
 
     /// <summary>
-    /// 处理升级结果
+    /// Handles the escalation result.
     /// </summary>
     private AgentResponse HandleEscalationResult(EscalationResult result, TimeSpan duration)
     {
         return result.Action switch
         {
             EscalationAction.Resolved => AgentResponse.Successful(
-                result.Resolution ?? "已由人工解决",
+                result.Resolution ?? "Resolved by human",
                 [],
                 duration
             ),
-            EscalationAction.Skipped => AgentResponse.Successful("步骤被人工跳过", [], duration),
-            _ => AgentResponse.Failed("操作被人工中止", [], duration),
+            EscalationAction.Skipped => AgentResponse.Successful("Step skipped by human", [], duration),
+            _ => AgentResponse.Failed("Operation aborted by human", [], duration),
         };
     }
 }

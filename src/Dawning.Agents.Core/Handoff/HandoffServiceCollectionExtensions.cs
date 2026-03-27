@@ -8,16 +8,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Handoff;
 
 /// <summary>
-/// Handoff 服务注册扩展方法
+/// Dependency injection extension methods for handoff services.
 /// </summary>
 public static class HandoffServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Handoff 处理器
+    /// Adds the handoff handler.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHandoff(
         this IServiceCollection services,
         IConfiguration? configuration = null
@@ -34,11 +34,11 @@ public static class HandoffServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Handoff 处理器并配置选项
+    /// Adds the handoff handler with options configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configureOptions">The configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHandoff(
         this IServiceCollection services,
         Action<HandoffOptions> configureOptions
@@ -51,40 +51,40 @@ public static class HandoffServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 将 Agent 注册到 Handoff 系统
+    /// Registers an agent with the handoff system.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="agent">要注册的 Agent</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="agent">The agent to register.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAgentToHandoff(
         this IServiceCollection services,
         IAgent agent
     )
     {
-        // 确保 Handoff 服务已注册
+        // Ensure handoff services are registered
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
 
-        // 添加一个后处理器来注册 Agent
+        // Add a post-processor to register the agent
         services.AddSingleton<IHandoffAgentRegistration>(new HandoffAgentRegistration(agent));
 
         return services;
     }
 
     /// <summary>
-    /// 将 Agent 注册到 Handoff 系统（通过工厂方法）
+    /// Registers an agent with the handoff system using a factory method.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="agentFactory">Agent 工厂方法</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="agentFactory">The agent factory method.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAgentToHandoff(
         this IServiceCollection services,
         Func<IServiceProvider, IAgent> agentFactory
     )
     {
-        // 确保 Handoff 服务已注册
+        // Ensure handoff services are registered
         services.TryAddSingleton<IHandoffHandler, HandoffHandler>();
 
-        // 添加一个后处理器来注册 Agent
+        // Add a post-processor to register the agent
         services.AddSingleton<IHandoffAgentRegistration>(sp => new HandoffAgentRegistration(
             agentFactory(sp)
         ));
@@ -93,9 +93,9 @@ public static class HandoffServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 确保所有标记的 Agent 已注册到 Handoff 系统
+    /// Ensures all registered agents are registered with the handoff system.
     /// </summary>
-    /// <param name="services">服务提供者</param>
+    /// <param name="services">The service provider.</param>
     public static void EnsureHandoffAgentsRegistered(this IServiceProvider services)
     {
         var handler = services.GetService<IHandoffHandler>();
@@ -113,18 +113,18 @@ public static class HandoffServiceCollectionExtensions
 }
 
 /// <summary>
-/// Handoff Agent 注册标记接口
+/// Marker interface for handoff agent registration.
 /// </summary>
 public interface IHandoffAgentRegistration
 {
     /// <summary>
-    /// 要注册的 Agent
+    /// Gets the agent to register.
     /// </summary>
     IAgent Agent { get; }
 }
 
 /// <summary>
-/// Handoff Agent 注册实现
+/// Handoff agent registration implementation.
 /// </summary>
 internal class HandoffAgentRegistration : IHandoffAgentRegistration
 {

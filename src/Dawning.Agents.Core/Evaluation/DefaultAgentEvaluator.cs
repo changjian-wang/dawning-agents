@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// 默认 Agent 评估器实现
+/// Default agent evaluator implementation.
 /// </summary>
 public sealed class DefaultAgentEvaluator : IAgentEvaluator
 {
@@ -31,7 +31,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<DefaultAgentEvaluator>.Instance;
         _metricEvaluators = metricEvaluators?.ToList() ?? [];
 
-        // 添加默认指标评估器
+        // Add default metric evaluators
         if (_metricEvaluators.Count == 0)
         {
             _metricEvaluators.Add(new KeywordMatchEvaluator());
@@ -65,12 +65,12 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
         try
         {
-            // 执行 Agent
+            // Execute agent
             var response = await _agent
                 .RunAsync(testCase.Input, evaluationCts.Token)
                 .ConfigureAwait(false);
 
-            // 某些 Agent 可能将取消转换为失败结果而不抛异常；在这里强制遵守取消约定
+            // Some agents may convert cancellation to a failure result without throwing; enforce cancellation here
             evaluationCts.Token.ThrowIfCancellationRequested();
 
             stopwatch.Stop();
@@ -82,10 +82,10 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
                 .ToList();
             stepCount = response.Steps.Count;
 
-            // 估算 Token 使用（简单估算）
+            // Estimate token usage (simple estimation)
             tokenUsage = EstimateTokenUsage(testCase.Input, actualOutput ?? "");
 
-            // 计算各项指标
+            // Calculate metrics
             var context = new MetricEvaluationContext
             {
                 TestCase = testCase,
@@ -122,7 +122,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
             _logger.LogError(ex, "Error evaluating test case {TestCaseId}", testCase.Id);
         }
 
-        // 计算总分
+        // Calculate total score
         var totalScore = metricScores.Count > 0 ? metricScores.Values.Average() * 100 : 0;
 
         var passed = failureReason == null && totalScore >= _options.PassThreshold;
@@ -157,7 +157,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         var overallStopwatch = Stopwatch.StartNew();
         var results = new List<EvaluationResult>();
 
-        // 使用信号量限制并发
+        // Use semaphore to limit concurrency
         using var semaphore = new SemaphoreSlim(_options.MaxConcurrency);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var linkedToken = linkedCts.Token;
@@ -233,7 +233,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 
     private static TokenUsage EstimateTokenUsage(string input, string output)
     {
-        // 简单估算：英文约 4 字符/token，中文约 1.5 字符/token
+        // Simple estimation: ~4 chars/token for English, ~1.5 chars/token for Chinese
         var inputTokens = EstimateTokens(input);
         var outputTokens = EstimateTokens(output);
 
@@ -241,7 +241,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
         {
             InputTokens = inputTokens,
             OutputTokens = outputTokens,
-            // 假设 GPT-4 价格: $0.03/1K input, $0.06/1K output
+            // Assuming GPT-4 pricing: $0.03/1K input, $0.06/1K output
             EstimatedCost = inputTokens * 0.00003m + outputTokens * 0.00006m,
         };
     }
@@ -261,7 +261,7 @@ public sealed class DefaultAgentEvaluator : IAgentEvaluator
 }
 
 /// <summary>
-/// 指标评估上下文
+/// Metric evaluation context.
 /// </summary>
 public record MetricEvaluationContext
 {
@@ -274,7 +274,7 @@ public record MetricEvaluationContext
 }
 
 /// <summary>
-/// 指标评估器接口
+/// Interface for metric evaluators.
 /// </summary>
 public interface IMetricEvaluator
 {
@@ -286,7 +286,7 @@ public interface IMetricEvaluator
 }
 
 /// <summary>
-/// 关键词匹配评估器
+/// Keyword match evaluator.
 /// </summary>
 public sealed class KeywordMatchEvaluator : IMetricEvaluator
 {
@@ -300,7 +300,7 @@ public sealed class KeywordMatchEvaluator : IMetricEvaluator
         var keywords = context.TestCase.ExpectedKeywords;
         if (keywords == null || keywords.Count == 0 || string.IsNullOrEmpty(context.ActualOutput))
         {
-            return Task.FromResult(1.0); // 无关键词要求时满分
+            return Task.FromResult(1.0); // Full score when no keywords are required
         }
 
         var matchedCount = keywords.Count(k =>
@@ -312,7 +312,7 @@ public sealed class KeywordMatchEvaluator : IMetricEvaluator
 }
 
 /// <summary>
-/// 工具调用准确性评估器
+/// Tool call accuracy evaluator.
 /// </summary>
 public sealed class ToolCallAccuracyEvaluator : IMetricEvaluator
 {
@@ -326,16 +326,16 @@ public sealed class ToolCallAccuracyEvaluator : IMetricEvaluator
         var expectedTools = context.TestCase.ExpectedTools;
         if (expectedTools == null || expectedTools.Count == 0)
         {
-            return Task.FromResult(1.0); // 无工具要求时满分
+            return Task.FromResult(1.0); // Full score when no tools are required
         }
 
         var actualTools = context.ToolsCalled ?? [];
         if (actualTools.Count == 0)
         {
-            return Task.FromResult(0.0); // 期望有工具调用但没有
+            return Task.FromResult(0.0); // Expected tool calls but none were made
         }
 
-        // 计算交集
+        // Calculate intersection
         var intersection = expectedTools
             .Intersect(actualTools, StringComparer.OrdinalIgnoreCase)
             .Count();
@@ -346,7 +346,7 @@ public sealed class ToolCallAccuracyEvaluator : IMetricEvaluator
 }
 
 /// <summary>
-/// 延迟评估器
+/// Latency evaluator.
 /// </summary>
 public sealed class LatencyEvaluator : IMetricEvaluator
 {
@@ -360,22 +360,22 @@ public sealed class LatencyEvaluator : IMetricEvaluator
         var maxLatency = context.TestCase.MaxLatencyMs;
         if (maxLatency == null || maxLatency <= 0)
         {
-            return Task.FromResult(1.0); // 无延迟要求时满分
+            return Task.FromResult(1.0); // Full score when no latency requirement
         }
 
         if (context.LatencyMs <= maxLatency)
         {
-            return Task.FromResult(1.0); // 在限制内满分
+            return Task.FromResult(1.0); // Full score when within limit
         }
 
-        // 超出限制时，按比例扣分（最低 0 分）
+        // When exceeding limit, deduct proportionally (minimum 0)
         var ratio = (double)maxLatency.Value / context.LatencyMs;
         return Task.FromResult(Math.Max(0, ratio));
     }
 }
 
 /// <summary>
-/// 精确匹配评估器
+/// Exact match evaluator.
 /// </summary>
 public sealed class ExactMatchEvaluator : IMetricEvaluator
 {
@@ -389,7 +389,7 @@ public sealed class ExactMatchEvaluator : IMetricEvaluator
         var expected = context.TestCase.ExpectedOutput;
         if (string.IsNullOrEmpty(expected))
         {
-            return Task.FromResult(1.0); // 无精确匹配要求时满分
+            return Task.FromResult(1.0); // Full score when no exact match is required
         }
 
         var actual = context.ActualOutput ?? string.Empty;

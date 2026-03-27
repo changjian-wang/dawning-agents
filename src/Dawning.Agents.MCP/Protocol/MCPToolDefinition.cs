@@ -3,7 +3,7 @@ namespace Dawning.Agents.MCP.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// MCP 工具定义
+/// Represents an MCP tool definition.
 /// </summary>
 public sealed class MCPToolDefinition
 {
@@ -18,7 +18,7 @@ public sealed class MCPToolDefinition
 }
 
 /// <summary>
-/// MCP 工具输入参数 Schema (JSON Schema)
+/// Represents the MCP tool input parameter schema (JSON Schema).
 /// </summary>
 public sealed class MCPInputSchema
 {
@@ -33,7 +33,7 @@ public sealed class MCPInputSchema
 }
 
 /// <summary>
-/// MCP 属性 Schema
+/// Represents an MCP property schema.
 /// </summary>
 public sealed class MCPPropertySchema
 {
@@ -51,7 +51,7 @@ public sealed class MCPPropertySchema
 }
 
 /// <summary>
-/// 工具列表请求参数
+/// Represents the parameters for a list tools request.
 /// </summary>
 public sealed class ListToolsParams
 {
@@ -60,7 +60,7 @@ public sealed class ListToolsParams
 }
 
 /// <summary>
-/// 工具列表响应
+/// Represents the result of a list tools request.
 /// </summary>
 public sealed class ListToolsResult
 {
@@ -72,7 +72,7 @@ public sealed class ListToolsResult
 }
 
 /// <summary>
-/// 工具调用请求参数
+/// Represents the parameters for a tool call request.
 /// </summary>
 public sealed class CallToolParams
 {
@@ -84,7 +84,7 @@ public sealed class CallToolParams
 }
 
 /// <summary>
-/// 工具调用结果
+/// Represents a tool call result.
 /// </summary>
 public sealed class CallToolResult
 {
@@ -96,7 +96,7 @@ public sealed class CallToolResult
 }
 
 /// <summary>
-/// MCP 内容块
+/// Represents an MCP content block.
 /// </summary>
 public sealed class MCPContent
 {

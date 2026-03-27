@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 /// <summary>
-/// Communication 相关服务的 DI 扩展
+/// DI extensions for communication services.
 /// </summary>
 public static class CommunicationServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加内存消息总线
+    /// Adds the in-memory message bus.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddMessageBus(this IServiceCollection services)
     {
         services.TryAddSingleton<IMessageBus, InMemoryMessageBus>();
@@ -21,10 +21,10 @@ public static class CommunicationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加内存共享状态
+    /// Adds the in-memory shared state.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSharedState(this IServiceCollection services)
     {
         services.TryAddSingleton<ISharedState, InMemorySharedState>();
@@ -32,10 +32,10 @@ public static class CommunicationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加完整的通信系统（消息总线 + 共享状态）
+    /// Adds the full communication system (message bus + shared state).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddCommunication(this IServiceCollection services)
     {
         services.AddMessageBus();

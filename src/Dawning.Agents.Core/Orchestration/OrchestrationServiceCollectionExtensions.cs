@@ -8,12 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 /// <summary>
-/// 编排器 DI 扩展方法
+/// Dependency injection extension methods for orchestration services.
 /// </summary>
 public static class OrchestrationServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加编排器配置
+    /// Adds orchestration configuration from the specified configuration section.
     /// </summary>
     public static IServiceCollection AddOrchestration(
         this IServiceCollection services,
@@ -29,7 +29,7 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加编排器配置（通过委托）
+    /// Adds orchestration configuration using a delegate.
     /// </summary>
     public static IServiceCollection AddOrchestration(
         this IServiceCollection services,
@@ -41,11 +41,11 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加顺序编排器
+    /// Adds a sequential orchestrator.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="name">编排器名称</param>
-    /// <param name="configureAgents">配置 Agent 列表</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The orchestrator name.</param>
+    /// <param name="configureAgents">A delegate to configure the agent list.</param>
     public static IServiceCollection AddSequentialOrchestrator(
         this IServiceCollection services,
         string name,
@@ -69,7 +69,7 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加顺序编排器（使用指定的 Agent）
+    /// Adds a sequential orchestrator with the specified agents.
     /// </summary>
     public static IServiceCollection AddSequentialOrchestrator(
         this IServiceCollection services,
@@ -94,11 +94,11 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加并行编排器
+    /// Adds a parallel orchestrator.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="name">编排器名称</param>
-    /// <param name="configureAgents">配置 Agent 列表</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="name">The orchestrator name.</param>
+    /// <param name="configureAgents">A delegate to configure the agent list.</param>
     public static IServiceCollection AddParallelOrchestrator(
         this IServiceCollection services,
         string name,
@@ -122,7 +122,7 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加并行编排器（使用指定的 Agent）
+    /// Adds a parallel orchestrator with the specified agents.
     /// </summary>
     public static IServiceCollection AddParallelOrchestrator(
         this IServiceCollection services,
@@ -147,7 +147,7 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加已注册的所有 IAgent 到编排器
+    /// Adds a sequential orchestrator using all registered <see cref="IAgent"/> instances.
     /// </summary>
     public static IServiceCollection AddSequentialOrchestratorWithAllAgents(
         this IServiceCollection services,
@@ -172,7 +172,7 @@ public static class OrchestrationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加已注册的所有 IAgent 到并行编排器
+    /// Adds a parallel orchestrator using all registered <see cref="IAgent"/> instances.
     /// </summary>
     public static IServiceCollection AddParallelOrchestratorWithAllAgents(
         this IServiceCollection services,

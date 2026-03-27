@@ -8,18 +8,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 /// <summary>
-/// MCP 服务注册扩展方法
+/// Provides extension methods for registering MCP services.
 /// </summary>
 public static class MCPServiceCollectionExtensions
 {
     #region MCP Server
 
     /// <summary>
-    /// 注册 MCP Server
+    /// Registers the MCP Server with configuration binding.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddMCPServer(
         this IServiceCollection services,
         IConfiguration configuration
@@ -43,11 +43,11 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP Server
+    /// Registers the MCP Server with a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configureOptions">A delegate to configure <see cref="MCPServerOptions"/>.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddMCPServer(
         this IServiceCollection services,
         Action<MCPServerOptions> configureOptions
@@ -71,7 +71,7 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP Server（使用默认配置）
+    /// Registers the MCP Server with default options.
     /// </summary>
     public static IServiceCollection AddMCPServer(this IServiceCollection services)
     {
@@ -93,7 +93,7 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 使用 Stdio 传输
+    /// Configures the MCP Server to use stdio transport.
     /// </summary>
     public static IServiceCollection UseMCPStdioTransport(this IServiceCollection services)
     {
@@ -103,7 +103,7 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP 资源提供者
+    /// Registers an MCP resource provider.
     /// </summary>
     public static IServiceCollection AddMCPResourceProvider<TProvider>(
         this IServiceCollection services
@@ -115,7 +115,7 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP 提示词提供者
+    /// Registers an MCP prompt provider.
     /// </summary>
     public static IServiceCollection AddMCPPromptProvider<TProvider>(
         this IServiceCollection services
@@ -131,11 +131,11 @@ public static class MCPServiceCollectionExtensions
     #region MCP Client
 
     /// <summary>
-    /// 注册 MCP Client
+    /// Registers the MCP Client with configuration binding.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddMCPClient(
         this IServiceCollection services,
         IConfiguration configuration
@@ -158,11 +158,11 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP Client
+    /// Registers the MCP Client with a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configureOptions">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configureOptions">A delegate to configure <see cref="MCPClientOptions"/>.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddMCPClient(
         this IServiceCollection services,
         Action<MCPClientOptions> configureOptions
@@ -185,7 +185,7 @@ public static class MCPServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册 MCP Client（使用默认配置）
+    /// Registers the MCP Client with default options.
     /// </summary>
     public static IServiceCollection AddMCPClient(this IServiceCollection services)
     {

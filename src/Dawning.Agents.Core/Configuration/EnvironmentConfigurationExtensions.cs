@@ -3,17 +3,17 @@ using Microsoft.Extensions.Configuration;
 namespace Dawning.Agents.Core.Configuration;
 
 /// <summary>
-/// 环境变量配置扩展
+/// Environment variable configuration extensions.
 /// </summary>
 public static class EnvironmentConfigurationExtensions
 {
     /// <summary>
-    /// 添加 .env 文件配置支持
+    /// Adds .env file configuration support.
     /// </summary>
-    /// <param name="builder">配置构建器</param>
-    /// <param name="envFilePath">.env 文件路径（默认为当前目录的 .env）</param>
-    /// <param name="optional">是否可选</param>
-    /// <returns>配置构建器</returns>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="envFilePath">The .env file path (defaults to .env in the current directory).</param>
+    /// <param name="optional">Whether the file is optional.</param>
+    /// <returns>The configuration builder.</returns>
     public static IConfigurationBuilder AddEnvFile(
         this IConfigurationBuilder builder,
         string? envFilePath = null,
@@ -24,7 +24,7 @@ public static class EnvironmentConfigurationExtensions
 
         if (!optional && !File.Exists(path))
         {
-            throw new FileNotFoundException($".env 文件不存在: {path}", path);
+            throw new FileNotFoundException($".env file not found: {path}", path);
         }
 
         if (File.Exists(path))
@@ -37,11 +37,11 @@ public static class EnvironmentConfigurationExtensions
     }
 
     /// <summary>
-    /// 添加多个 .env 文件配置支持（按环境）
+    /// Adds multiple .env file configuration support (per environment).
     /// </summary>
-    /// <param name="builder">配置构建器</param>
-    /// <param name="environment">环境名称（如 Development, Production）</param>
-    /// <returns>配置构建器</returns>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="environment">The environment name (e.g. Development, Production).</param>
+    /// <returns>The configuration builder.</returns>
     public static IConfigurationBuilder AddEnvFiles(
         this IConfigurationBuilder builder,
         string? environment = null
@@ -49,19 +49,19 @@ public static class EnvironmentConfigurationExtensions
     {
         var baseDir = Directory.GetCurrentDirectory();
 
-        // 1. 加载基础 .env 文件
+        // 1. Load the base .env file
         builder.AddEnvFile(Path.Combine(baseDir, ".env"), optional: true);
 
-        // 2. 加载本地 .env.local 文件（一般不提交到版本控制）
+        // 2. Load the local .env.local file (typically not committed to version control)
         builder.AddEnvFile(Path.Combine(baseDir, ".env.local"), optional: true);
 
-        // 3. 加载环境特定的 .env 文件
+        // 3. Load the environment-specific .env file
         if (!string.IsNullOrEmpty(environment))
         {
             var envSpecificPath = Path.Combine(baseDir, $".env.{environment.ToLowerInvariant()}");
             builder.AddEnvFile(envSpecificPath, optional: true);
 
-            // 4. 加载环境特定的本地 .env 文件
+            // 4. Load the environment-specific local .env file
             var envSpecificLocalPath = Path.Combine(
                 baseDir,
                 $".env.{environment.ToLowerInvariant()}.local"
@@ -73,7 +73,7 @@ public static class EnvironmentConfigurationExtensions
     }
 
     /// <summary>
-    /// 解析 .env 文件
+    /// Parses a .env file.
     /// </summary>
     private static Dictionary<string, string?> ParseEnvFile(string path)
     {
@@ -82,14 +82,14 @@ public static class EnvironmentConfigurationExtensions
 
         foreach (var line in lines)
         {
-            // 跳过空行和注释
+            // Skip blank lines and comments
             var trimmedLine = line.Trim();
             if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith('#'))
             {
                 continue;
             }
 
-            // 解析 KEY=VALUE 格式
+            // Parse KEY=VALUE format
             var separatorIndex = trimmedLine.IndexOf('=');
             if (separatorIndex <= 0)
             {
@@ -99,7 +99,7 @@ public static class EnvironmentConfigurationExtensions
             var key = trimmedLine[..separatorIndex].Trim();
             var value = trimmedLine[(separatorIndex + 1)..].Trim();
 
-            // 处理引号
+            // Strip quotes
             var quoteChar = '\0';
             if (
                 value.Length >= 2
@@ -113,13 +113,13 @@ public static class EnvironmentConfigurationExtensions
                 value = value[1..^1];
             }
 
-            // 仅双引号和无引号值处理转义（单引号保持字面值）
+            // Only process escape sequences for double-quoted and unquoted values (single-quoted values are literal)
             if (quoteChar != '\'')
             {
                 value = ProcessEscapeSequences(value);
             }
 
-            // 处理嵌套配置键（用 __ 代替 :）
+            // Convert nested config keys (__ replaces :)
             key = key.Replace("__", ":");
 
             result[key] = value;
@@ -129,7 +129,7 @@ public static class EnvironmentConfigurationExtensions
     }
 
     /// <summary>
-    /// 处理转义字符
+    /// Processes escape sequences.
     /// </summary>
     private static string ProcessEscapeSequences(string value)
     {

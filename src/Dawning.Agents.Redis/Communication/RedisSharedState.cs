@@ -9,11 +9,11 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Communication;
 
 /// <summary>
-/// 基于 Redis Hash + Pub/Sub 的分布式共享状态
+/// A distributed shared state implementation backed by Redis Hash and Pub/Sub.
 /// </summary>
 /// <remarks>
-/// <para>键值存储使用 Redis Hash，支持原子操作和模式匹配</para>
-/// <para>变更通知通过 Redis Pub/Sub 实现跨进程实时推送</para>
+/// <para>Key-value storage uses Redis Hash, supporting atomic operations and pattern matching.</para>
+/// <para>Change notifications use Redis Pub/Sub for cross-process real-time push.</para>
 /// </remarks>
 public sealed class RedisSharedState : ISharedState, IDisposable
 {
@@ -29,7 +29,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 初始化 Redis 共享状态
+    /// Initializes a new instance of the <see cref="RedisSharedState"/> class.
     /// </summary>
     public RedisSharedState(
         IConnectionMultiplexer connection,
@@ -67,7 +67,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "反序列化共享状态 {Key} 失败", key);
+            _logger.LogWarning(ex, "Failed to deserialize shared state for key {Key}", key);
             return default;
         }
     }
@@ -85,9 +85,9 @@ public sealed class RedisSharedState : ISharedState, IDisposable
         var json = JsonSerializer.Serialize(value);
         await _database.HashSetAsync(_hashKey, key, json).ConfigureAwait(false);
 
-        _logger.LogDebug("设置共享状态 {Key}", key);
+        _logger.LogDebug("Set shared state {Key}", key);
 
-        // 通过 Pub/Sub 通知变更
+        // Notify change via Pub/Sub
         await _subscriber
             .PublishAsync(RedisChannel.Literal($"{_channelPrefix}{key}"), json)
             .ConfigureAwait(false);
@@ -103,7 +103,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
 
         if (removed)
         {
-            _logger.LogDebug("删除共享状态 {Key}", key);
+            _logger.LogDebug("Deleted shared state {Key}", key);
             await _subscriber
                 .PublishAsync(RedisChannel.Literal($"{_channelPrefix}{key}"), "")
                 .ConfigureAwait(false);
@@ -136,7 +136,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
             return allKeys.Select(k => k.ToString()).ToList();
         }
 
-        // 将通配符模式转为简单匹配
+        // Convert wildcard pattern to simple matching
         var regexPattern =
             "^" + System.Text.RegularExpressions.Regex.Escape(pattern).Replace("\\*", ".*") + "$";
         var regex = new System.Text.RegularExpressions.Regex(regexPattern);
@@ -160,7 +160,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
                 handlers = [];
                 _localHandlers[key] = handlers;
 
-                // 首次订阅此 key 时创建 Redis 订阅
+                // Create Redis subscription on first subscription to this key
                 _subscriber.Subscribe(
                     channel,
                     (_, value) =>
@@ -189,7 +189,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "共享状态变更处理器执行失败: {Key}", key);
+                                _logger.LogError(ex, "Shared state change handler failed for key: {Key}", key);
                             }
                         }
                     }
@@ -199,7 +199,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
             handlers.Add(handler);
         }
 
-        _logger.LogDebug("订阅共享状态变更: {Key}", key);
+        _logger.LogDebug("Subscribed to shared state changes: {Key}", key);
 
         return new Subscription(() =>
         {
@@ -216,7 +216,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
                 }
             }
 
-            _logger.LogDebug("取消订阅共享状态变更: {Key}", key);
+            _logger.LogDebug("Unsubscribed from shared state changes: {Key}", key);
         });
     }
 
@@ -226,7 +226,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         await _database.KeyDeleteAsync(_hashKey).ConfigureAwait(false);
-        _logger.LogInformation("清除所有共享状态");
+        _logger.LogInformation("Cleared all shared state");
     }
 
     /// <inheritdoc />
@@ -262,7 +262,7 @@ public sealed class RedisSharedState : ISharedState, IDisposable
 }
 
 /// <summary>
-/// 订阅清理辅助类
+/// Subscription cleanup helper
 /// </summary>
 internal sealed class Subscription : IDisposable
 {

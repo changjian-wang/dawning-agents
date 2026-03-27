@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 工具扫描器 - 从类型或程序集中扫描并注册 [FunctionTool] 标记的方法
+/// Tool scanner — scans and registers methods marked with <see cref="FunctionToolAttribute"/> from types or assemblies.
 /// </summary>
 public sealed class ToolScanner
 {
@@ -18,16 +18,16 @@ public sealed class ToolScanner
     }
 
     /// <summary>
-    /// 从实例对象扫描工具
+    /// Scans tools from an object instance.
     /// </summary>
-    /// <param name="instance">包含 [FunctionTool] 方法的对象实例</param>
-    /// <returns>扫描到的工具列表</returns>
+    /// <param name="instance">The object instance containing <see cref="FunctionToolAttribute"/> methods.</param>
+    /// <returns>The list of discovered tools.</returns>
     public IEnumerable<ITool> ScanInstance(object instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
 
         var type = instance.GetType();
-        _logger.LogDebug("扫描类型 {Type} 中的工具", type.Name);
+        _logger.LogDebug("Scanning tools in type {Type}", type.Name);
 
         foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
         {
@@ -37,21 +37,21 @@ public sealed class ToolScanner
                 continue;
             }
 
-            _logger.LogDebug("发现工具方法: {Method}", method.Name);
+            _logger.LogDebug("Discovered tool method: {Method}", method.Name);
             yield return new MethodTool(method, instance, attr);
         }
     }
 
     /// <summary>
-    /// 从类型扫描静态工具方法
+    /// Scans static tool methods from a type.
     /// </summary>
-    /// <param name="type">包含 [FunctionTool] 静态方法的类型</param>
-    /// <returns>扫描到的工具列表</returns>
+    /// <param name="type">The type containing <see cref="FunctionToolAttribute"/> static methods.</param>
+    /// <returns>The list of discovered tools.</returns>
     public IEnumerable<ITool> ScanType(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        _logger.LogDebug("扫描类型 {Type} 中的静态工具", type.Name);
+        _logger.LogDebug("Scanning static tools in type {Type}", type.Name);
 
         foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
@@ -61,17 +61,17 @@ public sealed class ToolScanner
                 continue;
             }
 
-            _logger.LogDebug("发现静态工具方法: {Method}", method.Name);
+            _logger.LogDebug("Discovered static tool method: {Method}", method.Name);
             yield return new MethodTool(method, null, attr);
         }
     }
 
     /// <summary>
-    /// 从程序集扫描所有工具
+    /// Scans all tools from an assembly.
     /// </summary>
-    /// <param name="assembly">要扫描的程序集</param>
-    /// <param name="serviceProvider">服务提供者（用于创建实例）</param>
-    /// <returns>扫描到的工具列表</returns>
+    /// <param name="assembly">The assembly to scan.</param>
+    /// <param name="serviceProvider">The service provider (used for creating instances).</param>
+    /// <returns>The list of discovered tools.</returns>
     public IEnumerable<ITool> ScanAssembly(
         Assembly assembly,
         IServiceProvider? serviceProvider = null
@@ -79,28 +79,28 @@ public sealed class ToolScanner
     {
         ArgumentNullException.ThrowIfNull(assembly);
 
-        _logger.LogDebug("扫描程序集 {Assembly} 中的工具", assembly.GetName().Name);
+        _logger.LogDebug("Scanning tools in assembly {Assembly}", assembly.GetName().Name);
 
         foreach (var type in assembly.GetExportedTypes())
         {
-            // 扫描静态方法
+            // Scan static methods
             foreach (var tool in ScanType(type))
             {
                 yield return tool;
             }
 
-            // 扫描实例方法（需要能创建实例的类型）
+            // Scan instance methods (requires instantiable types)
             if (!type.IsAbstract && !type.IsInterface && HasInstanceToolMethods(type))
             {
                 object? instance = null;
 
-                // 尝试从 DI 容器获取
+                // Try to resolve from the DI container
                 if (serviceProvider != null)
                 {
                     instance = serviceProvider.GetService(type);
                 }
 
-                // 尝试创建无参实例
+                // Try to create a parameterless instance
                 if (instance == null && type.GetConstructor(Type.EmptyTypes) != null)
                 {
                     try
@@ -110,7 +110,7 @@ public sealed class ToolScanner
                     catch (Exception ex)
                     {
                         _logger.LogWarning(
-                            "无法创建类型 {Type} 的实例: {Error}",
+                            "Failed to create instance of type {Type}: {Error}",
                             type.Name,
                             ex.Message
                         );
@@ -129,7 +129,7 @@ public sealed class ToolScanner
     }
 
     /// <summary>
-    /// 检查类型是否包含实例工具方法
+    /// Checks whether a type contains instance tool methods.
     /// </summary>
     private static bool HasInstanceToolMethods(Type type)
     {

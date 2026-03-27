@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Multimodal;
 
 /// <summary>
-/// OpenAI TTS 文本转语音提供者
+/// OpenAI TTS text-to-speech provider.
 /// </summary>
 /// <remarks>
-/// 使用 OpenAI TTS API 将文本转换为语音。
-/// 支持 tts-1 和 tts-1-hd 模型。
+/// Uses the OpenAI TTS API to convert text to speech.
+/// Supports tts-1 and tts-1-hd models.
 /// </remarks>
 public sealed class OpenAITTSProvider : ITextToSpeechProvider
 {
@@ -31,7 +31,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Alloy",
             Gender = VoiceGender.Neutral,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "中性、平衡的声音",
+            Description = "Neutral, balanced voice",
         },
         new VoiceInfo
         {
@@ -39,7 +39,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Echo",
             Gender = VoiceGender.Male,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "深沉、有力的男声",
+            Description = "Deep, powerful male voice",
         },
         new VoiceInfo
         {
@@ -47,7 +47,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Fable",
             Gender = VoiceGender.Neutral,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "温暖、叙述性的声音",
+            Description = "Warm, narrative voice",
         },
         new VoiceInfo
         {
@@ -55,7 +55,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Onyx",
             Gender = VoiceGender.Male,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "深沉、权威的男声",
+            Description = "Deep, authoritative male voice",
         },
         new VoiceInfo
         {
@@ -63,7 +63,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Nova",
             Gender = VoiceGender.Female,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "友好、活泼的女声",
+            Description = "Friendly, lively female voice",
         },
         new VoiceInfo
         {
@@ -71,7 +71,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             Name = "Shimmer",
             Gender = VoiceGender.Female,
             Languages = ["en", "zh", "ja", "ko", "de", "fr", "es", "it", "pt", "ru"],
-            Description = "清晰、专业的女声",
+            Description = "Clear, professional female voice",
         },
     ];
 
@@ -130,12 +130,12 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
     {
         if (string.IsNullOrEmpty(text))
         {
-            return SpeechResult.Failed("文本内容为空");
+            return SpeechResult.Failed("Text content is empty");
         }
 
         if (text.Length > MaxTextLength)
         {
-            return SpeechResult.Failed($"文本过长: {text.Length} 字符 (最大 {MaxTextLength} 字符)");
+            return SpeechResult.Failed($"Text too long: {text.Length} characters (max {MaxTextLength} characters)");
         }
 
         options ??= new SpeechOptions();
@@ -144,7 +144,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
         var format = GetFormatString(options.OutputFormat);
 
         _logger.LogDebug(
-            "开始语音合成，模型: {Model}，声音: {Voice}，格式: {Format}，文本长度: {Length}",
+            "Starting speech synthesis, model: {Model}, voice: {Voice}, format: {Format}, text length: {Length}",
             model,
             voice,
             format,
@@ -176,18 +176,18 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
                     .Content.ReadAsStringAsync(cancellationToken)
                     .ConfigureAwait(false);
                 _logger.LogWarning(
-                    "TTS API 返回错误: {StatusCode} - {Response}",
+                    "TTS API returned error: {StatusCode} - {Response}",
                     response.StatusCode,
                     errorText
                 );
-                return SpeechResult.Failed($"API 错误: {response.StatusCode} - {errorText}");
+                return SpeechResult.Failed($"API error: {response.StatusCode} - {errorText}");
             }
 
             var audioData = await response
                 .Content.ReadAsByteArrayAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            _logger.LogDebug("语音合成成功，音频大小: {Size} 字节", audioData.Length);
+            _logger.LogDebug("Speech synthesis succeeded, audio size: {Size} bytes", audioData.Length);
 
             var mimeType = GetMimeType(options.OutputFormat);
 
@@ -205,7 +205,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "语音合成请求失败");
+            _logger.LogError(ex, "Speech synthesis request failed");
             return SpeechResult.Failed(ex.Message);
         }
     }
@@ -236,7 +236,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             await File.WriteAllBytesAsync(outputPath, result.AudioData, cancellationToken)
                 .ConfigureAwait(false);
 
-            _logger.LogDebug("音频已保存到: {OutputPath}", outputPath);
+            _logger.LogDebug("Audio saved to: {OutputPath}", outputPath);
 
             return new SpeechResult
             {
@@ -253,8 +253,8 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "保存音频文件失败: {OutputPath}", outputPath);
-            return SpeechResult.Failed($"保存文件失败: {ex.Message}");
+            _logger.LogError(ex, "Failed to save audio file: {OutputPath}", outputPath);
+            return SpeechResult.Failed($"Failed to save file: {ex.Message}");
         }
     }
 
@@ -297,7 +297,7 @@ public sealed class OpenAITTSProvider : ITextToSpeechProvider
             var error = await response
                 .Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
-            throw new InvalidOperationException($"API 错误: {response.StatusCode} - {error}");
+            throw new InvalidOperationException($"API error: {response.StatusCode} - {error}");
         }
 
         await using var stream = await response

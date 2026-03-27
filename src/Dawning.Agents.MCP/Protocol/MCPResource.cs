@@ -3,7 +3,7 @@ namespace Dawning.Agents.MCP.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// MCP 资源定义
+/// Represents an MCP resource definition.
 /// </summary>
 public sealed class MCPResource
 {
@@ -21,7 +21,7 @@ public sealed class MCPResource
 }
 
 /// <summary>
-/// 资源模板定义
+/// Represents a resource template definition.
 /// </summary>
 public sealed class MCPResourceTemplate
 {
@@ -39,7 +39,7 @@ public sealed class MCPResourceTemplate
 }
 
 /// <summary>
-/// 资源列表请求参数
+/// Represents the parameters for a list resources request.
 /// </summary>
 public sealed class ListResourcesParams
 {
@@ -48,7 +48,7 @@ public sealed class ListResourcesParams
 }
 
 /// <summary>
-/// 资源列表响应
+/// Represents the result of a list resources request.
 /// </summary>
 public sealed class ListResourcesResult
 {
@@ -60,7 +60,7 @@ public sealed class ListResourcesResult
 }
 
 /// <summary>
-/// 资源模板列表响应
+/// Represents the result of a list resource templates request.
 /// </summary>
 public sealed class ListResourceTemplatesResult
 {
@@ -72,7 +72,7 @@ public sealed class ListResourceTemplatesResult
 }
 
 /// <summary>
-/// 读取资源请求参数
+/// Represents the parameters for a read resource request.
 /// </summary>
 public sealed class ReadResourceParams
 {
@@ -81,7 +81,7 @@ public sealed class ReadResourceParams
 }
 
 /// <summary>
-/// 读取资源响应
+/// Represents the result of a read resource request.
 /// </summary>
 public sealed class ReadResourceResult
 {
@@ -90,7 +90,7 @@ public sealed class ReadResourceResult
 }
 
 /// <summary>
-/// 资源内容
+/// Represents resource content.
 /// </summary>
 public sealed class ResourceContent
 {
@@ -108,7 +108,7 @@ public sealed class ResourceContent
 }
 
 /// <summary>
-/// 资源订阅请求参数
+/// Represents the parameters for a resource subscribe request.
 /// </summary>
 public sealed class SubscribeResourceParams
 {
@@ -117,7 +117,7 @@ public sealed class SubscribeResourceParams
 }
 
 /// <summary>
-/// 资源取消订阅请求参数
+/// Represents the parameters for a resource unsubscribe request.
 /// </summary>
 public sealed class UnsubscribeResourceParams
 {
@@ -126,7 +126,7 @@ public sealed class UnsubscribeResourceParams
 }
 
 /// <summary>
-/// 资源更新通知参数
+/// Represents the parameters for a resource updated notification.
 /// </summary>
 public sealed class ResourceUpdatedParams
 {
@@ -135,6 +135,6 @@ public sealed class ResourceUpdatedParams
 }
 
 /// <summary>
-/// 资源列表变更通知参数
+/// Represents the parameters for a resource list changed notification.
 /// </summary>
 public sealed class ResourceListChangedParams { }

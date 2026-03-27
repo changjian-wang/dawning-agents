@@ -9,13 +9,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Diagnostics;
 
 /// <summary>
-/// 诊断信息提供者实现
+/// Diagnostics information provider implementation.
 /// </summary>
 public sealed class DiagnosticsProvider : IDiagnosticsProvider
 {
     private readonly IToolReader? _toolRegistry;
 
-    // 运行时统计（简单计数）
+    // Runtime statistics (simple counters)
     private static long _totalRequestCount;
     private static int _currentRequestCount;
     private static long _totalLLMCalls;
@@ -130,7 +130,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     {
         return new AgentRuntimeInfo
         {
-            RegisteredAgentCount = 0, // TODO: 从 Agent 注册表获取
+            RegisteredAgentCount = 0, // TODO: Get from agent registry
             RegisteredToolCount = _toolRegistry?.GetAllTools().Count ?? 0,
             ActiveSessionCount = _activeSessionCount,
             TotalRequestCount = _totalRequestCount,
@@ -141,7 +141,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 获取环境信息
+    /// Gets environment information.
     /// </summary>
     private static EnvironmentInfo GetEnvironmentInfo()
     {
@@ -158,7 +158,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 获取内存负载描述
+    /// Gets a memory load description.
     /// </summary>
     private static string GetMemoryLoadDescription(long memoryLoadBytes)
     {
@@ -173,10 +173,10 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
         };
     }
 
-    #region 静态统计方法
+    #region Static statistics methods
 
     /// <summary>
-    /// 记录请求开始
+    /// Records a request start.
     /// </summary>
     public static void RecordRequestStart()
     {
@@ -185,7 +185,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 记录请求结束
+    /// Records a request end.
     /// </summary>
     public static void RecordRequestEnd()
     {
@@ -193,7 +193,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 记录 LLM 调用
+    /// Records an LLM call.
     /// </summary>
     public static void RecordLLMCall()
     {
@@ -201,7 +201,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 记录工具执行
+    /// Records a tool execution.
     /// </summary>
     public static void RecordToolExecution()
     {
@@ -209,7 +209,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 记录会话开始
+    /// Records a session start.
     /// </summary>
     public static void RecordSessionStart()
     {
@@ -217,7 +217,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 记录会话结束
+    /// Records a session end.
     /// </summary>
     public static void RecordSessionEnd()
     {
@@ -225,7 +225,7 @@ public sealed class DiagnosticsProvider : IDiagnosticsProvider
     }
 
     /// <summary>
-    /// 重置统计
+    /// Resets all statistics.
     /// </summary>
     public static void ResetStatistics()
     {

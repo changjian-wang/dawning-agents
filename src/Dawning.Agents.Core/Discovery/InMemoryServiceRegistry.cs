@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Discovery;
 
 /// <summary>
-/// 内存服务注册表 (单进程/开发环境)
+/// In-memory service registry (single-process / development environment).
 /// </summary>
 public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 {
@@ -44,7 +44,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
         _instances[instance.Id] = instance;
         _logger.LogInformation(
-            "服务注册: {ServiceName}@{Host}:{Port} (ID={Id})",
+            "Service registered: {ServiceName}@{Host}:{Port} (ID={Id})",
             instance.ServiceName,
             instance.Host,
             instance.Port,
@@ -61,7 +61,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         if (_instances.TryRemove(instanceId, out var instance))
         {
             _logger.LogInformation(
-                "服务注销: {ServiceName} (ID={Id})",
+                "Service deregistered: {ServiceName} (ID={Id})",
                 instance.ServiceName,
                 instanceId
             );
@@ -78,7 +78,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         {
             instance.LastHeartbeat = DateTimeOffset.UtcNow;
             instance.IsHealthy = true;
-            _logger.LogDebug("心跳: {Id}", instanceId);
+            _logger.LogDebug("Heartbeat: {Id}", instanceId);
         }
         return Task.CompletedTask;
     }
@@ -117,7 +117,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
 
         try
         {
-            // 立即返回当前状态
+            // Return the current state immediately
             var current = await GetInstancesAsync(serviceName, cancellationToken)
                 .ConfigureAwait(false);
             yield return current.ToArray();
@@ -173,7 +173,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
                 if (_instances.TryRemove(id, out var instance))
                 {
                     _logger.LogWarning(
-                        "服务过期: {ServiceName} (ID={Id})",
+                        "Service expired: {ServiceName} (ID={Id})",
                         instance.ServiceName,
                         id
                     );
@@ -183,7 +183,7 @@ public sealed class InMemoryServiceRegistry : IServiceRegistry, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "清理过期实例时发生错误");
+            _logger.LogError(ex, "Error cleaning up expired instances");
         }
     }
 

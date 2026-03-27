@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Discovery;
 
 /// <summary>
-/// Kubernetes 服务发现 (通过 Endpoints API)
+/// Kubernetes service discovery (via the Endpoints API).
 /// </summary>
 public sealed class KubernetesServiceRegistry : IServiceRegistry
 {
@@ -35,21 +35,21 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         CancellationToken cancellationToken = default
     )
     {
-        // Kubernetes 通过 Pod 自动注册，此处为空实现
-        _logger.LogDebug("Kubernetes 模式下服务由 K8s 自动管理，跳过手动注册");
+        // Kubernetes auto-registers via Pods; this is a no-op
+        _logger.LogDebug("In Kubernetes mode, services are managed by K8s; skipping manual registration");
         return Task.CompletedTask;
     }
 
     public Task DeregisterAsync(string instanceId, CancellationToken cancellationToken = default)
     {
-        // Kubernetes 通过 Pod 自动注销
-        _logger.LogDebug("Kubernetes 模式下服务由 K8s 自动管理，跳过手动注销");
+        // Kubernetes auto-deregisters via Pods
+        _logger.LogDebug("In Kubernetes mode, services are managed by K8s; skipping manual deregistration");
         return Task.CompletedTask;
     }
 
     public Task HeartbeatAsync(string instanceId, CancellationToken cancellationToken = default)
     {
-        // Kubernetes 使用 liveness/readiness probe
+        // Kubernetes uses liveness/readiness probes
         return Task.CompletedTask;
     }
 
@@ -68,7 +68,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("获取 Endpoints 失败: {StatusCode}", response.StatusCode);
+                _logger.LogWarning("Failed to get Endpoints: {StatusCode}", response.StatusCode);
                 return Array.Empty<ServiceInstance>();
             }
 
@@ -107,7 +107,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
                 }
             }
 
-            _logger.LogDebug("发现 {Count} 个 {ServiceName} 实例", instances.Count, serviceName);
+            _logger.LogDebug("Discovered {Count} {ServiceName} instances", instances.Count, serviceName);
             return instances;
         }
         catch (OperationCanceledException)
@@ -116,7 +116,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取 Kubernetes Endpoints 失败: {ServiceName}", serviceName);
+            _logger.LogError(ex, "Failed to get Kubernetes Endpoints: {ServiceName}", serviceName);
             return Array.Empty<ServiceInstance>();
         }
     }
@@ -156,7 +156,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "获取 Kubernetes Services 列表失败");
+            _logger.LogError(ex, "Failed to get Kubernetes Services list");
             return Array.Empty<string>();
         }
     }
@@ -166,7 +166,7 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        // 简化实现: 轮询模式
+        // Simplified implementation: polling mode
         while (!cancellationToken.IsCancellationRequested)
         {
             ServiceInstance[] snapshot;
@@ -248,29 +248,29 @@ public sealed class KubernetesServiceRegistry : IServiceRegistry
 }
 
 /// <summary>
-/// Kubernetes 配置选项
+/// Kubernetes configuration options.
 /// </summary>
 public sealed class KubernetesOptions
 {
     public const string SectionName = "Kubernetes";
 
     /// <summary>
-    /// Kubernetes API Server 地址
+    /// Gets or sets the Kubernetes API server URL.
     /// </summary>
     public string ApiServerUrl { get; set; } = "https://kubernetes.default.svc";
 
     /// <summary>
-    /// 命名空间
+    /// Gets or sets the namespace.
     /// </summary>
     public string Namespace { get; set; } = "default";
 
     /// <summary>
-    /// Watch 轮询间隔 (秒)
+    /// Gets or sets the watch polling interval in seconds.
     /// </summary>
     public int WatchIntervalSeconds { get; set; } = 5;
 
     /// <summary>
-    /// 是否启用 (Pod 内自动检测)
+    /// Gets or sets a value indicating whether Kubernetes integration is enabled (auto-detected inside a Pod).
     /// </summary>
     public bool Enabled { get; set; } = false;
 }

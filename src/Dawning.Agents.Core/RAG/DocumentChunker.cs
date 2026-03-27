@@ -7,14 +7,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// 文档分块器 - 将长文本分割为适合向量化的小块
+/// Document chunker that splits long text into small chunks suitable for vectorization.
 /// </summary>
 /// <remarks>
-/// <para>支持多种分块策略：</para>
+/// <para>Supports multiple chunking strategies:</para>
 /// <list type="bullet">
-/// <item>固定大小分块（带重叠）</item>
-/// <item>按段落分块</item>
-/// <item>按句子分块</item>
+/// <item>Fixed-size chunking (with overlap).</item>
+/// <item>Paragraph-based chunking.</item>
+/// <item>Sentence-based chunking.</item>
 /// </list>
 /// </remarks>
 public sealed class DocumentChunker
@@ -23,7 +23,7 @@ public sealed class DocumentChunker
     private readonly ILogger<DocumentChunker> _logger;
 
     /// <summary>
-    /// 创建文档分块器
+    /// Initializes a new instance of the <see cref="DocumentChunker"/> class.
     /// </summary>
     public DocumentChunker(
         IOptions<RAGOptions>? options = null,
@@ -35,12 +35,12 @@ public sealed class DocumentChunker
     }
 
     /// <summary>
-    /// 将文本分割为块
+    /// Splits text into document chunks.
     /// </summary>
-    /// <param name="text">原始文本</param>
-    /// <param name="documentId">文档 ID（可选）</param>
-    /// <param name="metadata">元数据（可选）</param>
-    /// <returns>文档块列表（不含嵌入向量）</returns>
+    /// <param name="text">The source text.</param>
+    /// <param name="documentId">Optional document ID.</param>
+    /// <param name="metadata">Optional metadata.</param>
+    /// <returns>A list of document chunks (without embeddings).</returns>
     public IReadOnlyList<DocumentChunk> ChunkText(
         string text,
         string? documentId = null,
@@ -59,7 +59,7 @@ public sealed class DocumentChunker
         var chunkSize = _options.ChunkSize;
         var overlap = _options.ChunkOverlap;
 
-        // 先按段落分割
+        // Split by paragraphs first
         var paragraphs = SplitIntoParagraphs(text);
 
         var currentChunk = new StringBuilder();
@@ -67,10 +67,10 @@ public sealed class DocumentChunker
 
         foreach (var paragraph in paragraphs)
         {
-            // 如果单个段落就超过 chunk size，需要进一步分割
+            // Further split paragraphs that exceed the chunk size
             if (paragraph.Length > chunkSize)
             {
-                // 先保存当前累积的内容
+                // Save current accumulated content first
                 if (currentChunk.Length > 0)
                 {
                     chunks.Add(
@@ -84,7 +84,7 @@ public sealed class DocumentChunker
                     currentChunk.Clear();
                 }
 
-                // 分割大段落
+                // Split large paragraph
                 var subChunks = SplitLargeParagraph(paragraph, chunkSize, overlap);
                 foreach (var sub in subChunks)
                 {
@@ -93,7 +93,7 @@ public sealed class DocumentChunker
             }
             else if (currentChunk.Length + paragraph.Length + 1 > chunkSize)
             {
-                // 当前块已满，保存并开始新块
+                // Current chunk is full, save and start a new one
                 if (currentChunk.Length > 0)
                 {
                     chunks.Add(
@@ -105,7 +105,7 @@ public sealed class DocumentChunker
                         )
                     );
 
-                    // 添加重叠部分
+                    // Add overlap portion
                     var overlapText = GetOverlapText(currentChunk.ToString(), overlap);
                     currentChunk.Clear();
                     currentChunk.Append(overlapText);
@@ -116,13 +116,13 @@ public sealed class DocumentChunker
             }
             else
             {
-                // 继续累积
+                // Continue accumulating
                 currentChunk.Append(paragraph);
                 currentChunk.Append('\n');
             }
         }
 
-        // 保存最后一个块
+        // Save the last chunk
         if (currentChunk.Length > 0)
         {
             chunks.Add(
@@ -142,7 +142,7 @@ public sealed class DocumentChunker
     }
 
     /// <summary>
-    /// 按段落分割文本
+    /// Splits text into paragraphs.
     /// </summary>
     private static List<string> SplitIntoParagraphs(string text)
     {
@@ -153,14 +153,14 @@ public sealed class DocumentChunker
     }
 
     /// <summary>
-    /// 分割超大段落
+    /// Splits an oversized paragraph into smaller chunks.
     /// </summary>
     private static List<string> SplitLargeParagraph(string paragraph, int chunkSize, int overlap)
     {
         var chunks = new List<string>();
         var start = 0;
 
-        // 确保 overlap 不超过 chunkSize 的一半，防止无限循环
+        // Ensure overlap does not exceed half the chunk size to prevent infinite loops
         var safeOverlap = Math.Min(overlap, chunkSize / 2);
 
         while (start < paragraph.Length)
@@ -168,7 +168,7 @@ public sealed class DocumentChunker
             var length = Math.Min(chunkSize, paragraph.Length - start);
             var chunk = paragraph.Substring(start, length);
 
-            // 尝试在句子边界处分割
+            // Try to split at sentence boundaries
             if (start + length < paragraph.Length)
             {
                 var lastPeriod = chunk.LastIndexOfAny(['.', '!', '?', '。', '！', '？']);
@@ -181,7 +181,7 @@ public sealed class DocumentChunker
 
             chunks.Add(chunk.Trim());
 
-            // 确保至少前进 1 个字符，防止无限循环
+            // Advance by at least 1 character to prevent infinite loops
             var advance = Math.Max(1, length - safeOverlap);
             start += advance;
         }
@@ -190,7 +190,7 @@ public sealed class DocumentChunker
     }
 
     /// <summary>
-    /// 获取重叠文本
+    /// Gets the overlap text from the end of a chunk.
     /// </summary>
     private static string GetOverlapText(string text, int overlapSize)
     {
@@ -199,7 +199,7 @@ public sealed class DocumentChunker
             return text;
         }
 
-        // 尝试从句子边界开始
+        // Try to start from a sentence boundary
         var overlapStart = text.Length - overlapSize;
         var sentenceStart = text.IndexOfAny(['.', '!', '?', '。', '！', '？'], overlapStart);
 
@@ -212,7 +212,7 @@ public sealed class DocumentChunker
     }
 
     /// <summary>
-    /// 创建文档块
+    /// Creates a document chunk.
     /// </summary>
     private static DocumentChunk CreateChunk(
         string content,

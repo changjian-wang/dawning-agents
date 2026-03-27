@@ -7,7 +7,7 @@ using Dawning.Agents.Abstractions.Workflow;
 namespace Dawning.Agents.Core.Workflow;
 
 /// <summary>
-/// 工作流序列化器
+/// Workflow serializer for JSON and YAML formats.
 /// </summary>
 public sealed class WorkflowSerializer : IWorkflowSerializer
 {
@@ -33,7 +33,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         return JsonSerializer.Deserialize<WorkflowDefinition>(json, s_jsonOptions)
-            ?? throw new InvalidOperationException("无法反序列化工作流定义");
+            ?? throw new InvalidOperationException("Failed to deserialize workflow definition");
     }
 
     /// <inheritdoc />
@@ -41,7 +41,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
     {
         ArgumentNullException.ThrowIfNull(definition);
 
-        // 简化的 YAML 输出（不依赖外部库）
+        // Simplified YAML output (no external library dependency)
         var sb = new StringBuilder();
         sb.AppendLine($"id: {YamlEscape(definition.Id)}");
         sb.AppendLine($"name: {YamlEscape(definition.Name)}");
@@ -95,7 +95,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(yaml);
 
-        // 简化实现：解析基本 YAML 格式
+        // Simplified implementation: parse basic YAML format
         var lines = yaml.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
         var id = "";
         var name = "";
@@ -147,7 +147,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
             else if (string.Equals(trimmed, "edges:", StringComparison.Ordinal))
             {
                 currentSection = "edges";
-                // 完成最后一个节点
+                // Finalize last node
                 if (currentNode != null)
                 {
                     if (currentConfig != null)
@@ -164,7 +164,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
                 && trimmed.StartsWith("- id:", StringComparison.Ordinal)
             )
             {
-                // 新节点
+                // New node
                 if (currentNode != null)
                 {
                     if (currentConfig != null)
@@ -227,7 +227,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
                 && trimmed.StartsWith("- from:", StringComparison.Ordinal)
             )
             {
-                // 完成上一条边
+                // Finalize previous edge
                 if (currentEdge != null)
                 {
                     edges.Add(currentEdge);
@@ -257,7 +257,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
             }
         }
 
-        // 完成最后的内容
+        // Finalize remaining content
         if (currentNode != null)
         {
             if (currentConfig != null)
@@ -308,7 +308,7 @@ public sealed class WorkflowSerializer : IWorkflowSerializer
 }
 
 /// <summary>
-/// 工作流可视化器
+/// Workflow visualizer.
 /// </summary>
 public sealed class WorkflowVisualizer : IWorkflowVisualizer
 {
@@ -318,7 +318,7 @@ public sealed class WorkflowVisualizer : IWorkflowVisualizer
         var sb = new StringBuilder();
         sb.AppendLine("flowchart TD");
 
-        // 节点
+        // Nodes
         foreach (var node in definition.Nodes)
         {
             var shape = GetMermaidShape(node.Type);
@@ -328,7 +328,7 @@ public sealed class WorkflowVisualizer : IWorkflowVisualizer
 
         sb.AppendLine();
 
-        // 边
+        // Edges
         foreach (var edge in definition.Edges)
         {
             if (string.IsNullOrEmpty(edge.Label))
@@ -343,7 +343,7 @@ public sealed class WorkflowVisualizer : IWorkflowVisualizer
             }
         }
 
-        // 样式
+        // Styles
         sb.AppendLine();
         sb.AppendLine("    %% Styles");
 
@@ -368,18 +368,18 @@ public sealed class WorkflowVisualizer : IWorkflowVisualizer
         sb.AppendLine("    node [fontname=\"Arial\"];");
         sb.AppendLine();
 
-        // 节点
+        // Nodes
         foreach (var node in definition.Nodes)
         {
             var (shape, color) = GetDotStyle(node.Type);
             sb.AppendLine(
-                $"    {node.Id} [label=\"{EscapeDotLabel(node.Name)}\" shape={shape} style=filled fillcolor=\"{color}\"];"
+                $"    {node.Id} [label=\"{EscapeDotLabel(node.Name)}\" shape={shape} style=filled fillcolor=\"{color}\"]"
             );
         }
 
         sb.AppendLine();
 
-        // 边
+        // Edges
         foreach (var edge in definition.Edges)
         {
             if (string.IsNullOrEmpty(edge.Label))
@@ -402,13 +402,13 @@ public sealed class WorkflowVisualizer : IWorkflowVisualizer
     {
         return type switch
         {
-            WorkflowNodeType.Start => ("((", "))"), // 圆形
-            WorkflowNodeType.End => ("((", "))"), // 圆形
-            WorkflowNodeType.Condition => ("{", "}"), // 菱形
-            WorkflowNodeType.Parallel => ("[[", "]]"), // 方形双边框
-            WorkflowNodeType.Loop => ("([", "])"), // 药丸形
-            WorkflowNodeType.HumanApproval => ("[/", "/]"), // 平行四边形
-            _ => ("[", "]"), // 默认方形
+            WorkflowNodeType.Start => ("((", "))"), // Circle
+            WorkflowNodeType.End => ("((", "))"), // Circle
+            WorkflowNodeType.Condition => ("{", "}"), // Diamond
+            WorkflowNodeType.Parallel => ("[[", "]]"), // Double-bordered rectangle
+            WorkflowNodeType.Loop => ("([", "])"), // Stadium/pill
+            WorkflowNodeType.HumanApproval => ("[/", "/]"), // Parallelogram
+            _ => ("[", "]"), // Default rectangle
         };
     }
 

@@ -12,14 +12,14 @@ using Polly.Timeout;
 namespace Dawning.Agents.Core.Resilience;
 
 /// <summary>
-/// 基于 Polly V8 的弹性策略提供者实现
+/// Polly V8-based resilience provider implementation.
 /// </summary>
 /// <remarks>
-/// 支持的策略（按执行顺序）：
-/// 1. 超时 (Timeout) - 最外层，限制总执行时间
-/// 2. 舱壁隔离 (Bulkhead) - 限制并发数
-/// 3. 重试 (Retry) - 失败后重试
-/// 4. 断路器 (CircuitBreaker) - 防止级联故障
+/// Supported strategies (in execution order):
+/// 1. Timeout - outermost layer, limits total execution time
+/// 2. Bulkhead isolation - limits concurrency
+/// 3. Retry - retries on failure
+/// 4. Circuit breaker - prevents cascading failures
 /// </remarks>
 public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
 {
@@ -38,7 +38,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
         var resilienceOptions = options.Value;
         _pipeline = BuildPipeline(resilienceOptions);
 
-        _logger.LogDebug("PollyResilienceProvider 已创建");
+        _logger.LogDebug("PollyResilienceProvider created");
     }
 
     public async Task<T> ExecuteAsync<T>(
@@ -74,7 +74,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
     {
         var builder = new ResiliencePipelineBuilder();
 
-        // 1. 超时策略（最外层）
+        // 1. Timeout strategy (outermost layer)
         if (options.Timeout.Enabled)
         {
             builder.AddTimeout(
@@ -84,7 +84,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     OnTimeout = args =>
                     {
                         _logger.LogWarning(
-                            "请求超时，超时时间: {Timeout}s",
+                            "Request timed out after {Timeout}s",
                             options.Timeout.TimeoutSeconds
                         );
                         return default;
@@ -93,7 +93,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
             );
         }
 
-        // 2. 舱壁隔离策略（并发限制）
+        // 2. Bulkhead isolation strategy (concurrency limiting)
         if (options.Bulkhead.Enabled)
         {
             _concurrencyLimiter = new ConcurrencyLimiter(
@@ -115,7 +115,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     OnRejected = args =>
                     {
                         _logger.LogWarning(
-                            "舱壁隔离：并发请求过多，已拒绝请求。当前限制: {MaxConcurrency}",
+                            "Bulkhead isolation: too many concurrent requests; request rejected. Current limit: {MaxConcurrency}",
                             options.Bulkhead.MaxConcurrency
                         );
                         return default;
@@ -124,13 +124,13 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
             );
 
             _logger.LogDebug(
-                "舱壁隔离已启用，最大并发: {MaxConcurrency}，最大排队: {MaxQueued}",
+                "Bulkhead isolation enabled, max concurrency: {MaxConcurrency}, max queued: {MaxQueued}",
                 options.Bulkhead.MaxConcurrency,
                 options.Bulkhead.MaxQueuedActions
             );
         }
 
-        // 3. 重试策略
+        // 3. Retry strategy
         if (options.Retry.Enabled)
         {
             builder.AddRetry(
@@ -152,7 +152,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     OnRetry = args =>
                     {
                         _logger.LogWarning(
-                            "请求失败，第 {AttemptNumber} 次重试，延迟 {RetryDelay}ms，异常: {Exception}",
+                            "Request failed, retry attempt {AttemptNumber}, delay {RetryDelay}ms, exception: {Exception}",
                             args.AttemptNumber,
                             args.RetryDelay.TotalMilliseconds,
                             args.Outcome.Exception?.Message ?? "Unknown"
@@ -163,7 +163,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
             );
         }
 
-        // 4. 断路器策略（最内层）
+        // 4. Circuit breaker strategy (innermost layer)
         if (options.CircuitBreaker.Enabled)
         {
             builder.AddCircuitBreaker(
@@ -183,7 +183,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     OnOpened = args =>
                     {
                         _logger.LogError(
-                            "断路器打开，断路时间: {BreakDuration}s，异常: {Exception}",
+                            "Circuit breaker opened, break duration: {BreakDuration}s, exception: {Exception}",
                             options.CircuitBreaker.BreakDurationSeconds,
                             args.Outcome.Exception?.Message ?? "Unknown"
                         );
@@ -191,12 +191,12 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
                     },
                     OnClosed = _ =>
                     {
-                        _logger.LogInformation("断路器关闭，服务恢复正常");
+                        _logger.LogInformation("Circuit breaker closed; service restored to normal");
                         return default;
                     },
                     OnHalfOpened = _ =>
                     {
-                        _logger.LogInformation("断路器半开，尝试恢复");
+                        _logger.LogInformation("Circuit breaker half-opened; attempting recovery");
                         return default;
                     },
                 }
@@ -207,7 +207,7 @@ public sealed class PollyResilienceProvider : IResilienceProvider, IDisposable
     }
 
     /// <summary>
-    /// 释放资源
+    /// Releases resources.
     /// </summary>
     public void Dispose()
     {

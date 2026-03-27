@@ -9,31 +9,31 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
-/// ILLMProvider 的依赖注入扩展
+/// Dependency injection extensions for <see cref="ILLMProvider"/>.
 /// </summary>
 /// <remarks>
-/// 此扩展支持 Ollama（本地 LLM）、OpenAI 和 Azure OpenAI。
-/// 根据配置中的 ProviderType 自动选择对应的 Provider。
+/// Supports Ollama (local LLM), OpenAI, and Azure OpenAI providers.
+/// Automatically selects the provider based on the configured <see cref="LLMOptions.ProviderType"/>.
 /// </remarks>
 public static class LLMServiceCollectionExtensions
 {
     /// <summary>
-    /// HttpClient 名称常量
+    /// The named <see cref="HttpClient"/> identifier used for Ollama.
     /// </summary>
     public const string OllamaHttpClientName = "Ollama";
 
     /// <summary>
-    /// 从 IConfiguration 添加 LLM Provider 服务
+    /// Registers the LLM provider services from an <see cref="IConfiguration"/> instance.
     /// </summary>
     /// <remarks>
-    /// <para>根据配置中的 ProviderType 自动选择 Provider:</para>
+    /// <para>Automatically selects the provider based on <see cref="LLMOptions.ProviderType"/>:</para>
     /// <list type="bullet">
-    ///   <item>Ollama - 本地 LLM</item>
+    ///   <item>Ollama – local LLM</item>
     ///   <item>OpenAI - OpenAI API</item>
     ///   <item>AzureOpenAI - Azure OpenAI Service</item>
     /// </list>
     /// <para>
-    /// appsettings.json 示例 (Ollama):
+    /// appsettings.json example (Ollama):
     /// <code>
     /// {
     ///   "LLM": {
@@ -45,7 +45,7 @@ public static class LLMServiceCollectionExtensions
     /// </code>
     /// </para>
     /// <para>
-    /// appsettings.json 示例 (OpenAI):
+    /// appsettings.json example (OpenAI):
     /// <code>
     /// {
     ///   "LLM": {
@@ -57,7 +57,7 @@ public static class LLMServiceCollectionExtensions
     /// </code>
     /// </para>
     /// <para>
-    /// appsettings.json 示例 (Azure OpenAI):
+    /// appsettings.json example (Azure OpenAI):
     /// <code>
     /// {
     ///   "LLM": {
@@ -75,20 +75,20 @@ public static class LLMServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        // 绑定配置
+        // Bind configuration
         services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
 
-        // 检查是否有配置，如果没有则回退到环境变量
+        // Fall back to environment variables when the configuration section is absent
         var section = configuration.GetSection(LLMOptions.SectionName);
         if (!section.Exists())
         {
             services.PostConfigure<LLMOptions>(ApplyEnvironmentVariables);
         }
 
-        // 注册 HttpClient（用于 Ollama）
+        // Register HttpClient for Ollama
         RegisterOllamaHttpClient(services);
 
-        // 注册 Provider（根据配置类型自动选择）
+        // Register the provider (auto-selected by configuration)
         services.TryAddSingleton<ILLMProvider>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
@@ -100,19 +100,19 @@ public static class LLMServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加支持热重载的 LLM Provider
+    /// Registers a hot-reloadable LLM provider that responds to configuration changes.
     /// </summary>
     /// <remarks>
-    /// <para>此方法注册的 Provider 会自动响应配置变化。</para>
-    /// <para>当 appsettings.json 中的 LLM 配置修改后，Provider 会自动重建。</para>
+    /// <para>The provider registered by this method automatically responds to configuration changes.</para>
+    /// <para>When the LLM section in appsettings.json is modified, the provider is automatically rebuilt.</para>
     /// <para>
-    /// 适用场景：
-    /// - 需要运行时切换模型
-    /// - 需要动态调整参数（如 Temperature）
-    /// - 开发/测试环境频繁修改配置
+    /// Use cases:
+    /// - Switching models at runtime
+    /// - Dynamically adjusting parameters (e.g., Temperature)
+    /// - Frequent configuration changes in development/test environments
     /// </para>
     /// <para>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "LLM": {
@@ -124,35 +124,35 @@ public static class LLMServiceCollectionExtensions
     /// </code>
     /// </para>
     /// </remarks>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddHotReloadableLLMProvider(
         this IServiceCollection services,
         IConfiguration configuration
     )
     {
-        // 绑定配置
+        // Bind configuration
         services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
 
-        // 检查是否有配置，如果没有则回退到环境变量
+        // Fall back to environment variables when the configuration section is absent
         var section = configuration.GetSection(LLMOptions.SectionName);
         if (!section.Exists())
         {
             services.PostConfigure<LLMOptions>(ApplyEnvironmentVariables);
         }
 
-        // 注册 HttpClient（用于 Ollama）
+        // Register HttpClient for Ollama
         RegisterOllamaHttpClient(services);
 
-        // 注册支持热重载的 Provider
+        // Register the hot-reloadable provider
         services.TryAddSingleton<ILLMProvider, HotReloadableLLMProvider>();
 
         return services;
     }
 
     /// <summary>
-    /// 添加 LLM Provider 服务（使用配置委托）
+    /// Registers the LLM provider services using a configuration delegate.
     /// </summary>
     public static IServiceCollection AddLLMProvider(
         this IServiceCollection services,
@@ -161,7 +161,7 @@ public static class LLMServiceCollectionExtensions
     {
         services.AddValidatedOptions(configure);
 
-        // 注册 HttpClient
+        // Register HttpClient
         RegisterOllamaHttpClient(services);
 
         services.TryAddSingleton<ILLMProvider>(sp =>
@@ -175,12 +175,12 @@ public static class LLMServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Ollama Provider（本地 LLM）
+    /// Registers the Ollama provider (local LLM).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="model">模型名称</param>
-    /// <param name="endpoint">Ollama 端点地址</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="model">The model name.</param>
+    /// <param name="endpoint">The Ollama endpoint URL.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddOllamaProvider("qwen2.5:0.5b");
@@ -215,7 +215,7 @@ public static class LLMServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 根据配置创建对应的 Provider
+    /// Creates the provider corresponding to the specified options.
     /// </summary>
     private static ILLMProvider CreateProvider(IServiceProvider sp, LLMOptions options)
     {
@@ -225,12 +225,12 @@ public static class LLMServiceCollectionExtensions
         {
             LLMProviderType.Ollama => CreateOllamaProvider(sp, options),
             LLMProviderType.OpenAI => throw new NotSupportedException(
-                "OpenAI Provider 已移至独立包。请安装 Dawning.Agents.OpenAI 并调用 services.AddOpenAIProvider(apiKey, model)"
+                "The OpenAI provider has been moved to a separate package. Install Dawning.Agents.OpenAI and call services.AddOpenAIProvider(apiKey, model)."
             ),
             LLMProviderType.AzureOpenAI => throw new NotSupportedException(
-                "Azure OpenAI Provider 已移至独立包。请安装 Dawning.Agents.Azure 并调用 services.AddAzureOpenAIProvider(endpoint, apiKey, deployment)"
+                "The Azure OpenAI provider has been moved to a separate package. Install Dawning.Agents.Azure and call services.AddAzureOpenAIProvider(endpoint, apiKey, deployment)."
             ),
-            _ => throw new NotSupportedException($"不支持的 Provider 类型: {options.ProviderType}"),
+            _ => throw new NotSupportedException($"Unsupported provider type: {options.ProviderType}"),
         };
     }
 
@@ -245,11 +245,11 @@ public static class LLMServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 应用环境变量到配置
+    /// Applies environment variables to the options.
     /// </summary>
     private static void ApplyEnvironmentVariables(LLMOptions options)
     {
-        // OpenAI 环境变量
+        // OpenAI environment variables
         var openaiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         if (!string.IsNullOrWhiteSpace(openaiKey) && string.IsNullOrWhiteSpace(options.ApiKey))
         {
@@ -259,7 +259,7 @@ public static class LLMServiceCollectionExtensions
             return;
         }
 
-        // Azure OpenAI 环境变量
+        // Azure OpenAI environment variables
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
         var azureKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
         if (!string.IsNullOrWhiteSpace(azureEndpoint) && !string.IsNullOrWhiteSpace(azureKey))
@@ -272,7 +272,7 @@ public static class LLMServiceCollectionExtensions
             return;
         }
 
-        // Ollama 环境变量（默认）
+        // Ollama environment variables (default)
         var ollamaEndpoint = Environment.GetEnvironmentVariable("OLLAMA_ENDPOINT");
         var ollamaModel = Environment.GetEnvironmentVariable("OLLAMA_MODEL");
 

@@ -4,7 +4,7 @@ using Dawning.Agents.Abstractions.Prompts;
 namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
-/// 简单的提示词模板实现，支持 {variable} 形式的占位符
+/// A simple prompt template implementation that supports <c>{variable}</c> placeholders.
 /// </summary>
 public partial class PromptTemplate : IPromptTemplate
 {
@@ -12,12 +12,12 @@ public partial class PromptTemplate : IPromptTemplate
     private static partial Regex PlaceholderRegex();
 
     /// <summary>
-    /// 模板名称
+    /// Gets the template name.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 模板内容（包含 {variable} 形式的占位符）
+    /// Gets the template content containing <c>{variable}</c> placeholders.
     /// </summary>
     public string Template { get; }
 
@@ -28,10 +28,10 @@ public partial class PromptTemplate : IPromptTemplate
     }
 
     /// <summary>
-    /// 格式化模板，替换占位符
+    /// Formats the template by replacing placeholders with the supplied variable values.
     /// </summary>
-    /// <param name="variables">变量字典，键为占位符名称，值为替换内容</param>
-    /// <returns>格式化后的字符串</returns>
+    /// <param name="variables">A dictionary of variables where keys are placeholder names and values are the replacement content.</param>
+    /// <returns>The formatted string.</returns>
     public string Format(IReadOnlyDictionary<string, object> variables)
     {
         if (variables == null || variables.Count == 0)
@@ -47,13 +47,13 @@ public partial class PromptTemplate : IPromptTemplate
                     var key = match.Groups[1].Value;
                     return variables.TryGetValue(key, out var value)
                         ? value?.ToString() ?? string.Empty
-                        : match.Value; // 保留未找到的占位符
+                        : match.Value; // Preserve unresolved placeholders
                 }
             );
     }
 
     /// <summary>
-    /// 创建提示词模板
+    /// Creates a new <see cref="PromptTemplate"/> instance.
     /// </summary>
     public static PromptTemplate Create(string name, string template) => new(name, template);
 }

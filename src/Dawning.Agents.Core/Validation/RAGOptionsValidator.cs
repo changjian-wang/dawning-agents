@@ -4,7 +4,7 @@ using FluentValidation;
 namespace Dawning.Agents.Core.Validation;
 
 /// <summary>
-/// RAG 配置选项验证器
+/// Validator for <see cref="RAGOptions"/>.
 /// </summary>
 public class RAGOptionsValidator : AbstractValidator<RAGOptions>
 {
@@ -12,28 +12,28 @@ public class RAGOptionsValidator : AbstractValidator<RAGOptions>
     {
         RuleFor(x => x.ChunkSize)
             .GreaterThan(0)
-            .WithMessage("ChunkSize 必须大于 0")
+            .WithMessage("ChunkSize must be greater than 0.")
             .LessThanOrEqualTo(10000)
-            .WithMessage("ChunkSize 不能超过 10000");
+            .WithMessage("ChunkSize must not exceed 10000.");
 
         RuleFor(x => x.ChunkOverlap)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("ChunkOverlap 不能为负数")
+            .WithMessage("ChunkOverlap must not be negative.")
             .LessThan(x => x.ChunkSize)
-            .WithMessage("ChunkOverlap 必须小于 ChunkSize");
+            .WithMessage("ChunkOverlap must be less than ChunkSize.");
 
         RuleFor(x => x.TopK)
             .GreaterThan(0)
-            .WithMessage("TopK 必须大于 0")
+            .WithMessage("TopK must be greater than 0.")
             .LessThanOrEqualTo(100)
-            .WithMessage("TopK 不能超过 100");
+            .WithMessage("TopK must not exceed 100.");
 
         RuleFor(x => x.MinScore)
             .InclusiveBetween(0f, 1f)
-            .WithMessage("MinScore 必须在 0.0 到 1.0 之间");
+            .WithMessage("MinScore must be between 0.0 and 1.0.");
 
-        RuleFor(x => x.EmbeddingModel).NotEmpty().WithMessage("EmbeddingModel 不能为空");
+        RuleFor(x => x.EmbeddingModel).NotEmpty().WithMessage("EmbeddingModel must not be empty.");
 
-        RuleFor(x => x.ContextTemplate).NotEmpty().WithMessage("ContextTemplate 不能为空");
+        RuleFor(x => x.ContextTemplate).NotEmpty().WithMessage("ContextTemplate must not be empty.");
     }
 }

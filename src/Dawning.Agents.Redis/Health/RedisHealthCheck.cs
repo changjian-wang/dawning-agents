@@ -6,7 +6,7 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis;
 
 /// <summary>
-/// Redis 连接健康检查
+/// Performs health checks for the Redis connection.
 /// </summary>
 public sealed class RedisHealthCheck : IHealthCheck
 {
@@ -35,14 +35,14 @@ public sealed class RedisHealthCheck : IHealthCheck
             return HealthCheckResult.Healthy(
                 string.Create(
                     CultureInfo.InvariantCulture,
-                    $"Redis 正常, Ping={pong.TotalMilliseconds}ms"
+                $"Redis healthy, Ping={pong.TotalMilliseconds}ms"
                 )
             );
         }
         catch (RedisConnectionException ex)
         {
-            _logger.LogError(ex, "RedisHealthCheck: 连接失败");
-            return HealthCheckResult.Unhealthy("Redis 连接失败", ex);
+            _logger.LogError(ex, "RedisHealthCheck: Connection failed");
+            return HealthCheckResult.Unhealthy("Redis connection failed", ex);
         }
     }
 }

@@ -11,11 +11,11 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Queue;
 
 /// <summary>
-/// 基于 Redis Streams 的分布式 Agent 队列
+/// A distributed agent queue backed by Redis Streams.
 /// </summary>
 /// <remarks>
-/// <para>使用 Redis Streams 实现高性能分布式队列</para>
-/// <para>支持消费者组、消息确认、死信队列等特性</para>
+/// <para>Uses Redis Streams for high-performance distributed queuing.</para>
+/// <para>Supports consumer groups, message acknowledgment, dead-letter queues, and more.</para>
 /// </remarks>
 public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 {
@@ -49,7 +49,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     public bool CanWrite => !_disposed;
 
     /// <summary>
-    /// 初始化 Redis Agent 队列
+    /// Initializes a new instance of the <see cref="RedisAgentQueue"/> class.
     /// </summary>
     public RedisAgentQueue(
         IConnectionMultiplexer connection,
@@ -72,7 +72,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     }
 
     /// <summary>
-    /// 确保消费者组已创建
+    /// Ensures the consumer group has been created.
     /// </summary>
     private async Task EnsureInitializedAsync(CancellationToken cancellationToken = default)
     {
@@ -91,7 +91,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             try
             {
-                // 尝试创建消费者组，如果已存在则忽略错误
+                // Try to create the consumer group; ignore error if it already exists
                 await _database
                     .StreamCreateConsumerGroupAsync(_queueKey, _options.ConsumerGroup, "0-0", true)
                     .ConfigureAwait(false);
@@ -105,7 +105,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             catch (RedisServerException ex)
                 when (ex.Message.Contains("BUSYGROUP", StringComparison.Ordinal))
             {
-                // 消费者组已存在，忽略
+                // Consumer group already exists, ignore
                 _logger.LogDebug("Consumer group {Group} already exists", _options.ConsumerGroup);
             }
 
@@ -155,7 +155,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         {
             if (delay.HasValue)
             {
-                // 使用 Sorted Set 实现延迟队列
+                // Use Sorted Set for delayed queue
                 var delayKey = $"{_queueKey}:delayed";
                 var executeAt = DateTimeOffset.UtcNow.Add(delay.Value).ToUnixTimeMilliseconds();
                 await _database
@@ -207,10 +207,10 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
         try
         {
-            // 先处理延迟队列中到期的消息
+            // First, process expired messages from the delayed queue
             await ProcessDelayedMessagesAsync(cancellationToken).ConfigureAwait(false);
 
-            // 从 Stream 读取消息
+            // Read messages from the Stream
             var entries = await _database
                 .StreamReadGroupAsync(_queueKey, _options.ConsumerGroup, _consumerName, ">", 1)
                 .ConfigureAwait(false);
@@ -225,7 +225,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             if (data.IsNullOrEmpty)
             {
-                // ACK 损坏的消息并移入死信队列
+                // ACK corrupted message and move to dead-letter queue
                 await _database
                     .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.Id)
                     .ConfigureAwait(false);
@@ -242,7 +242,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
             var message = JsonSerializer.Deserialize<DistributedQueueMessage>(data.ToString());
             if (message == null)
             {
-                // ACK 损坏的消息并移入死信队列
+                // ACK corrupted message and move to dead-letter queue
                 await _database
                     .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.Id)
                     .ConfigureAwait(false);
@@ -256,7 +256,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 return null;
             }
 
-            // 记录 messageId → (streamId, data) 映射，供 AcknowledgeAsync/RequeueAsync 使用
+            // Record messageId -> (streamId, data) mapping for AcknowledgeAsync/RequeueAsync
             _messageIdToStreamEntry[message.MessageId] = (entry.Id, data.ToString());
 
             _logger.LogDebug(
@@ -276,14 +276,14 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理延迟队列中到期的消息
+    /// Processes expired messages from the delayed queue.
     /// </summary>
     private async Task ProcessDelayedMessagesAsync(CancellationToken cancellationToken = default)
     {
         var delayKey = $"{_queueKey}:delayed";
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        // 获取所有到期的消息
+        // Get all expired messages
         var entries = await _database
             .SortedSetRangeByScoreAsync(delayKey, 0, now, take: 10)
             .ConfigureAwait(false);
@@ -291,7 +291,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 移动到主队列
+            // Move to the main queue
             var removed = await _database
                 .SortedSetRemoveAsync(delayKey, entry)
                 .ConfigureAwait(false);
@@ -355,7 +355,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
         try
         {
-            // 先确认原消息，防止 PEL 积压
+            // Acknowledge the original message first, to prevent PEL buildup
             if (!_messageIdToStreamEntry.TryRemove(messageId, out var entry))
             {
                 _logger.LogWarning("Cannot requeue unknown message {MessageId}", messageId);
@@ -366,7 +366,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
                 .StreamAcknowledgeAsync(_queueKey, _options.ConsumerGroup, entry.StreamId)
                 .ConfigureAwait(false);
 
-            // 反序列化以递增 RetryCount，检查是否超过上限
+            // Deserialize to increment RetryCount and check if max retries exceeded
             var message = JsonSerializer.Deserialize<DistributedQueueMessage>(entry.Data);
             if (message != null)
             {
@@ -385,7 +385,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
 
             var requeueData = message != null ? JsonSerializer.Serialize(message) : entry.Data;
 
-            // 重新入队
+            // Re-enqueue
             if (delay.HasValue)
             {
                 var delayKey = $"{_queueKey}:delayed";
@@ -471,7 +471,7 @@ public sealed class RedisAgentQueue : IDistributedAgentQueue, IAsyncDisposable
         }
         catch (RedisServerException)
         {
-            // Stream 不存在
+            // Stream does not exist
             return 0;
         }
     }

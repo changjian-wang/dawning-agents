@@ -7,14 +7,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 模型路由器基类
+/// Base class for model routers.
 /// </summary>
 /// <remarks>
-/// 提供公共功能：
+/// Provides common functionality:
 /// <list type="bullet">
-///   <item>提供者管理</item>
-///   <item>统计信息收集</item>
-///   <item>健康状态追踪</item>
+///   <item>Provider management</item>
+///   <item>Statistics collection</item>
+///   <item>Health status tracking</item>
 /// </list>
 /// </remarks>
 public abstract class ModelRouterBase : IModelRouter
@@ -42,7 +42,7 @@ public abstract class ModelRouterBase : IModelRouter
             throw new ArgumentException("At least one provider is required", nameof(providers));
         }
 
-        // 初始化统计信息和健康状态
+        // Initialize statistics and health status
         foreach (var provider in _providers)
         {
             _statistics[provider.Name] = new ModelStatistics { ProviderName = provider.Name };
@@ -50,7 +50,7 @@ public abstract class ModelRouterBase : IModelRouter
         }
 
         _logger.LogInformation(
-            "ModelRouter {Name} 初始化，提供者数量: {Count}",
+            "ModelRouter {Name} initialized with {Count} providers",
             Name,
             _providers.Count
         );
@@ -73,7 +73,7 @@ public abstract class ModelRouterBase : IModelRouter
 
         var name = provider.Name;
 
-        // 更新统计信息
+        // Update statistics
         if (_statistics.TryGetValue(name, out var stats))
         {
             if (result.Success)
@@ -91,7 +91,7 @@ public abstract class ModelRouterBase : IModelRouter
             }
         }
 
-        // 更新健康状态
+        // Update health status
         if (_healthStatus.TryGetValue(name, out var health))
         {
             lock (health)
@@ -107,7 +107,7 @@ public abstract class ModelRouterBase : IModelRouter
                     )
                     {
                         health.IsHealthy = true;
-                        _logger.LogInformation("提供者 {Provider} 已恢复健康", name);
+                        _logger.LogInformation("Provider {Provider} has recovered to healthy", name);
                     }
                 }
                 else
@@ -124,7 +124,7 @@ public abstract class ModelRouterBase : IModelRouter
                     {
                         health.IsHealthy = false;
                         _logger.LogWarning(
-                            "提供者 {Provider} 被标记为不健康，连续失败 {Failures} 次: {Error}",
+                            "Provider {Provider} marked unhealthy after {Failures} consecutive failures: {Error}",
                             name,
                             health.ConsecutiveFailures,
                             result.Error
@@ -136,7 +136,7 @@ public abstract class ModelRouterBase : IModelRouter
     }
 
     /// <summary>
-    /// 获取提供者统计信息
+    /// Gets provider statistics.
     /// </summary>
     public ModelStatistics? GetStatistics(string providerName)
     {
@@ -144,7 +144,7 @@ public abstract class ModelRouterBase : IModelRouter
     }
 
     /// <summary>
-    /// 获取所有统计信息
+    /// Gets all statistics.
     /// </summary>
     public IReadOnlyDictionary<string, ModelStatistics> GetAllStatistics()
     {
@@ -152,7 +152,7 @@ public abstract class ModelRouterBase : IModelRouter
     }
 
     /// <summary>
-    /// 检查提供者是否健康
+    /// Checks whether a provider is healthy.
     /// </summary>
     protected bool IsProviderHealthy(string providerName)
     {
@@ -160,7 +160,7 @@ public abstract class ModelRouterBase : IModelRouter
     }
 
     /// <summary>
-    /// 获取健康的提供者列表
+    /// Gets the list of healthy providers.
     /// </summary>
     protected IReadOnlyList<ILLMProvider> GetHealthyProviders(ModelRoutingContext context)
     {
@@ -171,7 +171,7 @@ public abstract class ModelRouterBase : IModelRouter
     }
 
     /// <summary>
-    /// 提供者健康状态
+    /// Provider health status.
     /// </summary>
     protected class ProviderHealth
     {

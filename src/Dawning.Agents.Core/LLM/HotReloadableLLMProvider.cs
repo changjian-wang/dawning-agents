@@ -7,24 +7,24 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
-/// 支持配置热重载的 LLM Provider 装饰器
+/// A decorator for <see cref="ILLMProvider"/> that supports configuration hot-reload.
 /// </summary>
 /// <remarks>
 /// <para>
-/// 此装饰器包装 <see cref="ILLMProvider"/>，监听配置变化并自动重建 Provider 实例。
+/// This decorator wraps an <see cref="ILLMProvider"/>, monitors configuration changes, and automatically rebuilds the provider instance.
 /// </para>
 /// <para>
-/// 适用于需要运行时修改 LLM 配置的场景：
-/// - 切换模型（如从 qwen2.5:0.5b 切换到 qwen2.5:7b）
-/// - 调整默认参数（Temperature、MaxTokens 等）
-/// - 更换 Endpoint 地址
+/// Suitable for scenarios that require modifying LLM configuration at runtime:
+/// - Switching models (e.g., from qwen2.5:0.5b to qwen2.5:7b)
+/// - Adjusting default parameters (Temperature, MaxTokens, etc.)
+/// - Changing the endpoint URL
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
 /// services.AddHotReloadableLLMProvider(configuration);
 ///
-/// // 修改 appsettings.json 后，Provider 会自动更新
+/// // After modifying appsettings.json, the provider is automatically updated
 /// </code>
 /// </example>
 public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
@@ -40,7 +40,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 配置变化时触发的事件
+    /// Occurs when the LLM configuration changes.
     /// </summary>
     public event EventHandler<LLMOptions>? ConfigurationChanged;
 
@@ -59,13 +59,13 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<HotReloadableLLMProvider>();
 
-        // 创建初始 Provider
+        // Create the initial provider
         _innerProvider = CreateProvider(optionsMonitor.CurrentValue);
 
-        // 监听配置变化
+        // Listen for configuration changes
         _changeTokenRegistration = optionsMonitor.OnChange(OnOptionsChanged);
 
-        _logger.LogInformation("HotReloadableLLMProvider 已初始化，Provider: {Provider}", Name);
+        _logger.LogInformation("HotReloadableLLMProvider initialized, Provider: {Provider}", Name);
     }
 
     public Task<ChatCompletionResponse> ChatAsync(
@@ -109,7 +109,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         }
 
         _logger.LogInformation(
-            "LLM 配置已变更，正在重建 Provider，新配置: Model={Model}, ProviderType={ProviderType}",
+            "LLM configuration changed, rebuilding provider. New configuration: Model={Model}, ProviderType={ProviderType}",
             newOptions.Model,
             newOptions.ProviderType
         );
@@ -128,7 +128,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
                 var oldProvider = _innerProvider;
                 _innerProvider = CreateProvider(newOptions);
 
-                // 延迟释放旧 Provider，避免并发请求仍在使用旧实例时触发 ObjectDisposedException
+                // Defer disposal of the old provider to avoid ObjectDisposedException for in-flight requests
                 if (oldProvider is IDisposable disposable)
                 {
                     _retiredProviders.Add(disposable);
@@ -137,7 +137,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             }
 
             _logger.LogInformation(
-                "LLM Provider 已重建成功，新 Provider: {Provider}",
+                "LLM provider rebuilt successfully, new Provider: {Provider}",
                 _innerProvider.Name
             );
 
@@ -147,12 +147,12 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             }
             catch (Exception eventEx)
             {
-                _logger.LogWarning(eventEx, "ConfigurationChanged 事件处理器抛出异常");
+                _logger.LogWarning(eventEx, "ConfigurationChanged event handler threw an exception");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "重建 LLM Provider 失败，将继续使用旧 Provider");
+            _logger.LogError(ex, "Failed to rebuild LLM provider; continuing with the existing provider");
         }
     }
 
@@ -161,8 +161,8 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         if (options.ProviderType != LLMProviderType.Ollama)
         {
             throw new InvalidOperationException(
-                $"HotReloadableLLMProvider 仅支持 Ollama Provider。"
-                    + $"对于 {options.ProviderType}，请使用对应的扩展包。"
+                $"HotReloadableLLMProvider only supports the Ollama provider. "
+                    + $"For {options.ProviderType}, use the corresponding extension package."
             );
         }
 
@@ -180,14 +180,14 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
     {
         try
         {
-            // 等待足够长的时间让正在进行的请求完成
+            // Wait long enough for in-flight requests to complete
             await Task.Delay(TimeSpan.FromSeconds(30), _gracePeriodCts.Token).ConfigureAwait(false);
 
             lock (_lock)
             {
                 if (_disposed)
                 {
-                    // 已通过 Dispose() 统一清理，无需重复释放
+                    // Already cleaned up by Dispose(); no need to dispose again
                     return;
                 }
 
@@ -195,7 +195,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             }
 
             disposable.Dispose();
-            _logger.LogDebug("已释放旧 LLM Provider 实例");
+            _logger.LogDebug("Disposed old LLM provider instance");
         }
         catch (OperationCanceledException)
         {
@@ -203,7 +203,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "释放旧 LLM Provider 实例时出错");
+            _logger.LogWarning(ex, "Error disposing old LLM provider instance");
         }
     }
 
@@ -237,7 +237,7 @@ public sealed class HotReloadableLLMProvider : ILLMProvider, IDisposable
             _retiredProviders.Clear();
             _gracePeriodCts.Dispose();
 
-            _logger.LogDebug("HotReloadableLLMProvider 已释放");
+            _logger.LogDebug("HotReloadableLLMProvider disposed");
         }
     }
 }

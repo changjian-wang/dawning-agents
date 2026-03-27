@@ -3,7 +3,7 @@ namespace Dawning.Agents.Core.Observability;
 using System.Collections.Concurrent;
 
 /// <summary>
-/// 为日志提供上下文信息
+/// Provides contextual information for logging.
 /// </summary>
 public sealed class LogContext : IDisposable
 {
@@ -12,7 +12,7 @@ public sealed class LogContext : IDisposable
     private readonly LogContext? _parent;
 
     /// <summary>
-    /// 当前日志上下文
+    /// Gets the current log context.
     /// </summary>
     public static LogContext? Current => s_current.Value;
 
@@ -22,7 +22,7 @@ public sealed class LogContext : IDisposable
     }
 
     /// <summary>
-    /// 推入新的日志上下文作用域
+    /// Pushes a new log context scope.
     /// </summary>
     public static LogContext Push()
     {
@@ -32,7 +32,7 @@ public sealed class LogContext : IDisposable
     }
 
     /// <summary>
-    /// 设置上下文属性
+    /// Sets a context property.
     /// </summary>
     public LogContext Set(string key, object value)
     {
@@ -41,7 +41,7 @@ public sealed class LogContext : IDisposable
     }
 
     /// <summary>
-    /// 获取上下文属性
+    /// Gets a context property.
     /// </summary>
     public object? Get(string key)
     {
@@ -54,13 +54,13 @@ public sealed class LogContext : IDisposable
     }
 
     /// <summary>
-    /// 获取包括父上下文的所有属性
+    /// Gets all properties including those from parent contexts.
     /// </summary>
     public IDictionary<string, object> GetAllProperties()
     {
         var result = new Dictionary<string, object>();
 
-        // 首先获取父上下文属性
+        // Get parent context properties first
         if (_parent != null)
         {
             foreach (var (key, value) in _parent.GetAllProperties())
@@ -69,7 +69,7 @@ public sealed class LogContext : IDisposable
             }
         }
 
-        // 用当前上下文覆盖
+        // Override with current context
         foreach (var (key, value) in _properties)
         {
             result[key] = value;
@@ -86,36 +86,36 @@ public sealed class LogContext : IDisposable
 }
 
 /// <summary>
-/// 日志上下文扩展
+/// Extension methods for <see cref="LogContext"/>.
 /// </summary>
 public static class LogContextExtensions
 {
     /// <summary>
-    /// 设置请求 ID
+    /// Sets the request ID.
     /// </summary>
     public static LogContext WithRequestId(this LogContext context, string requestId) =>
         context.Set("RequestId", requestId);
 
     /// <summary>
-    /// 设置 Agent 名称
+    /// Sets the agent name.
     /// </summary>
     public static LogContext WithAgentName(this LogContext context, string agentName) =>
         context.Set("AgentName", agentName);
 
     /// <summary>
-    /// 设置用户 ID
+    /// Sets the user ID.
     /// </summary>
     public static LogContext WithUserId(this LogContext context, string userId) =>
         context.Set("UserId", userId);
 
     /// <summary>
-    /// 设置会话 ID
+    /// Sets the session ID.
     /// </summary>
     public static LogContext WithSessionId(this LogContext context, string sessionId) =>
         context.Set("SessionId", sessionId);
 
     /// <summary>
-    /// 设置关联 ID
+    /// Sets the correlation ID.
     /// </summary>
     public static LogContext WithCorrelationId(this LogContext context, string correlationId) =>
         context.Set("CorrelationId", correlationId);

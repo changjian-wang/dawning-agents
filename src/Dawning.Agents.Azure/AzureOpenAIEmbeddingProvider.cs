@@ -8,12 +8,12 @@ using OpenAI.Embeddings;
 namespace Dawning.Agents.Azure;
 
 /// <summary>
-/// Azure OpenAI Embedding 提供者
+/// Azure OpenAI embedding provider implementation.
 /// </summary>
 /// <remarks>
-/// 支持 Azure OpenAI Service 部署的嵌入模型。
+/// Supports embedding models deployed on Azure OpenAI Service.
 ///
-/// 配置示例:
+/// Configuration example:
 /// <code>
 /// {
 ///   "LLM": {
@@ -21,7 +21,7 @@ namespace Dawning.Agents.Azure;
 ///     "ApiKey": "your-api-key"
 ///   },
 ///   "RAG": {
-///     "EmbeddingModel": "text-embedding-deployment"  // 部署名称
+///     "EmbeddingModel": "text-embedding-deployment"  // Deployment name
 ///   }
 /// }
 /// </code>
@@ -38,13 +38,13 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
     public int Dimensions => _dimensions;
 
     /// <summary>
-    /// 创建 Azure OpenAI Embedding Provider
+    /// Initializes a new instance of the <see cref="AzureOpenAIEmbeddingProvider"/> class.
     /// </summary>
-    /// <param name="endpoint">Azure OpenAI 端点 URL</param>
-    /// <param name="apiKey">Azure OpenAI API Key</param>
-    /// <param name="deploymentName">嵌入模型部署名称</param>
-    /// <param name="dimensions">向量维度（默认 1536）</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
+    /// <param name="apiKey">The Azure OpenAI API key.</param>
+    /// <param name="deploymentName">The embedding model deployment name.</param>
+    /// <param name="dimensions">The vector dimensions. Defaults to 1536.</param>
+    /// <param name="logger">The logger instance.</param>
     public AzureOpenAIEmbeddingProvider(
         string endpoint,
         string apiKey,
@@ -64,7 +64,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
         var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
         _embeddingClient = client.GetEmbeddingClient(deploymentName);
         _logger.LogDebug(
-            "AzureOpenAIEmbeddingProvider 已创建，端点: {Endpoint}，部署: {Deployment}，维度: {Dimensions}",
+            "AzureOpenAIEmbeddingProvider created, endpoint: {Endpoint}, deployment: {Deployment}, dimensions: {Dimensions}",
             endpoint,
             deploymentName,
             dimensions
@@ -72,7 +72,8 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 使用自定义 EmbeddingClient 创建 Provider（用于测试）
+    /// Initializes a new instance of the <see cref="AzureOpenAIEmbeddingProvider"/> class
+    /// with a custom <see cref="EmbeddingClient"/> for testing.
     /// </summary>
     internal AzureOpenAIEmbeddingProvider(
         EmbeddingClient embeddingClient,
@@ -117,7 +118,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
             return Array.Empty<float[]>();
         }
 
-        // 过滤空文本，记录原始索引
+        // Filter empty texts and record original indices
         var validTexts = new List<(int Index, string Text)>();
         for (int i = 0; i < textList.Count; i++)
         {
@@ -127,13 +128,13 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
             }
         }
 
-        // 所有文本都为空
+        // All texts are empty
         if (validTexts.Count == 0)
         {
             return textList.Select(_ => new float[_dimensions]).ToList();
         }
 
-        // 批量调用 API
+        // Batch API call
         var result = await _embeddingClient
             .GenerateEmbeddingsAsync(
                 validTexts.Select(v => v.Text).ToList(),
@@ -141,14 +142,14 @@ public sealed class AzureOpenAIEmbeddingProvider : IEmbeddingProvider
             )
             .ConfigureAwait(false);
 
-        // 构建结果数组
+        // Build result array
         var embeddings = new float[textList.Count][];
         for (int i = 0; i < textList.Count; i++)
         {
             embeddings[i] = new float[_dimensions];
         }
 
-        // 填充有效结果
+        // Fill in valid results
         for (int i = 0; i < validTexts.Count; i++)
         {
             embeddings[validTexts[i].Index] = result.Value[i].ToFloats().ToArray();

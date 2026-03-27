@@ -3,7 +3,7 @@ namespace Dawning.Agents.MCP.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// MCP 服务器能力声明
+/// Represents the MCP server capabilities declaration.
 /// </summary>
 public sealed class MCPServerCapabilities
 {
@@ -21,7 +21,7 @@ public sealed class MCPServerCapabilities
 }
 
 /// <summary>
-/// 工具能力
+/// Represents the tools capability.
 /// </summary>
 public sealed class ToolsCapability
 {
@@ -30,7 +30,7 @@ public sealed class ToolsCapability
 }
 
 /// <summary>
-/// 资源能力
+/// Represents the resources capability.
 /// </summary>
 public sealed class ResourcesCapability
 {
@@ -42,7 +42,7 @@ public sealed class ResourcesCapability
 }
 
 /// <summary>
-/// 提示词能力
+/// Represents the prompts capability.
 /// </summary>
 public sealed class PromptsCapability
 {
@@ -51,12 +51,12 @@ public sealed class PromptsCapability
 }
 
 /// <summary>
-/// 日志能力
+/// Represents the logging capability.
 /// </summary>
 public sealed class LoggingCapability { }
 
 /// <summary>
-/// MCP 客户端能力声明
+/// Represents the MCP client capabilities declaration.
 /// </summary>
 public sealed class MCPClientCapabilities
 {
@@ -68,7 +68,7 @@ public sealed class MCPClientCapabilities
 }
 
 /// <summary>
-/// 根目录能力
+/// Represents the roots capability.
 /// </summary>
 public sealed class RootsCapability
 {
@@ -77,12 +77,12 @@ public sealed class RootsCapability
 }
 
 /// <summary>
-/// 采样能力
+/// Represents the sampling capability.
 /// </summary>
 public sealed class SamplingCapability { }
 
 /// <summary>
-/// MCP 服务器信息
+/// Represents MCP server information.
 /// </summary>
 public sealed class MCPServerInfo
 {
@@ -94,7 +94,7 @@ public sealed class MCPServerInfo
 }
 
 /// <summary>
-/// MCP 客户端信息
+/// Represents MCP client information.
 /// </summary>
 public sealed class MCPClientInfo
 {
@@ -106,7 +106,7 @@ public sealed class MCPClientInfo
 }
 
 /// <summary>
-/// 初始化请求参数
+/// Represents the initialization request parameters.
 /// </summary>
 public sealed class InitializeParams
 {
@@ -121,7 +121,7 @@ public sealed class InitializeParams
 }
 
 /// <summary>
-/// 初始化响应结果
+/// Represents the initialization response result.
 /// </summary>
 public sealed class InitializeResult
 {

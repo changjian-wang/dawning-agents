@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 内存实现的工具使用追踪器
+/// In-memory tool usage tracker implementation.
 /// </summary>
 public sealed class InMemoryToolUsageTracker : IToolUsageTracker
 {
@@ -18,10 +18,10 @@ public sealed class InMemoryToolUsageTracker : IToolUsageTracker
     private readonly int _maxRecentErrors;
 
     /// <summary>
-    /// 创建内存工具使用追踪器
+    /// Creates an in-memory tool usage tracker.
     /// </summary>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="maxRecentErrors">保留的最近错误条数</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="maxRecentErrors">The maximum number of recent errors to retain.</param>
     public InMemoryToolUsageTracker(
         ILogger<InMemoryToolUsageTracker>? logger = null,
         int maxRecentErrors = 10
@@ -99,7 +99,7 @@ public sealed class InMemoryToolUsageTracker : IToolUsageTracker
     }
 
     /// <summary>
-    /// 线程安全的统计累加器
+    /// Thread-safe statistics accumulator.
     /// </summary>
     private sealed class ToolUsageAccumulator
     {

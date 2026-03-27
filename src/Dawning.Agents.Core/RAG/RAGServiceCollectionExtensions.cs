@@ -10,21 +10,21 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// RAG 服务的 DI 扩展方法
+/// Dependency injection extension methods for RAG services.
 /// </summary>
 public static class RAGServiceCollectionExtensions
 {
     /// <summary>
-    /// Ollama Embedding HttpClient 名称
+    /// The named HttpClient identifier for Ollama embedding.
     /// </summary>
     public const string OllamaEmbeddingHttpClientName = "OllamaEmbedding";
 
     /// <summary>
-    /// 添加 RAG 服务（使用内存向量存储和简单嵌入）
+    /// Adds RAG services with in-memory vector store and simple embedding.
     /// </summary>
     /// <remarks>
-    /// 适用于开发和测试场景。
-    /// 生产环境应使用外部向量数据库和 LLM Embedding API。
+    /// Suitable for development and testing scenarios.
+    /// Production environments should use an external vector database and LLM embedding API.
     /// </remarks>
     public static IServiceCollection AddRAG(this IServiceCollection services)
     {
@@ -38,7 +38,7 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 RAG 服务（使用配置）
+    /// Adds RAG services with the specified configuration.
     /// </summary>
     public static IServiceCollection AddRAG(
         this IServiceCollection services,
@@ -50,7 +50,7 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 RAG 服务（使用自定义配置）
+    /// Adds RAG services with a custom configuration delegate.
     /// </summary>
     public static IServiceCollection AddRAG(
         this IServiceCollection services,
@@ -62,17 +62,17 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Embedding Provider（根据 LLM 配置自动选择）
+    /// Adds an embedding provider selected automatically based on LLM configuration.
     /// </summary>
     /// <remarks>
-    /// <para>根据 LLMOptions.ProviderType 自动选择 Embedding Provider:</para>
+    /// <para>Automatically selects an embedding provider based on <see cref="LLMOptions.ProviderType"/>:</para>
     /// <list type="bullet">
     ///   <item>Ollama - OllamaEmbeddingProvider</item>
     ///   <item>OpenAI - OpenAIEmbeddingProvider</item>
     ///   <item>AzureOpenAI - AzureOpenAIEmbeddingProvider</item>
     /// </list>
     /// <para>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "LLM": {
@@ -91,14 +91,14 @@ public static class RAGServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        // 绑定配置
+        // Bind configuration
         services.AddValidatedOptions<LLMOptions>(configuration, LLMOptions.SectionName);
         services.AddValidatedOptions<RAGOptions>(configuration, RAGOptions.SectionName);
 
-        // 注册 HttpClient（用于 Ollama）
+        // Register HttpClient for Ollama
         RegisterOllamaEmbeddingHttpClient(services);
 
-        // 注册 Embedding Provider
+        // Register embedding provider
         services.TryAddSingleton<IEmbeddingProvider>(sp =>
         {
             var llmOptions = sp.GetRequiredService<IOptions<LLMOptions>>().Value;
@@ -111,11 +111,11 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Ollama Embedding Provider
+    /// Adds the Ollama embedding provider.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="model">嵌入模型名称</param>
-    /// <param name="endpoint">Ollama 端点</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="model">The embedding model name.</param>
+    /// <param name="endpoint">The Ollama endpoint URL.</param>
     public static IServiceCollection AddOllamaEmbedding(
         this IServiceCollection services,
         string model = "nomic-embed-text",
@@ -143,7 +143,7 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加内存向量存储
+    /// Adds the in-memory vector store.
     /// </summary>
     public static IServiceCollection AddInMemoryVectorStore(this IServiceCollection services)
     {
@@ -152,10 +152,10 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加简单嵌入提供者
+    /// Adds the simple embedding provider.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="dimensions">向量维度（默认 384）</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="dimensions">The vector dimensions (default: 384).</param>
     public static IServiceCollection AddSimpleEmbedding(
         this IServiceCollection services,
         int dimensions = 384
@@ -169,7 +169,7 @@ public static class RAGServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加知识库
+    /// Adds the knowledge base.
     /// </summary>
     public static IServiceCollection AddKnowledgeBase(this IServiceCollection services)
     {
@@ -207,13 +207,13 @@ public static class RAGServiceCollectionExtensions
         {
             LLMProviderType.Ollama => CreateOllamaEmbeddingProvider(sp, model, loggerFactory),
             LLMProviderType.OpenAI => throw new NotSupportedException(
-                "OpenAI Embedding 已移至独立包。请安装 Dawning.Agents.OpenAI 并调用 services.AddOpenAIEmbedding(apiKey, model)"
+                "OpenAI embedding has been moved to a separate package. Install Dawning.Agents.OpenAI and call services.AddOpenAIEmbedding(apiKey, model)."
             ),
             LLMProviderType.AzureOpenAI => throw new NotSupportedException(
-                "Azure OpenAI Embedding 已移至独立包。请安装 Dawning.Agents.Azure 并调用 services.AddAzureOpenAIEmbedding(endpoint, apiKey, deployment)"
+                "Azure OpenAI embedding has been moved to a separate package. Install Dawning.Agents.Azure and call services.AddAzureOpenAIEmbedding(endpoint, apiKey, deployment)."
             ),
             _ => throw new NotSupportedException(
-                $"不支持的 Provider 类型: {llmOptions.ProviderType}"
+                $"Unsupported provider type: {llmOptions.ProviderType}"
             ),
         };
     }

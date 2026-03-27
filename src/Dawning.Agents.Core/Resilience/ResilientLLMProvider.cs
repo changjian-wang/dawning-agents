@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Resilience;
 
 /// <summary>
-/// 带弹性策略的 LLM Provider 装饰器
+/// Resilient LLM provider decorator.
 /// </summary>
 /// <remarks>
-/// 包装 ILLMProvider，为所有调用添加重试、断路器、超时等弹性策略。
+/// Wraps <see cref="ILLMProvider"/> to apply retry, circuit breaker, timeout, and other resilience strategies to all calls.
 /// </remarks>
 public class ResilientLLMProvider : ILLMProvider
 {
@@ -31,7 +31,7 @@ public class ResilientLLMProvider : ILLMProvider
             resilienceProvider ?? throw new ArgumentNullException(nameof(resilienceProvider));
         _logger = logger ?? NullLogger<ResilientLLMProvider>.Instance;
 
-        _logger.LogDebug("ResilientLLMProvider 包装 {InnerProvider}", innerProvider.Name);
+        _logger.LogDebug("ResilientLLMProvider wrapping {InnerProvider}", innerProvider.Name);
     }
 
     public async Task<ChatCompletionResponse> ChatAsync(
@@ -40,7 +40,7 @@ public class ResilientLLMProvider : ILLMProvider
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("通过弹性策略执行 ChatAsync");
+        _logger.LogDebug("Executing ChatAsync with resilience strategy");
 
         return await _resilienceProvider
             .ExecuteAsync(
@@ -57,10 +57,11 @@ public class ResilientLLMProvider : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("通过弹性策略执行 ChatStreamAsync");
+        _logger.LogDebug("Executing ChatStreamAsync with resilience strategy");
 
-        // 流式响应特殊处理：在弹性策略内探测首个元素以检测连接/认证错误，
-        // 一旦流开始，后续元素不再受弹性策略保护（无法重试部分流）
+        // Streaming responses require special handling: probe the first element inside the
+        // resilience strategy to detect connection/authentication errors. Once the stream starts,
+        // subsequent elements are not protected by the resilience strategy (partial streams cannot be retried).
         IAsyncEnumerator<string>? enumerator = null;
         string? firstElement = null;
         var hasFirst = false;
@@ -71,7 +72,7 @@ public class ResilientLLMProvider : ILLMProvider
                 .ExecuteAsync(
                     async ct =>
                     {
-                        // 重试时释放前一次的枚举器
+                        // Dispose the previous enumerator on retry
                         if (enumerator is not null)
                         {
                             await enumerator.DisposeAsync().ConfigureAwait(false);
@@ -85,8 +86,8 @@ public class ResilientLLMProvider : ILLMProvider
                         );
                         enumerator = stream.GetAsyncEnumerator(cancellationToken);
 
-                        // 探测首个元素：MoveNextAsync 触发实际 I/O（HTTP 连接、认证等），
-                        // 通过 WaitAsync(ct) 让 Polly 超时策略可以中断探测
+                        // Probe the first element: MoveNextAsync triggers actual I/O (HTTP connection, authentication, etc.);
+                        // WaitAsync(ct) allows the Polly timeout strategy to interrupt the probe
                         hasFirst = await enumerator
                             .MoveNextAsync()
                             .AsTask()
@@ -106,13 +107,13 @@ public class ResilientLLMProvider : ILLMProvider
                 yield break;
             }
 
-            // 输出已探测的首个元素
+            // Yield the probed first element
             if (hasFirst)
             {
                 yield return firstElement!;
             }
 
-            // 继续迭代剩余元素
+            // Continue iterating remaining elements
             while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 yield return enumerator.Current;
@@ -133,7 +134,7 @@ public class ResilientLLMProvider : ILLMProvider
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("通过弹性策略执行 ChatStreamEventsAsync");
+        _logger.LogDebug("Executing ChatStreamEventsAsync with resilience strategy");
 
         IAsyncEnumerator<StreamingChatEvent>? enumerator = null;
         StreamingChatEvent? firstElement = null;

@@ -8,13 +8,13 @@ using Qdrant.Client.Grpc;
 namespace Dawning.Agents.Qdrant;
 
 /// <summary>
-/// Qdrant 向量存储实现
+/// Qdrant vector store implementation.
 /// </summary>
 /// <remarks>
-/// 使用 Qdrant 向量数据库存储和检索文档嵌入。
-/// 支持本地部署和 Qdrant Cloud。
+/// Stores and retrieves document embeddings using the Qdrant vector database.
+/// Supports both local deployment and Qdrant Cloud.
 ///
-/// 安装 Qdrant（Docker）:
+/// Install Qdrant (Docker):
 /// <code>
 /// docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
 /// </code>
@@ -34,7 +34,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     public int Count => Volatile.Read(ref _count);
 
     /// <summary>
-    /// 创建 Qdrant 向量存储
+    /// Initializes a new instance of the <see cref="QdrantVectorStore"/> class.
     /// </summary>
     public QdrantVectorStore(
         QdrantClient client,
@@ -51,7 +51,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         _logger = logger ?? NullLogger<QdrantVectorStore>.Instance;
 
         _logger.LogDebug(
-            "QdrantVectorStore 已创建，端点: {Host}:{Port}，集合: {Collection}",
+            "QdrantVectorStore created, Endpoint: {Host}:{Port}, Collection: {Collection}",
             _options.Host,
             _options.Port,
             _options.CollectionName
@@ -59,7 +59,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 使用自定义客户端创建（用于测试）
+    /// Initializes a new instance of the <see cref="QdrantVectorStore"/> class with a custom client (for testing).
     /// </summary>
     internal QdrantVectorStore(
         QdrantClient client,
@@ -183,7 +183,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
         await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
-        // 使用过滤器删除
+        // Delete using filter
         var filter = new Filter
         {
             Must =
@@ -199,7 +199,8 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        // 先查询确认条目是否存在，避免 Qdrant 对不存在条目也返回 Completed 导致 _count 错误递减
+        // Query first to confirm the entry exists, avoiding incorrect _count decrement
+        // when Qdrant returns Completed for non-existent entries
         var scrollResult = await _client
             .ScrollAsync(
                 _options.CollectionName,
@@ -246,7 +247,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
         await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
-        // 使用过滤条件删除
+        // Delete using filter condition
         var filter = new Filter
         {
             Must =
@@ -262,7 +263,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             },
         };
 
-        // 使用 CountAsync 获取精确数量（无上限限制，避免 ScrollAsync limit:10000 截断问题）
+        // Use CountAsync for exact count (no upper limit, avoiding ScrollAsync limit:10000 truncation)
         var countResult = await _client
             .CountAsync(_options.CollectionName, filter, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -292,7 +293,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
         await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            // 删除并重新创建集合
+            // Delete and recreate the collection
             try
             {
                 await _client
@@ -330,7 +331,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
         await EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
 
-        // 使用过滤器搜索
+        // Search using filter
         var filter = new Filter
         {
             Must =
@@ -417,7 +418,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             }
             else
             {
-                // 获取当前数量
+                // Get the current count
                 var info = await _client
                     .GetCollectionInfoAsync(_options.CollectionName, cancellationToken)
                     .ConfigureAwait(false);
@@ -454,7 +455,7 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
             payload[$"meta_{key}"] = value;
         }
 
-        // 使用稳定的 GUID 作为点 ID
+        // Use a stable GUID as the point ID
         var pointId = GetPointId(chunk.Id);
 
         return new PointStruct
@@ -467,13 +468,13 @@ public sealed class QdrantVectorStore : IVectorStore, IAsyncDisposable
 
     private static Guid GetPointId(string id)
     {
-        // 尝试解析为 GUID，否则使用哈希
+        // Try to parse as GUID, otherwise use hash
         if (Guid.TryParse(id, out var guid))
         {
             return guid;
         }
 
-        // 使用稳定的哈希算法生成 UUID（SHA256 截断为 16 字节）
+        // Use a stable hash algorithm to generate UUID (SHA256 truncated to 16 bytes)
         var hash = System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(id)
         );

@@ -7,16 +7,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
-/// HumanLoop 服务的 DI 扩展方法
+/// Dependency injection extension methods for human-in-the-loop services.
 /// </summary>
 public static class HumanLoopServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加人机协作服务（使用自动审批处理器）
+    /// Adds human-in-the-loop services with the auto-approval handler.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHumanLoop(
         this IServiceCollection services,
         IConfiguration configuration
@@ -32,11 +32,11 @@ public static class HumanLoopServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加人机协作服务（使用自动审批处理器）
+    /// Adds human-in-the-loop services with the auto-approval handler.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHumanLoop(
         this IServiceCollection services,
         Action<HumanLoopOptions>? configure = null
@@ -59,10 +59,10 @@ public static class HumanLoopServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自动审批处理器
+    /// Adds the auto-approval handler.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAutoApprovalHandler(this IServiceCollection services)
     {
         services.TryAddSingleton<IHumanInteractionHandler, AutoApprovalHandler>();
@@ -70,10 +70,10 @@ public static class HumanLoopServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加异步回调处理器
+    /// Adds the async callback handler.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAsyncCallbackHandler(this IServiceCollection services)
     {
         services.TryAddSingleton<AsyncCallbackHandler>();
@@ -84,11 +84,11 @@ public static class HumanLoopServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加审批工作流
+    /// Adds the approval workflow.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">审批配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The approval configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddApprovalWorkflow(
         this IServiceCollection services,
         Action<ApprovalConfig>? configure = null
@@ -104,11 +104,11 @@ public static class HumanLoopServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加人机协作 Agent 包装器
+    /// Adds the human-in-the-loop agent wrapper.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHumanInLoopAgent(
         this IServiceCollection services,
         Action<HumanLoopOptions>? configure = null

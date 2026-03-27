@@ -10,13 +10,13 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Telemetry;
 
 /// <summary>
-/// 基于 Redis 的分布式 Token 使用追踪器
+/// A distributed token usage tracker backed by Redis.
 /// </summary>
 /// <remarks>
-/// <para>全局计数器使用 INCRBY 实现原子累加</para>
-/// <para>每条记录以 JSON 形式存入 Redis List（按时间倒序）</para>
-/// <para>按来源/模型/会话的统计使用 Redis Hash 实现高效聚合</para>
-/// <para>支持跨进程、多实例的分布式 Token 跟踪</para>
+/// <para>Global counters use INCRBY for atomic accumulation.</para>
+/// <para>Individual records are stored as JSON in a Redis List (reverse chronological order).</para>
+/// <para>Per-source/model/session statistics use Redis Hash for efficient aggregation.</para>
+/// <para>Supports cross-process, multi-instance distributed token tracking.</para>
 /// </remarks>
 public sealed class RedisTokenUsageTracker : ITokenUsageTracker
 {
@@ -33,12 +33,12 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
     };
 
     /// <summary>
-    /// 初始化 Redis Token 使用追踪器
+    /// Initializes a new instance of the <see cref="RedisTokenUsageTracker"/> class.
     /// </summary>
-    /// <param name="connection">Redis 连接</param>
-    /// <param name="options">Redis 配置</param>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="maxRecords">保留的最大记录数</param>
+    /// <param name="connection">The Redis connection multiplexer.</param>
+    /// <param name="options">The Redis configuration options.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="maxRecords">The maximum number of records to retain.</param>
     public RedisTokenUsageTracker(
         IConnectionMultiplexer connection,
         IOptions<RedisOptions> options,
@@ -81,7 +81,7 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
     public long TotalTokens => TotalPromptTokens + TotalCompletionTokens;
 
     /// <summary>
-    /// 总调用次数
+    /// Gets the total number of calls.
     /// </summary>
     public int CallCount
     {
@@ -99,18 +99,18 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
 
         var batch = _database.CreateBatch();
 
-        // 全局计数器
+        // Global counters
         _ = batch.StringIncrementAsync($"{_prefix}total:prompt", record.PromptTokens);
         _ = batch.StringIncrementAsync($"{_prefix}total:completion", record.CompletionTokens);
         _ = batch.StringIncrementAsync($"{_prefix}total:calls", 1);
 
-        // 按来源统计
+        // Per-source statistics
         var sourceKey = $"{_prefix}source:{record.Source}";
         _ = batch.HashIncrementAsync(sourceKey, "prompt", record.PromptTokens);
         _ = batch.HashIncrementAsync(sourceKey, "completion", record.CompletionTokens);
         _ = batch.HashIncrementAsync(sourceKey, "calls", 1);
 
-        // 按模型统计
+        // Per-model statistics
         if (!string.IsNullOrEmpty(record.Model))
         {
             _ = batch.HashIncrementAsync(
@@ -120,7 +120,7 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
             );
         }
 
-        // 按会话统计
+        // Per-session statistics
         if (!string.IsNullOrEmpty(record.SessionId))
         {
             _ = batch.HashIncrementAsync(
@@ -130,7 +130,7 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
             );
         }
 
-        // 记录详细信息（保留最近 N 条）
+        // Store detailed record (retain most recent N entries)
         var json = JsonSerializer.Serialize(record, s_jsonOptions);
         var recordsKey = $"{_prefix}records";
         _ = batch.ListLeftPushAsync(recordsKey, json);
@@ -155,13 +155,13 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
     /// <inheritdoc />
     public TokenUsageSummary GetSummary(string? source = null, string? sessionId = null)
     {
-        // 带过滤条件时需要遍历记录
+        // Filtered queries require iterating through records
         if (!string.IsNullOrEmpty(source) || !string.IsNullOrEmpty(sessionId))
         {
             return GetFilteredSummary(source, sessionId);
         }
 
-        // 无过滤：直接从聚合 key 中读取
+        // No filter: read directly from aggregate keys
         var promptVal = _database.StringGet($"{_prefix}total:prompt");
         var completionVal = _database.StringGet($"{_prefix}total:completion");
         var callsVal = _database.StringGet($"{_prefix}total:calls");
@@ -170,13 +170,13 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
         var totalCompletion = completionVal.HasValue ? (long)completionVal : 0;
         var callCount = callsVal.HasValue ? (int)callsVal : 0;
 
-        // 按来源
+        // By source
         var bySource = GetSourceUsages();
 
-        // 按模型
+        // By model
         var byModel = GetHashTotals($"{_prefix}model_totals");
 
-        // 按会话
+        // By session
         var bySession = GetHashTotals($"{_prefix}session_totals");
 
         return new TokenUsageSummary(
@@ -231,7 +231,7 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
             }
             catch (JsonException)
             {
-                // 跳过无法解析的记录
+                // Skip unparseable records
             }
         }
 
@@ -243,7 +243,7 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
     {
         if (string.IsNullOrEmpty(source) && string.IsNullOrEmpty(sessionId))
         {
-            // 全部重置
+            // Full reset
             var server = GetServer();
             var keys = server.Keys(
                 database: _options.DefaultDatabase,
@@ -256,12 +256,12 @@ public sealed class RedisTokenUsageTracker : ITokenUsageTracker
                 _database.KeyDelete(key);
             }
 
-            _logger.LogInformation("Token 使用统计已全部重置");
+            _logger.LogInformation("All token usage statistics have been reset");
         }
         else if (!string.IsNullOrEmpty(source))
         {
             _database.KeyDelete($"{_prefix}source:{source}");
-            _logger.LogInformation("Token 使用统计已重置: source={Source}", source);
+            _logger.LogInformation("Token usage statistics have been reset: source={Source}", source);
         }
     }
 

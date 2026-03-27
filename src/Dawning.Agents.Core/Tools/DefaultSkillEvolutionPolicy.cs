@@ -5,14 +5,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 默认技能演化策略 — 基于成功率和调用次数做提升/淘汰决策
+/// Default skill evolution policy — makes promotion/retirement decisions based on success rate and call count.
 /// </summary>
 public sealed class DefaultSkillEvolutionPolicy : ISkillEvolutionPolicy
 {
     private readonly ILogger<DefaultSkillEvolutionPolicy> _logger;
 
     /// <summary>
-    /// 创建默认技能演化策略
+    /// Creates the default skill evolution policy.
     /// </summary>
     public DefaultSkillEvolutionPolicy(ILogger<DefaultSkillEvolutionPolicy>? logger = null)
     {
@@ -29,7 +29,7 @@ public sealed class DefaultSkillEvolutionPolicy : ISkillEvolutionPolicy
         ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
         ArgumentNullException.ThrowIfNull(stats);
 
-        // 成功率 ≥ 90% 且调用 ≥ 10 次 → Global
+        // Success rate ≥ 90% and calls ≥ 10 → Global
         if (stats.SuccessRate >= 0.9f && stats.TotalCalls >= 10)
         {
             _logger.LogInformation(
@@ -48,7 +48,7 @@ public sealed class DefaultSkillEvolutionPolicy : ISkillEvolutionPolicy
             );
         }
 
-        // 成功率 ≥ 80% 且调用 ≥ 3 次 → User
+        // Success rate ≥ 80% and calls ≥ 3 → User
         if (stats.SuccessRate >= 0.8f && stats.TotalCalls >= 3)
         {
             _logger.LogInformation(
@@ -82,7 +82,7 @@ public sealed class DefaultSkillEvolutionPolicy : ISkillEvolutionPolicy
         ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
         ArgumentNullException.ThrowIfNull(stats);
 
-        // 成功率 < 20% 且调用 ≥ 5 次 → 淘汰
+        // Success rate < 20% and calls ≥ 5 → retire
         if (stats.SuccessRate < 0.2f && stats.TotalCalls >= 5)
         {
             _logger.LogWarning(

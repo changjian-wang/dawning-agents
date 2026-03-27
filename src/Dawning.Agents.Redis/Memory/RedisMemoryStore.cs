@@ -10,11 +10,11 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Memory;
 
 /// <summary>
-/// 基于 Redis 的分布式会话记忆存储
+/// A distributed session memory store backed by Redis.
 /// </summary>
 /// <remarks>
-/// <para>实现 <see cref="IDistributedMemory"/> 接口，提供跨节点的会话状态共享</para>
-/// <para>支持会话锁定、过期时间、Token 计数等特性</para>
+/// <para>Implements <see cref="IDistributedMemory"/> to provide cross-node session state sharing.</para>
+/// <para>Supports session locking, expiration times, token counting, and more.</para>
 /// </remarks>
 public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
 {
@@ -39,7 +39,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
     public int MessageCount => Volatile.Read(ref _messageCount);
 
     /// <summary>
-    /// 初始化 Redis 会话记忆存储
+    /// Initializes a new instance of the <see cref="RedisMemoryStore"/> class.
     /// </summary>
     public RedisMemoryStore(
         IConnectionMultiplexer connection,
@@ -138,7 +138,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
             .ListRightPushAsync(_sessionKey, serialized)
             .ConfigureAwait(false);
 
-        // 如果超过最大消息数，删除最旧的消息
+        // If exceeding max messages, remove the oldest ones
         if (currentLength > _sessionOptions.MaxMessages)
         {
             await _database
@@ -195,7 +195,7 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
         var result = new List<ChatMessage>();
         var totalTokens = 0;
 
-        // 从最新的消息开始，确保最近的上下文被保留
+        // Start from the most recent message to preserve the latest context
         for (var i = messages.Count - 1; i >= 0; i--)
         {
             var msg = messages[i];
@@ -277,14 +277,14 @@ public sealed class RedisMemoryStore : IDistributedMemory, IAsyncDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "释放 Redis 会话锁失败");
+                _logger.LogWarning(ex, "Failed to release Redis session lock");
             }
         }
     }
 }
 
 /// <summary>
-/// Redis 会话记忆存储工厂
+/// A factory for creating <see cref="RedisMemoryStore"/> instances.
 /// </summary>
 public sealed class RedisMemoryStoreFactory
 {
@@ -295,7 +295,7 @@ public sealed class RedisMemoryStoreFactory
     private readonly ILogger<RedisMemoryStore> _logger;
 
     /// <summary>
-    /// 初始化工厂
+    /// Initializes a new instance of the <see cref="RedisMemoryStoreFactory"/> class.
     /// </summary>
     public RedisMemoryStoreFactory(
         IConnectionMultiplexer connection,
@@ -313,7 +313,7 @@ public sealed class RedisMemoryStoreFactory
     }
 
     /// <summary>
-    /// 创建指定会话的记忆存储
+    /// Creates a memory store for the specified session.
     /// </summary>
     public RedisMemoryStore Create(string sessionId)
     {

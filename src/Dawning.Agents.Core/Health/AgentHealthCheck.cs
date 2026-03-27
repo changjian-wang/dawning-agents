@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace Dawning.Agents.Core.Health;
 
 /// <summary>
-/// Agent 存活健康检查
+/// Agent liveness health check.
 /// </summary>
 public class AgentHealthCheck : IHealthCheck
 {
@@ -22,8 +22,8 @@ public class AgentHealthCheck : IHealthCheck
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("AgentHealthCheck: 正在检查 Agent 存活状态...");
-        // 可扩展为自定义存活逻辑
-        return Task.FromResult(HealthCheckResult.Healthy("Agent 正常运行"));
+        _logger.LogDebug("AgentHealthCheck: checking agent liveness...");
+        // Extensible with custom liveness logic
+        return Task.FromResult(HealthCheckResult.Healthy("Agent is running normally"));
     }
 }

@@ -9,17 +9,17 @@ using Microsoft.Extensions.Logging;
 namespace Dawning.Agents.OpenAI;
 
 /// <summary>
-/// OpenAI Provider 的依赖注入扩展
+/// Dependency injection extensions for OpenAI provider.
 /// </summary>
 public static class OpenAIServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 OpenAI Provider
+    /// Registers an OpenAI provider with the specified API key and model.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="apiKey">OpenAI API Key</param>
-    /// <param name="model">模型名称，默认 gpt-4o</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="apiKey">The OpenAI API key.</param>
+    /// <param name="model">The model name. Defaults to <c>gpt-4o</c>.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddOpenAIProvider("sk-xxx", "gpt-4o");
@@ -44,11 +44,11 @@ public static class OpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI Provider（使用配置委托）
+    /// Registers an OpenAI provider using a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddOpenAIProvider(options =>
@@ -71,11 +71,11 @@ public static class OpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI Provider（使用 IConfiguration 配置节）
+    /// Registers an OpenAI provider using an <see cref="IConfiguration"/> section.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">包含 ApiKey 和 Model 的配置节</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration section containing ApiKey and Model.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddOpenAIProvider(configuration.GetSection("OpenAI"));
@@ -99,11 +99,11 @@ public static class OpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI Embedding Provider
+    /// Registers an OpenAI embedding provider.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="apiKey">OpenAI API Key</param>
-    /// <param name="model">嵌入模型名称</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="apiKey">The OpenAI API key.</param>
+    /// <param name="model">The embedding model name.</param>
     public static IServiceCollection AddOpenAIEmbedding(
         this IServiceCollection services,
         string apiKey,
@@ -120,22 +120,22 @@ public static class OpenAIServiceCollectionExtensions
 }
 
 /// <summary>
-/// OpenAI Provider 配置选项
+/// Configuration options for the OpenAI provider.
 /// </summary>
 public class OpenAIProviderOptions : IValidatableOptions
 {
     /// <summary>
-    /// OpenAI API Key
+    /// Gets or sets the OpenAI API key.
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// 模型名称
+    /// Gets or sets the model name.
     /// </summary>
     public string Model { get; set; } = "gpt-4o";
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration options.
     /// </summary>
     public void Validate()
     {

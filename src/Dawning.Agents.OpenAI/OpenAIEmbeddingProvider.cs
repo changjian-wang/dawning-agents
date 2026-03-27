@@ -8,17 +8,17 @@ using OpenAI.Embeddings;
 namespace Dawning.Agents.OpenAI;
 
 /// <summary>
-/// OpenAI Embedding 提供者
+/// OpenAI embedding provider implementation.
 /// </summary>
 /// <remarks>
-/// 支持 OpenAI 的 text-embedding 系列模型：
+/// Supports the following OpenAI text-embedding models:
 /// <list type="bullet">
-///   <item>text-embedding-3-small (1536 维，推荐)</item>
-///   <item>text-embedding-3-large (3072 维)</item>
-///   <item>text-embedding-ada-002 (1536 维，旧版)</item>
+///   <item>text-embedding-3-small (1536 dimensions, recommended)</item>
+///   <item>text-embedding-3-large (3072 dimensions)</item>
+///   <item>text-embedding-ada-002 (1536 dimensions, legacy)</item>
 /// </list>
 ///
-/// 配置示例:
+/// Configuration example:
 /// <code>
 /// {
 ///   "RAG": {
@@ -38,7 +38,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     private readonly ILogger<OpenAIEmbeddingProvider> _logger;
 
     /// <summary>
-    /// 模型维度映射
+    /// Model dimension mapping.
     /// </summary>
     private static readonly IReadOnlyDictionary<string, int> s_modelDimensions = new Dictionary<
         string,
@@ -55,11 +55,11 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     public int Dimensions => _dimensions;
 
     /// <summary>
-    /// 创建 OpenAI Embedding Provider
+    /// Initializes a new instance of the <see cref="OpenAIEmbeddingProvider"/> class.
     /// </summary>
-    /// <param name="apiKey">OpenAI API Key</param>
-    /// <param name="model">嵌入模型名称（默认 text-embedding-3-small）</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="apiKey">The OpenAI API key.</param>
+    /// <param name="model">The embedding model name. Defaults to <c>text-embedding-3-small</c>.</param>
+    /// <param name="logger">The logger instance.</param>
     public OpenAIEmbeddingProvider(
         string apiKey,
         string model = "text-embedding-3-small",
@@ -76,14 +76,15 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
         var client = new OpenAIClient(apiKey);
         _embeddingClient = client.GetEmbeddingClient(model);
         _logger.LogDebug(
-            "OpenAIEmbeddingProvider 已创建，模型: {Model}，维度: {Dimensions}",
+            "OpenAIEmbeddingProvider created, model: {Model}, dimensions: {Dimensions}",
             model,
             _dimensions
         );
     }
 
     /// <summary>
-    /// 使用自定义 EmbeddingClient 创建 Provider（用于测试）
+    /// Initializes a new instance of the <see cref="OpenAIEmbeddingProvider"/> class
+    /// with a custom <see cref="EmbeddingClient"/> for testing.
     /// </summary>
     internal OpenAIEmbeddingProvider(EmbeddingClient embeddingClient, string model, int dimensions)
     {
@@ -124,7 +125,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
             return Array.Empty<float[]>();
         }
 
-        // 过滤空文本，记录原始索引
+        // Filter empty texts and record original indices
         var validTexts = new List<(int Index, string Text)>();
         for (int i = 0; i < textList.Count; i++)
         {
@@ -134,13 +135,13 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
             }
         }
 
-        // 所有文本都为空
+        // All texts are empty
         if (validTexts.Count == 0)
         {
             return textList.Select(_ => new float[_dimensions]).ToList();
         }
 
-        // 批量调用 API
+        // Batch API call
         var result = await _embeddingClient
             .GenerateEmbeddingsAsync(
                 validTexts.Select(v => v.Text).ToList(),
@@ -148,14 +149,14 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
             )
             .ConfigureAwait(false);
 
-        // 构建结果数组
+        // Build result array
         var embeddings = new float[textList.Count][];
         for (int i = 0; i < textList.Count; i++)
         {
             embeddings[i] = new float[_dimensions];
         }
 
-        // 填充有效结果
+        // Fill in valid results
         for (int i = 0; i < validTexts.Count; i++)
         {
             embeddings[validTexts[i].Index] = result.Value[i].ToFloats().ToArray();
@@ -165,7 +166,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 获取模型的向量维度
+    /// Gets the vector dimensions for the specified model.
     /// </summary>
     private static int GetModelDimensions(string model)
     {
@@ -174,7 +175,7 @@ public sealed class OpenAIEmbeddingProvider : IEmbeddingProvider
             return dimensions;
         }
 
-        // 未知模型默认使用 1536 维
+        // Default to 1536 dimensions for unknown models
         return 1536;
     }
 }

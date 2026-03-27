@@ -8,15 +8,15 @@ using Pinecone;
 namespace Dawning.Agents.Pinecone;
 
 /// <summary>
-/// Pinecone 服务的 DI 扩展方法
+/// Dependency injection extension methods for Pinecone services.
 /// </summary>
 public static class PineconeServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Pinecone 向量存储（使用配置）
+    /// Adds the Pinecone vector store using configuration.
     /// </summary>
     /// <remarks>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "Pinecone": {
@@ -39,7 +39,7 @@ public static class PineconeServiceCollectionExtensions
             {
                 configuration.GetSection(PineconeOptions.SectionName).Bind(opts);
 
-                // 支持环境变量覆盖
+                // Support environment variable override
                 var envApiKey = Environment.GetEnvironmentVariable("PINECONE_API_KEY");
                 if (!string.IsNullOrWhiteSpace(envApiKey))
                 {
@@ -66,7 +66,7 @@ public static class PineconeServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Pinecone 向量存储（使用配置委托）
+    /// Adds the Pinecone vector store using a configuration delegate.
     /// </summary>
     public static IServiceCollection AddPineconeVectorStore(
         this IServiceCollection services,
@@ -95,13 +95,13 @@ public static class PineconeServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Pinecone 向量存储（快速配置）
+    /// Adds the Pinecone vector store with quick configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
+    /// <param name="services">The service collection.</param>
     /// <param name="apiKey">Pinecone API Key</param>
-    /// <param name="indexName">索引名称</param>
-    /// <param name="namespace">命名空间（可选）</param>
-    /// <param name="vectorSize">向量维度</param>
+    /// <param name="indexName">The index name.</param>
+    /// <param name="namespace">The namespace (optional).</param>
+    /// <param name="vectorSize">The vector dimension.</param>
     public static IServiceCollection AddPineconeVectorStore(
         this IServiceCollection services,
         string apiKey,
@@ -120,15 +120,15 @@ public static class PineconeServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Pinecone Serverless 向量存储（自动创建索引）
+    /// Adds a Pinecone Serverless vector store with automatic index creation.
     /// </summary>
-    /// <param name="services">服务集合</param>
+    /// <param name="services">The service collection.</param>
     /// <param name="apiKey">Pinecone API Key</param>
-    /// <param name="indexName">索引名称</param>
-    /// <param name="vectorSize">向量维度</param>
-    /// <param name="cloud">云提供商（aws, gcp, azure）</param>
-    /// <param name="region">区域（如 us-east-1）</param>
-    /// <param name="namespace">命名空间（可选）</param>
+    /// <param name="indexName">The index name.</param>
+    /// <param name="vectorSize">The vector dimension.</param>
+    /// <param name="cloud">The cloud provider (aws, gcp, azure).</param>
+    /// <param name="region">The region (e.g., us-east-1).</param>
+    /// <param name="namespace">The namespace (optional).</param>
     public static IServiceCollection AddPineconeServerless(
         this IServiceCollection services,
         string apiKey,

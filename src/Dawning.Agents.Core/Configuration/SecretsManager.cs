@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// 基于环境变量的密钥管理器
+/// Environment-variable-based secrets manager.
 /// </summary>
 public class EnvironmentSecretsManager : ISecretsManager
 {
@@ -26,11 +26,11 @@ public class EnvironmentSecretsManager : ISecretsManager
 
         if (value != null)
         {
-            _logger.LogDebug("已从环境变量获取密钥: {Name}", name);
+            _logger.LogDebug("Retrieved secret from environment variable: {Name}", name);
         }
         else
         {
-            _logger.LogDebug("环境变量不存在: {Name} ({EnvName})", name, envName);
+            _logger.LogDebug("Environment variable not found: {Name} ({EnvName})", name, envName);
         }
 
         return Task.FromResult(value);
@@ -48,7 +48,7 @@ public class EnvironmentSecretsManager : ISecretsManager
 
         var envName = NormalizeEnvName(name);
         Environment.SetEnvironmentVariable(envName, value);
-        _logger.LogDebug("已设置环境变量: {Name}", name);
+        _logger.LogDebug("Set environment variable: {Name}", name);
         return Task.CompletedTask;
     }
 
@@ -59,7 +59,7 @@ public class EnvironmentSecretsManager : ISecretsManager
 
         var envName = NormalizeEnvName(name);
         Environment.SetEnvironmentVariable(envName, null);
-        _logger.LogDebug("已删除环境变量: {Name}", name);
+        _logger.LogDebug("Deleted environment variable: {Name}", name);
         return Task.CompletedTask;
     }
 
@@ -75,13 +75,13 @@ public class EnvironmentSecretsManager : ISecretsManager
 
     private static string NormalizeEnvName(string name)
     {
-        // 将常见分隔符转换为下划线，转大写
+        // Convert common separators to underscores and uppercase
         return name.Replace("-", "_").Replace(":", "__").Replace(".", "_").ToUpperInvariant();
     }
 }
 
 /// <summary>
-/// 内存密钥管理器（用于测试和开发）
+/// In-memory secrets manager (for testing and development).
 /// </summary>
 public class InMemorySecretsManager : ISecretsManager
 {
@@ -115,7 +115,7 @@ public class InMemorySecretsManager : ISecretsManager
         {
             _secrets[name] = value;
         }
-        _logger.LogDebug("已设置内存密钥: {Name}", name);
+        _logger.LogDebug("Set in-memory secret: {Name}", name);
         return Task.CompletedTask;
     }
 
@@ -126,7 +126,7 @@ public class InMemorySecretsManager : ISecretsManager
         {
             _secrets.Remove(name);
         }
-        _logger.LogDebug("已删除内存密钥: {Name}", name);
+        _logger.LogDebug("Deleted in-memory secret: {Name}", name);
         return Task.CompletedTask;
     }
 
@@ -142,7 +142,7 @@ public class InMemorySecretsManager : ISecretsManager
     }
 
     /// <summary>
-    /// 清除所有密钥
+    /// Clears all secrets.
     /// </summary>
     public void Clear()
     {
@@ -153,7 +153,7 @@ public class InMemorySecretsManager : ISecretsManager
     }
 
     /// <summary>
-    /// 获取密钥数量
+    /// Gets the number of secrets.
     /// </summary>
     public int Count
     {
@@ -168,7 +168,7 @@ public class InMemorySecretsManager : ISecretsManager
 }
 
 /// <summary>
-/// 组合密钥管理器（按顺序查找多个来源）
+/// Composite secrets manager (searches multiple sources in order).
 /// </summary>
 public class CompositeSecretsManager : ISecretsManager
 {
@@ -197,7 +197,7 @@ public class CompositeSecretsManager : ISecretsManager
             if (value != null)
             {
                 _logger.LogDebug(
-                    "从 {ManagerType} 获取到密钥: {Name}",
+                    "Retrieved secret from {ManagerType}: {Name}",
                     manager.GetType().Name,
                     name
                 );
@@ -214,7 +214,7 @@ public class CompositeSecretsManager : ISecretsManager
         CancellationToken cancellationToken = default
     )
     {
-        // 设置到第一个管理器
+        // Set in the first manager
         if (_managers.Count > 0)
         {
             return _managers[0].SetSecretAsync(name, value, cancellationToken);
@@ -225,7 +225,7 @@ public class CompositeSecretsManager : ISecretsManager
     /// <inheritdoc />
     public async Task DeleteSecretAsync(string name, CancellationToken cancellationToken = default)
     {
-        // 从所有管理器删除
+        // Delete from all managers
         foreach (var manager in _managers)
         {
             await manager.DeleteSecretAsync(name, cancellationToken).ConfigureAwait(false);

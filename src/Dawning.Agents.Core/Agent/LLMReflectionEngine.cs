@@ -232,7 +232,7 @@ public sealed class LLMReflectionEngine : IReflectionEngine
 
     private static string ExtractJsonBlock(string content)
     {
-        // 尝试提取 ```json ... ``` 格式
+        // Try to extract ```json ... ``` format
         var jsonStart = content.IndexOf("```json", StringComparison.OrdinalIgnoreCase);
         if (jsonStart >= 0)
         {
@@ -244,7 +244,7 @@ public sealed class LLMReflectionEngine : IReflectionEngine
             }
         }
 
-        // 尝试找到 { ... } 块
+        // Try to find { ... } block
         var braceStart = content.IndexOf('{');
         var braceEnd = content.LastIndexOf('}');
         if (braceStart >= 0 && braceEnd > braceStart)

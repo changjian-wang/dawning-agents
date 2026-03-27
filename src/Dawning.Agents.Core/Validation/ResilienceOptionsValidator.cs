@@ -4,7 +4,7 @@ using FluentValidation;
 namespace Dawning.Agents.Core.Validation;
 
 /// <summary>
-/// 弹性配置选项验证器
+/// Validator for <see cref="ResilienceOptions"/>.
 /// </summary>
 public class ResilienceOptionsValidator : AbstractValidator<ResilienceOptions>
 {
@@ -18,7 +18,7 @@ public class ResilienceOptionsValidator : AbstractValidator<ResilienceOptions>
 }
 
 /// <summary>
-/// 重试配置验证器
+/// Validator for <see cref="RetryOptions"/>.
 /// </summary>
 public class RetryOptionsValidator : AbstractValidator<RetryOptions>
 {
@@ -26,26 +26,26 @@ public class RetryOptionsValidator : AbstractValidator<RetryOptions>
     {
         RuleFor(x => x.MaxRetryAttempts)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("MaxRetryAttempts 不能为负数")
+            .WithMessage("MaxRetryAttempts must not be negative.")
             .LessThanOrEqualTo(10)
-            .WithMessage("MaxRetryAttempts 不能超过 10");
+            .WithMessage("MaxRetryAttempts must not exceed 10.");
 
         RuleFor(x => x.BaseDelayMs)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("BaseDelayMs 不能为负数")
+            .WithMessage("BaseDelayMs must not be negative.")
             .LessThanOrEqualTo(60000)
-            .WithMessage("BaseDelayMs 不能超过 60000");
+            .WithMessage("BaseDelayMs must not exceed 60000.");
 
         RuleFor(x => x.MaxDelayMs)
             .GreaterThan(0)
-            .WithMessage("MaxDelayMs 必须大于 0")
+            .WithMessage("MaxDelayMs must be greater than 0.")
             .GreaterThanOrEqualTo(x => x.BaseDelayMs)
-            .WithMessage("MaxDelayMs 必须大于等于 BaseDelayMs");
+            .WithMessage("MaxDelayMs must be greater than or equal to BaseDelayMs.");
     }
 }
 
 /// <summary>
-/// 断路器配置验证器
+/// Validator for <see cref="CircuitBreakerOptions"/>.
 /// </summary>
 public class CircuitBreakerOptionsValidator : AbstractValidator<CircuitBreakerOptions>
 {
@@ -53,26 +53,26 @@ public class CircuitBreakerOptionsValidator : AbstractValidator<CircuitBreakerOp
     {
         RuleFor(x => x.FailureRatio)
             .GreaterThan(0.0)
-            .WithMessage("FailureRatio 必须大于 0")
+            .WithMessage("FailureRatio must be greater than 0.")
             .LessThanOrEqualTo(1.0)
-            .WithMessage("FailureRatio 不能超过 1.0");
+            .WithMessage("FailureRatio must not exceed 1.0.");
 
         RuleFor(x => x.SamplingDurationSeconds)
             .GreaterThan(0)
-            .WithMessage("SamplingDurationSeconds 必须大于 0");
+            .WithMessage("SamplingDurationSeconds must be greater than 0.");
 
         RuleFor(x => x.MinimumThroughput)
             .GreaterThan(0)
-            .WithMessage("MinimumThroughput 必须大于 0");
+            .WithMessage("MinimumThroughput must be greater than 0.");
 
         RuleFor(x => x.BreakDurationSeconds)
             .GreaterThan(0)
-            .WithMessage("BreakDurationSeconds 必须大于 0");
+            .WithMessage("BreakDurationSeconds must be greater than 0.");
     }
 }
 
 /// <summary>
-/// 超时配置验证器
+/// Validator for <see cref="TimeoutOptions"/>.
 /// </summary>
 public class TimeoutOptionsValidator : AbstractValidator<TimeoutOptions>
 {
@@ -80,14 +80,14 @@ public class TimeoutOptionsValidator : AbstractValidator<TimeoutOptions>
     {
         RuleFor(x => x.TimeoutSeconds)
             .GreaterThan(0)
-            .WithMessage("TimeoutSeconds 必须大于 0")
+            .WithMessage("TimeoutSeconds must be greater than 0.")
             .LessThanOrEqualTo(600)
-            .WithMessage("TimeoutSeconds 不能超过 600");
+            .WithMessage("TimeoutSeconds must not exceed 600.");
     }
 }
 
 /// <summary>
-/// 舱壁隔离配置验证器
+/// Validator for <see cref="BulkheadOptions"/>.
 /// </summary>
 public class BulkheadOptionsValidator : AbstractValidator<BulkheadOptions>
 {
@@ -95,14 +95,14 @@ public class BulkheadOptionsValidator : AbstractValidator<BulkheadOptions>
     {
         RuleFor(x => x.MaxConcurrency)
             .GreaterThan(0)
-            .WithMessage("MaxConcurrency 必须大于 0")
+            .WithMessage("MaxConcurrency must be greater than 0.")
             .LessThanOrEqualTo(1000)
-            .WithMessage("MaxConcurrency 不能超过 1000");
+            .WithMessage("MaxConcurrency must not exceed 1000.");
 
         RuleFor(x => x.MaxQueuedActions)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("MaxQueuedActions 不能为负数")
+            .WithMessage("MaxQueuedActions must not be negative.")
             .LessThanOrEqualTo(10000)
-            .WithMessage("MaxQueuedActions 不能超过 10000");
+            .WithMessage("MaxQueuedActions must not exceed 10000.");
     }
 }

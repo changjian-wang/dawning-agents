@@ -4,12 +4,12 @@ using Dawning.Agents.Abstractions.Memory;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 存储所有消息的简单缓冲记忆
+/// Simple buffer memory that stores all messages.
 /// </summary>
 /// <remarks>
-/// <para>最简单的记忆实现，将所有消息存储在列表中</para>
-/// <para>适用于短对话或测试场景</para>
-/// <para>线程安全</para>
+/// <para>The simplest memory implementation that stores all messages in a list.</para>
+/// <para>Suitable for short conversations or testing scenarios.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public class BufferMemory : IConversationMemory
 {
@@ -18,7 +18,7 @@ public class BufferMemory : IConversationMemory
     private readonly Lock _lock = new();
 
     /// <summary>
-    /// 获取当前存储的消息数量
+    /// Gets the current stored message count.
     /// </summary>
     public int MessageCount
     {
@@ -32,16 +32,16 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 初始化缓冲记忆
+    /// Initializes a new instance of the <see cref="BufferMemory"/> class.
     /// </summary>
-    /// <param name="tokenCounter">Token 计数器</param>
+    /// <param name="tokenCounter">The token counter.</param>
     public BufferMemory(ITokenCounter tokenCounter)
     {
         _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
     }
 
     /// <summary>
-    /// 向缓冲区添加消息，如果未提供 TokenCount 则自动计算
+    /// Adds a message to the buffer. Automatically calculates the token count if not provided.
     /// </summary>
     public Task AddMessageAsync(
         ConversationMessage message,
@@ -50,7 +50,7 @@ public class BufferMemory : IConversationMemory
     {
         lock (_lock)
         {
-            // 如果未提供则计算 token 数量
+            // Calculate token count if not provided
             if (message.TokenCount == null)
             {
                 var tokenCount = _tokenCounter.CountTokens(message.Content);
@@ -64,7 +64,7 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取缓冲区中的所有消息副本
+    /// Gets a copy of all messages in the buffer.
     /// </summary>
     public Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
@@ -77,7 +77,7 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取用于 LLM 调用的消息上下文，可选择按 token 限制裁剪
+    /// Gets the message context for LLM calls, optionally trimmed by token limit.
     /// </summary>
     public Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
@@ -90,7 +90,7 @@ public class BufferMemory : IConversationMemory
 
             if (maxTokens.HasValue)
             {
-                // 取适合 token 限制的最近消息
+                // Take the most recent messages that fit within the token limit
                 messages = TrimToTokenLimit(_messages, maxTokens.Value);
             }
 
@@ -101,7 +101,7 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 清空缓冲区中的所有消息
+    /// Clears all messages in the buffer.
     /// </summary>
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {
@@ -114,7 +114,7 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取缓冲区中所有消息的 token 总数
+    /// Gets the total token count of all messages in the buffer.
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
@@ -126,7 +126,7 @@ public class BufferMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 裁剪消息以适应 token 限制
+    /// Trims messages to fit within the token limit.
     /// </summary>
     private static IEnumerable<ConversationMessage> TrimToTokenLimit(
         List<ConversationMessage> messages,
@@ -136,7 +136,7 @@ public class BufferMemory : IConversationMemory
         var result = new List<ConversationMessage>();
         var tokenCount = 0;
 
-        // 从最近的消息开始
+        // Start from the most recent messages
         for (int i = messages.Count - 1; i >= 0; i--)
         {
             var msgTokens = messages[i].TokenCount ?? 0;

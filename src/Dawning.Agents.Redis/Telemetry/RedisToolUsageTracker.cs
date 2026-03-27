@@ -9,12 +9,12 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Telemetry;
 
 /// <summary>
-/// 基于 Redis Hash 的分布式工具使用追踪器
+/// A distributed tool usage tracker backed by Redis Hash.
 /// </summary>
 /// <remarks>
-/// <para>每个工具的统计数据存储为 Redis Hash，支持原子增量操作</para>
-/// <para>最近错误列表使用 Redis List（LPUSH + LTRIM 保持固定长度）</para>
-/// <para>支持跨进程、多实例聚合统计</para>
+/// <para>Per-tool statistics are stored as Redis Hashes, supporting atomic increment operations.</para>
+/// <para>Recent error lists use Redis List (LPUSH + LTRIM to maintain a fixed length).</para>
+/// <para>Supports cross-process, multi-instance aggregate statistics.</para>
 /// </remarks>
 public sealed class RedisToolUsageTracker : IToolUsageTracker
 {
@@ -26,7 +26,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
     private readonly int _maxRecentErrors;
 
     /// <summary>
-    /// 初始化 Redis 工具使用追踪器
+    /// Initializes a new instance of the <see cref="RedisToolUsageTracker"/> class.
     /// </summary>
     public RedisToolUsageTracker(
         IConnectionMultiplexer connection,
@@ -57,7 +57,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
         var hashKey = $"{_prefix}{record.ToolName}";
         var batch = _database.CreateBatch();
 
-        // 原子更新统计
+        // Atomically update statistics
         _ = batch.HashIncrementAsync(hashKey, "totalCalls", 1);
         _ = batch.HashIncrementAsync(hashKey, record.Success ? "successCount" : "failureCount", 1);
         _ = batch.HashIncrementAsync(
@@ -71,7 +71,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
             record.Timestamp.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture)
         );
 
-        // 记录错误（如果有）
+        // Record error (if any)
         if (!record.Success && !string.IsNullOrEmpty(record.ErrorMessage))
         {
             var errorsKey = $"{hashKey}:errors";
@@ -81,7 +81,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
 
         batch.Execute();
 
-        // 等待关键操作完成
+        // Wait for critical operations to complete
         await _database.HashIncrementAsync(hashKey, "totalCalls", 0).ConfigureAwait(false); // force sync
 
         _logger.LogDebug(
@@ -130,7 +130,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
                 ? DateTimeOffset.FromUnixTimeMilliseconds(lastUsedMs)
                 : DateTimeOffset.MinValue;
 
-        // 获取最近错误
+        // Retrieve recent errors
         var errorsKey = $"{hashKey}:errors";
         var recentErrors = await _database
             .ListRangeAsync(errorsKey, 0, _maxRecentErrors - 1)
@@ -161,7 +161,7 @@ public sealed class RedisToolUsageTracker : IToolUsageTracker
         foreach (var key in keys)
         {
             var keyStr = key.ToString();
-            // 跳过 errors 列表的 key
+            // Skip the errors list key
             if (keyStr.EndsWith(":errors", StringComparison.Ordinal))
             {
                 continue;

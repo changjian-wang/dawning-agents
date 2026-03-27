@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// MCP Client 实现
+/// MCP Client implementation.
 /// </summary>
 /// <remarks>
-/// 连接远程 MCP Server，调用远程工具和资源。
-/// 支持 stdio 和 HTTP 传输方式。
+/// Connects to a remote MCP Server and invokes remote tools and resources.
+/// Supports stdio and HTTP transport modes.
 /// </remarks>
 public sealed class MCPClient : IAsyncDisposable
 {
@@ -41,32 +41,32 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 是否已连接
+    /// Gets a value indicating whether the client is connected.
     /// </summary>
     public bool IsConnected => _transport?.IsConnected ?? false;
 
     /// <summary>
-    /// 是否已初始化
+    /// Gets a value indicating whether the client has been initialized.
     /// </summary>
     public bool IsInitialized => _initialized;
 
     /// <summary>
-    /// 服务器信息
+    /// Gets the server information.
     /// </summary>
     public MCPServerInfo? ServerInfo => _serverInfo;
 
     /// <summary>
-    /// 服务器能力
+    /// Gets the server capabilities.
     /// </summary>
     public MCPServerCapabilities? ServerCapabilities => _serverCapabilities;
 
     /// <summary>
-    /// 连接到 MCP Server（通过启动进程）
+    /// Connects to an MCP Server by launching a process.
     /// </summary>
-    /// <param name="command">服务器命令（如 "python mcp_server.py"）</param>
-    /// <param name="arguments">命令参数</param>
-    /// <param name="workingDirectory">工作目录</param>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="command">The server command (e.g., "python mcp_server.py").</param>
+    /// <param name="arguments">Command arguments.</param>
+    /// <param name="workingDirectory">The working directory.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     public async Task ConnectAsync(
         string command,
         string? arguments = null,
@@ -151,12 +151,12 @@ public sealed class MCPClient : IAsyncDisposable
             throw;
         }
 
-        // 启动响应监听
+        // Start the response listener
         _listenerCts?.Dispose();
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
-        // 发送初始化请求
+        // Send initialization request
         try
         {
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -175,7 +175,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 连接到已有的传输层
+    /// Connects to an existing transport.
     /// </summary>
     public async Task ConnectAsync(
         IMCPTransport transport,
@@ -192,12 +192,12 @@ public sealed class MCPClient : IAsyncDisposable
         _transport = transport;
         await _transport.StartAsync(cancellationToken).ConfigureAwait(false);
 
-        // 启动响应监听
+        // Start the response listener
         _listenerCts?.Dispose();
         _listenerCts = new CancellationTokenSource();
         _listenerTask = ListenForResponsesAsync(_listenerCts.Token);
 
-        // 发送初始化请求
+        // Send initialization request
         try
         {
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -247,7 +247,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送初始化请求
+    /// Sends the initialization request.
     /// </summary>
     private async Task InitializeAsync(CancellationToken cancellationToken)
     {
@@ -273,13 +273,13 @@ public sealed class MCPClient : IAsyncDisposable
         Volatile.Write(ref _serverCapabilities, response.Capabilities);
         _initialized = true;
 
-        // 发送 initialized 通知
+        // Send initialized notification
         await SendNotificationAsync(MCPMethods.Initialized, null, cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 获取可用工具列表
+    /// Gets the list of available tools.
     /// </summary>
     public async Task<IReadOnlyList<MCPToolDefinition>> ListToolsAsync(
         CancellationToken cancellationToken = default
@@ -299,7 +299,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 调用工具
+    /// Calls a tool on the remote server.
     /// </summary>
     public async Task<CallToolResult> CallToolAsync(
         string toolName,
@@ -321,7 +321,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取资源列表
+    /// Gets the list of available resources.
     /// </summary>
     public async Task<IReadOnlyList<MCPResource>> ListResourcesAsync(
         CancellationToken cancellationToken = default
@@ -341,7 +341,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 读取资源
+    /// Reads a resource.
     /// </summary>
     public async Task<ReadResourceResult> ReadResourceAsync(
         string uri,
@@ -362,7 +362,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取提示词列表
+    /// Gets the list of available prompts.
     /// </summary>
     public async Task<IReadOnlyList<MCPPrompt>> ListPromptsAsync(
         CancellationToken cancellationToken = default
@@ -382,7 +382,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取提示词
+    /// Gets a prompt.
     /// </summary>
     public async Task<GetPromptResult> GetPromptAsync(
         string name,
@@ -404,7 +404,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送请求并等待响应
+    /// Sends a request and waits for a response.
     /// </summary>
     private async Task<TResult> SendRequestAsync<TResult>(
         string method,
@@ -476,7 +476,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送通知（不等待响应）
+    /// Sends a notification (does not wait for a response).
     /// </summary>
     private async Task SendNotificationAsync(
         string method,
@@ -493,7 +493,7 @@ public sealed class MCPClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// 监听响应
+    /// Listens for responses from the server.
     /// </summary>
     private async Task ListenForResponsesAsync(CancellationToken cancellationToken)
     {
@@ -624,7 +624,7 @@ public sealed class MCPClient : IAsyncDisposable
 }
 
 /// <summary>
-/// MCP 异常
+/// MCP exception
 /// </summary>
 public class MCPException : Exception
 {

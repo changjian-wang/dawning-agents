@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// Agent 请求队列实现
+/// Agent request queue implementation.
 /// </summary>
 public sealed class AgentRequestQueue : IAgentRequestQueue
 {
@@ -37,11 +37,11 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         try
         {
             await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("工作项 {WorkItemId} 已入队", item.Id);
+            _logger.LogDebug("Work item {WorkItemId} enqueued", item.Id);
         }
         catch (ChannelClosedException)
         {
-            throw new InvalidOperationException("请求队列已关闭，无法入队");
+            throw new InvalidOperationException("Request queue is closed; cannot enqueue");
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         try
         {
             var item = await _channel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("工作项 {WorkItemId} 已出队", item.Id);
+            _logger.LogDebug("Work item {WorkItemId} dequeued", item.Id);
             return item;
         }
         catch (OperationCanceledException)
@@ -62,9 +62,9 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
         }
         catch (ChannelClosedException)
         {
-            // 队列已关闭，抛出取消异常让调用方（worker loop）退出，
-            // 避免返回 null 导致 busy-loop
-            throw new OperationCanceledException("请求队列已关闭");
+            // Queue is closed; throw cancellation to let the caller (worker loop) exit
+            // instead of returning null which would cause a busy-loop
+            throw new OperationCanceledException("Request queue is closed");
         }
     }
 
@@ -75,11 +75,11 @@ public sealed class AgentRequestQueue : IAgentRequestQueue
     public bool CanWrite => !_channel.Reader.Completion.IsCompleted;
 
     /// <summary>
-    /// 关闭队列
+    /// Closes the queue.
     /// </summary>
     public void Complete()
     {
         _channel.Writer.Complete();
-        _logger.LogInformation("请求队列已关闭");
+        _logger.LogInformation("Request queue closed");
     }
 }

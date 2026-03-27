@@ -4,12 +4,12 @@ using Serilog.Events;
 namespace Dawning.Agents.Serilog;
 
 /// <summary>
-/// Span ID Enricher - 添加 OpenTelemetry Span ID 到日志
+/// Span ID enricher that adds OpenTelemetry trace and span identifiers to log events.
 /// </summary>
 public sealed class SpanIdEnricher : ILogEventEnricher
 {
     /// <summary>
-    /// 丰富日志事件
+    /// Enriches the log event with trace identifiers.
     /// </summary>
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {

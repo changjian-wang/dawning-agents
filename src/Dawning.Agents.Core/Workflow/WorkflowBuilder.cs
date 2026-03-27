@@ -3,7 +3,7 @@ using Dawning.Agents.Abstractions.Workflow;
 namespace Dawning.Agents.Core.Workflow;
 
 /// <summary>
-/// 工作流构建器（Fluent API）
+/// Fluent workflow builder.
 /// </summary>
 public sealed class WorkflowBuilder
 {
@@ -23,7 +23,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 创建工作流构建器
+    /// Creates a new workflow builder.
     /// </summary>
     public static WorkflowBuilder Create(string id, string name)
     {
@@ -33,7 +33,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 设置描述
+    /// Sets the workflow description.
     /// </summary>
     public WorkflowBuilder WithDescription(string description)
     {
@@ -44,7 +44,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 设置版本
+    /// Sets the workflow version.
     /// </summary>
     public WorkflowBuilder WithVersion(string version)
     {
@@ -55,7 +55,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 设置起始节点
+    /// Sets the start node.
     /// </summary>
     public WorkflowBuilder StartWith(string nodeId)
     {
@@ -66,7 +66,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加 Agent 节点
+    /// Adds an agent node.
     /// </summary>
     public WorkflowBuilder AddAgentNode(
         string id,
@@ -102,7 +102,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加工具节点
+    /// Adds a tool node.
     /// </summary>
     public WorkflowBuilder AddToolNode(
         string id,
@@ -136,7 +136,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加条件节点
+    /// Adds a condition node.
     /// </summary>
     public WorkflowBuilder AddConditionNode(
         string id,
@@ -165,7 +165,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加并行节点
+    /// Adds a parallel node.
     /// </summary>
     public WorkflowBuilder AddParallelNode(
         string id,
@@ -194,7 +194,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加循环节点
+    /// Adds a loop node.
     /// </summary>
     public WorkflowBuilder AddLoopNode(
         string id,
@@ -226,7 +226,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加延迟节点
+    /// Adds a delay node.
     /// </summary>
     public WorkflowBuilder AddDelayNode(string id, string name, int delayMs)
     {
@@ -245,7 +245,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加起始节点
+    /// Adds a start node.
     /// </summary>
     public WorkflowBuilder AddStartNode(string id = "start")
     {
@@ -253,7 +253,7 @@ public sealed class WorkflowBuilder
             new WorkflowNodeDefinition
             {
                 Id = id,
-                Name = "开始",
+                Name = "Start",
                 Type = WorkflowNodeType.Start,
             }
         );
@@ -262,7 +262,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加结束节点
+    /// Adds an end node.
     /// </summary>
     public WorkflowBuilder AddEndNode(string id = "end")
     {
@@ -270,7 +270,7 @@ public sealed class WorkflowBuilder
             new WorkflowNodeDefinition
             {
                 Id = id,
-                Name = "结束",
+                Name = "End",
                 Type = WorkflowNodeType.End,
             }
         );
@@ -278,7 +278,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加人工审批节点
+    /// Adds a human approval node.
     /// </summary>
     public WorkflowBuilder AddHumanApprovalNode(
         string id,
@@ -310,7 +310,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 连接两个节点
+    /// Connects two nodes with an edge.
     /// </summary>
     public WorkflowBuilder Connect(string fromNodeId, string toNodeId, string? label = null)
     {
@@ -329,7 +329,7 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 添加元数据
+    /// Adds metadata.
     /// </summary>
     public WorkflowBuilder WithMetadata(string key, object? value)
     {
@@ -340,13 +340,13 @@ public sealed class WorkflowBuilder
     }
 
     /// <summary>
-    /// 构建工作流定义
+    /// Builds the workflow definition.
     /// </summary>
     public WorkflowDefinition Build()
     {
         if (string.IsNullOrEmpty(_startNodeId))
         {
-            throw new InvalidOperationException("工作流必须指定起始节点");
+            throw new InvalidOperationException("Workflow must specify a start node");
         }
 
         return new WorkflowDefinition
@@ -364,7 +364,7 @@ public sealed class WorkflowBuilder
 }
 
 /// <summary>
-/// 条件节点构建器
+/// Condition node builder.
 /// </summary>
 public sealed class ConditionNodeBuilder
 {
@@ -409,7 +409,7 @@ public sealed class ConditionNodeBuilder
 }
 
 /// <summary>
-/// 并行节点构建器
+/// Parallel node builder.
 /// </summary>
 public sealed class ParallelNodeBuilder
 {

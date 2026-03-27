@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 工具沙箱实现 — 通过 Process 执行 shell 命令，支持超时和工作目录限制
+/// Tool sandbox implementation — executes shell commands via <see cref="Process"/> with timeout and working directory restrictions.
 /// </summary>
 public sealed class ToolSandbox : IToolSandbox
 {
     private readonly ILogger<ToolSandbox> _logger;
 
     /// <summary>
-    /// 创建工具沙箱
+    /// Creates a tool sandbox.
     /// </summary>
     public ToolSandbox(ILogger<ToolSandbox>? logger = null)
     {
@@ -176,7 +176,7 @@ public sealed class ToolSandbox : IToolSandbox
     }
 
     /// <summary>
-    /// 根据脚本运行时类型获取对应的 Shell 信息
+    /// Gets the shell info based on the script runtime type.
     /// </summary>
     private static ShellInfo GetShellForRuntime(ScriptRuntime runtime)
     {

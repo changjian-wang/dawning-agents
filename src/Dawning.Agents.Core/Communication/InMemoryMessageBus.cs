@@ -7,15 +7,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// 内存消息总线实现
+/// In-memory message bus implementation.
 /// </summary>
 /// <remarks>
-/// 适用于单进程内的 Agent 通信，支持：
+/// Designed for intra-process agent communication. Supports:
 /// <list type="bullet">
-/// <item>点对点消息</item>
-/// <item>广播消息</item>
-/// <item>主题订阅/发布</item>
-/// <item>请求/响应模式</item>
+/// <item>Point-to-point messaging</item>
+/// <item>Broadcast messaging</item>
+/// <item>Topic-based publish/subscribe</item>
+/// <item>Request/response pattern</item>
 /// </list>
 /// </remarks>
 public sealed class InMemoryMessageBus : IMessageBus
@@ -35,7 +35,7 @@ public sealed class InMemoryMessageBus : IMessageBus
     private readonly ILogger<InMemoryMessageBus> _logger;
 
     /// <summary>
-    /// 创建内存消息总线
+    /// Initializes a new instance of the <see cref="InMemoryMessageBus"/> class.
     /// </summary>
     public InMemoryMessageBus(ILogger<InMemoryMessageBus>? logger = null)
     {
@@ -47,17 +47,17 @@ public sealed class InMemoryMessageBus : IMessageBus
     {
         if (string.IsNullOrEmpty(message.ReceiverId))
         {
-            throw new ArgumentException("点对点消息必须指定 ReceiverId", nameof(message));
+            throw new ArgumentException("Point-to-point messages must specify a ReceiverId.", nameof(message));
         }
 
         _logger.LogDebug(
-            "发送消息 {MessageId}: {Sender} -> {Receiver}",
+            "Sending message {MessageId}: {Sender} -> {Receiver}",
             message.Id,
             message.SenderId,
             message.ReceiverId
         );
 
-        // 发送给指定接收者
+        // Deliver to the specified receiver
         if (_subscribers.TryGetValue(message.ReceiverId, out var handlers))
         {
             foreach (var handler in handlers)
@@ -69,12 +69,12 @@ public sealed class InMemoryMessageBus : IMessageBus
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "处理消息 {MessageId} 时出错", message.Id);
+                    _logger.LogError(ex, "Error processing message {MessageId}", message.Id);
                 }
             }
         }
 
-        // 处理响应消息的关联
+        // Correlate response messages
         if (
             message is ResponseMessage response
             && _pendingRequests.TryRemove(response.CorrelationId, out var tcs)
@@ -89,7 +89,7 @@ public sealed class InMemoryMessageBus : IMessageBus
     /// <inheritdoc />
     public Task BroadcastAsync(AgentMessage message, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("广播消息 {MessageId} 来自 {Sender}", message.Id, message.SenderId);
+        _logger.LogDebug("Broadcasting message {MessageId} from {Sender}", message.Id, message.SenderId);
 
         foreach (var handlers in _subscribers.Values)
         {
@@ -102,7 +102,7 @@ public sealed class InMemoryMessageBus : IMessageBus
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "处理广播消息 {MessageId} 时出错", message.Id);
+                    _logger.LogError(ex, "Error processing broadcast message {MessageId}", message.Id);
                 }
             }
         }
@@ -122,7 +122,7 @@ public sealed class InMemoryMessageBus : IMessageBus
             (_, list) => list.Add(handler)
         );
 
-        _logger.LogDebug("Agent {AgentId} 订阅了消息", agentId);
+        _logger.LogDebug("Agent {AgentId} subscribed to messages", agentId);
 
         return new Subscription(() =>
         {
@@ -137,7 +137,7 @@ public sealed class InMemoryMessageBus : IMessageBus
                     ImmutableList<Action<AgentMessage>>.Empty
                 )
             );
-            _logger.LogDebug("Agent {AgentId} 取消了订阅", agentId);
+            _logger.LogDebug("Agent {AgentId} unsubscribed from messages", agentId);
         });
     }
 
@@ -156,7 +156,7 @@ public sealed class InMemoryMessageBus : IMessageBus
             (_, list) => list.Add(subscription)
         );
 
-        _logger.LogDebug("Agent {AgentId} 订阅了主题 {Topic}", agentId, topic);
+        _logger.LogDebug("Agent {AgentId} subscribed to topic {Topic}", agentId, topic);
 
         return new Subscription(() =>
         {
@@ -171,7 +171,7 @@ public sealed class InMemoryMessageBus : IMessageBus
                     ImmutableList<(string AgentId, Action<EventMessage> Handler)>
                 >(topic, ImmutableList<(string AgentId, Action<EventMessage> Handler)>.Empty)
             );
-            _logger.LogDebug("Agent {AgentId} 取消订阅主题 {Topic}", agentId, topic);
+            _logger.LogDebug("Agent {AgentId} unsubscribed from topic {Topic}", agentId, topic);
         });
     }
 
@@ -184,7 +184,7 @@ public sealed class InMemoryMessageBus : IMessageBus
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(topic);
         ArgumentNullException.ThrowIfNull(message);
-        _logger.LogDebug("发布事件 {EventType} 到主题 {Topic}", message.EventType, topic);
+        _logger.LogDebug("Publishing event {EventType} to topic {Topic}", message.EventType, topic);
 
         if (_topicSubscribers.TryGetValue(topic, out var subscribers))
         {
@@ -197,7 +197,7 @@ public sealed class InMemoryMessageBus : IMessageBus
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Agent {AgentId} 处理事件时出错", agentId);
+                    _logger.LogError(ex, "Error processing event for agent {AgentId}", agentId);
                 }
             }
         }
@@ -219,16 +219,16 @@ public sealed class InMemoryMessageBus : IMessageBus
 
         if (!_pendingRequests.TryAdd(correlationId, tcs))
         {
-            throw new InvalidOperationException($"请求 {correlationId} 已存在");
+            throw new InvalidOperationException($"Request {correlationId} already exists.");
         }
 
         try
         {
-            // 发送请求
+            // Send the request
             await SendAsync(request with { CorrelationId = correlationId }, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 等待响应或超时
+            // Wait for the response or timeout
             try
             {
                 return await tcs.Task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
@@ -236,7 +236,7 @@ public sealed class InMemoryMessageBus : IMessageBus
             catch (TimeoutException ex)
             {
                 throw new TimeoutException(
-                    $"请求 {correlationId} 在 {timeout.TotalSeconds} 秒后超时",
+                    $"Request {correlationId} timed out after {timeout.TotalSeconds} seconds.",
                     ex
                 );
             }
@@ -248,17 +248,17 @@ public sealed class InMemoryMessageBus : IMessageBus
     }
 
     /// <summary>
-    /// 获取订阅者数量
+    /// Gets the number of subscribers.
     /// </summary>
     public int SubscriberCount => _subscribers.Count;
 
     /// <summary>
-    /// 获取主题数量
+    /// Gets the number of topics.
     /// </summary>
     public int TopicCount => _topicSubscribers.Count;
 
     /// <summary>
-    /// 订阅取消器
+    /// Subscription disposer.
     /// </summary>
     private sealed class Subscription : IDisposable
     {

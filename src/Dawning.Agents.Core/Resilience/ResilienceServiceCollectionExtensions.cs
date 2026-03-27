@@ -7,16 +7,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Resilience;
 
 /// <summary>
-/// 弹性策略的依赖注入扩展
+/// Resilience strategy DI extensions.
 /// </summary>
 public static class ResilienceServiceCollectionExtensions
 {
     /// <summary>
-    /// 从 IConfiguration 添加弹性策略服务
+    /// Adds resilience services from <see cref="IConfiguration"/>.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "Resilience": {
@@ -53,7 +53,7 @@ public static class ResilienceServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加弹性策略服务（使用配置委托）
+    /// Adds resilience services using a configuration delegate.
     /// </summary>
     public static IServiceCollection AddResilience(
         this IServiceCollection services,
@@ -67,7 +67,7 @@ public static class ResilienceServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加默认弹性策略服务
+    /// Adds default resilience services.
     /// </summary>
     public static IServiceCollection AddResilience(this IServiceCollection services)
     {

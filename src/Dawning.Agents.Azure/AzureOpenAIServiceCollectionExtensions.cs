@@ -10,18 +10,18 @@ using Microsoft.Extensions.Logging;
 namespace Dawning.Agents.Azure;
 
 /// <summary>
-/// Azure OpenAI Provider 的依赖注入扩展
+/// Dependency injection extensions for Azure OpenAI provider.
 /// </summary>
 public static class AzureOpenAIServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Azure OpenAI Provider（API Key 认证）
+    /// Registers an Azure OpenAI provider with API key authentication.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="endpoint">Azure OpenAI 端点</param>
-    /// <param name="apiKey">API Key</param>
-    /// <param name="deploymentName">部署名称</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
+    /// <param name="apiKey">The API key.</param>
+    /// <param name="deploymentName">The deployment name.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddAzureOpenAIProvider(
@@ -53,13 +53,13 @@ public static class AzureOpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Provider（Azure AD 认证）
+    /// Registers an Azure OpenAI provider with Azure AD authentication.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="endpoint">Azure OpenAI 端点</param>
-    /// <param name="credential">Azure 凭据</param>
-    /// <param name="deploymentName">部署名称</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
+    /// <param name="credential">The Azure credential.</param>
+    /// <param name="deploymentName">The deployment name.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddAzureOpenAIProvider(
@@ -91,11 +91,11 @@ public static class AzureOpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Provider（使用配置委托）
+    /// Registers an Azure OpenAI provider using a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddAzureOpenAIProvider(options =>
@@ -123,11 +123,11 @@ public static class AzureOpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Provider（使用 IConfiguration 配置节）
+    /// Registers an Azure OpenAI provider using an <see cref="IConfiguration"/> section.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">包含 Endpoint、ApiKey 和 DeploymentName 的配置节</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration section containing Endpoint, ApiKey, and DeploymentName.</param>
+    /// <returns>The service collection for chaining.</returns>
     /// <example>
     /// <code>
     /// services.AddAzureOpenAIProvider(configuration.GetSection("AzureOpenAI"));
@@ -156,13 +156,13 @@ public static class AzureOpenAIServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Embedding Provider
+    /// Registers an Azure OpenAI embedding provider.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="endpoint">Azure OpenAI 端点</param>
-    /// <param name="apiKey">Azure OpenAI API Key</param>
-    /// <param name="deploymentName">嵌入模型部署名称</param>
-    /// <param name="dimensions">向量维度</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
+    /// <param name="apiKey">The Azure OpenAI API key.</param>
+    /// <param name="deploymentName">The embedding model deployment name.</param>
+    /// <param name="dimensions">The vector dimensions.</param>
     public static IServiceCollection AddAzureOpenAIEmbedding(
         this IServiceCollection services,
         string endpoint,
@@ -183,12 +183,12 @@ public static class AzureOpenAIServiceCollectionExtensions
 }
 
 /// <summary>
-/// Azure OpenAI Provider 配置选项
+/// Configuration options for the Azure OpenAI provider.
 /// </summary>
 public class AzureOpenAIProviderOptions : IValidatableOptions
 {
     /// <summary>
-    /// Azure OpenAI 端点
+    /// Gets or sets the Azure OpenAI endpoint URL.
     /// </summary>
     public string? Endpoint { get; set; }
 
@@ -198,12 +198,12 @@ public class AzureOpenAIProviderOptions : IValidatableOptions
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// 部署名称
+    /// Gets or sets the deployment name.
     /// </summary>
     public string? DeploymentName { get; set; }
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration options.
     /// </summary>
     public void Validate()
     {

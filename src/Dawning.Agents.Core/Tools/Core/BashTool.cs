@@ -8,11 +8,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 命令行工具 — 在沙箱中执行 shell 命令
+/// Command-line tool — executes shell commands in a sandbox.
 /// </summary>
 /// <remarks>
-/// <para>Risk: High — 可以执行任意系统命令</para>
-/// <para>内置危险命令检测：rm -rf /、sudo、chmod 777 等</para>
+/// <para>Risk: High — can execute arbitrary system commands.</para>
+/// <para>Built-in dangerous command detection: rm -rf /, sudo, chmod 777, etc.</para>
 /// </remarks>
 public sealed class BashTool : ITool
 {
@@ -22,12 +22,12 @@ public sealed class BashTool : ITool
     private readonly ILogger<BashTool> _logger;
 
     /// <summary>
-    /// 创建 BashTool
+    /// Creates a <see cref="BashTool"/>.
     /// </summary>
-    /// <param name="sandbox">工具沙箱</param>
-    /// <param name="defaultOptions">默认沙箱选项</param>
-    /// <param name="commandAnalyzer">命令分析器（可选，默认使用标准配置）</param>
-    /// <param name="logger">日志</param>
+    /// <param name="sandbox">The tool sandbox.</param>
+    /// <param name="defaultOptions">Default sandbox options.</param>
+    /// <param name="commandAnalyzer">Command analyzer (optional; uses default configuration).</param>
+    /// <param name="logger">The logger.</param>
     public BashTool(
         IToolSandbox sandbox,
         ToolSandboxOptions? defaultOptions = null,

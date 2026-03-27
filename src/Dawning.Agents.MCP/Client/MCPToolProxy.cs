@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// MCP 工具代理
+/// Wraps a remote MCP Server tool as an <see cref="ITool"/>.
 /// </summary>
 /// <remarks>
-/// 将远程 MCP Server 的工具包装为 Dawning.Agents 的 ITool 接口，
-/// 使其可以被 Agent 直接调用。
+/// Wraps a remote MCP Server tool as a Dawning.Agents ITool interface,
+/// enabling direct invocation by agents.
 /// </remarks>
 public sealed class MCPToolProxy : ITool
 {
@@ -42,7 +42,7 @@ public sealed class MCPToolProxy : ITool
 
     public bool RequiresConfirmation => false;
 
-    public ToolRiskLevel RiskLevel => ToolRiskLevel.Medium; // 远程工具默认中等风险
+    public ToolRiskLevel RiskLevel => ToolRiskLevel.Medium; // Remote tools default to medium risk
 
     public string? Category => "MCP";
 
@@ -64,7 +64,7 @@ public sealed class MCPToolProxy : ITool
                 .CallToolAsync(_definition.Name, arguments, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 提取文本内容
+            // Extract text content
             var output = string.Join(
                 "\n",
                 result.Content.Where(c => c.Type == "text" && c.Text != null).Select(c => c.Text)
@@ -90,12 +90,12 @@ public sealed class MCPToolProxy : ITool
 }
 
 /// <summary>
-/// MCP 工具注册表扩展
+/// Provides extension methods for registering MCP tools.
 /// </summary>
 public static class MCPToolRegistryExtensions
 {
     /// <summary>
-    /// 从 MCP Client 注册所有远程工具
+    /// Registers all remote tools from an MCP Client.
     /// </summary>
     public static async Task RegisterMCPToolsAsync(
         this IToolRegistrar registry,

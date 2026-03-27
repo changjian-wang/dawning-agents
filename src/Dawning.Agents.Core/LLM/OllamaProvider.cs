@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.LLM;
 
 /// <summary>
-/// Ollama 本地模型提供者实现（支持 Native Function Calling）
+/// Ollama local model provider implementation with native function calling support.
 /// </summary>
 public sealed class OllamaProvider : ILLMProvider
 {
@@ -34,7 +34,7 @@ public sealed class OllamaProvider : ILLMProvider
         _model = model;
         _logger = logger ?? NullLogger<OllamaProvider>.Instance;
 
-        _logger.LogDebug("OllamaProvider 已创建，模型: {Model}", model);
+        _logger.LogDebug("OllamaProvider created, Model: {Model}", model);
     }
 
     public async Task<ChatCompletionResponse> ChatAsync(
@@ -49,7 +49,7 @@ public sealed class OllamaProvider : ILLMProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        _logger.LogDebug("发送聊天请求到 Ollama，模型: {Model}", _model);
+        _logger.LogDebug("Sending chat request to Ollama, Model: {Model}", _model);
 
         using var response = await _httpClient
             .PostAsync("/api/chat", content, cancellationToken)
@@ -61,12 +61,12 @@ public sealed class OllamaProvider : ILLMProvider
             .ConfigureAwait(false);
 
         _logger.LogDebug(
-            "Ollama 响应完成，Token: {Prompt}/{Completion}",
+            "Ollama response completed, Tokens: {Prompt}/{Completion}",
             result?.PromptEvalCount,
             result?.EvalCount
         );
 
-        // 提取 tool calls（如有）
+        // Extract tool calls (if any)
         IReadOnlyList<ToolCall>? toolCalls = null;
         var finishReason = result?.DoneReason ?? "stop";
 
@@ -85,7 +85,7 @@ public sealed class OllamaProvider : ILLMProvider
                 .ToList();
 
             finishReason = "tool_calls";
-            _logger.LogDebug("收到 {Count} 个 tool calls", toolCalls.Count);
+            _logger.LogDebug("Received {Count} tool call(s)", toolCalls.Count);
         }
 
         return new ChatCompletionResponse
@@ -286,7 +286,7 @@ public sealed class OllamaProvider : ILLMProvider
                 ToolCallId = msg.ToolCallId,
             };
 
-            // assistant 消息携带 tool_calls
+            // Assistant messages carry tool_calls
             if (msg.HasToolCalls)
             {
                 ollamaMsg.ToolCalls = msg.ToolCalls!.Select(tc => new OllamaToolCall
@@ -305,7 +305,7 @@ public sealed class OllamaProvider : ILLMProvider
             ollamaMessages.Add(ollamaMsg);
         }
 
-        // 构建 tools 列表
+        // Build tool definitions
         List<OllamaToolDefinition>? tools = null;
         if (options.Tools is { Count: > 0 })
         {
@@ -324,10 +324,10 @@ public sealed class OllamaProvider : ILLMProvider
                 })
                 .ToList();
 
-            _logger.LogDebug("传递 {Count} 个工具定义到 Ollama", tools.Count);
+            _logger.LogDebug("Passing {Count} tool definition(s) to Ollama", tools.Count);
         }
 
-        // 构建 format（Ollama 原生支持 json 格式）
+        // Build format (Ollama natively supports JSON format)
         string? format = null;
         if (options.ResponseFormat is { } responseFormat)
         {
@@ -340,7 +340,7 @@ public sealed class OllamaProvider : ILLMProvider
 
             if (format != null)
             {
-                _logger.LogDebug("Ollama 响应格式设置为: {Format}", format);
+                _logger.LogDebug("Ollama response format set to: {Format}", format);
             }
         }
 

@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Diagnostics;
 
 /// <summary>
-/// 诊断服务 DI 扩展方法
+/// Diagnostics services DI extension methods.
 /// </summary>
 public static class DiagnosticsServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加诊断服务
+    /// Adds diagnostics services.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddDiagnostics(this IServiceCollection services)
     {
         services.TryAddSingleton<IDiagnosticsProvider, DiagnosticsProvider>();
@@ -23,12 +23,12 @@ public static class DiagnosticsServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加诊断服务（带配置）
+    /// Adds diagnostics services with configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="maxTraceCount">最大追踪记录数</param>
-    /// <param name="slowOperationThreshold">慢操作阈值</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="maxTraceCount">The maximum number of trace records.</param>
+    /// <param name="slowOperationThreshold">The slow operation threshold.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddDiagnostics(
         this IServiceCollection services,
         int maxTraceCount,

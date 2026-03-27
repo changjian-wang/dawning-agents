@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Chroma;
 
 /// <summary>
-/// Chroma 向量存储配置选项
+/// Configuration options for the Chroma vector store.
 /// </summary>
 /// <remarks>
-/// 配置示例 (appsettings.json):
+/// Configuration example (appsettings.json):
 /// <code>
 /// {
 ///   "Chroma": {
@@ -22,67 +22,67 @@ namespace Dawning.Agents.Chroma;
 public class ChromaOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "Chroma";
 
     /// <summary>
-    /// Chroma 服务器主机地址
+    /// The Chroma server host address.
     /// </summary>
     public string Host { get; set; } = "localhost";
 
     /// <summary>
-    /// Chroma 服务器端口
+    /// The Chroma server port.
     /// </summary>
     public int Port { get; set; } = 8000;
 
     /// <summary>
-    /// 集合名称
+    /// The collection name.
     /// </summary>
     public string CollectionName { get; set; } = "documents";
 
     /// <summary>
-    /// 租户名称
+    /// The tenant name.
     /// </summary>
     public string Tenant { get; set; } = "default_tenant";
 
     /// <summary>
-    /// 数据库名称
+    /// The database name.
     /// </summary>
     public string Database { get; set; } = "default_database";
 
     /// <summary>
-    /// 是否使用 HTTPS
+    /// Gets or sets a value indicating whether to use HTTPS.
     /// </summary>
     public bool UseHttps { get; set; } = false;
 
     /// <summary>
-    /// API 密钥（可选，用于认证）
+    /// The API key (optional, for authentication).
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// HTTP 请求超时时间（秒）
+    /// The HTTP request timeout in seconds.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 30;
 
     /// <summary>
-    /// 向量维度（用于创建集合）
+    /// The vector dimension (used when creating the collection).
     /// </summary>
     public int VectorDimension { get; set; } = 1536;
 
     /// <summary>
-    /// 距离度量方式
+    /// The distance metric.
     /// </summary>
     public ChromaDistanceMetric DistanceMetric { get; set; } = ChromaDistanceMetric.Cosine;
 
     /// <summary>
-    /// 获取 Chroma API 基础 URL
+    /// Gets the Chroma API base URL.
     /// </summary>
     public string BaseUrl => $"{(UseHttps ? "https" : "http")}://{Host}:{Port}";
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {
@@ -114,22 +114,22 @@ public class ChromaOptions : IValidatableOptions
 }
 
 /// <summary>
-/// Chroma 距离度量方式
+/// Chroma distance metric.
 /// </summary>
 public enum ChromaDistanceMetric
 {
     /// <summary>
-    /// 余弦相似度
+    /// Cosine similarity.
     /// </summary>
     Cosine,
 
     /// <summary>
-    /// L2 欧几里得距离
+    /// L2 Euclidean distance.
     /// </summary>
     L2,
 
     /// <summary>
-    /// 内积
+    /// Inner product.
     /// </summary>
     InnerProduct,
 }

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 滑动窗口速率限制器
+/// Sliding window rate limiter.
 /// </summary>
 public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 {
@@ -39,7 +39,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "清理空闲速率限制桶时发生错误");
+                    _logger.LogError(ex, "Error occurred while evicting idle rate limit buckets");
                 }
             },
             null,
@@ -86,7 +86,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
     private RateLimitResult TryAcquireCore(string key, string? policyName)
     {
-        // 解析策略：命名策略 > 默认配置
+        // Resolve policy: named policy > default configuration
         var maxRequests = _options.MaxRequestsPerWindow;
         var windowSize = _options.WindowSize;
 
@@ -98,7 +98,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         var now = _timeProvider.GetUtcNow();
 
-        // 桶数上限保护：double-checked locking 避免 TOCTOU
+        // Bucket cap protection: double-checked locking to avoid TOCTOU
         if (!_buckets.TryGetValue(key, out var bucket))
         {
             lock (_addLock)
@@ -108,7 +108,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                     if (_buckets.Count >= _options.MaxBuckets)
                     {
                         _logger.LogWarning(
-                            "速率限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, Key={Key}",
+                            "Rate limit bucket cap reached: Count={Count}, MaxBuckets={MaxBuckets}, Key={Key}",
                             _buckets.Count,
                             _options.MaxBuckets,
                             key
@@ -129,7 +129,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         var resetTime = now.Add(windowSize);
 
-        // 原子操作：清理 + 检查 + 添加 在同一个锁内完成
+        // Atomic operation: cleanup + check + add within the same lock
         var result = bucket.TryAcquire(now, maxRequests, windowSize);
 
         if (!result.Allowed)
@@ -137,7 +137,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
             var retryAfter = result.OldestTimestamp.Add(windowSize) - now;
 
             _logger.LogWarning(
-                "速率限制触发: Key={Key}, Count={Count}, MaxRequests={MaxRequests}",
+                "Rate limit triggered: Key={Key}, Count={Count}, MaxRequests={MaxRequests}",
                 key,
                 result.Count,
                 maxRequests
@@ -153,7 +153,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         var remaining = maxRequests - result.Count;
 
         _logger.LogDebug(
-            "速率限制通过: Key={Key}, Remaining={Remaining}/{MaxRequests}",
+            "Rate limit passed: Key={Key}, Remaining={Remaining}/{MaxRequests}",
             key,
             remaining,
             maxRequests
@@ -186,12 +186,12 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
                 waitTime = _options.BackpressureTimeout;
             }
 
-            _logger.LogDebug("反压等待: Key={Key}, WaitTime={WaitTime}", key, waitTime);
+            _logger.LogDebug("Backpressure wait: Key={Key}, WaitTime={WaitTime}", key, waitTime);
 
             await Task.Delay(waitTime, _timeProvider, cancellationToken).ConfigureAwait(false);
         }
 
-        // 超时后最后一次尝试
+        // Last attempt after timeout
         return TryAcquireCore(key, policyName);
     }
 
@@ -245,11 +245,11 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         _buckets.TryRemove(key, out _);
-        _logger.LogDebug("速率限制重置: Key={Key}", key);
+        _logger.LogDebug("Rate limit reset: Key={Key}", key);
     }
 
     /// <summary>
-    /// 清理空闲桶（窗口期内无记录的桶会被移除）
+    /// Evicts idle buckets (buckets with no records within the window are removed).
     /// </summary>
     internal void EvictIdleBuckets()
     {
@@ -285,7 +285,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 
         if (keysToRemove.Count > 0)
         {
-            _logger.LogDebug("清理了 {Count} 个空闲的速率限制桶", keysToRemove.Count);
+            _logger.LogDebug("Evicted {Count} idle rate limit bucket(s)", keysToRemove.Count);
         }
     }
 
@@ -300,7 +300,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
     }
 
     /// <summary>
-    /// 速率限制桶（滑动窗口）
+    /// Rate limit bucket (sliding window).
     /// </summary>
     private class RateLimitBucket
     {
@@ -325,7 +325,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
         }
 
         /// <summary>
-        /// 原子操作：清理过期 + 检查限额 + 添加记录
+        /// Atomic operation: cleanup expired + check limit + add record.
         /// </summary>
         public (bool Allowed, int Count, DateTimeOffset OldestTimestamp) TryAcquire(
             DateTimeOffset now,
@@ -362,7 +362,7 @@ public sealed class SlidingWindowRateLimiter : IRateLimiter, IDisposable
 }
 
 /// <summary>
-/// Token 使用限制器
+/// Token usage rate limiter.
 /// </summary>
 public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
 {
@@ -394,7 +394,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "清理空闲 Token 限制桶时发生错误");
+                    _logger.LogError(ex, "Error occurred while evicting idle token limit buckets");
                 }
             },
             null,
@@ -415,11 +415,11 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
             return TokenRateLimitResult.Allow();
         }
 
-        // 检查单次请求限制
+        // Check per-request limit
         if (tokenCount > _options.MaxTokensPerRequest)
         {
             _logger.LogWarning(
-                "单次请求 Token 超限: SessionId={SessionId}, Requested={Requested}, Max={Max}",
+                "Per-request token limit exceeded: SessionId={SessionId}, Requested={Requested}, Max={Max}",
                 sessionId,
                 tokenCount,
                 _options.MaxTokensPerRequest
@@ -427,7 +427,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
             return TokenRateLimitResult.Deny(RateLimitDenyReason.TokenPerRequestExceeded);
         }
 
-        // 桶数上限保护：double-checked locking 避免 TOCTOU
+        // Bucket cap protection: double-checked locking to avoid TOCTOU
         if (!_buckets.TryGetValue(sessionId, out var bucket))
         {
             lock (_addLock)
@@ -437,7 +437,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
                     if (_buckets.Count >= _options.MaxBuckets)
                     {
                         _logger.LogWarning(
-                            "Token 限制桶数已达上限: Count={Count}, MaxBuckets={MaxBuckets}, SessionId={SessionId}",
+                            "Token limit bucket cap reached: Count={Count}, MaxBuckets={MaxBuckets}, SessionId={SessionId}",
                             _buckets.Count,
                             _options.MaxBuckets,
                             sessionId
@@ -451,14 +451,14 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
             }
         }
 
-        // 无论成功还是失败，都标记访问时间（防止耗尽的会话因空闲超时被驱逐后重置预算）
+        // Whether success or failure, mark access time (prevent budget reset when exhausted sessions are evicted due to idle timeout)
         bucket.LastAccessed = _timeProvider.GetUtcNow();
 
-        // 原子检查并添加
+        // Atomic check and add
         if (!bucket.TryAddTokens(tokenCount, _options.MaxTokensPerSession))
         {
             _logger.LogWarning(
-                "会话 Token 超限: SessionId={SessionId}, Current={Current}, Requested={Requested}, Max={Max}",
+                "Session token limit exceeded: SessionId={SessionId}, Current={Current}, Requested={Requested}, Max={Max}",
                 sessionId,
                 bucket.TotalTokens,
                 tokenCount,
@@ -468,7 +468,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
         }
 
         _logger.LogDebug(
-            "Token 使用: SessionId={SessionId}, Used={Used}, Total={Total}/{Max}",
+            "Token usage: SessionId={SessionId}, Used={Used}, Total={Total}/{Max}",
             sessionId,
             tokenCount,
             bucket.TotalTokens,
@@ -491,7 +491,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
 
         if (!_buckets.TryGetValue(sessionId, out var bucket))
         {
-            return true; // 新会话，有预算
+            return true; // New session, has budget
         }
 
         return bucket.TotalTokens < _options.MaxTokensPerSession;
@@ -507,7 +507,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
     }
 
     /// <summary>
-    /// 重置会话
+    /// Resets the session.
     /// </summary>
     public void ResetSession(string sessionId)
     {
@@ -518,7 +518,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
     }
 
     /// <summary>
-    /// 清理空闲桶
+    /// Evicts idle buckets.
     /// </summary>
     internal void EvictIdleBuckets()
     {
@@ -541,7 +541,7 @@ public sealed class TokenRateLimiter : ITokenRateLimiter, IDisposable
 
         if (keysToRemove.Count > 0)
         {
-            _logger.LogDebug("清理了 {Count} 个空闲的 Token 限制桶", keysToRemove.Count);
+            _logger.LogDebug("Evicted {Count} idle token limit bucket(s)", keysToRemove.Count);
         }
     }
 

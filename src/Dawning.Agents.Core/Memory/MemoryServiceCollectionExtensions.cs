@@ -10,16 +10,16 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// Memory 服务的 DI 扩展方法
+/// Dependency injection extension methods for memory services.
 /// </summary>
 public static class MemoryServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Memory 服务（根据配置自动选择类型）
+    /// Adds memory services (automatically selects the type based on configuration).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddMemory(
         this IServiceCollection services,
         IConfiguration configuration
@@ -27,14 +27,14 @@ public static class MemoryServiceCollectionExtensions
     {
         services.AddValidatedOptions<MemoryOptions>(configuration, MemoryOptions.SectionName);
 
-        // 注册 Token 计数器
+        // Register token counter
         services.TryAddSingleton<ITokenCounter>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<MemoryOptions>>().Value;
             return new SimpleTokenCounter(options.ModelName, options.MaxContextTokens);
         });
 
-        // 根据配置注册 Memory
+        // Register memory based on configuration
         services.TryAddScoped<IConversationMemory>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<MemoryOptions>>().Value;
@@ -73,12 +73,12 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 BufferMemory
+    /// Adds <see cref="BufferMemory"/>.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddBufferMemory(
         this IServiceCollection services,
         string modelName = "gpt-4",
@@ -96,13 +96,13 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 WindowMemory
+    /// Adds <see cref="WindowMemory"/>.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="windowSize">窗口大小</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="windowSize">The window size.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddWindowMemory(
         this IServiceCollection services,
         int windowSize = 10,
@@ -122,14 +122,14 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 SummaryMemory
+    /// Adds <see cref="SummaryMemory"/>.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="maxRecentMessages">保留的最近消息数</param>
-    /// <param name="summaryThreshold">触发摘要的消息数阈值</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="maxRecentMessages">The number of recent messages to retain.</param>
+    /// <param name="summaryThreshold">The message count threshold that triggers summarization.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSummaryMemory(
         this IServiceCollection services,
         int maxRecentMessages = 6,
@@ -152,12 +152,12 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Token 计数器
+    /// Adds a token counter.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddTokenCounter(
         this IServiceCollection services,
         string modelName = "gpt-4",
@@ -171,15 +171,15 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 AdaptiveMemory（自动降级）
+    /// Adds <see cref="AdaptiveMemory"/> (automatic downgrade).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="downgradeThreshold">触发降级的 token 阈值（默认 4000）</param>
-    /// <param name="maxRecentMessages">降级后保留的最近消息数（默认 6）</param>
-    /// <param name="summaryThreshold">降级后触发摘要的消息数阈值（默认 10）</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="downgradeThreshold">The token threshold that triggers downgrade. Defaults to 4000.</param>
+    /// <param name="maxRecentMessages">The number of recent messages to retain after downgrade. Defaults to 6.</param>
+    /// <param name="summaryThreshold">The message count threshold that triggers summarization after downgrade. Defaults to 10.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddAdaptiveMemory(
         this IServiceCollection services,
         int downgradeThreshold = 4000,
@@ -204,17 +204,17 @@ public static class MemoryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 VectorMemory（向量检索增强）
+    /// Adds <see cref="VectorMemory"/> (vector retrieval-augmented).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="recentWindowSize">保留的最近消息数（默认 6）</param>
-    /// <param name="retrieveTopK">检索的相关消息数（默认 5）</param>
-    /// <param name="minRelevanceScore">最小相关性分数（默认 0.5）</param>
-    /// <param name="modelName">模型名称</param>
-    /// <param name="maxContextTokens">最大上下文 token 数</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="recentWindowSize">The number of recent messages to retain. Defaults to 6.</param>
+    /// <param name="retrieveTopK">The number of relevant messages to retrieve. Defaults to 5.</param>
+    /// <param name="minRelevanceScore">The minimum relevance score threshold. Defaults to 0.5.</param>
+    /// <param name="modelName">The model name.</param>
+    /// <param name="maxContextTokens">The maximum context token count.</param>
+    /// <returns>The service collection.</returns>
     /// <remarks>
-    /// 使用前需要先注册 IVectorStore 和 IEmbeddingProvider
+    /// Requires <see cref="IVectorStore"/> and <see cref="IEmbeddingProvider"/> to be registered first.
     /// </remarks>
     public static IServiceCollection AddVectorMemory(
         this IServiceCollection services,

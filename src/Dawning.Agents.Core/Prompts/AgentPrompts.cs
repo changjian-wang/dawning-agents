@@ -1,12 +1,12 @@
 namespace Dawning.Agents.Core.Prompts;
 
 /// <summary>
-/// 预定义的 Agent 提示词模板
+/// Predefined agent prompt templates.
 /// </summary>
 public static class AgentPrompts
 {
     /// <summary>
-    /// ReAct Agent 系统提示词
+    /// Gets the ReAct agent system prompt template.
     /// </summary>
     public static readonly PromptTemplate ReActSystem = PromptTemplate.Create(
         "react-system",
@@ -38,7 +38,7 @@ public static class AgentPrompts
     );
 
     /// <summary>
-    /// ReAct Agent 用户提示词
+    /// Gets the ReAct agent user prompt template.
     /// </summary>
     public static readonly PromptTemplate ReActUser = PromptTemplate.Create(
         "react-user",
@@ -50,7 +50,7 @@ public static class AgentPrompts
     );
 
     /// <summary>
-    /// 简单对话 Agent 系统提示词
+    /// Gets the simple conversational agent system prompt template.
     /// </summary>
     public static readonly PromptTemplate SimpleSystem = PromptTemplate.Create(
         "simple-system",

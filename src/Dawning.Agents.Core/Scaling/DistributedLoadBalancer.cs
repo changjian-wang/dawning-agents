@@ -9,71 +9,71 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Scaling;
 
 /// <summary>
-/// 分布式负载均衡策略
+/// Distributed load balancing strategy.
 /// </summary>
 public enum LoadBalancingStrategy
 {
     /// <summary>
-    /// 轮询
+    /// Round robin.
     /// </summary>
     RoundRobin,
 
     /// <summary>
-    /// 最小连接数
+    /// Least connections.
     /// </summary>
     LeastConnections,
 
     /// <summary>
-    /// 一致性哈希（会话粘性）
+    /// Consistent hash (session affinity).
     /// </summary>
     ConsistentHash,
 
     /// <summary>
-    /// 加权轮询
+    /// Weighted round robin.
     /// </summary>
     WeightedRoundRobin,
 
     /// <summary>
-    /// 随机
+    /// Random.
     /// </summary>
     Random,
 }
 
 /// <summary>
-/// 分布式负载均衡选项
+/// Distributed load balancer options.
 /// </summary>
 public sealed class DistributedLoadBalancerOptions
 {
     public const string SectionName = "DistributedLoadBalancer";
 
     /// <summary>
-    /// 默认策略
+    /// Gets or sets the default strategy.
     /// </summary>
     public LoadBalancingStrategy Strategy { get; set; } = LoadBalancingStrategy.RoundRobin;
 
     /// <summary>
-    /// 虚拟节点数（一致性哈希）
+    /// Gets or sets the virtual node count for consistent hashing.
     /// </summary>
     public int VirtualNodeCount { get; set; } = 150;
 
     /// <summary>
-    /// 故障转移重试次数
+    /// Gets or sets the number of failover retries.
     /// </summary>
     public int FailoverRetries { get; set; } = 3;
 
     /// <summary>
-    /// 实例健康检查超时（毫秒）
+    /// Gets or sets the instance health check timeout in milliseconds.
     /// </summary>
     public int HealthCheckTimeoutMs { get; set; } = 5000;
 
     /// <summary>
-    /// 启用会话粘性
+    /// Gets or sets a value indicating whether session affinity is enabled.
     /// </summary>
     public bool EnableSessionAffinity { get; set; } = true;
 }
 
 /// <summary>
-/// 分布式负载均衡器（支持服务发现集成）
+/// Distributed load balancer with service discovery integration.
 /// </summary>
 public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, IAsyncDisposable
 {
@@ -105,7 +105,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     }
 
     /// <summary>
-    /// 从服务发现同步实例列表
+    /// Synchronizes the instance list from the service registry.
     /// </summary>
     public async Task SyncFromServiceRegistryAsync(
         string serviceName,
@@ -115,7 +115,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_serviceRegistry == null)
         {
-            _logger.LogWarning("未配置 ServiceRegistry，跳过同步");
+            _logger.LogWarning("ServiceRegistry is not configured; skipping synchronization");
             return;
         }
 
@@ -142,7 +142,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
                 AddToHashRing(agent);
             }
 
-            _logger.LogInformation("已从 ServiceRegistry 同步 {Count} 个实例", instances.Count);
+            _logger.LogInformation("Synchronized {Count} instances from ServiceRegistry", instances.Count);
         }
         finally
         {
@@ -151,7 +151,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     }
 
     /// <summary>
-    /// 启动 Watch 模式（自动同步实例变更）
+    /// Starts watch mode for automatic instance synchronization.
     /// </summary>
     public void StartWatching(string serviceName)
     {
@@ -161,7 +161,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             return;
         }
 
-        // 取消并释放之前的 Watch（使用 Interlocked.Exchange 防止并发竞态）
+        // Cancel and dispose the previous watch (use Interlocked.Exchange to prevent race conditions)
         var newCts = new CancellationTokenSource();
         var oldCts = Interlocked.Exchange(ref _watchCts, newCts);
         oldCts?.Cancel();
@@ -174,7 +174,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             {
                 if (t.IsFaulted)
                 {
-                    _logger.LogError(t.Exception, "Watch 循环发生未观察的异常");
+                    _logger.LogError(t.Exception, "Unobserved exception occurred in watch loop");
                 }
             },
             TaskScheduler.Default
@@ -211,7 +211,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
                         AddToHashRing(agent);
                     }
 
-                    _logger.LogDebug("Watch: 更新 {Count} 个实例", instances.Length);
+                    _logger.LogDebug("Watch: updated {Count} instances", instances.Length);
                 }
                 finally
                 {
@@ -221,11 +221,11 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         }
         catch (OperationCanceledException)
         {
-            // 正常取消
+            // Normal cancellation
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Watch 循环异常");
+            _logger.LogError(ex, "Watch loop exception");
         }
     }
 
@@ -250,7 +250,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             }
 
             AddToHashRing(instance);
-            _logger.LogInformation("注册实例 {InstanceId}", instance.Id);
+            _logger.LogInformation("Registered instance {InstanceId}", instance.Id);
         }
         finally
         {
@@ -270,7 +270,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             {
                 _instances.Remove(instance);
                 RemoveFromHashRing(instance);
-                _logger.LogInformation("注销实例 {InstanceId}", instanceId);
+                _logger.LogInformation("Unregistered instance {InstanceId}", instanceId);
             }
         }
         finally
@@ -283,7 +283,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     public AgentInstance? GetNextInstance() => GetInstance(null);
 
     /// <summary>
-    /// 根据会话 Key 获取实例（支持会话粘性）
+    /// Gets an instance by session key with session affinity support.
     /// </summary>
     public AgentInstance? GetInstance(string? sessionKey)
     {
@@ -294,7 +294,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             var healthyInstances = _instances.Where(i => i.IsHealthy).ToList();
             if (healthyInstances.Count == 0)
             {
-                _logger.LogWarning("没有可用的健康实例");
+                _logger.LogWarning("No healthy instances available");
                 return null;
             }
 
@@ -366,7 +366,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     }
 
     /// <summary>
-    /// 故障转移执行
+    /// Executes an action with failover.
     /// </summary>
     public async Task<T> ExecuteWithFailoverAsync<T>(
         Func<AgentInstance, Task<T>> action,
@@ -384,7 +384,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             var instance = GetInstanceExcluding(sessionKey, triedInstances);
             if (instance == null)
             {
-                throw new InvalidOperationException("没有可用的健康实例");
+                throw new InvalidOperationException("No healthy instances available");
             }
 
             triedInstances.Add(instance.Id);
@@ -399,18 +399,18 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "实例 {InstanceId} 执行失败，尝试故障转移", instance.Id);
+                _logger.LogWarning(ex, "Instance {InstanceId} execution failed; attempting failover", instance.Id);
                 UpdateInstanceHealth(instance.Id, false);
             }
         }
 
         throw new InvalidOperationException(
-            $"故障转移失败，已尝试 {_options.FailoverRetries + 1} 次"
+            $"Failover failed after {_options.FailoverRetries + 1} attempts"
         );
     }
 
     /// <summary>
-    /// 更新实例健康状态
+    /// Updates instance health status.
     /// </summary>
     public void UpdateInstanceHealth(string instanceId, bool isHealthy)
     {
@@ -432,7 +432,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
     }
 
     /// <summary>
-    /// 更新实例负载
+    /// Updates instance load.
     /// </summary>
     public void UpdateInstanceLoad(string instanceId, int activeRequests)
     {
@@ -502,7 +502,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
         var hash = GetHash(key);
         var availableIds = instances.Select(i => i.Id).ToHashSet();
 
-        // 找到第一个大于等于 hash 的节点
+        // Find the first node with a hash >= the key hash
         foreach (var kv in _hashRing)
         {
             if (kv.Key >= hash && availableIds.Contains(kv.Value))
@@ -511,7 +511,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
             }
         }
 
-        // 环绕到第一个可用节点
+        // Wrap around to the first available node
         foreach (var kv in _hashRing)
         {
             if (availableIds.Contains(kv.Value))
@@ -525,7 +525,7 @@ public sealed class DistributedLoadBalancer : IAgentLoadBalancer, IDisposable, I
 
     private AgentInstance GetWeightedRoundRobin(List<AgentInstance> instances)
     {
-        // 加权轮询：根据权重分配请求
+        // Weighted round robin: distribute requests by weight
         var totalWeight = instances.Sum(i => i.Weight);
         if (totalWeight == 0)
         {

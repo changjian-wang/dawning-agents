@@ -8,12 +8,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core;
 
 /// <summary>
-/// 多模态服务 DI 扩展
+/// Multimodal service DI extensions.
 /// </summary>
 public static class MultimodalServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 OpenAI 视觉提供者
+    /// Adds the OpenAI Vision provider.
     /// </summary>
     public static IServiceCollection AddOpenAIVision(
         this IServiceCollection services,
@@ -22,7 +22,7 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["VisionModel"] ?? "gpt-4o";
 
@@ -30,7 +30,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI 视觉提供者
+    /// Adds the OpenAI Vision provider.
     /// </summary>
     public static IServiceCollection AddOpenAIVision(
         this IServiceCollection services,
@@ -59,7 +59,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI 视觉提供者
+    /// Adds the Azure OpenAI Vision provider.
     /// </summary>
     public static IServiceCollection AddAzureOpenAIVision(
         this IServiceCollection services,
@@ -68,21 +68,21 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("AzureOpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
+            section["ApiKey"] ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
         var endpoint =
             section["Endpoint"]
-            ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
+            ?? throw new InvalidOperationException("AzureOpenAI:Endpoint is not configured");
         var deployment = section["VisionDeployment"] ?? "gpt-4o";
         var apiVersion = section["ApiVersion"] ?? "2024-02-15-preview";
 
-        // Azure OpenAI 使用不同的 URL 格式
+        // Azure OpenAI uses a different URL format
         var baseUrl = $"{endpoint.TrimEnd('/')}/openai/deployments/{deployment}";
 
         return services.AddAzureOpenAIVision(apiKey, baseUrl, apiVersion);
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI 视觉提供者
+    /// Adds the Azure OpenAI Vision provider.
     /// </summary>
     public static IServiceCollection AddAzureOpenAIVision(
         this IServiceCollection services,
@@ -116,7 +116,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义视觉提供者
+    /// Adds a custom vision provider.
     /// </summary>
     public static IServiceCollection AddVisionProvider<T>(this IServiceCollection services)
         where T : class, IVisionProvider
@@ -128,7 +128,7 @@ public static class MultimodalServiceCollectionExtensions
     #region Audio Transcription (Speech-to-Text)
 
     /// <summary>
-    /// 添加 OpenAI Whisper 音频转录提供者
+    /// Adds the OpenAI Whisper audio transcription provider.
     /// </summary>
     public static IServiceCollection AddOpenAIWhisper(
         this IServiceCollection services,
@@ -137,7 +137,7 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["WhisperModel"] ?? "whisper-1";
 
@@ -145,7 +145,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI Whisper 音频转录提供者
+    /// Adds the OpenAI Whisper audio transcription provider.
     /// </summary>
     public static IServiceCollection AddOpenAIWhisper(
         this IServiceCollection services,
@@ -175,7 +175,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Whisper 音频转录提供者
+    /// Adds the Azure OpenAI Whisper audio transcription provider.
     /// </summary>
     public static IServiceCollection AddAzureOpenAIWhisper(
         this IServiceCollection services,
@@ -184,10 +184,10 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("AzureOpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("未配置 AzureOpenAI:ApiKey");
+            section["ApiKey"] ?? throw new InvalidOperationException("AzureOpenAI:ApiKey is not configured");
         var endpoint =
             section["Endpoint"]
-            ?? throw new InvalidOperationException("未配置 AzureOpenAI:Endpoint");
+            ?? throw new InvalidOperationException("AzureOpenAI:Endpoint is not configured");
         var deployment = section["WhisperDeployment"] ?? "whisper";
         var apiVersion = section["ApiVersion"] ?? "2024-02-15-preview";
 
@@ -197,7 +197,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Azure OpenAI Whisper 音频转录提供者
+    /// Adds the Azure OpenAI Whisper audio transcription provider.
     /// </summary>
     public static IServiceCollection AddAzureOpenAIWhisper(
         this IServiceCollection services,
@@ -232,7 +232,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义音频转录提供者
+    /// Adds a custom audio transcription provider.
     /// </summary>
     public static IServiceCollection AddAudioTranscriptionProvider<T>(
         this IServiceCollection services
@@ -248,7 +248,7 @@ public static class MultimodalServiceCollectionExtensions
     #region Text-to-Speech
 
     /// <summary>
-    /// 添加 OpenAI TTS 文本转语音提供者
+    /// Adds the OpenAI TTS text-to-speech provider.
     /// </summary>
     public static IServiceCollection AddOpenAITTS(
         this IServiceCollection services,
@@ -257,7 +257,7 @@ public static class MultimodalServiceCollectionExtensions
     {
         var section = configuration.GetSection("OpenAI");
         var apiKey =
-            section["ApiKey"] ?? throw new InvalidOperationException("未配置 OpenAI:ApiKey");
+            section["ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured");
         var baseUrl = section["BaseUrl"] ?? "https://api.openai.com/v1";
         var model = section["TTSModel"] ?? "tts-1";
 
@@ -265,7 +265,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 OpenAI TTS 文本转语音提供者
+    /// Adds the OpenAI TTS text-to-speech provider.
     /// </summary>
     public static IServiceCollection AddOpenAITTS(
         this IServiceCollection services,
@@ -293,7 +293,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义文本转语音提供者
+    /// Adds a custom text-to-speech provider.
     /// </summary>
     public static IServiceCollection AddTextToSpeechProvider<T>(this IServiceCollection services)
         where T : class, ITextToSpeechProvider
@@ -307,7 +307,7 @@ public static class MultimodalServiceCollectionExtensions
     #region Combined Audio Services
 
     /// <summary>
-    /// 添加所有 OpenAI 音频服务（Whisper + TTS）
+    /// Adds all OpenAI audio services (Whisper + TTS).
     /// </summary>
     public static IServiceCollection AddOpenAIAudio(
         this IServiceCollection services,
@@ -320,7 +320,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加所有 OpenAI 音频服务（Whisper + TTS）
+    /// Adds all OpenAI audio services (Whisper + TTS).
     /// </summary>
     public static IServiceCollection AddOpenAIAudio(
         this IServiceCollection services,
@@ -334,7 +334,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加所有 OpenAI 多模态服务（Vision + Whisper + TTS）
+    /// Adds all OpenAI multimodal services (Vision + Whisper + TTS).
     /// </summary>
     public static IServiceCollection AddOpenAIMultimodal(
         this IServiceCollection services,
@@ -348,7 +348,7 @@ public static class MultimodalServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加所有 OpenAI 多模态服务（Vision + Whisper + TTS）
+    /// Adds all OpenAI multimodal services (Vision + Whisper + TTS).
     /// </summary>
     public static IServiceCollection AddOpenAIMultimodal(
         this IServiceCollection services,
@@ -365,7 +365,7 @@ public static class MultimodalServiceCollectionExtensions
     #endregion
 
     /// <summary>
-    /// 为 Azure OpenAI 请求添加 api-version 查询参数
+    /// Appends the api-version query parameter for Azure OpenAI requests.
     /// </summary>
     private sealed class AzureApiVersionHandler(string apiVersion) : DelegatingHandler
     {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
-/// 用于 Web/API 交互的异步回调处理器
+/// Async callback handler for Web/API interactions.
 /// </summary>
 public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
 {
@@ -24,27 +24,27 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 当请求确认时触发
+    /// Raised when a confirmation is requested.
     /// </summary>
     public event EventHandler<ConfirmationRequest>? ConfirmationRequested;
 
     /// <summary>
-    /// 当请求升级时触发
+    /// Raised when an escalation is requested.
     /// </summary>
     public event EventHandler<EscalationRequest>? EscalationRequested;
 
     /// <summary>
-    /// 当请求输入时触发
+    /// Raised when user input is requested.
     /// </summary>
     public event EventHandler<(string Id, string Prompt, string? DefaultValue)>? InputRequested;
 
     /// <summary>
-    /// 当发送通知时触发
+    /// Raised when a notification is sent.
     /// </summary>
     public event EventHandler<(string Message, NotificationLevel Level)>? NotificationSent;
 
     /// <summary>
-    /// 创建异步回调处理器实例
+    /// Initializes a new instance of the <see cref="AsyncCallbackHandler"/> class.
     /// </summary>
     public AsyncCallbackHandler(ILogger<AsyncCallbackHandler>? logger = null)
     {
@@ -65,21 +65,21 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         );
         _pendingConfirmations[request.Id] = tcs;
 
-        _logger.LogDebug("发送确认请求 {RequestId}", request.Id);
+        _logger.LogDebug("Sending confirmation request {RequestId}", request.Id);
 
-        // 触发事件供 UI 处理
+        // Raise event for UI handling
         try
         {
             ConfirmationRequested?.Invoke(this, request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "确认请求事件处理器执行失败 {RequestId}", request.Id);
+            _logger.LogError(ex, "Confirmation request event handler failed {RequestId}", request.Id);
         }
 
         try
         {
-            // 等待响应，支持超时
+            // Wait for response with timeout support
             if (request.Timeout.HasValue)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -91,8 +91,8 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // 超时 - 返回默认值
-                    _logger.LogDebug("确认请求 {RequestId} 超时", request.Id);
+                    // Timeout - return default value
+                    _logger.LogDebug("Confirmation request {RequestId} timed out", request.Id);
                     return new ConfirmationResponse
                     {
                         RequestId = request.Id,
@@ -125,16 +125,16 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         );
         _pendingInputs[requestId] = tcs;
 
-        _logger.LogDebug("发送输入请求 {RequestId}", requestId);
+        _logger.LogDebug("Sending input request {RequestId}", requestId);
 
-        // 触发事件供 UI 处理
+        // Raise event for UI handling
         try
         {
             InputRequested?.Invoke(this, (requestId, prompt, defaultValue));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "输入请求事件处理器执行失败 {RequestId}", requestId);
+            _logger.LogError(ex, "Input request event handler failed {RequestId}", requestId);
         }
 
         try
@@ -156,14 +156,14 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
-        _logger.LogDebug("发送通知：{Level} - {Message}", level, message);
+        _logger.LogDebug("Sending notification: {Level} - {Message}", level, message);
         try
         {
             NotificationSent?.Invoke(this, (message, level));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "通知事件处理器执行失败");
+            _logger.LogError(ex, "Notification event handler failed");
         }
         return Task.CompletedTask;
     }
@@ -182,16 +182,16 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
         );
         _pendingEscalations[request.Id] = tcs;
 
-        _logger.LogDebug("发送升级请求 {RequestId}", request.Id);
+        _logger.LogDebug("Sending escalation request {RequestId}", request.Id);
 
-        // 触发事件供 UI 处理
+        // Raise event for UI handling
         try
         {
             EscalationRequested?.Invoke(this, request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "升级请求事件处理器执行失败 {RequestId}", request.Id);
+            _logger.LogError(ex, "Escalation request event handler failed {RequestId}", request.Id);
         }
 
         try
@@ -205,47 +205,47 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     }
 
     /// <summary>
-    /// 完成挂起的确认请求（由 UI/API 调用）
+    /// Completes a pending confirmation request (called by UI/API).
     /// </summary>
-    /// <param name="response">确认响应</param>
-    /// <returns>是否成功完成</returns>
+    /// <param name="response">The confirmation response.</param>
+    /// <returns><see langword="true"/> if the request was completed successfully; otherwise, <see langword="false"/>.</returns>
     public bool CompleteConfirmation(ConfirmationResponse response)
     {
         ArgumentNullException.ThrowIfNull(response);
 
         if (_pendingConfirmations.TryGetValue(response.RequestId, out var tcs))
         {
-            _logger.LogDebug("完成确认请求 {RequestId}", response.RequestId);
+            _logger.LogDebug("Completed confirmation request {RequestId}", response.RequestId);
             return tcs.TrySetResult(response);
         }
-        _logger.LogWarning("未找到确认请求 {RequestId}", response.RequestId);
+        _logger.LogWarning("Confirmation request {RequestId} not found", response.RequestId);
         return false;
     }
 
     /// <summary>
-    /// 完成挂起的升级请求（由 UI/API 调用）
+    /// Completes a pending escalation request (called by UI/API).
     /// </summary>
-    /// <param name="result">升级结果</param>
-    /// <returns>是否成功完成</returns>
+    /// <param name="result">The escalation result.</param>
+    /// <returns><see langword="true"/> if the request was completed successfully; otherwise, <see langword="false"/>.</returns>
     public bool CompleteEscalation(EscalationResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         if (_pendingEscalations.TryGetValue(result.RequestId, out var tcs))
         {
-            _logger.LogDebug("完成升级请求 {RequestId}", result.RequestId);
+            _logger.LogDebug("Completed escalation request {RequestId}", result.RequestId);
             return tcs.TrySetResult(result);
         }
-        _logger.LogWarning("未找到升级请求 {RequestId}", result.RequestId);
+        _logger.LogWarning("Escalation request {RequestId} not found", result.RequestId);
         return false;
     }
 
     /// <summary>
-    /// 完成挂起的输入请求（由 UI/API 调用）
+    /// Completes a pending input request (called by UI/API).
     /// </summary>
-    /// <param name="requestId">请求 ID</param>
-    /// <param name="input">用户输入</param>
-    /// <returns>是否成功完成</returns>
+    /// <param name="requestId">The request ID.</param>
+    /// <param name="input">The user input.</param>
+    /// <returns><see langword="true"/> if the request was completed successfully; otherwise, <see langword="false"/>.</returns>
     public bool CompleteInput(string requestId, string input)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -253,32 +253,32 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
 
         if (_pendingInputs.TryGetValue(requestId, out var tcs))
         {
-            _logger.LogDebug("完成输入请求 {RequestId}", requestId);
+            _logger.LogDebug("Completed input request {RequestId}", requestId);
             return tcs.TrySetResult(input);
         }
-        _logger.LogWarning("未找到输入请求 {RequestId}", requestId);
+        _logger.LogWarning("Input request {RequestId} not found", requestId);
         return false;
     }
 
     /// <summary>
-    /// 获取所有挂起的确认请求 ID
+    /// Gets all pending confirmation request IDs.
     /// </summary>
     public IReadOnlyCollection<string> GetPendingConfirmationIds() =>
         _pendingConfirmations.Keys.ToList();
 
     /// <summary>
-    /// 获取所有挂起的升级请求 ID
+    /// Gets all pending escalation request IDs.
     /// </summary>
     public IReadOnlyCollection<string> GetPendingEscalationIds() =>
         _pendingEscalations.Keys.ToList();
 
     /// <summary>
-    /// 获取所有挂起的输入请求 ID
+    /// Gets all pending input request IDs.
     /// </summary>
     public IReadOnlyCollection<string> GetPendingInputIds() => _pendingInputs.Keys.ToList();
 
     /// <summary>
-    /// 取消指定的确认请求
+    /// Cancels a specific confirmation request.
     /// </summary>
     public bool CancelConfirmation(string requestId)
     {
@@ -292,7 +292,7 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     }
 
     /// <summary>
-    /// 取消指定的升级请求
+    /// Cancels a specific escalation request.
     /// </summary>
     public bool CancelEscalation(string requestId)
     {
@@ -306,7 +306,7 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     }
 
     /// <summary>
-    /// 取消指定的输入请求
+    /// Cancels a specific input request.
     /// </summary>
     public bool CancelInput(string requestId)
     {
@@ -320,7 +320,7 @@ public sealed class AsyncCallbackHandler : IHumanInteractionHandler, IDisposable
     }
 
     /// <summary>
-    /// 取消所有挂起的请求并释放资源
+    /// Cancels all pending requests and releases resources.
     /// </summary>
     public void Dispose()
     {

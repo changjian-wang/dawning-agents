@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 通过摘要旧消息来节省 token 的记忆
+/// Memory that saves tokens by summarizing older messages.
 /// </summary>
 /// <remarks>
-/// <para>当消息数量超过阈值时，自动将旧消息摘要为简短内容</para>
-/// <para>适用于需要保持长期上下文但又要控制 token 消耗的场景</para>
-/// <para>需要 LLM 提供者来生成摘要</para>
-/// <para>线程安全</para>
+/// <para>Automatically summarizes older messages into a brief summary when the message count exceeds the threshold.</para>
+/// <para>Suitable for scenarios that require maintaining long-term context while controlling token consumption.</para>
+/// <para>Requires an LLM provider to generate summaries.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public sealed class SummaryMemory : IConversationMemory, IDisposable
 {
@@ -28,7 +28,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 获取消息数量（包括摘要系统消息和最近消息）
+    /// Gets the message count (including the summary system message and recent messages).
     /// </summary>
     public int MessageCount
     {
@@ -42,7 +42,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取当前摘要内容
+    /// Gets the current summary content.
     /// </summary>
     public string Summary
     {
@@ -56,18 +56,18 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取最大保留的最近消息数
+    /// Gets the maximum number of recent messages to retain.
     /// </summary>
     public int MaxRecentMessages => _maxRecentMessages;
 
     /// <summary>
-    /// 初始化摘要记忆
+    /// Initializes a new instance of the <see cref="SummaryMemory"/> class.
     /// </summary>
-    /// <param name="llm">LLM 提供者，用于生成摘要</param>
-    /// <param name="tokenCounter">Token 计数器</param>
-    /// <param name="maxRecentMessages">保留的最近消息数（默认 6）</param>
-    /// <param name="summaryThreshold">触发摘要的消息数阈值（默认 10）</param>
-    /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="llm">The LLM provider used to generate summaries.</param>
+    /// <param name="tokenCounter">The token counter.</param>
+    /// <param name="maxRecentMessages">The number of recent messages to retain. Defaults to 6.</param>
+    /// <param name="summaryThreshold">The message count threshold that triggers summarization. Defaults to 10.</param>
+    /// <param name="logger">An optional logger instance.</param>
     public SummaryMemory(
         ILLMProvider llm,
         ITokenCounter tokenCounter,
@@ -81,19 +81,19 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         _maxRecentMessages =
             maxRecentMessages > 0
                 ? maxRecentMessages
-                : throw new ArgumentException("最大消息数必须为正数", nameof(maxRecentMessages));
+                : throw new ArgumentException("Max recent messages must be a positive number.", nameof(maxRecentMessages));
         _summaryThreshold =
             summaryThreshold > maxRecentMessages
                 ? summaryThreshold
                 : throw new ArgumentException(
-                    "摘要阈值必须大于最大保留消息数",
+                    "Summary threshold must be greater than max recent messages.",
                     nameof(summaryThreshold)
                 );
         _logger = logger ?? NullLogger<SummaryMemory>.Instance;
     }
 
     /// <summary>
-    /// 向记忆添加消息，超过阈值时自动触发摘要生成
+    /// Adds a message to memory and automatically triggers summarization when the threshold is exceeded.
     /// </summary>
     public async Task AddMessageAsync(
         ConversationMessage message,
@@ -119,23 +119,23 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
 
             _recentMessages.Add(messageWithTokens);
 
-            // 检查是否需要摘要
+            // Check if summarization is needed
             if (_recentMessages.Count >= _summaryThreshold)
             {
-                // 取最旧的消息进行摘要（保留最近的）
+                // Take the oldest messages for summarization (retain the recent ones)
                 var toSummarize = _recentMessages.Count - _maxRecentMessages;
                 messagesToSummarize = _recentMessages.Take(toSummarize).ToList();
                 _recentMessages.RemoveRange(0, toSummarize);
 
                 _logger.LogDebug(
-                    "触发摘要，处理 {Count} 条消息，保留 {Remaining} 条最近消息",
+                    "Summarization triggered, processing {Count} messages, retaining {Remaining} recent messages",
                     toSummarize,
                     _recentMessages.Count
                 );
             }
         }
 
-        // 使用信号量串行化摘要操作，防止并发摘要覆盖
+        // Use semaphore to serialize summarization operations and prevent concurrent summary overwrites
         if (messagesToSummarize != null)
         {
             await _summarySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -152,7 +152,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 生成消息摘要
+    /// Generates a summary of messages.
     /// </summary>
     private async Task SummarizeMessagesAsync(
         List<ConversationMessage> messages,
@@ -168,18 +168,18 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         }
 
         var prompt = $"""
-            请总结以下对话，保留关键信息和上下文。
+            Please summarize the following conversation, preserving key information and context.
 
-            {(string.IsNullOrEmpty(currentSummary) ? "" : $"之前的摘要：\n{currentSummary}\n")}
-            新消息：
+            {(string.IsNullOrEmpty(currentSummary) ? "" : $"Previous summary:\n{currentSummary}\n")}
+            New messages:
             {conversationText}
 
-            请提供简洁的摘要，包含：
-            1. 讨论的主要话题
-            2. 关键决定或结论
-            3. 未来对话的重要上下文
+            Please provide a concise summary that includes:
+            1. Main topics discussed
+            2. Key decisions or conclusions
+            3. Important context for future conversations
 
-            摘要：
+            Summary:
             """;
 
         try
@@ -196,11 +196,11 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
                 _summary = response.Content ?? string.Empty;
             }
 
-            _logger.LogDebug("摘要生成成功，长度: {Length} 字符", _summary.Length);
+            _logger.LogDebug("Summary generated successfully, Length: {Length} characters", _summary.Length);
         }
         catch (OperationCanceledException)
         {
-            // 取消时将消息放回，并重新抛出以遵守取消约定
+            // On cancellation, return messages and rethrow to respect the cancellation contract
             lock (_lock)
             {
                 _recentMessages.InsertRange(0, messages);
@@ -209,8 +209,8 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "生成摘要失败，将保留原始消息");
-            // 摘要失败时，将消息放回
+            _logger.LogWarning(ex, "Failed to generate summary; original messages will be retained");
+            // On summary failure, return messages to the list
             lock (_lock)
             {
                 _recentMessages.InsertRange(0, messages);
@@ -219,7 +219,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取所有消息（包括摘要和最近消息）
+    /// Gets all messages (including the summary and recent messages).
     /// </summary>
     public Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
@@ -230,14 +230,14 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
         {
             var result = new List<ConversationMessage>();
 
-            // 如果存在摘要，作为系统消息添加
+            // If a summary exists, add it as a system message
             if (!string.IsNullOrEmpty(_summary))
             {
                 result.Add(
                     new ConversationMessage
                     {
                         Role = "system",
-                        Content = $"之前对话的摘要：{_summary}",
+                        Content = $"Summary of previous conversation: {_summary}",
                         TokenCount = _tokenCounter.CountTokens(_summary),
                     }
                 );
@@ -249,7 +249,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取用于 LLM 调用的消息上下文（包括摘要和最近消息）
+    /// Gets the message context for LLM calls (including summary and recent messages).
     /// </summary>
     public async Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
@@ -265,7 +265,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
             var budget = maxTokens.Value;
             var result = new List<ChatMessage>();
 
-            // 从最新消息开始向前取，确保最近的上下文优先
+            // Start from the most recent messages, prioritizing recent context
             for (var i = chatMessages.Count - 1; i >= 0; i--)
             {
                 var tokens = _tokenCounter.CountTokens(chatMessages[i].Content);
@@ -285,13 +285,13 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 清空所有消息和摘要
+    /// Clears all messages and the summary.
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // 等待正在进行的摘要操作完成，防止旧消息被还原覆盖清空结果
+        // Wait for any in-progress summarization to complete, preventing restored messages from overwriting the clear result
         await _summarySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -308,7 +308,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取总 token 数（包括摘要和最近消息）
+    /// Gets the total token count (including summary and recent messages).
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
@@ -324,7 +324,7 @@ public sealed class SummaryMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 释放信号量资源
+    /// Releases the semaphore resources.
     /// </summary>
     public void Dispose()
     {

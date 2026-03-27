@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Configuration;
 
 /// <summary>
-/// 配置变更通知器 - 监听 IOptionsMonitor 变更并发出事件
+/// Configuration change notifier — listens for <see cref="IOptionsMonitor{TOptions}"/> changes and raises events.
 /// </summary>
-/// <typeparam name="TOptions">配置类型</typeparam>
+/// <typeparam name="TOptions">The options type.</typeparam>
 public sealed class ConfigurationChangeNotifier<TOptions>
     : IConfigurationChangeNotifier<TOptions>,
         IDisposable
@@ -27,7 +27,7 @@ public sealed class ConfigurationChangeNotifier<TOptions>
     public TOptions CurrentValue => _optionsMonitor.CurrentValue;
 
     /// <summary>
-    /// 创建配置变更通知器
+    /// Initializes a new instance of the <see cref="ConfigurationChangeNotifier{TOptions}"/> class.
     /// </summary>
     public ConfigurationChangeNotifier(
         IOptionsMonitor<TOptions> optionsMonitor,
@@ -40,7 +40,7 @@ public sealed class ConfigurationChangeNotifier<TOptions>
         _logger = logger ?? NullLogger<ConfigurationChangeNotifier<TOptions>>.Instance;
         _currentValue = optionsMonitor.CurrentValue;
 
-        // 监听配置变更
+        // Listen for configuration changes
         _changeListener = optionsMonitor.OnChange(OnConfigurationChanged);
 
         _logger.LogDebug(
@@ -82,7 +82,7 @@ public sealed class ConfigurationChangeNotifier<TOptions>
     }
 
     /// <summary>
-    /// 释放资源
+    /// Releases resources.
     /// </summary>
     public void Dispose()
     {

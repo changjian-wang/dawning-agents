@@ -8,16 +8,16 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 安全护栏服务注册扩展
+/// Extension methods for registering safety guardrail services.
 /// </summary>
 public static class SafetyServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加安全护栏服务（从配置文件读取）
+    /// Registers safety guardrail services using configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddSafetyGuardrails(
         this IServiceCollection services,
         IConfiguration configuration
@@ -29,11 +29,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加安全护栏服务（带配置委托）
+    /// Registers safety guardrail services with a configuration delegate.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddSafetyGuardrails(
         this IServiceCollection services,
         Action<SafetyOptions>? configure = null
@@ -52,11 +52,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加核心护栏服务
+    /// Registers the core guardrail services.
     /// </summary>
     private static IServiceCollection AddSafetyGuardrailsCore(this IServiceCollection services)
     {
-        // 注册护栏管道
+        // Register the guardrail pipeline
         services.TryAddSingleton<IGuardrailPipeline>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<SafetyOptions>>();
@@ -64,8 +64,8 @@ public static class SafetyServiceCollectionExtensions
                 sp.GetService<Microsoft.Extensions.Logging.ILogger<GuardrailPipeline>>()
             );
 
-            // 添加默认护栏
-            // 输入护栏
+            // Add default guardrails
+            // Input guardrails
             pipeline.AddInputGuardrail(
                 MaxLengthGuardrail.ForInput(
                     options,
@@ -102,7 +102,7 @@ public static class SafetyServiceCollectionExtensions
                 );
             }
 
-            // 输出护栏
+            // Output guardrails
             pipeline.AddOutputGuardrail(
                 MaxLengthGuardrail.ForOutput(
                     options,
@@ -123,7 +123,7 @@ public static class SafetyServiceCollectionExtensions
             return pipeline;
         });
 
-        // 单独注册各个护栏（供自定义组合使用）
+        // Register individual guardrails for custom composition
         services.TryAddTransient<MaxLengthGuardrail>(sp =>
             MaxLengthGuardrail.ForInput(
                 sp.GetRequiredService<IOptions<SafetyOptions>>(),
@@ -140,7 +140,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义输入护栏
+    /// Adds a custom input guardrail.
     /// </summary>
     public static IServiceCollection AddInputGuardrail<T>(this IServiceCollection services)
         where T : class, IInputGuardrail
@@ -150,7 +150,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加自定义输出护栏
+    /// Adds a custom output guardrail.
     /// </summary>
     public static IServiceCollection AddOutputGuardrail<T>(this IServiceCollection services)
         where T : class, IOutputGuardrail
@@ -160,7 +160,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 创建自定义护栏管道
+    /// Creates a custom guardrail pipeline.
     /// </summary>
     public static IServiceCollection AddCustomGuardrailPipeline(
         this IServiceCollection services,
@@ -180,11 +180,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Prompt 注入检测护栏（独立注册）
+    /// Registers the prompt injection detection guardrail independently.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">可选配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">An optional configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPromptInjectionGuardrail(
         this IServiceCollection services,
         Action<PromptInjectionOptions>? configure = null
@@ -200,11 +200,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加速率限制服务
+    /// Registers rate limiting services.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddRateLimiter(
         this IServiceCollection services,
         Action<RateLimitOptions>? configure = null
@@ -226,7 +226,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加速率限制服务（从配置文件读取）
+    /// Registers rate limiting services using configuration.
     /// </summary>
     public static IServiceCollection AddRateLimiter(
         this IServiceCollection services,
@@ -242,11 +242,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加审计日志服务
+    /// Registers audit logging services.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAuditLogger(
         this IServiceCollection services,
         Action<AuditOptions>? configure = null
@@ -267,7 +267,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加审计日志服务（从配置文件读取）
+    /// Registers audit logging services using configuration.
     /// </summary>
     public static IServiceCollection AddAuditLogger(
         this IServiceCollection services,
@@ -282,11 +282,11 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加文件审计日志服务（JSON Lines 持久化）
+    /// Registers file-based audit logging services (JSON Lines persistence).
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFileAuditLogger(
         this IServiceCollection services,
         IConfiguration configuration
@@ -302,7 +302,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加文件审计日志服务（委托配置）
+    /// Registers file-based audit logging services with a delegate.
     /// </summary>
     public static IServiceCollection AddFileAuditLogger(
         this IServiceCollection services,
@@ -319,7 +319,7 @@ public static class SafetyServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加完整的安全基础设施（护栏 + 速率限制 + 审计日志）
+    /// Registers the complete safety infrastructure (guardrails + rate limiting + audit logging).
     /// </summary>
     public static IServiceCollection AddSafetyInfrastructure(
         this IServiceCollection services,

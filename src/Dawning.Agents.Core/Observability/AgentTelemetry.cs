@@ -5,7 +5,7 @@ using System.Diagnostics.Metrics;
 using Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// Agent 遥测提供者
+/// Telemetry provider for agent operations.
 /// </summary>
 public sealed class AgentTelemetry : IDisposable
 {
@@ -13,7 +13,7 @@ public sealed class AgentTelemetry : IDisposable
     private readonly ActivitySource _activitySource;
     private readonly Meter _meter;
 
-    // 指标
+    // Metrics
     private readonly Counter<long> _requestCounter;
     private readonly Counter<long> _errorCounter;
     private readonly Histogram<double> _latencyHistogram;
@@ -21,49 +21,49 @@ public sealed class AgentTelemetry : IDisposable
     private readonly UpDownCounter<int> _activeRequestsCounter;
 
     /// <summary>
-    /// 创建遥测提供者
+    /// Initializes a new instance of the <see cref="AgentTelemetry"/> class.
     /// </summary>
     public AgentTelemetry(TelemetryConfig config)
     {
         _config = config;
 
-        // 创建用于追踪的 ActivitySource
+        // Create ActivitySource for tracing
         _activitySource = new ActivitySource(config.ServiceName, config.ServiceVersion);
 
-        // 创建用于指标的 Meter
+        // Create Meter for metrics
         _meter = new Meter(config.ServiceName, config.ServiceVersion);
 
-        // 初始化指标
+        // Initialize metrics
         _requestCounter = _meter.CreateCounter<long>(
             "agent.requests.total",
-            description: "Agent 请求总数"
+            description: "Total number of agent requests"
         );
 
         _errorCounter = _meter.CreateCounter<long>(
             "agent.errors.total",
-            description: "Agent 错误总数"
+            description: "Total number of agent errors"
         );
 
         _latencyHistogram = _meter.CreateHistogram<double>(
             "agent.request.duration",
             unit: "ms",
-            description: "Agent 请求时长（毫秒）"
+            description: "Agent request duration in milliseconds"
         );
 
         _tokenHistogram = _meter.CreateHistogram<int>(
             "agent.tokens.used",
             unit: "tokens",
-            description: "每个请求使用的 token 数"
+            description: "Number of tokens used per request"
         );
 
         _activeRequestsCounter = _meter.CreateUpDownCounter<int>(
             "agent.requests.active",
-            description: "活跃 Agent 请求数"
+            description: "Number of active agent requests"
         );
     }
 
     /// <summary>
-    /// 为 Agent 执行启动新的追踪 span
+    /// Starts a new trace span for an agent operation.
     /// </summary>
     public Activity? StartAgentSpan(string agentName, string operation)
     {
@@ -85,7 +85,7 @@ public sealed class AgentTelemetry : IDisposable
     }
 
     /// <summary>
-    /// 记录请求
+    /// Records a request.
     /// </summary>
     public void RecordRequest(
         string agentName,
@@ -120,7 +120,7 @@ public sealed class AgentTelemetry : IDisposable
     }
 
     /// <summary>
-    /// 跟踪活跃请求
+    /// Tracks an active request.
     /// </summary>
     public IDisposable TrackActiveRequest(string agentName)
     {

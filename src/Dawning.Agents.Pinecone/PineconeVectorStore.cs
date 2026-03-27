@@ -8,16 +8,16 @@ using Pinecone.Rest;
 namespace Dawning.Agents.Pinecone;
 
 /// <summary>
-/// Pinecone 向量存储实现
+/// Pinecone vector store implementation.
 /// </summary>
 /// <remarks>
-/// 使用 Pinecone 云向量数据库存储和检索文档嵌入。
-/// Pinecone 是云原生向量数据库，支持 Serverless 和 Pod-based 部署。
+/// Stores and retrieves document embeddings using the Pinecone cloud vector database.
+/// Pinecone is a cloud-native vector database that supports both Serverless and Pod-based deployments.
 ///
-/// 快速开始：
-/// 1. 在 https://www.pinecone.io/ 注册获取 API Key
-/// 2. 创建索引或启用 AutoCreateIndex
-/// 3. 配置 appsettings.json 或环境变量
+/// Getting started:
+/// 1. Sign up at https://www.pinecone.io/ and obtain an API key
+/// 2. Create an index or enable AutoCreateIndex
+/// 3. Configure via appsettings.json or environment variables
 /// </remarks>
 public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 {
@@ -34,7 +34,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     public int Count => Volatile.Read(ref _count);
 
     /// <summary>
-    /// 创建 Pinecone 向量存储
+    /// Initializes a new instance of the <see cref="PineconeVectorStore"/> class.
     /// </summary>
     public PineconeVectorStore(
         PineconeClient client,
@@ -51,14 +51,14 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         _logger = logger ?? NullLogger<PineconeVectorStore>.Instance;
 
         _logger.LogDebug(
-            "PineconeVectorStore 已创建，索引: {Index}，命名空间: {Namespace}",
+            "PineconeVectorStore created, Index: {Index}, Namespace: {Namespace}",
             _options.IndexName,
             _options.Namespace ?? "(default)"
         );
     }
 
     /// <summary>
-    /// 使用自定义客户端创建（用于测试）
+    /// Initializes a new instance of the <see cref="PineconeVectorStore"/> class with a custom client (for testing).
     /// </summary>
     internal PineconeVectorStore(
         PineconeClient client,
@@ -132,7 +132,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
             })
             .ToList();
 
-        // Pinecone 建议每批最多 100 条
+        // Pinecone recommends a maximum of 100 vectors per batch
         const int batchSize = 100;
         var insertedCount = 0;
         for (var i = 0; i < vectors.Count; i += batchSize)
@@ -222,7 +222,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         await index.Delete(new[] { id }, _options.Namespace).ConfigureAwait(false);
 
-        // 防止计数变为负数
+        // Prevent count from going negative
         int oldCount;
         do
         {
@@ -248,7 +248,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         var beforeStats = await index.DescribeStats().ConfigureAwait(false);
         var beforeCount = beforeStats.TotalVectorCount;
 
-        // Pinecone 支持按 metadata 过滤删除
+        // Pinecone supports deletion by metadata filter
         var filter = new MetadataMap { ["document_id"] = documentId };
 
         await index.Delete(filter, _options.Namespace).ConfigureAwait(false);
@@ -297,7 +297,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
     {
         var index = await GetIndexAsync(cancellationToken).ConfigureAwait(false);
 
-        // 删除命名空间中的所有向量
+        // Delete all vectors in the namespace
         await index.DeleteAll(_options.Namespace).ConfigureAwait(false);
 
         Interlocked.Exchange(ref _count, 0);
@@ -376,7 +376,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         CancellationToken cancellationToken = default
     )
     {
-        // 检查索引是否存在
+        // Check if the index exists
         var indexes = await _client.ListIndexes().ConfigureAwait(false);
         var indexExists = indexes.Any(i => i.Name == _options.IndexName);
 
@@ -384,7 +384,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
         {
             if (_options.AutoCreateIndex)
             {
-                // 创建 Serverless 索引
+                // Create a serverless index
                 await _client
                     .CreateServerlessIndex(
                         _options.IndexName,
@@ -401,7 +401,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
                     _options.VectorSize
                 );
 
-                // 等待索引就绪
+                // Wait for the index to be ready
                 await WaitForIndexReadyAsync(cancellationToken).ConfigureAwait(false);
             }
             else
@@ -415,7 +415,7 @@ public sealed class PineconeVectorStore : IVectorStore, IAsyncDisposable
 
         _index = await _client.GetIndex(_options.IndexName).ConfigureAwait(false);
 
-        // 获取当前向量数量
+        // Get the current vector count
         var stats = await _index.DescribeStats().ConfigureAwait(false);
         _count = stats.TotalVectorCount > int.MaxValue ? int.MaxValue : (int)stats.TotalVectorCount;
 

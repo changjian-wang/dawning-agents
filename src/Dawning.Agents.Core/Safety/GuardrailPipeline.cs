@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 护栏管道 - 管理多个护栏的执行（线程安全）
+/// Guardrail pipeline that manages the execution of multiple guardrails (thread-safe).
 /// </summary>
 public sealed class GuardrailPipeline : IGuardrailPipeline
 {
@@ -31,7 +31,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
     {
         ArgumentNullException.ThrowIfNull(guardrail);
         ImmutableInterlocked.Update(ref _inputGuardrails, list => list.Add(guardrail));
-        _logger.LogDebug("添加输入护栏: {GuardrailName}", guardrail.Name);
+        _logger.LogDebug("Input guardrail added: {GuardrailName}", guardrail.Name);
         return this;
     }
 
@@ -40,7 +40,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
     {
         ArgumentNullException.ThrowIfNull(guardrail);
         ImmutableInterlocked.Update(ref _outputGuardrails, list => list.Add(guardrail));
-        _logger.LogDebug("添加输出护栏: {GuardrailName}", guardrail.Name);
+        _logger.LogDebug("Output guardrail added: {GuardrailName}", guardrail.Name);
         return this;
     }
 
@@ -50,7 +50,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
         CancellationToken cancellationToken = default
     )
     {
-        return await CheckAsync(input, _inputGuardrails, "输入", cancellationToken)
+        return await CheckAsync(input, _inputGuardrails, "Input", cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -60,7 +60,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
         CancellationToken cancellationToken = default
     )
     {
-        return await CheckAsync(output, _outputGuardrails, "输出", cancellationToken)
+        return await CheckAsync(output, _outputGuardrails, "Output", cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -89,7 +89,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogDebug("{Phase}护栏检查: {GuardrailName}", phase, guardrail.Name);
+            _logger.LogDebug("{Phase} guardrail check: {GuardrailName}", phase, guardrail.Name);
 
             var result = await guardrail
                 .CheckAsync(currentContent, cancellationToken)
@@ -98,7 +98,7 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
             if (!result.Passed)
             {
                 _logger.LogWarning(
-                    "{Phase}护栏 {GuardrailName} 检查失败: {Message}",
+                    "{Phase} guardrail {GuardrailName} check failed: {Message}",
                     phase,
                     guardrail.Name,
                     result.Message
@@ -107,20 +107,20 @@ public sealed class GuardrailPipeline : IGuardrailPipeline
                 return result;
             }
 
-            // 收集问题
+            // Collect issues
             if (result.Issues.Count > 0)
             {
                 allIssues.AddRange(result.Issues);
             }
 
-            // 使用处理后的内容继续下一个护栏
+            // Use processed content for the next guardrail
             if (result.ProcessedContent != null)
             {
                 currentContent = result.ProcessedContent;
             }
         }
 
-        _logger.LogDebug("{Phase}护栏检查全部通过，共 {Count} 个问题", phase, allIssues.Count);
+        _logger.LogDebug("{Phase} guardrail checks all passed, {Count} issue(s) total", phase, allIssues.Count);
 
         return new GuardrailResult
         {

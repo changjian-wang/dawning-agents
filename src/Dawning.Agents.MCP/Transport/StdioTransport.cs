@@ -6,11 +6,11 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// 标准输入/输出流传输
+/// Standard input/output stream transport.
 /// </summary>
 /// <remarks>
-/// 实现 MCP 协议的标准 stdio 传输，与 Claude Desktop 兼容。
-/// 消息格式: Content-Length: {length}\r\n\r\n{json}
+/// Implements MCP protocol stdio transport, compatible with Claude Desktop.
+/// Message format: Content-Length: {length}\r\n\r\n{json}
 /// </remarks>
 public sealed class StdioTransport : IMCPTransport
 {
@@ -83,11 +83,11 @@ public sealed class StdioTransport : IMCPTransport
             }
             catch (OperationCanceledException)
             {
-                // 正常取消
+                // Normal cancellation
             }
         }
 
-        // 后台读取任务已在状态锁内更新，防止并发 Start/Dispose 竞态
+        // Background read task updated within state lock to prevent concurrent Start/Dispose race
 
         _logger.LogDebug("Stdio transport started");
     }
@@ -154,7 +154,7 @@ public sealed class StdioTransport : IMCPTransport
     }
 
     /// <summary>
-    /// 后台读取输入流
+    /// Reads input from the stream in the background.
     /// </summary>
     private async Task ReadInputAsync(
         CancellationTokenSource source,
@@ -182,7 +182,7 @@ public sealed class StdioTransport : IMCPTransport
         }
         catch (OperationCanceledException)
         {
-            // 正常取消
+            // Normal cancellation
         }
         catch (Exception ex)
         {
@@ -212,13 +212,13 @@ public sealed class StdioTransport : IMCPTransport
     }
 
     /// <summary>
-    /// 尝试解析消息
+    /// Attempts to parse a message from the buffer.
     /// </summary>
     private static bool TryParseMessage(ref ReadOnlySequence<byte> buffer, out string? message)
     {
         message = null;
 
-        // 查找 Content-Length header
+        // Find Content-Length header
         var headerEnd = FindSequence(buffer, "\r\n\r\n"u8);
         if (headerEnd < 0)
         {
@@ -249,7 +249,7 @@ public sealed class StdioTransport : IMCPTransport
     }
 
     /// <summary>
-    /// 解析 Content-Length
+    /// Parses the Content-Length header value.
     /// </summary>
     private static bool TryParseContentLength(string header, out int length)
     {
@@ -270,7 +270,7 @@ public sealed class StdioTransport : IMCPTransport
     }
 
     /// <summary>
-    /// 在 buffer 中查找序列
+    /// Finds a byte sequence in the buffer.
     /// </summary>
     private static long FindSequence(ReadOnlySequence<byte> buffer, ReadOnlySpan<byte> sequence)
     {
@@ -316,7 +316,7 @@ public sealed class StdioTransport : IMCPTransport
             }
             catch (OperationCanceledException)
             {
-                // 正常取消
+                // Normal cancellation
             }
         }
 

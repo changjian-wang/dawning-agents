@@ -3,10 +3,10 @@ using Dawning.Agents.Abstractions;
 namespace Dawning.Agents.Qdrant;
 
 /// <summary>
-/// Qdrant 配置选项
+/// Configuration options for the Qdrant vector store.
 /// </summary>
 /// <remarks>
-/// appsettings.json 示例:
+/// appsettings.json example:
 /// <code>
 /// {
 ///   "Qdrant": {
@@ -22,42 +22,42 @@ namespace Dawning.Agents.Qdrant;
 public class QdrantOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "Qdrant";
 
     /// <summary>
-    /// Qdrant 服务器主机名
+    /// The Qdrant server hostname.
     /// </summary>
     public string Host { get; set; } = "localhost";
 
     /// <summary>
-    /// Qdrant gRPC 端口（默认 6334）
+    /// The Qdrant gRPC port (default: 6334).
     /// </summary>
     public int Port { get; set; } = 6334;
 
     /// <summary>
-    /// 集合名称
+    /// The collection name.
     /// </summary>
     public string CollectionName { get; set; } = "documents";
 
     /// <summary>
-    /// 向量维度大小
+    /// The vector dimension size.
     /// </summary>
     public int VectorSize { get; set; } = 1536;
 
     /// <summary>
-    /// API Key（可选，用于云服务认证）
+    /// The API key (optional, for cloud service authentication).
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// 是否使用 HTTPS
+    /// Gets or sets a value indicating whether to use HTTPS.
     /// </summary>
     public bool UseTls { get; set; } = false;
 
     /// <summary>
-    /// 获取完整的 gRPC 端点
+    /// Gets the full gRPC endpoint.
     /// </summary>
     public string GetEndpoint()
     {
@@ -66,7 +66,7 @@ public class QdrantOptions : IValidatableOptions
     }
 
     /// <summary>
-    /// 验证配置
+    /// Validates the configuration.
     /// </summary>
     public void Validate()
     {

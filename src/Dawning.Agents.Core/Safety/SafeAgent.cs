@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 安全 Agent 包装器 - 为 Agent 添加护栏、速率限制和审计功能
+/// Safety agent wrapper that adds guardrails, rate limiting, and audit logging to an agent.
 /// </summary>
 public sealed class SafeAgent : IAgent
 {
@@ -48,7 +48,7 @@ public sealed class SafeAgent : IAgent
     }
 
     /// <summary>
-    /// 执行 Agent（带用户 ID）
+    /// Runs the agent with a user ID.
     /// </summary>
     public Task<AgentResponse> RunAsync(
         string input,
@@ -77,7 +77,7 @@ public sealed class SafeAgent : IAgent
 
         try
         {
-            // 1. 审计日志 - 开始
+            // 1. Audit log - start
             if (_auditLogger != null)
             {
                 await _auditLogger
@@ -94,7 +94,7 @@ public sealed class SafeAgent : IAgent
                     .ConfigureAwait(false);
             }
 
-            // 2. 速率限制检查
+            // 2. Rate limit check
             if (_rateLimiter != null)
             {
                 var rateLimitResult = await _rateLimiter
@@ -104,7 +104,7 @@ public sealed class SafeAgent : IAgent
                 if (!rateLimitResult.IsAllowed)
                 {
                     _logger.LogWarning(
-                        "Agent {AgentName} 被速率限制，需等待 {RetryAfter}",
+                        "Agent {AgentName} rate limited, retry after {RetryAfter}",
                         Name,
                         rateLimitResult.RetryAfter
                     );
@@ -118,21 +118,21 @@ public sealed class SafeAgent : IAgent
                         .ConfigureAwait(false);
 
                     return AgentResponse.Failed(
-                        $"速率限制：请在 {rateLimitResult.RetryAfter?.TotalSeconds:F0} 秒后重试",
+                        $"Rate limited: please retry after {rateLimitResult.RetryAfter?.TotalSeconds:F0} seconds",
                         [],
                         stopwatch.Elapsed
                     );
                 }
             }
 
-            // 2.5 Token 预算检查
+            // 2.5 Token budget check
             if (_tokenRateLimiter != null)
             {
                 if (!_tokenRateLimiter.HasBudget(rateLimitKey))
                 {
                     var usedTokens = _tokenRateLimiter.GetUsedTokens(rateLimitKey);
                     _logger.LogWarning(
-                        "Agent {AgentName} Token 预算耗尽: SessionId={SessionId}, UsedTokens={UsedTokens}",
+                        "Agent {AgentName} token budget exhausted: SessionId={SessionId}, UsedTokens={UsedTokens}",
                         Name,
                         rateLimitKey,
                         usedTokens
@@ -147,14 +147,14 @@ public sealed class SafeAgent : IAgent
                         .ConfigureAwait(false);
 
                     return AgentResponse.Failed(
-                        "Token 预算耗尽，请联系管理员或等待会话重置",
+                        "Token budget exhausted. Contact an administrator or wait for session reset.",
                         [],
                         stopwatch.Elapsed
                     );
                 }
             }
 
-            // 3. 输入护栏检查
+            // 3. Input guardrail check
             if (_guardrailPipeline != null)
             {
                 var inputCheckResult = await _guardrailPipeline
@@ -164,7 +164,7 @@ public sealed class SafeAgent : IAgent
                 if (!inputCheckResult.Passed)
                 {
                     _logger.LogWarning(
-                        "Agent {AgentName} 输入被护栏阻止: {Reason}",
+                        "Agent {AgentName} input blocked by guardrail: {Reason}",
                         Name,
                         inputCheckResult.Issues.FirstOrDefault()?.Description
                             ?? inputCheckResult.Message
@@ -195,13 +195,13 @@ public sealed class SafeAgent : IAgent
                     }
 
                     return AgentResponse.Failed(
-                        $"输入未通过安全检查: {inputCheckResult.Issues.FirstOrDefault()?.Description ?? inputCheckResult.Message ?? "内容不合规"}",
+                        $"Input failed safety check: {inputCheckResult.Issues.FirstOrDefault()?.Description ?? inputCheckResult.Message ?? "Non-compliant content"}",
                         [],
                         stopwatch.Elapsed
                     );
                 }
 
-                // 应用处理后的输入（可能被脱敏）
+                // Apply processed input (may have been redacted)
                 if (
                     inputCheckResult.ProcessedContent != null
                     && inputCheckResult.ProcessedContent != context.UserInput
@@ -222,7 +222,7 @@ public sealed class SafeAgent : IAgent
                 }
             }
 
-            // 4. 执行内部 Agent（保留原始上下文）
+            // 4. Execute inner agent (preserve original context)
             var response = await _innerAgent
                 .RunAsync(context, cancellationToken)
                 .ConfigureAwait(false);
@@ -240,7 +240,7 @@ public sealed class SafeAgent : IAgent
                 return response;
             }
 
-            // 5. 输出护栏检查
+            // 5. Output guardrail check
             var finalOutput = response.FinalAnswer;
             if (_guardrailPipeline != null && !string.IsNullOrEmpty(finalOutput))
             {
@@ -251,7 +251,7 @@ public sealed class SafeAgent : IAgent
                 if (!outputCheckResult.Passed)
                 {
                     _logger.LogWarning(
-                        "Agent {AgentName} 输出被护栏阻止: {Reason}",
+                        "Agent {AgentName} output blocked by guardrail: {Reason}",
                         Name,
                         outputCheckResult.Issues.FirstOrDefault()?.Description
                             ?? outputCheckResult.Message
@@ -282,20 +282,20 @@ public sealed class SafeAgent : IAgent
                     }
 
                     return AgentResponse.Failed(
-                        $"输出未通过安全检查: {outputCheckResult.Issues.FirstOrDefault()?.Description ?? outputCheckResult.Message ?? "内容不合规"}",
+                        $"Output failed safety check: {outputCheckResult.Issues.FirstOrDefault()?.Description ?? outputCheckResult.Message ?? "Non-compliant content"}",
                         response.Steps,
                         stopwatch.Elapsed
                     );
                 }
 
-                // 使用处理后的输出（可能被脱敏）
+                // Use processed output (may have been redacted)
                 if (outputCheckResult.ProcessedContent != finalOutput)
                 {
                     finalOutput = outputCheckResult.ProcessedContent;
                 }
             }
 
-            // 6. 审计日志 - 结束
+            // 6. Audit log - end
             await LogAgentEndAsync(
                     finalOutput,
                     stopwatch.Elapsed,
@@ -305,7 +305,7 @@ public sealed class SafeAgent : IAgent
                 )
                 .ConfigureAwait(false);
 
-            // 如果输出被修改，创建新的响应
+            // If output was modified, create a new response
             if (finalOutput != response.FinalAnswer)
             {
                 return AgentResponse.Successful(
@@ -323,7 +323,7 @@ public sealed class SafeAgent : IAgent
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Agent {AgentName} 执行异常", Name);
+            _logger.LogError(ex, "Agent {AgentName} execution exception", Name);
 
             if (_auditLogger != null)
             {
@@ -342,7 +342,7 @@ public sealed class SafeAgent : IAgent
             }
 
             return AgentResponse.Failed(
-                $"执行过程中发生错误: {ex.Message}",
+                $"An error occurred during execution: {ex.Message}",
                 [],
                 stopwatch.Elapsed,
                 ex

@@ -8,14 +8,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 带路由功能的 LLM Provider
+/// Routing-enabled LLM provider.
 /// </summary>
 /// <remarks>
-/// 包装 IModelRouter，提供 ILLMProvider 接口，支持：
+/// Wraps <see cref="IModelRouter"/> as an <see cref="ILLMProvider"/>, supporting:
 /// <list type="bullet">
-///   <item>自动路由选择</item>
-///   <item>故障转移</item>
-///   <item>调用统计</item>
+///   <item>Automatic route selection</item>
+///   <item>Failover</item>
+///   <item>Call statistics</item>
 /// </list>
 /// </remarks>
 public sealed class RoutingLLMProvider : ILLMProvider
@@ -43,8 +43,8 @@ public sealed class RoutingLLMProvider : ILLMProvider
         ) { }
 
     /// <summary>
-    /// 延迟解析构造函数 — 用于 DI 注册，打破
-    /// IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter 循环依赖
+    /// Lazy-resolution constructor for DI registration, breaking the
+    /// IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter circular dependency.
     /// </summary>
     internal RoutingLLMProvider(
         Lazy<IModelRouter> lazyRouter,
@@ -83,7 +83,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             }
             catch (InvalidOperationException) when (attempt < maxRetries)
             {
-                _logger.LogWarning("所有提供者都被排除，重置排除列表重试");
+                _logger.LogWarning("All providers excluded; resetting exclusion list and retrying");
                 excludedProviders.Clear();
                 continue;
             }
@@ -92,7 +92,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             try
             {
                 _logger.LogDebug(
-                    "尝试 {Attempt}/{MaxRetries} 使用提供者: {Provider}",
+                    "Attempt {Attempt}/{MaxRetries} using provider: {Provider}",
                     attempt + 1,
                     maxRetries + 1,
                     provider.Name
@@ -103,7 +103,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
                     .ConfigureAwait(false);
                 sw.Stop();
 
-                // 报告成功
+                // Report success
                 var cost = CalculateCost(
                     provider.Name,
                     response.PromptTokens,
@@ -128,9 +128,9 @@ public sealed class RoutingLLMProvider : ILLMProvider
                 )
             {
                 sw.Stop();
-                _logger.LogWarning(ex, "提供者 {Provider} 调用失败，尝试故障转移", provider.Name);
+                _logger.LogWarning(ex, "Provider {Provider} call failed; attempting failover", provider.Name);
 
-                // 报告失败
+                // Report failure
                 Router.ReportResult(
                     provider,
                     ModelCallResult.Failed(ex.Message, sw.ElapsedMilliseconds)
@@ -169,19 +169,19 @@ public sealed class RoutingLLMProvider : ILLMProvider
             }
             catch (InvalidOperationException) when (attempt < maxRetries)
             {
-                _logger.LogWarning("所有提供者都被排除，重置排除列表重试");
+                _logger.LogWarning("All providers excluded; resetting exclusion list and retrying");
                 excludedProviders.Clear();
                 continue;
             }
 
             _logger.LogDebug(
-                "流式尝试 {Attempt}/{MaxRetries} 使用提供者: {Provider}",
+                "Streaming attempt {Attempt}/{MaxRetries} using provider: {Provider}",
                 attempt + 1,
                 maxRetries + 1,
                 provider.Name
             );
 
-            // 尝试获取流
+            // Try to get the stream
             var (stream, error) = await TryGetStreamAsync(
                     provider,
                     messageList,
@@ -200,7 +200,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             {
                 _logger.LogWarning(
                     error,
-                    "流式提供者 {Provider} 初始化失败，尝试故障转移",
+                    "Streaming provider {Provider} initialization failed; attempting failover",
                     provider.Name
                 );
                 Router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
@@ -252,20 +252,20 @@ public sealed class RoutingLLMProvider : ILLMProvider
             }
             catch (InvalidOperationException) when (attempt < maxRetries)
             {
-                _logger.LogWarning("所有提供者都被排除，重置排除列表重试");
+                _logger.LogWarning("All providers excluded; resetting exclusion list and retrying");
                 excludedProviders.Clear();
                 continue;
             }
 
             _logger.LogDebug(
-                "事件流尝试 {Attempt}/{MaxRetries} 使用提供者: {Provider}",
+                "Event stream attempt {Attempt}/{MaxRetries} using provider: {Provider}",
                 attempt + 1,
                 maxRetries + 1,
                 provider.Name
             );
 
-            // 异步迭代器的 try/catch 无法捕获延迟执行的错误，
-            // 必须通过 TryGetEventStreamAsync 探测首个元素以检测实际错误
+            // Async iterator try/catch cannot catch deferred execution errors;
+            // must probe the first element via TryGetEventStreamAsync to detect actual errors
             var (stream, error) = await TryGetEventStreamAsync(
                     provider,
                     messageList,
@@ -284,7 +284,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             {
                 _logger.LogWarning(
                     error,
-                    "事件流提供者 {Provider} 初始化失败，尝试故障转移",
+                    "Event stream provider {Provider} initialization failed; attempting failover",
                     provider.Name
                 );
                 Router.ReportResult(provider, ModelCallResult.Failed(error.Message, 0));
@@ -319,8 +319,8 @@ public sealed class RoutingLLMProvider : ILLMProvider
         try
         {
             var stream = provider.ChatStreamAsync(messages, options, cancellationToken);
-            // 异步迭代器方法在调用时不执行任何代码，错误延迟到首次 MoveNextAsync，
-            // 因此必须通过 ProbeStreamAsync 探测首个元素以检测连接/认证错误
+            // Async iterator methods execute no code when called; errors are deferred to the first MoveNextAsync,
+    // so ProbeStreamAsync must probe the first element to detect connection/authentication errors
             return await ProbeStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -351,8 +351,8 @@ public sealed class RoutingLLMProvider : ILLMProvider
     }
 
     /// <summary>
-    /// 探测异步流的首个元素，用于在迭代前检测提供者连接/认证错误。
-    /// 成功时返回包含首个元素 + 剩余流的组合流；失败时返回异常。
+    /// Probes the first element of an async stream to detect provider connection/authentication errors
+    /// before iteration. Returns a combined stream on success; returns the exception on failure.
     /// </summary>
     private static async Task<(IAsyncEnumerable<T>? Stream, Exception? Error)> ProbeStreamAsync<T>(
         IAsyncEnumerable<T> source,
@@ -385,8 +385,8 @@ public sealed class RoutingLLMProvider : ILLMProvider
     }
 
     /// <summary>
-    /// 将已获取的首个元素与剩余枚举器合并为单一异步流。
-    /// 调用方通过 ProbeStreamAsync 获取 first 后，所有权转移给本方法负责 Dispose。
+    /// Merges an already-fetched first element with the remaining enumerator into a single async stream.
+    /// After the caller obtains first via ProbeStreamAsync, ownership is transferred to this method for disposal.
     /// </summary>
     private static async IAsyncEnumerable<T> PrependAsync<T>(T first, IAsyncEnumerator<T> remaining)
     {
@@ -429,7 +429,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
 
         sw.Stop();
 
-        // 估算输出 token 数（流式响应无法获取精确 token 计数）
+        // Estimate output tokens (stream responses don't provide exact token counts)
         var outputTokens = totalChars / 4;
         var inputTokens = EstimateInputTokens(messages);
         var cost = CalculateCost(provider.Name, inputTokens, outputTokens);
@@ -489,7 +489,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
             return _tokenCounter.CountTokens(messages);
         }
 
-        // 简单估算：每 4 个字符约 1 个 token
+        // Simple estimate: ~1 token per 4 characters
         var totalChars = messages.Sum(m => (m.Content?.Length ?? 0) + (m.Role?.Length ?? 0));
         return totalChars / 4;
     }
@@ -502,7 +502,7 @@ public sealed class RoutingLLMProvider : ILLMProvider
 }
 
 /// <summary>
-/// Token 计数器接口（可选依赖）
+/// Token counter interface (optional dependency).
 /// </summary>
 public interface ITokenCounter
 {

@@ -9,7 +9,7 @@ using OpenAI.Chat;
 namespace Dawning.Agents.OpenAI;
 
 /// <summary>
-/// OpenAI API 提供者实现
+/// OpenAI API provider implementation.
 /// </summary>
 public class OpenAIProvider : OpenAIProviderBase
 {
@@ -20,11 +20,11 @@ public class OpenAIProvider : OpenAIProviderBase
     protected override string ModelIdentifier { get; }
 
     /// <summary>
-    /// 创建 OpenAI 提供者
+    /// Initializes a new instance of the <see cref="OpenAIProvider"/> class.
     /// </summary>
-    /// <param name="apiKey">OpenAI API Key</param>
-    /// <param name="model">模型名称，默认 gpt-4o</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="apiKey">The OpenAI API key.</param>
+    /// <param name="model">The model name. Defaults to <c>gpt-4o</c>.</param>
+    /// <param name="logger">The logger instance.</param>
     public OpenAIProvider(
         string apiKey,
         string model = "gpt-4o",

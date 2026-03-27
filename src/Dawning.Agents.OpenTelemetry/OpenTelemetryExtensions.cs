@@ -9,49 +9,49 @@ using OpenTelemetry.Trace;
 namespace Dawning.Agents.OpenTelemetry;
 
 /// <summary>
-/// OpenTelemetry 配置选项
+/// Configuration options for OpenTelemetry.
 /// </summary>
 public sealed class OpenTelemetryOptions : IValidatableOptions
 {
     public const string SectionName = "OpenTelemetry";
 
     /// <summary>
-    /// 是否启用追踪
+    /// Gets or sets a value indicating whether tracing is enabled.
     /// </summary>
     public bool EnableTracing { get; set; } = true;
 
     /// <summary>
-    /// 是否启用指标
+    /// Gets or sets a value indicating whether metrics collection is enabled.
     /// </summary>
     public bool EnableMetrics { get; set; } = true;
 
     /// <summary>
-    /// OTLP 导出端点 (如 http://localhost:4317)
+    /// Gets or sets the OTLP export endpoint (e.g. <c>http://localhost:4317</c>).
     /// </summary>
     public string? OtlpEndpoint { get; set; }
 
     /// <summary>
-    /// 采样率 (0.0 - 1.0)
+    /// Gets or sets the sampling ratio (0.0 - 1.0).
     /// </summary>
     public double SamplingRatio { get; set; } = 1.0;
 
     /// <summary>
-    /// 服务名称
+    /// Gets or sets the service name.
     /// </summary>
     public string ServiceName { get; set; } = AgentInstrumentation.ServiceName;
 
     /// <summary>
-    /// 服务版本
+    /// Gets or sets the service version.
     /// </summary>
     public string ServiceVersion { get; set; } = AgentInstrumentation.ServiceVersion;
 
     /// <summary>
-    /// 环境名称
+    /// Gets or sets the environment name.
     /// </summary>
     public string? Environment { get; set; }
 
     /// <summary>
-    /// 是否启用控制台导出 (开发环境)
+    /// Gets or sets a value indicating whether console export is enabled (for development).
     /// </summary>
     public bool EnableConsoleExporter { get; set; } = false;
 
@@ -79,12 +79,12 @@ public sealed class OpenTelemetryOptions : IValidatableOptions
 }
 
 /// <summary>
-/// OpenTelemetry DI 扩展
+/// OpenTelemetry dependency injection extensions.
 /// </summary>
 public static class OpenTelemetryServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 OpenTelemetry 追踪和指标
+    /// Registers OpenTelemetry tracing and metrics.
     /// </summary>
     public static IServiceCollection AddOpenTelemetryObservability(
         this IServiceCollection services,
@@ -137,7 +137,7 @@ public static class OpenTelemetryServiceCollectionExtensions
 
         var otelBuilder = services.AddOpenTelemetry();
 
-        // 配置追踪
+        // Configure tracing
         if (options.EnableTracing)
         {
             otelBuilder.WithTracing(builder =>
@@ -163,7 +163,7 @@ public static class OpenTelemetryServiceCollectionExtensions
             });
         }
 
-        // 配置指标
+        // Configure metrics
         if (options.EnableMetrics)
         {
             otelBuilder.WithMetrics(builder =>
@@ -194,7 +194,7 @@ public static class OpenTelemetryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加追踪 (简化版)
+    /// Registers tracing (simplified).
     /// </summary>
     public static IServiceCollection AddAgentTracing(
         this IServiceCollection services,
@@ -228,7 +228,7 @@ public static class OpenTelemetryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加指标 (简化版)
+    /// Registers metrics (simplified).
     /// </summary>
     public static IServiceCollection AddAgentMetrics(
         this IServiceCollection services,

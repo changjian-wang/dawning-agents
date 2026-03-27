@@ -8,11 +8,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// MCP Server 实现
+/// MCP Server implementation.
 /// </summary>
 /// <remarks>
-/// 实现 Anthropic Model Context Protocol，使 Dawning.Agents 的工具、资源和提示词
-/// 可以被 Claude Desktop、Cursor 等 MCP 兼容工具调用。
+/// Implements the Anthropic Model Context Protocol, exposing Dawning.Agents tools, resources,
+/// and prompts for invocation by MCP-compatible clients such as Claude Desktop and Cursor.
 /// </remarks>
 public sealed class MCPServer : IAsyncDisposable
 {
@@ -51,17 +51,17 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 是否已初始化
+    /// Gets a value indicating whether the server has been initialized.
     /// </summary>
     public bool IsInitialized => _initialized;
 
     /// <summary>
-    /// 客户端信息
+    /// Gets the connected client information.
     /// </summary>
     public MCPClientInfo? ClientInfo => _clientInfo;
 
     /// <summary>
-    /// 注册资源提供者
+    /// Registers a resource provider.
     /// </summary>
     public void RegisterResourceProvider(IMCPResourceProvider provider)
     {
@@ -74,7 +74,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 注册提示词提供者
+    /// Registers a prompt provider.
     /// </summary>
     public void RegisterPromptProvider(IMCPPromptProvider provider)
     {
@@ -87,7 +87,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动 MCP Server
+    /// Starts the MCP Server.
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -111,7 +111,7 @@ public sealed class MCPServer : IAsyncDisposable
             _frozenPromptProviders = [.. _promptProviders];
         }
 
-        // 主消息循环
+        // Main message loop
         while (!linkedCts.Token.IsCancellationRequested)
         {
             try
@@ -128,7 +128,7 @@ public sealed class MCPServer : IAsyncDisposable
                     continue;
                 }
 
-                // 限制并发请求
+                // Throttle concurrent requests
                 await _requestSemaphore.WaitAsync(linkedCts.Token).ConfigureAwait(false);
                 // Use _cts.Token (not linkedCts.Token) for inflight tasks:
                 // linkedCts is using-scoped and will be disposed when StartAsync exits,
@@ -164,7 +164,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理消息并释放信号量
+    /// Processes a message and releases the semaphore.
     /// </summary>
     private async Task ProcessAndReleaseAsync(string message, CancellationToken cancellationToken)
     {
@@ -187,7 +187,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理单个消息
+    /// Processes a single message.
     /// </summary>
     private async Task ProcessMessageAsync(string message, CancellationToken cancellationToken)
     {
@@ -240,7 +240,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理请求并返回响应
+    /// Handles a request and returns a response.
     /// </summary>
     private async Task<MCPResponse?> HandleRequestAsync(
         MCPRequest request,
@@ -276,7 +276,7 @@ public sealed class MCPServer : IAsyncDisposable
             MCPMethods.PromptsGet => await HandlePromptsGetAsync(request, cancellationToken)
                 .ConfigureAwait(false),
 
-            // 通知方法不需要响应
+            // Notification methods do not require a response
             MCPMethods.Initialized => null,
 
             _ => MCPResponse.Failure(request.Id, MCPErrorCodes.MethodNotFound, "Unknown method"),
@@ -284,7 +284,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理初始化请求
+    /// Handles the initialization request.
     /// </summary>
     private Task<MCPResponse> HandleInitializeAsync(
         MCPRequest request,
@@ -324,7 +324,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理关闭请求
+    /// Handles the shutdown request.
     /// </summary>
     private MCPResponse HandleShutdown(MCPRequest request)
     {
@@ -334,7 +334,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理工具列表请求
+    /// Handles the tools list request.
     /// </summary>
     private MCPResponse HandleToolsList(MCPRequest request)
     {
@@ -357,7 +357,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理工具调用请求
+    /// Handles a tool call request.
     /// </summary>
     private async Task<MCPResponse> HandleToolsCallAsync(
         MCPRequest request,
@@ -443,7 +443,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理资源列表请求
+    /// Handles the resources list request.
     /// </summary>
     private MCPResponse HandleResourcesList(MCPRequest request)
     {
@@ -458,7 +458,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理资源读取请求
+    /// Handles a resource read request.
     /// </summary>
     private async Task<MCPResponse> HandleResourcesReadAsync(
         MCPRequest request,
@@ -507,7 +507,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理提示词列表请求
+    /// Handles the prompts list request.
     /// </summary>
     private MCPResponse HandlePromptsList(MCPRequest request)
     {
@@ -522,7 +522,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 处理获取提示词请求
+    /// Handles a get prompt request.
     /// </summary>
     private async Task<MCPResponse> HandlePromptsGetAsync(
         MCPRequest request,
@@ -565,7 +565,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 构建服务器能力声明
+    /// Builds the server capabilities declaration.
     /// </summary>
     private MCPServerCapabilities BuildServerCapabilities()
     {
@@ -581,7 +581,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 解析 JSON Schema 字符串
+    /// Parses a JSON Schema string.
     /// </summary>
     private MCPInputSchema ParseJsonSchema(string schemaJson)
     {
@@ -597,7 +597,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送响应
+    /// Sends a response.
     /// </summary>
     private async Task SendResponseAsync(MCPResponse response, CancellationToken cancellationToken)
     {
@@ -606,7 +606,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送错误响应
+    /// Sends an error response.
     /// </summary>
     private async Task SendErrorAsync(
         object? id,
@@ -620,7 +620,7 @@ public sealed class MCPServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 发送通知（无需响应）
+    /// Sends a notification (no response expected).
     /// </summary>
     public async Task SendNotificationAsync(
         string method,

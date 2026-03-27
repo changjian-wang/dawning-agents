@@ -9,15 +9,15 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 模型路由 DI 扩展方法
+/// Model router DI extension methods.
 /// </summary>
 public static class ModelRouterServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加模型路由器（使用配置）
+    /// Adds the model router using configuration.
     /// </summary>
     /// <remarks>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "ModelRouter": {
@@ -43,7 +43,7 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加模型路由器（使用配置委托）
+    /// Adds the model router using a configuration delegate.
     /// </summary>
     public static IServiceCollection AddModelRouter(
         this IServiceCollection services,
@@ -55,7 +55,7 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加模型路由器（使用指定策略）
+    /// Adds the model router using the specified strategy.
     /// </summary>
     public static IServiceCollection AddModelRouter(
         this IServiceCollection services,
@@ -73,7 +73,7 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加成本优化路由器
+    /// Adds the cost-optimized router.
     /// </summary>
     public static IServiceCollection AddCostOptimizedRouter(this IServiceCollection services)
     {
@@ -81,7 +81,7 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加延迟优化路由器
+    /// Adds the latency-optimized router.
     /// </summary>
     public static IServiceCollection AddLatencyOptimizedRouter(this IServiceCollection services)
     {
@@ -89,7 +89,7 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加负载均衡路由器
+    /// Adds the load-balanced router.
     /// </summary>
     public static IServiceCollection AddLoadBalancedRouter(
         this IServiceCollection services,
@@ -101,7 +101,7 @@ public static class ModelRouterServiceCollectionExtensions
 
     private static IServiceCollection AddModelRouterCore(this IServiceCollection services)
     {
-        // 注册路由器工厂
+        // Register router factory
         services.TryAddSingleton<IModelRouter>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<ModelRouterOptions>>();
@@ -142,14 +142,14 @@ public static class ModelRouterServiceCollectionExtensions
             };
         });
 
-        // 注册 RoutingLLMProvider
+        // Register RoutingLLMProvider
         services.TryAddSingleton<RoutingLLMProvider>();
 
         return services;
     }
 
     /// <summary>
-    /// 添加多个 LLM 提供者用于路由
+    /// Adds multiple LLM providers for routing.
     /// </summary>
     public static IServiceCollection AddLLMProviders(
         this IServiceCollection services,
@@ -165,15 +165,15 @@ public static class ModelRouterServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 使用路由 LLM Provider 替换默认的 ILLMProvider
+    /// Replaces the default <see cref="ILLMProvider"/> with a routing-enabled provider.
     /// </summary>
     /// <remarks>
-    /// 调用此方法后，注入 ILLMProvider 将获得带路由功能的 Provider。
-    /// 内部使用延迟解析打破 IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter 循环依赖。
+    /// After calling this method, injecting <see cref="ILLMProvider"/> yields a routing-enabled provider.
+    /// Internally uses lazy resolution to break the IModelRouter → IEnumerable&lt;ILLMProvider&gt; → RoutingLLMProvider → IModelRouter circular dependency.
     /// </remarks>
     public static IServiceCollection UseRoutingLLMProvider(this IServiceCollection services)
     {
-        // 注册 RoutingLLMProvider 为主 ILLMProvider，使用 Lazy<IModelRouter> 打破循环依赖
+        // Register RoutingLLMProvider as primary ILLMProvider, using Lazy<IModelRouter> to break circular dependency
         services.AddSingleton<ILLMProvider>(sp => new RoutingLLMProvider(
             new Lazy<IModelRouter>(() => sp.GetRequiredService<IModelRouter>()),
             sp.GetRequiredService<IOptions<ModelRouterOptions>>(),

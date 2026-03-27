@@ -5,11 +5,11 @@ using Dawning.Agents.MCP.Server;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// 文件系统资源提供者
+/// A file system resource provider.
 /// </summary>
 /// <remarks>
-/// 将指定目录下的文件暴露为 MCP 资源。
-/// URI 格式: file:///{path}
+/// Exposes files under a specified directory as MCP resources.
+/// URI format: file:///{path}
 /// </remarks>
 public sealed class FileSystemResourceProvider : IMCPResourceProvider
 {
@@ -25,7 +25,7 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rootPath);
         _rootPath = Path.GetFullPath(rootPath);
-        // 确保以目录分隔符结尾，防止 StartsWith 匹配同前缀的其他目录
+        // Ensure path ends with directory separator to prevent prefix-matching sibling directories
         if (!_rootPath.EndsWith(Path.DirectorySeparatorChar))
         {
             _rootPath += Path.DirectorySeparatorChar;
@@ -96,7 +96,7 @@ public sealed class FileSystemResourceProvider : IMCPResourceProvider
         var path = GetPathFromUri(uri);
         var fullPath = Path.GetFullPath(Path.Combine(_rootPath, path));
 
-        // 安全检查：确保路径在根目录内
+        // Security check: ensure path is within the root directory
         var comparison = OperatingSystem.IsWindows()
             ? StringComparison.OrdinalIgnoreCase
             : StringComparison.Ordinal;

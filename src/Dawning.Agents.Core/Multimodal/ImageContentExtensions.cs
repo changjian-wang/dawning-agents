@@ -3,12 +3,12 @@ using Dawning.Agents.Abstractions.Multimodal;
 namespace Dawning.Agents.Core.Multimodal;
 
 /// <summary>
-/// <see cref="ImageContent"/> 的文件 I/O 扩展方法
+/// File I/O extension methods for <see cref="ImageContent"/>.
 /// </summary>
 public static class ImageContentExtensions
 {
     /// <summary>
-    /// 从文件创建图像内容
+    /// Creates image content from a file.
     /// </summary>
     public static async Task<ImageContent> FromFileAsync(
         string filePath,

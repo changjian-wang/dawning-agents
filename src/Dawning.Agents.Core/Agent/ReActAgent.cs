@@ -462,7 +462,7 @@ public partial class ReActAgent : AgentBase
                 return retryResult.Success ? retryResult.Output : null;
             }
 
-            // ReviseAndRetry、Abandon、CreateNew、Escalate — 返回诊断信息给 LLM 决策
+            // ReviseAndRetry, Abandon, CreateNew, Escalate — return diagnosis to LLM for decision
             if (reflection.Diagnosis != null)
             {
                 return $"Tool error: {failedResult.Error} (Reflection: {reflection.Diagnosis})";

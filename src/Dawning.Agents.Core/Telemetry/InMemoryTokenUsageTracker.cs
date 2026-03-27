@@ -4,11 +4,11 @@ using Dawning.Agents.Abstractions.Telemetry;
 namespace Dawning.Agents.Core.Telemetry;
 
 /// <summary>
-/// 基于内存的 Token 使用追踪器实现
+/// In-memory token usage tracker implementation.
 /// </summary>
 /// <remarks>
-/// 线程安全的内存实现，适用于单进程场景。
-/// 对于分布式场景，可以实现基于 Redis 或数据库的追踪器。
+/// Thread-safe in-memory implementation suitable for single-process scenarios.
+/// For distributed scenarios, implement a Redis- or database-backed tracker.
 /// </remarks>
 public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
 {
@@ -108,7 +108,7 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
         var totalCompletion = filteredRecords.Sum(r => (long)r.CompletionTokens);
         var callCount = filteredRecords.Count;
 
-        // 按来源分组
+        // Group by source
         var bySource = filteredRecords
             .GroupBy(r => r.Source)
             .ToDictionary(
@@ -120,13 +120,13 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
                 )
             );
 
-        // 按模型分组
+        // Group by model
         var byModel = filteredRecords
             .Where(r => r.Model != null)
             .GroupBy(r => r.Model!)
             .ToDictionary(g => g.Key, g => g.Sum(r => r.TotalTokens));
 
-        // 按会话分组
+        // Group by session
         var bySession = filteredRecords
             .Where(r => r.SessionId != null)
             .GroupBy(r => r.SessionId!)
@@ -158,7 +158,7 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
         {
             if (source == null && sessionId == null)
             {
-                // 全部重置
+                // Full reset
                 _records.Clear();
                 _totalPromptTokens = 0;
                 _totalCompletionTokens = 0;
@@ -166,7 +166,7 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
             }
             else
             {
-                // 部分重置：由于 ConcurrentBag 不支持删除，需要重建
+                // Partial reset: ConcurrentBag does not support removal, so rebuild
                 var remaining = _records
                     .Where(r =>
                         (source == null || r.Source != source)
@@ -180,7 +180,7 @@ public sealed class InMemoryTokenUsageTracker : ITokenUsageTracker
                     _records.Add(record);
                 }
 
-                // 重新计算总数
+                // Recalculate totals
                 _totalPromptTokens = remaining.Sum(r => (long)r.PromptTokens);
                 _totalCompletionTokens = remaining.Sum(r => (long)r.CompletionTokens);
                 _callCount = remaining.Count;

@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core;
 
 /// <summary>
-/// 工作流服务 DI 扩展
+/// Dependency injection extension methods for workflow services.
 /// </summary>
 public static class WorkflowServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加工作流引擎
+    /// Adds the workflow engine and related services.
     /// </summary>
     public static IServiceCollection AddWorkflowEngine(this IServiceCollection services)
     {
@@ -23,7 +23,7 @@ public static class WorkflowServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加工作流序列化器
+    /// Adds the workflow serializer.
     /// </summary>
     public static IServiceCollection AddWorkflowSerializer(this IServiceCollection services)
     {
@@ -32,7 +32,7 @@ public static class WorkflowServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加工作流可视化器
+    /// Adds the workflow visualizer.
     /// </summary>
     public static IServiceCollection AddWorkflowVisualizer(this IServiceCollection services)
     {
@@ -41,7 +41,7 @@ public static class WorkflowServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册预定义工作流
+    /// Registers a predefined workflow definition.
     /// </summary>
     public static IServiceCollection AddWorkflow(
         this IServiceCollection services,
@@ -53,7 +53,7 @@ public static class WorkflowServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册工作流（使用构建器）
+    /// Registers a workflow definition using a builder.
     /// </summary>
     public static IServiceCollection AddWorkflow(
         this IServiceCollection services,

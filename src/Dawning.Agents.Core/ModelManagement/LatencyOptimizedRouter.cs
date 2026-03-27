@@ -6,11 +6,11 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 延迟优化路由器
+/// Latency-optimized router.
 /// </summary>
 /// <remarks>
-/// 选择响应最快的模型。
-/// 基于历史统计数据的平均延迟进行选择。
+/// Selects the model with the lowest response latency.
+/// Based on average latency from historical statistics.
 /// </remarks>
 public class LatencyOptimizedRouter : ModelRouterBase
 {
@@ -32,11 +32,11 @@ public class LatencyOptimizedRouter : ModelRouterBase
 
         if (healthyProviders.Count == 0)
         {
-            _logger.LogError("没有可用的健康提供者");
+            _logger.LogError("No healthy providers available");
             throw new InvalidOperationException("No healthy providers available");
         }
 
-        // 如果有首选模型且可用，优先使用
+        // If a preferred model is specified and available, use it
         if (!string.IsNullOrEmpty(context.PreferredModel))
         {
             var preferred = healthyProviders.FirstOrDefault(p =>
@@ -44,18 +44,18 @@ public class LatencyOptimizedRouter : ModelRouterBase
             );
             if (preferred != null)
             {
-                _logger.LogDebug("使用首选模型: {Provider}", preferred.Name);
+                _logger.LogDebug("Using preferred model: {Provider}", preferred.Name);
                 return Task.FromResult(preferred);
             }
         }
 
-        // 按平均延迟排序
+        // Sort by average latency
         var providerLatencies = healthyProviders
             .Select(p => new { Provider = p, Latency = GetAverageLatency(p.Name) })
             .OrderBy(x => x.Latency)
             .ToList();
 
-        // 如果有延迟限制，过滤超出限制的提供者
+        // If there is a latency limit, filter providers exceeding it
         if (context.MaxLatencyMs > 0)
         {
             var filtered = providerLatencies.Where(x => x.Latency <= context.MaxLatencyMs).ToList();
@@ -67,7 +67,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
             else
             {
                 _logger.LogWarning(
-                    "没有提供者符合延迟限制 {MaxLatencyMs}ms，使用最快的",
+                    "No provider meets latency limit {MaxLatencyMs}ms; using the fastest one",
                     context.MaxLatencyMs
                 );
             }
@@ -76,7 +76,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
         var best = providerLatencies.First();
         var selected = best.Provider;
         _logger.LogDebug(
-            "延迟优化选择: {Provider}，平均延迟: {Latency:F0}ms",
+            "Latency-optimized selection: {Provider}, average latency: {Latency:F0}ms",
             selected.Name,
             best.Latency
         );
@@ -91,16 +91,16 @@ public class LatencyOptimizedRouter : ModelRouterBase
             return stats.AverageLatencyMs;
         }
 
-        // 没有历史数据时使用默认估算
+        // No historical data; use default estimate
         return GetDefaultLatencyEstimate(providerName);
     }
 
     private static double GetDefaultLatencyEstimate(string providerName)
     {
-        // 基于经验的默认延迟估算（毫秒）
+        // Experience-based default latency estimates (milliseconds)
         return providerName.ToLowerInvariant() switch
         {
-            var n when n.Contains("ollama", StringComparison.Ordinal) => 200, // 本地模型最快
+            var n when n.Contains("ollama", StringComparison.Ordinal) => 200, // Local models are fastest
             var n when n.Contains("gpt-4o-mini", StringComparison.Ordinal) => 500,
             var n when n.Contains("gpt-4o", StringComparison.Ordinal) => 800,
             var n when n.Contains("gpt-4", StringComparison.Ordinal) => 1500,
@@ -108,7 +108,7 @@ public class LatencyOptimizedRouter : ModelRouterBase
             var n when n.Contains("claude-3-haiku", StringComparison.Ordinal) => 400,
             var n when n.Contains("claude-3-sonnet", StringComparison.Ordinal) => 800,
             var n when n.Contains("claude-3-opus", StringComparison.Ordinal) => 2000,
-            _ => 1000, // 默认估算
+            _ => 1000, // Default estimate
         };
     }
 }

@@ -8,10 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 动态脚本工具 — 包装 EphemeralToolDefinition 为可执行的 ITool
+/// Dynamic script tool — wraps an <see cref="EphemeralToolDefinition"/> as an executable <see cref="ITool"/>.
 /// </summary>
 /// <remarks>
-/// <para>通过 IToolSandbox 执行脚本，参数通过环境变量传递</para>
+/// <para>Executes scripts through <see cref="IToolSandbox"/> with parameters passed via environment variables.</para>
 /// </remarks>
 public sealed class EphemeralTool : ITool
 {
@@ -21,7 +21,7 @@ public sealed class EphemeralTool : ITool
     private readonly ILogger _logger;
 
     /// <summary>
-    /// 创建 EphemeralTool
+    /// Creates an <see cref="EphemeralTool"/>.
     /// </summary>
     public EphemeralTool(
         EphemeralToolDefinition definition,
@@ -39,7 +39,7 @@ public sealed class EphemeralTool : ITool
     }
 
     /// <summary>
-    /// 获取工具定义
+    /// Gets the tool definition.
     /// </summary>
     public EphemeralToolDefinition Definition => _definition;
 

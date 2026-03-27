@@ -6,18 +6,18 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Configuration;
 
 /// <summary>
-/// 配置热重载 DI 扩展方法
+/// DI extensions for configuration hot-reload.
 /// </summary>
 public static class HotReloadServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加配置热重载支持
+    /// Adds configuration hot-reload support.
     /// </summary>
-    /// <typeparam name="TOptions">配置类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <param name="sectionName">配置节名称</param>
-    /// <returns>服务集合</returns>
+    /// <typeparam name="TOptions">The options type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="sectionName">The configuration section name.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHotReloadOptions<TOptions>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -25,10 +25,10 @@ public static class HotReloadServiceCollectionExtensions
     )
         where TOptions : class
     {
-        // 注册 IOptions<T> 和 IOptionsMonitor<T>
+        // Register IOptions<T> and IOptionsMonitor<T>
         services.Configure<TOptions>(configuration.GetSection(sectionName));
 
-        // 注册变更通知器
+        // Register the change notifier
         services.TryAddSingleton<
             IConfigurationChangeNotifier<TOptions>,
             ConfigurationChangeNotifier<TOptions>
@@ -38,14 +38,14 @@ public static class HotReloadServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加配置热重载支持（带验证）
+    /// Adds configuration hot-reload support with validation.
     /// </summary>
-    /// <typeparam name="TOptions">配置类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <param name="sectionName">配置节名称</param>
-    /// <param name="validate">验证委托</param>
-    /// <returns>服务集合</returns>
+    /// <typeparam name="TOptions">The options type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="sectionName">The configuration section name.</param>
+    /// <param name="validate">The validation delegate.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHotReloadOptions<TOptions>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -54,13 +54,13 @@ public static class HotReloadServiceCollectionExtensions
     )
         where TOptions : class
     {
-        // 注册带验证的配置
+        // Register options with validation
         services
             .AddOptions<TOptions>()
             .Bind(configuration.GetSection(sectionName))
             .Validate(validate, $"Validation failed for {typeof(TOptions).Name}");
 
-        // 注册变更通知器
+        // Register the change notifier
         services.TryAddSingleton<
             IConfigurationChangeNotifier<TOptions>,
             ConfigurationChangeNotifier<TOptions>
@@ -70,15 +70,15 @@ public static class HotReloadServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加配置热重载支持（带验证和失败消息）
+    /// Adds configuration hot-reload support with validation and a custom failure message.
     /// </summary>
-    /// <typeparam name="TOptions">配置类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <param name="sectionName">配置节名称</param>
-    /// <param name="validate">验证委托</param>
-    /// <param name="failureMessage">验证失败消息</param>
-    /// <returns>服务集合</returns>
+    /// <typeparam name="TOptions">The options type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="sectionName">The configuration section name.</param>
+    /// <param name="validate">The validation delegate.</param>
+    /// <param name="failureMessage">The validation failure message.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddHotReloadOptions<TOptions>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -88,13 +88,13 @@ public static class HotReloadServiceCollectionExtensions
     )
         where TOptions : class
     {
-        // 注册带验证的配置
+        // Register options with validation
         services
             .AddOptions<TOptions>()
             .Bind(configuration.GetSection(sectionName))
             .Validate(validate, failureMessage);
 
-        // 注册变更通知器
+        // Register the change notifier
         services.TryAddSingleton<
             IConfigurationChangeNotifier<TOptions>,
             ConfigurationChangeNotifier<TOptions>

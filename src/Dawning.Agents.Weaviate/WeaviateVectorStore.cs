@@ -10,14 +10,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Weaviate;
 
 /// <summary>
-/// Weaviate 向量存储实现
+/// Weaviate vector store implementation.
 /// </summary>
 /// <remarks>
-/// Weaviate 是一个开源的向量搜索引擎，支持：
-/// - GraphQL 和 REST API
-/// - 多种向量索引类型（HNSW、Flat、Dynamic）
-/// - 多租户
-/// - 混合搜索（向量 + 关键词）
+/// Weaviate is an open-source vector search engine that supports:
+/// - GraphQL and REST APIs
+/// - Multiple vector index types (HNSW, Flat, Dynamic)
+/// - Multi-tenancy
+/// - Hybrid search (vector + keyword)
 /// </remarks>
 public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 {
@@ -41,7 +41,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     public int Count => Volatile.Read(ref _count);
 
     /// <summary>
-    /// 创建 Weaviate 向量存储实例
+    /// Initializes a new instance of the <see cref="WeaviateVectorStore"/> class.
     /// </summary>
     public WeaviateVectorStore(
         HttpClient httpClient,
@@ -96,7 +96,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 
         _logger.LogDebug("Adding {Count} chunks to Weaviate", chunkList.Count);
 
-        // 使用批量导入 API
+        // Use the batch import API
         var objects = chunkList
             .Select(chunk => new WeaviateObject
             {
@@ -202,7 +202,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             return [];
         }
 
-        // 解析结果
+        // Parse results
         var results = new List<SearchResult>();
 
         if (
@@ -213,7 +213,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             if (jsonArray.ValueKind != JsonValueKind.Array)
             {
                 _logger.LogWarning(
-                    "搜索结果类型异常，期望数组，实际为 {ValueKind}",
+                    "Search result type unexpected, expected array but got {ValueKind}",
                     jsonArray.ValueKind
                 );
                 return results;
@@ -223,7 +223,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             {
                 if (!item.TryGetProperty("_additional", out var additional))
                 {
-                    _logger.LogWarning("搜索结果缺少 _additional 字段，跳过");
+                    _logger.LogWarning("Search result missing _additional field, skipping");
                     continue;
                 }
 
@@ -234,7 +234,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
                         ? certaintyValue
                         : 0f;
 
-                // certainty 转换为 score (certainty 范围是 0-1)
+                // Convert certainty to score (certainty range is 0-1)
                 var score = certainty;
 
                 if (score < minScore)
@@ -271,7 +271,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
 
                 if (string.IsNullOrEmpty(id))
                 {
-                    _logger.LogWarning("搜索结果缺少 _additional.id，跳过");
+                    _logger.LogWarning("Search result missing _additional.id, skipping");
                     continue;
                 }
 
@@ -396,7 +396,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         await EnsureClassExistsOnceAsync(cancellationToken).ConfigureAwait(false);
         _logger.LogDebug("Deleting chunks by documentId {DocumentId} from Weaviate", documentId);
 
-        // 使用批量删除 API
+        // Use the batch delete API
         var deleteRequest = new WeaviateBatchDeleteRequest
         {
             Match = new WeaviateBatchDeleteMatch
@@ -464,7 +464,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
         await _initLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            // 删除并重建 Schema 类
+            // Delete and recreate the schema class
             using var deleteResponse = await _httpClient
                 .DeleteAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
                 .ConfigureAwait(false);
@@ -511,7 +511,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 确保 Schema 类已创建（懒初始化，仅执行一次）
+    /// Ensures the schema class has been created (lazy initialization, executed only once).
     /// </summary>
     private async Task EnsureClassExistsOnceAsync(CancellationToken cancellationToken = default)
     {
@@ -538,11 +538,11 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 确保 Schema 类存在
+    /// Ensures the schema class exists.
     /// </summary>
     private async Task EnsureClassExistsAsync(CancellationToken cancellationToken = default)
     {
-        // 检查类是否存在
+        // Check if the class exists
         using var response = await _httpClient
             .GetAsync($"/v1/schema/{_options.ClassName}", cancellationToken)
             .ConfigureAwait(false);
@@ -553,7 +553,7 @@ public partial class WeaviateVectorStore : IVectorStore, IAsyncDisposable
             return;
         }
 
-        // 创建类
+        // Create the class
         var classSchema = new WeaviateClassSchema
         {
             Class = _options.ClassName,

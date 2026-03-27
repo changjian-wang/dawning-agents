@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using Dawning.Agents.Abstractions.Observability;
 
 /// <summary>
-/// 用于开发/测试的内存指标收集器
+/// In-memory metrics collector for development and testing.
 /// </summary>
 public sealed class MetricsCollector
 {
@@ -13,7 +13,7 @@ public sealed class MetricsCollector
     private readonly ConcurrentDictionary<string, GaugeMetric> _gauges = new();
 
     /// <summary>
-    /// 增加计数器
+    /// Increments a counter metric.
     /// </summary>
     public void IncrementCounter(
         string name,
@@ -27,7 +27,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 记录直方图值
+    /// Records a histogram value.
     /// </summary>
     public void RecordHistogram(
         string name,
@@ -41,7 +41,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 设置仪表值
+    /// Sets a gauge value.
     /// </summary>
     public void SetGauge(
         string name,
@@ -55,7 +55,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 获取计数器值
+    /// Gets the current counter value.
     /// </summary>
     public long? GetCounter(string name, IReadOnlyDictionary<string, string>? tags = null)
     {
@@ -64,7 +64,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 获取仪表值
+    /// Gets the current gauge value.
     /// </summary>
     public double? GetGauge(string name, IReadOnlyDictionary<string, string>? tags = null)
     {
@@ -73,7 +73,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 获取所有指标快照
+    /// Gets a snapshot of all metrics.
     /// </summary>
     public MetricsSnapshot GetSnapshot()
     {
@@ -87,7 +87,7 @@ public sealed class MetricsCollector
     }
 
     /// <summary>
-    /// 清除所有指标
+    /// Clears all metrics.
     /// </summary>
     public void Clear()
     {
@@ -112,29 +112,29 @@ public sealed class MetricsCollector
 }
 
 /// <summary>
-/// 计数器指标
+/// Counter metric.
 /// </summary>
 public sealed class CounterMetric
 {
     private long _value;
 
     /// <summary>
-    /// 指标名称
+    /// The metric name.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 标签
+    /// The metric tags.
     /// </summary>
     public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
-    /// 当前值
+    /// The current value.
     /// </summary>
     public long Value => _value;
 
     /// <summary>
-    /// 创建计数器
+    /// Initializes a new instance of the <see cref="CounterMetric"/> class.
     /// </summary>
     public CounterMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
@@ -143,12 +143,12 @@ public sealed class CounterMetric
     }
 
     /// <summary>
-    /// 增加值
+    /// Adds the specified value.
     /// </summary>
     public void Add(long value) => Interlocked.Add(ref _value, value);
 
     /// <summary>
-    /// 转换为数据
+    /// Converts to a <see cref="MetricData"/> instance.
     /// </summary>
     public MetricData ToData() =>
         new()
@@ -161,7 +161,7 @@ public sealed class CounterMetric
 }
 
 /// <summary>
-/// 直方图指标
+/// Histogram metric.
 /// </summary>
 public sealed class HistogramMetric
 {
@@ -172,17 +172,17 @@ public sealed class HistogramMetric
     private int _writeIndex;
 
     /// <summary>
-    /// 指标名称
+    /// The metric name.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 标签
+    /// The metric tags.
     /// </summary>
     public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
-    /// 创建直方图
+    /// Initializes a new instance of the <see cref="HistogramMetric"/> class.
     /// </summary>
     public HistogramMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
@@ -191,7 +191,7 @@ public sealed class HistogramMetric
     }
 
     /// <summary>
-    /// 记录值
+    /// Records a value.
     /// </summary>
     public void Record(double value)
     {
@@ -207,7 +207,7 @@ public sealed class HistogramMetric
     }
 
     /// <summary>
-    /// 转换为数据
+    /// Converts to a <see cref="MetricData"/> instance.
     /// </summary>
     public MetricData ToData()
     {
@@ -246,29 +246,29 @@ public sealed class HistogramMetric
 }
 
 /// <summary>
-/// 仪表指标
+/// Gauge metric.
 /// </summary>
 public sealed class GaugeMetric
 {
     private double _value;
 
     /// <summary>
-    /// 指标名称
+    /// The metric name.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 标签
+    /// The metric tags.
     /// </summary>
     public IReadOnlyDictionary<string, string>? Tags { get; }
 
     /// <summary>
-    /// 当前值
+    /// The current value.
     /// </summary>
     public double Value => _value;
 
     /// <summary>
-    /// 创建仪表
+    /// Initializes a new instance of the <see cref="GaugeMetric"/> class.
     /// </summary>
     public GaugeMetric(string name, IReadOnlyDictionary<string, string>? tags)
     {
@@ -277,12 +277,12 @@ public sealed class GaugeMetric
     }
 
     /// <summary>
-    /// 设置值
+    /// Sets the value.
     /// </summary>
     public void Set(double value) => Interlocked.Exchange(ref _value, value);
 
     /// <summary>
-    /// 转换为数据
+    /// Converts to a <see cref="MetricData"/> instance.
     /// </summary>
     public MetricData ToData() =>
         new()

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 工具注册表实现（线程安全）
+/// Thread-safe tool registry implementation.
 /// </summary>
 public sealed class ToolRegistry : IToolRegistry
 {
@@ -15,7 +15,7 @@ public sealed class ToolRegistry : IToolRegistry
     );
     private readonly ILogger<ToolRegistry> _logger;
 
-    // 缓存，注册/移除工具时失效
+    // Cache; invalidated on tool register/remove
     private volatile IReadOnlyList<ITool>? _cachedAllTools;
     private volatile IReadOnlyList<string>? _cachedCategories;
     private readonly Lock _cacheLock = new();
@@ -26,28 +26,28 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 注册工具
+    /// Registers a tool.
     /// </summary>
-    /// <param name="tool">要注册的工具</param>
+    /// <param name="tool">The tool to register.</param>
     public void Register(ITool tool)
     {
         ArgumentNullException.ThrowIfNull(tool);
 
         if (_tools.TryGetValue(tool.Name, out var existing))
         {
-            _logger.LogWarning("工具 '{Name}' 已存在，将被覆盖", tool.Name);
+            _logger.LogWarning("Tool '{Name}' already exists and will be overwritten", tool.Name);
         }
 
         _tools[tool.Name] = tool;
         InvalidateCache();
-        _logger.LogDebug("已注册工具: {Name} - {Description}", tool.Name, tool.Description);
+        _logger.LogDebug("Registered tool: {Name} - {Description}", tool.Name, tool.Description);
     }
 
     /// <summary>
-    /// 根据名称获取工具
+    /// Gets a tool by name.
     /// </summary>
-    /// <param name="name">工具名称（不区分大小写）</param>
-    /// <returns>工具实例，未找到时返回 null</returns>
+    /// <param name="name">The tool name (case-insensitive).</param>
+    /// <returns>The tool instance, or <see langword="null"/> if not found.</returns>
     public ITool? GetTool(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -55,7 +55,7 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 获取所有已注册的工具（带缓存）
+    /// Gets all registered tools (with caching).
     /// </summary>
     public IReadOnlyList<ITool> GetAllTools()
     {
@@ -72,9 +72,9 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 检查工具是否已注册
+    /// Checks whether a tool is registered.
     /// </summary>
-    /// <param name="name">工具名称</param>
+    /// <param name="name">The tool name.</param>
     public bool HasTool(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -82,15 +82,15 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 已注册的工具数量
+    /// Gets the number of registered tools.
     /// </summary>
     public int Count => _tools.Count;
 
     /// <summary>
-    /// 根据分类获取工具
+    /// Gets tools by category.
     /// </summary>
-    /// <param name="category">工具分类</param>
-    /// <returns>属于该分类的所有工具</returns>
+    /// <param name="category">The tool category.</param>
+    /// <returns>All tools in the specified category.</returns>
     public IReadOnlyList<ITool> GetToolsByCategory(string category)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(category);
@@ -103,9 +103,9 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 获取所有工具分类（带缓存）
+    /// Gets all tool categories (with caching).
     /// </summary>
-    /// <returns>分类名称列表</returns>
+    /// <returns>A list of category names.</returns>
     public IReadOnlyList<string> GetCategories()
     {
         var cached = _cachedCategories;
@@ -126,9 +126,9 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 从类型扫描并注册所有 [FunctionTool] 标记的方法
+    /// Scans and registers all methods marked with <see cref="FunctionToolAttribute"/> from a type.
     /// </summary>
-    /// <typeparam name="T">工具类类型</typeparam>
+    /// <typeparam name="T">The tool class type.</typeparam>
     public void RegisterToolsFromType<T>()
         where T : class, new()
     {
@@ -141,9 +141,9 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 从实例扫描并注册所有 [FunctionTool] 标记的方法
+    /// Scans and registers all methods marked with <see cref="FunctionToolAttribute"/> from an instance.
     /// </summary>
-    /// <param name="instance">工具类实例</param>
+    /// <param name="instance">The tool class instance.</param>
     public void RegisterToolsFromInstance(object instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -155,7 +155,7 @@ public sealed class ToolRegistry : IToolRegistry
     }
 
     /// <summary>
-    /// 使缓存失效
+    /// Invalidates the cache.
     /// </summary>
     private void InvalidateCache()
     {

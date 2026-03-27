@@ -15,16 +15,16 @@ using Serilog.Formatting.Compact;
 namespace Dawning.Agents.Serilog;
 
 /// <summary>
-/// Serilog 日志 DI 扩展方法
+/// Serilog logging dependency injection extension methods.
 /// </summary>
 public static class LoggingServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Agent 结构化日志（Serilog）
+    /// Registers agent structured logging with Serilog.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAgentLogging(
         this IServiceCollection services,
         IConfiguration configuration
@@ -37,11 +37,11 @@ public static class LoggingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Agent 结构化日志（Serilog）
+    /// Registers agent structured logging with Serilog.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAgentLogging(
         this IServiceCollection services,
         Action<LoggingOptions> configure
@@ -54,11 +54,11 @@ public static class LoggingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Agent 结构化日志（Serilog）
+    /// Registers agent structured logging with Serilog.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="options">配置选项</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="options">The logging options.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAgentLogging(
         this IServiceCollection services,
         LoggingOptions options
@@ -66,12 +66,12 @@ public static class LoggingServiceCollectionExtensions
     {
         var loggerConfig = new LoggerConfiguration();
 
-        // 最小级别（通过 LevelSwitch 控制，支持运行时动态调整）
+        // Minimum level (controlled via LevelSwitch, supports runtime dynamic adjustment)
         var minLevel = ParseLogLevel(options.MinimumLevel);
         var levelSwitch = new LoggingLevelSwitch(minLevel);
         loggerConfig.MinimumLevel.ControlledBy(levelSwitch);
 
-        // 命名空间级别覆盖
+        // Namespace-level overrides
         foreach (var (ns, level) in options.Override)
         {
             loggerConfig.MinimumLevel.Override(ns, ParseLogLevel(level));
@@ -92,7 +92,7 @@ public static class LoggingServiceCollectionExtensions
             loggerConfig.Enrich.WithThreadId();
         }
 
-        // 控制台输出
+        // Console output
         if (options.EnableConsole)
         {
             if (options.EnableJsonFormat)
@@ -105,7 +105,7 @@ public static class LoggingServiceCollectionExtensions
             }
         }
 
-        // 文件输出
+        // File output
         if (options.EnableFile)
         {
             var rollingInterval = ConvertRollingInterval(options.RollingInterval);
@@ -130,28 +130,28 @@ public static class LoggingServiceCollectionExtensions
             }
         }
 
-        // Elasticsearch 输出
+        // Elasticsearch output
         if (options.Elasticsearch?.Enabled == true)
         {
             ConfigureElasticsearchSink(loggerConfig, options.Elasticsearch);
         }
 
-        // Seq 输出（开发环境推荐）
+        // Seq output (recommended for development)
         if (options.Seq?.Enabled == true)
         {
             ConfigureSeqSink(loggerConfig, options.Seq);
         }
 
-        // 创建全局 Logger
+        // Create global logger
         Log.Logger = loggerConfig.CreateLogger();
 
-        // 注册日志级别开关（用于动态调整）
+        // Register log level switch (for dynamic adjustment)
         services.AddSingleton(levelSwitch);
         services.AddSingleton<ILogLevelController>(sp => new LogLevelController(
             sp.GetRequiredService<LoggingLevelSwitch>()
         ));
 
-        // 替换 Microsoft.Extensions.Logging
+        // Replace Microsoft.Extensions.Logging
         services.AddLogging(builder =>
         {
             builder.ClearProviders();
@@ -162,7 +162,7 @@ public static class LoggingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 配置 Elasticsearch Sink
+    /// Configures the Elasticsearch sink.
     /// </summary>
     private static void ConfigureElasticsearchSink(
         LoggerConfiguration loggerConfig,
@@ -198,7 +198,7 @@ public static class LoggingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 配置 Seq Sink
+    /// Configures the Seq sink.
     /// </summary>
     private static void ConfigureSeqSink(
         LoggerConfiguration loggerConfig,
@@ -213,7 +213,7 @@ public static class LoggingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加默认的 Agent 日志配置（控制台输出）
+    /// Registers agent logging with default settings (console output).
     /// </summary>
     public static IServiceCollection AddAgentLogging(this IServiceCollection services)
     {

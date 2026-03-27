@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// 用完整可观测性包装 Agent
+/// Wraps an agent with full observability support.
 /// </summary>
 public sealed class ObservableAgent : IAgent, IDisposable
 {
@@ -27,12 +27,12 @@ public sealed class ObservableAgent : IAgent, IDisposable
     public string Instructions => _innerAgent.Instructions;
 
     /// <summary>
-    /// 内部 Agent
+    /// Gets the inner agent.
     /// </summary>
     public IAgent InnerAgent => _innerAgent;
 
     /// <summary>
-    /// 创建可观测 Agent
+    /// Initializes a new instance of the <see cref="ObservableAgent"/> class.
     /// </summary>
     public ObservableAgent(
         IAgent innerAgent,
@@ -83,19 +83,19 @@ public sealed class ObservableAgent : IAgent, IDisposable
         var requestId = Guid.NewGuid().ToString("N")[..8];
         var startTime = DateTimeOffset.UtcNow;
 
-        // 启动追踪 span
+        // Start trace span
         using var span = _tracer.StartSpan($"{_innerAgent.Name}.Run", SpanKind.Internal);
         span.SetAttribute("request.id", requestId);
         span.SetAttribute("input.length", context.UserInput.Length);
 
-        // 设置日志上下文
+        // Set log context
         using var logContext = LogContext
             .Push()
             .WithRequestId(requestId)
             .WithAgentName(_innerAgent.Name)
             .WithSessionId(context.SessionId);
 
-        // 跟踪活跃请求
+        // Track active requests
         using var activeTracker = _telemetry.TrackActiveRequest(_innerAgent.Name);
 
         _agentLogger.LogRequestStart(requestId, context.UserInput);
@@ -107,7 +107,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
                 .ConfigureAwait(false);
             var duration = DateTimeOffset.UtcNow - startTime;
 
-            // 记录成功指标
+            // Record success metrics
             _telemetry.RecordRequest(
                 _innerAgent.Name,
                 response.Success,
@@ -145,7 +145,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
                 }
             );
 
-            _agentLogger.LogError(requestId, ex, "Agent 执行失败");
+            _agentLogger.LogError(requestId, ex, "Agent execution failed");
 
             span.RecordException(ex);
             span.SetStatus(SpanStatus.Error, ex.Message);
@@ -155,12 +155,12 @@ public sealed class ObservableAgent : IAgent, IDisposable
     }
 
     /// <summary>
-    /// 获取当前指标快照
+    /// Gets the current metrics snapshot.
     /// </summary>
     public MetricsSnapshot GetMetrics() => _metrics.GetSnapshot();
 
     /// <summary>
-    /// 获取指标收集器
+    /// Gets the metrics collector.
     /// </summary>
     public MetricsCollector MetricsCollector => _metrics;
 
@@ -174,7 +174,7 @@ public sealed class ObservableAgent : IAgent, IDisposable
 
         _disposed = true;
         _tracer.Dispose();
-        // _telemetry 是共享单例，由 DI 容器管理生命周期，不在此处 Dispose
+        // _telemetry is a shared singleton managed by the DI container; do not dispose here
         (_innerAgent as IDisposable)?.Dispose();
     }
 }

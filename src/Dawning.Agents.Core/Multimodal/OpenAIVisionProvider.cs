@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Multimodal;
 
 /// <summary>
-/// OpenAI Vision 提供者
+/// OpenAI Vision provider.
 /// </summary>
 public sealed class OpenAIVisionProvider : IVisionProvider
 {
@@ -90,7 +90,7 @@ public sealed class OpenAIVisionProvider : IVisionProvider
             };
         }
 
-        return VisionAnalysisResult.Fail(response.Error ?? "分析失败");
+        return VisionAnalysisResult.Fail(response.Error ?? "Analysis failed");
     }
 
     /// <inheritdoc />
@@ -104,20 +104,20 @@ public sealed class OpenAIVisionProvider : IVisionProvider
         var model = options.Model ?? _defaultModel;
 
         _logger.LogDebug(
-            "开始视觉聊天，模型: {Model}，消息数: {MessageCount}",
+            "Starting vision chat, model: {Model}, message count: {MessageCount}",
             model,
             messages.Count
         );
 
         var requestMessages = new List<object>();
 
-        // 添加系统消息
+        // Add system message
         if (!string.IsNullOrEmpty(options.SystemPrompt))
         {
             requestMessages.Add(new { role = "system", content = options.SystemPrompt });
         }
 
-        // 转换多模态消息
+        // Convert multimodal messages
         foreach (var message in messages)
         {
             var content = ConvertContent(message.Content, options.Detail);
@@ -148,11 +148,11 @@ public sealed class OpenAIVisionProvider : IVisionProvider
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(
-                    "OpenAI API 返回错误: {StatusCode} - {Response}",
+                    "OpenAI API returned error: {StatusCode} - {Response}",
                     response.StatusCode,
                     responseJson
                 );
-                return VisionChatResponse.Failed($"API 错误: {response.StatusCode}");
+                return VisionChatResponse.Failed($"API error: {response.StatusCode}");
             }
 
             using var doc = JsonDocument.Parse(responseJson);
@@ -184,7 +184,7 @@ public sealed class OpenAIVisionProvider : IVisionProvider
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "视觉聊天请求失败");
+            _logger.LogError(ex, "Vision chat request failed");
             return VisionChatResponse.Failed(ex.Message);
         }
     }
@@ -234,7 +234,7 @@ public sealed class OpenAIVisionProvider : IVisionProvider
             var error = await response
                 .Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
-            throw new InvalidOperationException($"API 错误: {response.StatusCode} - {error}");
+            throw new InvalidOperationException($"API error: {response.StatusCode} - {error}");
         }
 
         using var stream = await response

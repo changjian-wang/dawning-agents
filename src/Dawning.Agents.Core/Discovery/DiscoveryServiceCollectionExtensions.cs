@@ -9,7 +9,7 @@ namespace Dawning.Agents.Core.Discovery;
 public static class DiscoveryServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加服务发现 (自动根据环境选择实现)
+    /// Adds service discovery (automatically selects implementation based on environment).
     /// </summary>
     public static IServiceCollection AddServiceDiscovery(
         this IServiceCollection services,
@@ -33,7 +33,7 @@ public static class DiscoveryServiceCollectionExtensions
             services.AddHttpClient<IServiceRegistry, KubernetesServiceRegistry>(client =>
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-                // 在 Pod 内使用 ServiceAccount Token
+                // Use the ServiceAccount token when running inside a Pod
                 var token = Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_TOKEN");
                 if (!string.IsNullOrEmpty(token))
                 {
@@ -50,7 +50,7 @@ public static class DiscoveryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加内存服务注册表 (开发/测试)
+    /// Adds the in-memory service registry (development/testing).
     /// </summary>
     public static IServiceCollection AddInMemoryServiceRegistry(this IServiceCollection services)
     {
@@ -59,7 +59,7 @@ public static class DiscoveryServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Kubernetes 服务发现
+    /// Adds Kubernetes service discovery.
     /// </summary>
     public static IServiceCollection AddKubernetesServiceDiscovery(
         this IServiceCollection services,
@@ -80,7 +80,7 @@ public static class DiscoveryServiceCollectionExtensions
 
     private static bool IsRunningInKubernetes()
     {
-        // 检测是否在 Kubernetes Pod 内运行
+        // Detect whether running inside a Kubernetes Pod
         return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST"));
     }
 }

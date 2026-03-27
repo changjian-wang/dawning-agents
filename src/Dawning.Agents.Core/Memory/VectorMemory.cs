@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 向量记忆 - 使用向量检索增强上下文相关性
+/// Vector memory that uses vector retrieval to enhance context relevance.
 /// </summary>
 /// <remarks>
-/// <para>将所有消息嵌入为向量并存储在向量数据库中</para>
-/// <para>获取上下文时，基于最近对话检索相关历史消息</para>
-/// <para>实现 Retrieve 策略，解决长程任务中的上下文丢失问题</para>
-/// <para>线程安全</para>
+/// <para>Embeds all messages as vectors and stores them in a vector database.</para>
+/// <para>Retrieves relevant historical messages based on recent conversation when building context.</para>
+/// <para>Implements a retrieval strategy to prevent context loss in long-running tasks.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public class VectorMemory : IConversationMemory
 {
@@ -29,7 +29,7 @@ public class VectorMemory : IConversationMemory
     private readonly string _sessionId;
 
     /// <summary>
-    /// 获取当前消息数量（最近窗口 + 向量存储）
+    /// Gets the current message count (recent window + vector store).
     /// </summary>
     public int MessageCount
     {
@@ -43,7 +43,7 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取最近消息数量
+    /// Gets the number of recent messages.
     /// </summary>
     public int RecentMessageCount
     {
@@ -57,26 +57,26 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取向量存储中的消息数量
+    /// Gets the number of messages in the vector store.
     /// </summary>
     public int VectorStoreCount => _vectorStore.Count;
 
     /// <summary>
-    /// 会话 ID
+    /// Gets the session identifier.
     /// </summary>
     public string SessionId => _sessionId;
 
     /// <summary>
-    /// 初始化向量记忆
+    /// Initializes a new instance of the <see cref="VectorMemory"/> class.
     /// </summary>
-    /// <param name="vectorStore">向量存储</param>
-    /// <param name="embeddingProvider">嵌入提供者</param>
-    /// <param name="tokenCounter">Token 计数器</param>
-    /// <param name="recentWindowSize">保留的最近消息数（默认 6）</param>
-    /// <param name="retrieveTopK">检索的相关消息数（默认 5）</param>
-    /// <param name="minRelevanceScore">最小相关性分数（默认 0.5）</param>
-    /// <param name="sessionId">会话 ID（可选，用于隔离不同会话）</param>
-    /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="vectorStore">The vector store.</param>
+    /// <param name="embeddingProvider">The embedding provider.</param>
+    /// <param name="tokenCounter">The token counter.</param>
+    /// <param name="recentWindowSize">The number of recent messages to retain. Defaults to 6.</param>
+    /// <param name="retrieveTopK">The number of relevant messages to retrieve. Defaults to 5.</param>
+    /// <param name="minRelevanceScore">The minimum relevance score threshold. Defaults to 0.5.</param>
+    /// <param name="sessionId">An optional session identifier used to isolate different sessions.</param>
+    /// <param name="logger">An optional logger instance.</param>
     public VectorMemory(
         IVectorStore vectorStore,
         IEmbeddingProvider embeddingProvider,
@@ -95,23 +95,23 @@ public class VectorMemory : IConversationMemory
         _recentWindowSize =
             recentWindowSize > 0
                 ? recentWindowSize
-                : throw new ArgumentException("窗口大小必须为正数", nameof(recentWindowSize));
+                : throw new ArgumentException("Window size must be a positive number.", nameof(recentWindowSize));
         _retrieveTopK =
             retrieveTopK > 0
                 ? retrieveTopK
-                : throw new ArgumentException("检索数量必须为正数", nameof(retrieveTopK));
+                : throw new ArgumentException("Retrieve count must be a positive number.", nameof(retrieveTopK));
         _minRelevanceScore =
             minRelevanceScore >= 0 && minRelevanceScore <= 1
                 ? minRelevanceScore
                 : throw new ArgumentException(
-                    "相关性分数必须在 0-1 之间",
+                    "Relevance score must be between 0 and 1.",
                     nameof(minRelevanceScore)
                 );
         _sessionId = sessionId ?? Guid.NewGuid().ToString();
         _logger = logger ?? NullLogger<VectorMemory>.Instance;
 
         _logger.LogDebug(
-            "VectorMemory 初始化，会话: {SessionId}，窗口: {WindowSize}，检索数: {TopK}",
+            "VectorMemory initialized, Session: {SessionId}, Window: {WindowSize}, TopK: {TopK}",
             _sessionId,
             _recentWindowSize,
             _retrieveTopK
@@ -119,7 +119,7 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 添加消息，超过窗口大小时将旧消息存入向量数据库
+    /// Adds a message. Archives older messages to the vector store when the window size is exceeded.
     /// </summary>
     public async Task AddMessageAsync(
         ConversationMessage message,
@@ -131,7 +131,7 @@ public class VectorMemory : IConversationMemory
 
         lock (_lock)
         {
-            // 计算 token 数量
+            // Calculate token count
             if (message.TokenCount == null)
             {
                 var tokenCount = _tokenCounter.CountTokens(message.Content);
@@ -144,7 +144,7 @@ public class VectorMemory : IConversationMemory
 
             _recentMessages.Add(messageWithTokens);
 
-            // 检查是否需要归档旧消息
+            // Check if archiving of older messages is needed
             if (_recentMessages.Count > _recentWindowSize)
             {
                 messageToArchive = _recentMessages[0];
@@ -152,7 +152,7 @@ public class VectorMemory : IConversationMemory
             }
         }
 
-        // 在锁外进行向量存储操作
+        // Perform vector store operations outside the lock
         if (messageToArchive != null)
         {
             await ArchiveMessageAsync(messageToArchive, cancellationToken).ConfigureAwait(false);
@@ -160,7 +160,7 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 将消息归档到向量存储
+    /// Archives a message to the vector store.
     /// </summary>
     private async Task ArchiveMessageAsync(
         ConversationMessage message,
@@ -169,12 +169,12 @@ public class VectorMemory : IConversationMemory
     {
         try
         {
-            // 生成嵌入向量
+            // Generate the embedding vector
             var embedding = await _embeddingProvider
                 .EmbedAsync(message.Content, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 创建文档块
+            // Create the document chunk
             var chunk = new DocumentChunk
             {
                 Id = message.Id,
@@ -193,16 +193,16 @@ public class VectorMemory : IConversationMemory
             await _vectorStore.AddAsync(chunk, cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug(
-                "消息已归档到向量存储: {MessageId}, 角色: {Role}",
+                "Message archived to vector store: {MessageId}, Role: {Role}",
                 message.Id,
                 message.Role
             );
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "归档消息失败，消息将保留在最近消息中: {MessageId}", message.Id);
+            _logger.LogWarning(ex, "Failed to archive message; message will be kept in recent messages: {MessageId}", message.Id);
 
-            // 归档失败时将消息放回最近消息列表末尾，防止数据丢失
+            // On archive failure, return the message to the recent messages list to prevent data loss
             lock (_lock)
             {
                 _recentMessages.Add(message);
@@ -211,7 +211,7 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取所有最近消息
+    /// Gets all recent messages.
     /// </summary>
     public Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
@@ -224,12 +224,12 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 获取上下文：相关历史 + 最近消息
+    /// Gets the context: relevant history + recent messages.
     /// </summary>
     /// <remarks>
-    /// 1. 基于最近消息构建查询
-    /// 2. 从向量存储检索相关历史
-    /// 3. 合并：相关历史（按时间排序）+ 最近消息
+    /// 1. Builds a query from recent messages.
+    /// 2. Retrieves relevant history from the vector store.
+    /// 3. Merges relevant history (sorted by timestamp) with recent messages.
     /// </remarks>
     public async Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
@@ -242,24 +242,24 @@ public class VectorMemory : IConversationMemory
             recentMessages = _recentMessages.ToList();
         }
 
-        // 如果没有历史，直接返回最近消息
+        // If no history exists, return recent messages directly
         if (_vectorStore.Count == 0 || recentMessages.Count == 0)
         {
             return TrimAndConvertMessages(recentMessages, maxTokens);
         }
 
-        // 基于最近消息构建查询
+        // Build query from recent messages
         var query = BuildQueryFromRecentMessages(recentMessages);
 
-        // 检索相关历史
+        // Retrieve relevant history
         var relevantHistory = await RetrieveRelevantHistoryAsync(query, cancellationToken)
             .ConfigureAwait(false);
 
-        // 合并上下文
+        // Merge context
         var context = MergeContext(relevantHistory, recentMessages, maxTokens);
 
         _logger.LogDebug(
-            "构建上下文: 检索 {RetrievedCount} 条相关历史, 最近 {RecentCount} 条消息",
+            "Context built: retrieved {RetrievedCount} relevant history items, {RecentCount} recent messages",
             relevantHistory.Count,
             recentMessages.Count
         );
@@ -268,19 +268,19 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 从最近消息构建查询文本
+    /// Builds query text from recent messages.
     /// </summary>
     private static string BuildQueryFromRecentMessages(
         IReadOnlyList<ConversationMessage> recentMessages
     )
     {
-        // 使用最近的用户消息作为查询
+        // Use recent user messages as the query
         var userMessages = recentMessages.Where(m => m.Role == "user").TakeLast(3);
         return string.Join(" ", userMessages.Select(m => m.Content));
     }
 
     /// <summary>
-    /// 从向量存储检索相关历史
+    /// Retrieves relevant history from the vector store.
     /// </summary>
     private async Task<List<ConversationMessage>> RetrieveRelevantHistoryAsync(
         string query,
@@ -294,17 +294,17 @@ public class VectorMemory : IConversationMemory
 
         try
         {
-            // 生成查询嵌入
+            // Generate query embedding
             var queryEmbedding = await _embeddingProvider
                 .EmbedAsync(query, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 搜索相关文档
+            // Search for relevant documents
             var results = await _vectorStore
                 .SearchAsync(queryEmbedding, _retrieveTopK, _minRelevanceScore, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 转换为 ConversationMessage 并按时间排序
+            // Convert to ConversationMessage and sort by timestamp
             var relevantMessages = results
                 .Select(r => new ConversationMessage
                 {
@@ -326,13 +326,13 @@ public class VectorMemory : IConversationMemory
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "检索相关历史失败");
+            _logger.LogWarning(ex, "Failed to retrieve relevant history");
             return [];
         }
     }
 
     /// <summary>
-    /// 合并相关历史和最近消息
+    /// Merges relevant history and recent messages.
     /// </summary>
     private IReadOnlyList<ChatMessage> MergeContext(
         List<ConversationMessage> relevantHistory,
@@ -342,16 +342,16 @@ public class VectorMemory : IConversationMemory
     {
         var allMessages = new List<ConversationMessage>();
 
-        // 添加相关历史（如果有）
+        // Add relevant history if available
         if (relevantHistory.Count > 0)
         {
-            // 添加一个系统消息标记历史上下文
+            // Add a system message marking the historical context
             allMessages.Add(
                 new ConversationMessage
                 {
                     Role = "system",
-                    Content = "[以下是与当前对话相关的历史上下文]",
-                    TokenCount = _tokenCounter.CountTokens("[以下是与当前对话相关的历史上下文]"),
+                    Content = "[The following is historical context relevant to the current conversation]",
+                    TokenCount = _tokenCounter.CountTokens("[The following is historical context relevant to the current conversation]"),
                 }
             );
 
@@ -361,20 +361,20 @@ public class VectorMemory : IConversationMemory
                 new ConversationMessage
                 {
                     Role = "system",
-                    Content = "[历史上下文结束，以下是当前对话]",
-                    TokenCount = _tokenCounter.CountTokens("[历史上下文结束，以下是当前对话]"),
+                    Content = "[End of historical context; the following is the current conversation]",
+                    TokenCount = _tokenCounter.CountTokens("[End of historical context; the following is the current conversation]"),
                 }
             );
         }
 
-        // 添加最近消息
+        // Add recent messages
         allMessages.AddRange(recentMessages);
 
         return TrimAndConvertMessages(allMessages, maxTokens);
     }
 
     /// <summary>
-    /// 裁剪并转换消息
+    /// Trims and converts messages.
     /// </summary>
     private IReadOnlyList<ChatMessage> TrimAndConvertMessages(
         IReadOnlyList<ConversationMessage> messages,
@@ -389,7 +389,7 @@ public class VectorMemory : IConversationMemory
         var result = new List<ChatMessage>();
         var tokenCount = 0;
 
-        // 从最近的消息开始，保留尽可能多的消息
+        // Start from the most recent messages and retain as many as possible
         for (int i = messages.Count - 1; i >= 0; i--)
         {
             var msgTokens =
@@ -407,7 +407,7 @@ public class VectorMemory : IConversationMemory
     }
 
     /// <summary>
-    /// 清空所有消息和向量存储
+    /// Clears all messages and the vector store.
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
@@ -418,21 +418,21 @@ public class VectorMemory : IConversationMemory
 
         try
         {
-            // 只清除当前会话的数据
+            // Clear only the current session's data
             await _vectorStore
                 .DeleteByDocumentIdAsync(_sessionId, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "清除向量存储失败");
+            _logger.LogWarning(ex, "Failed to clear vector store");
         }
 
-        _logger.LogDebug("VectorMemory 已清空，会话: {SessionId}", _sessionId);
+        _logger.LogDebug("VectorMemory cleared, Session: {SessionId}", _sessionId);
     }
 
     /// <summary>
-    /// 获取当前 token 数量（仅计算最近消息）
+    /// Gets the current token count (recent messages only).
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {

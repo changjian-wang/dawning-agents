@@ -6,18 +6,18 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Dawning.Agents.Core.Telemetry;
 
 /// <summary>
-/// Token 追踪相关的 DI 扩展方法
+/// Token tracking DI extension methods.
 /// </summary>
 public static class TokenTrackingServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Token 使用追踪服务
+    /// Adds token usage tracking services.
     /// </summary>
     /// <remarks>
-    /// 注册 ITokenUsageTracker 单例服务。
-    /// 使用 InMemoryTokenUsageTracker 作为默认实现。
+    /// Registers <see cref="ITokenUsageTracker"/> as a singleton service.
+    /// Uses <see cref="InMemoryTokenUsageTracker"/> as the default implementation.
     ///
-    /// 使用示例:
+    /// Usage example:
     /// <code>
     /// services.AddTokenTracking();
     /// </code>
@@ -29,9 +29,9 @@ public static class TokenTrackingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Token 使用追踪服务（使用自定义实现）
+    /// Adds token usage tracking services with a custom implementation.
     /// </summary>
-    /// <typeparam name="TTracker">追踪器实现类型</typeparam>
+    /// <typeparam name="TTracker">The tracker implementation type.</typeparam>
     public static IServiceCollection AddTokenTracking<TTracker>(this IServiceCollection services)
         where TTracker : class, ITokenUsageTracker
     {
@@ -40,30 +40,30 @@ public static class TokenTrackingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 为 LLM Provider 添加 Token 追踪装饰器
+    /// Adds a token tracking decorator for the LLM provider.
     /// </summary>
     /// <remarks>
-    /// 自动包装已注册的 ILLMProvider，添加 Token 追踪功能。
-    /// 必须先注册 ILLMProvider 和 ITokenUsageTracker。
+    /// Automatically wraps the registered <see cref="ILLMProvider"/> to add token tracking.
+    /// Requires <see cref="ILLMProvider"/> and <see cref="ITokenUsageTracker"/> to be registered first.
     ///
-    /// 使用示例:
+    /// Usage example:
     /// <code>
     /// services.AddLLMProvider(configuration);
     /// services.AddTokenTracking();
     /// services.AddLLMProviderWithTracking();
     /// </code>
     /// </remarks>
-    /// <param name="services">服务集合</param>
-    /// <param name="defaultSource">默认来源标识</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="defaultSource">The default source identifier.</param>
     public static IServiceCollection AddLLMProviderWithTracking(
         this IServiceCollection services,
         string defaultSource = "Default"
     )
     {
-        // 确保 Token 追踪服务已注册
+        // Ensure token tracking service is registered
         services.AddTokenTracking();
 
-        // 装饰现有的 ILLMProvider
+        // Decorate the existing ILLMProvider
         services.Decorate<ILLMProvider>(
             (inner, sp) =>
             {
@@ -77,12 +77,12 @@ public static class TokenTrackingServiceCollectionExtensions
 }
 
 /// <summary>
-/// DI 装饰器扩展
+/// DI decorator extensions.
 /// </summary>
 internal static class ServiceCollectionDecoratorExtensions
 {
     /// <summary>
-    /// 装饰已注册的服务
+    /// Decorates an already-registered service.
     /// </summary>
     public static IServiceCollection Decorate<TService>(
         this IServiceCollection services,
@@ -100,20 +100,20 @@ internal static class ServiceCollectionDecoratorExtensions
             );
         }
 
-        // 创建一个新的服务描述符，包装原有的服务
+        // Create a new service descriptor that wraps the original service
         var decoratedDescriptor = ServiceDescriptor.Describe(
             typeof(TService),
             sp =>
             {
-                // 创建原始服务实例
+                // Create the original service instance
                 var inner = CreateInstance<TService>(sp, descriptor);
-                // 应用装饰器
+                // Apply the decorator
                 return decorator(inner, sp);
             },
             descriptor.Lifetime
         );
 
-        // 移除原有的描述符并添加新的
+        // Remove the original descriptor and add the new one
         services.Remove(descriptor);
         services.Add(decoratedDescriptor);
 

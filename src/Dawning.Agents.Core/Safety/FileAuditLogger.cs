@@ -10,12 +10,12 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 基于文件的审计日志记录器 — JSON Lines 格式，支持日志轮转
+/// File-based audit logger using JSON Lines format with log rotation support.
 /// </summary>
 /// <remarks>
-/// <para>每条审计记录以 JSON Lines（.jsonl）格式追加写入文件</para>
-/// <para>支持按大小自动轮转，保留指定数量的历史文件</para>
-/// <para>适用于生产环境的持久化审计需求</para>
+/// <para>Each audit record is appended in JSON Lines (.jsonl) format.</para>
+/// <para>Supports automatic rotation by file size, retaining a specified number of archive files.</para>
+/// <para>Suitable for production environments requiring persistent audit logging.</para>
 /// </remarks>
 public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
 {
@@ -30,7 +30,7 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 初始化文件审计日志记录器
+    /// Initializes a new instance of the file audit logger.
     /// </summary>
     public FileAuditLogger(
         IOptions<FileAuditOptions> fileOptions,
@@ -95,7 +95,7 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogError(ex, "写入审计日志文件失败: {Path}", _currentFilePath);
+            _logger.LogError(ex, "Failed to write audit log file: {Path}", _currentFilePath);
             throw;
         }
         finally
@@ -114,7 +114,7 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
 
         var results = new List<AuditEntry>();
 
-        // 获取所有审计日志文件（按时间倒序）
+        // Get all audit log files (ordered by time descending)
         var files = Directory
             .GetFiles(_options.Directory, $"{_options.FilePrefix}*.jsonl")
             .OrderByDescending(f => f);
@@ -178,7 +178,7 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
             return;
         }
 
-        // 关闭当前文件
+        // Close current file
         if (_writer is not null)
         {
             await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -186,19 +186,19 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
             _writer = null;
         }
 
-        // 轮转：重命名为带时间戳的归档文件
+        // Rotate: rename to timestamped archive file
         var archiveName = Path.Combine(
             _options.Directory,
             $"{_options.FilePrefix}{DateTime.UtcNow:yyyyMMdd_HHmmss_fff}.jsonl"
         );
         File.Move(_currentFilePath, archiveName, overwrite: true);
 
-        _logger.LogInformation("审计日志轮转: {Old} -> {New}", _currentFilePath, archiveName);
+        _logger.LogInformation("Audit log rotated: {Old} -> {New}", _currentFilePath, archiveName);
 
-        // 清理超出保留数的旧文件
+        // Clean up files exceeding the retention count
         CleanupOldFiles();
 
-        // 重置
+        // Reset
         _currentFilePath = GetCurrentFilePath();
         _currentFileSize = 0;
     }
@@ -216,11 +216,11 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
             try
             {
                 File.Delete(file);
-                _logger.LogDebug("删除过期审计日志: {File}", file);
+                _logger.LogDebug("Deleted expired audit log: {File}", file);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "删除过期审计日志失败: {File}", file);
+                _logger.LogWarning(ex, "Failed to delete expired audit log: {File}", file);
             }
         }
     }
@@ -258,7 +258,7 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
             {
                 _logger.LogWarning(
                     ex,
-                    "解析审计日志行失败: {Line}",
+                    "Failed to parse audit log line: {Line}",
                     line[..Math.Min(100, line.Length)]
                 );
             }
@@ -329,32 +329,32 @@ public sealed class FileAuditLogger : IAuditLogger, IAsyncDisposable
 }
 
 /// <summary>
-/// 文件审计日志配置
+/// File audit log configuration options.
 /// </summary>
 public sealed class FileAuditOptions : IValidatableOptions
 {
     /// <summary>
-    /// 配置节名称
+    /// The configuration section name.
     /// </summary>
     public const string SectionName = "Audit:File";
 
     /// <summary>
-    /// 日志文件目录
+    /// Gets or sets the audit log file directory.
     /// </summary>
     public string Directory { get; set; } = "logs/audit";
 
     /// <summary>
-    /// 文件名前缀
+    /// Gets or sets the file name prefix.
     /// </summary>
     public string FilePrefix { get; set; } = "audit_";
 
     /// <summary>
-    /// 单文件最大大小（字节），默认 50MB
+    /// Gets or sets the maximum file size in bytes. Defaults to 50 MB.
     /// </summary>
     public long MaxFileSizeBytes { get; set; } = 50 * 1024 * 1024;
 
     /// <summary>
-    /// 保留的归档文件数量
+    /// Gets or sets the number of archived files to retain.
     /// </summary>
     public int MaxRetainedFiles { get; set; } = 30;
 
@@ -363,22 +363,22 @@ public sealed class FileAuditOptions : IValidatableOptions
     {
         if (string.IsNullOrWhiteSpace(Directory))
         {
-            throw new InvalidOperationException("审计日志目录不能为空");
+            throw new InvalidOperationException("Audit log directory must not be empty");
         }
 
         if (string.IsNullOrWhiteSpace(FilePrefix))
         {
-            throw new InvalidOperationException("文件前缀不能为空");
+            throw new InvalidOperationException("File prefix must not be empty");
         }
 
         if (MaxFileSizeBytes < 1024)
         {
-            throw new InvalidOperationException("单文件最大大小不能小于 1KB");
+            throw new InvalidOperationException("Maximum file size must not be less than 1 KB");
         }
 
         if (MaxRetainedFiles < 1)
         {
-            throw new InvalidOperationException("保留文件数量至少为 1");
+            throw new InvalidOperationException("Retained file count must be at least 1");
         }
     }
 }

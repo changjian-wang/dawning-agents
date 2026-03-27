@@ -7,12 +7,12 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Cache;
 
 /// <summary>
-/// 语义缓存实现 - 基于向量相似度的智能缓存
+/// Semantic cache implementation using vector similarity.
 /// </summary>
 /// <remarks>
-/// <para>使用向量存储和 Embedding 实现语义级别的缓存</para>
-/// <para>当新查询与缓存中的查询相似度超过阈值时，直接返回缓存响应</para>
-/// <para>线程安全</para>
+/// <para>Uses vector storage and embeddings to achieve semantic-level caching.</para>
+/// <para>When a new query exceeds the similarity threshold against cached queries, the cached response is returned directly.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public sealed class SemanticCache : ISemanticCache
 {
@@ -23,17 +23,17 @@ public sealed class SemanticCache : ISemanticCache
     private readonly string _namespace;
 
     /// <summary>
-    /// 获取缓存条目数量
+    /// Gets the number of cache entries.
     /// </summary>
     public int Count => _vectorStore.Count;
 
     /// <summary>
-    /// 初始化语义缓存
+    /// Initializes a new instance of the <see cref="SemanticCache"/> class.
     /// </summary>
-    /// <param name="vectorStore">向量存储</param>
-    /// <param name="embeddingProvider">嵌入提供者</param>
-    /// <param name="options">配置选项</param>
-    /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="vectorStore">The vector store.</param>
+    /// <param name="embeddingProvider">The embedding provider.</param>
+    /// <param name="options">The configuration options.</param>
+    /// <param name="logger">The logger (optional).</param>
     public SemanticCache(
         IVectorStore vectorStore,
         IEmbeddingProvider embeddingProvider,
@@ -50,14 +50,14 @@ public sealed class SemanticCache : ISemanticCache
         _namespace = _options.Namespace;
 
         _logger.LogDebug(
-            "SemanticCache 初始化，命名空间: {Namespace}，相似度阈值: {Threshold}",
+            "SemanticCache initialized, namespace: {Namespace}, similarity threshold: {Threshold}",
             _namespace,
             _options.SimilarityThreshold
         );
     }
 
     /// <summary>
-    /// 尝试获取语义相似的缓存响应
+    /// Attempts to retrieve a semantically similar cached response.
     /// </summary>
     public async Task<SemanticCacheResult?> GetAsync(
         string query,
@@ -71,12 +71,12 @@ public sealed class SemanticCache : ISemanticCache
 
         try
         {
-            // 生成查询嵌入
+            // Generate query embedding
             var queryEmbedding = await _embeddingProvider
                 .EmbedAsync(query, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 搜索相似的缓存条目
+            // Search for similar cache entries
             var results = await _vectorStore
                 .SearchAsync(
                     queryEmbedding,
@@ -88,23 +88,23 @@ public sealed class SemanticCache : ISemanticCache
 
             if (results.Count == 0)
             {
-                _logger.LogDebug("缓存未命中: {Query}", TruncateQuery(query));
+                _logger.LogDebug("Cache miss: {Query}", TruncateQuery(query));
                 return null;
             }
 
             var bestMatch = results[0];
             var chunk = bestMatch.Chunk;
 
-            // 检查是否过期
+            // Check if expired
             if (IsExpired(chunk))
             {
-                _logger.LogDebug("缓存已过期: {Id}", chunk.Id);
+                _logger.LogDebug("Cache expired: {Id}", chunk.Id);
                 await _vectorStore.DeleteAsync(chunk.Id, cancellationToken).ConfigureAwait(false);
                 return null;
             }
 
             _logger.LogDebug(
-                "缓存命中: 相似度={Score:F3}, 原始查询={OriginalQuery}",
+                "Cache hit: similarity={Score:F3}, original query={OriginalQuery}",
                 bestMatch.Score,
                 TruncateQuery(chunk.Content)
             );
@@ -127,13 +127,13 @@ public sealed class SemanticCache : ISemanticCache
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "语义缓存查询失败");
+            _logger.LogWarning(ex, "Semantic cache query failed");
             return null;
         }
     }
 
     /// <summary>
-    /// 存储查询和响应到缓存
+    /// Stores a query and response in the cache.
     /// </summary>
     public async Task SetAsync(
         string query,
@@ -153,15 +153,15 @@ public sealed class SemanticCache : ISemanticCache
 
         try
         {
-            // 生成查询嵌入
+            // Generate query embedding
             var queryEmbedding = await _embeddingProvider
                 .EmbedAsync(query, cancellationToken)
                 .ConfigureAwait(false);
 
-            // 检查是否需要淘汰旧条目
+            // Check if old entries need to be evicted
             if (_vectorStore.Count >= _options.MaxEntries)
             {
-                // 尝试清理过期条目
+                // Attempt to clean up expired entries
                 await EvictExpiredEntriesAsync(queryEmbedding.Length, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -169,14 +169,14 @@ public sealed class SemanticCache : ISemanticCache
             if (_vectorStore.Count >= _options.MaxEntries)
             {
                 _logger.LogWarning(
-                    "缓存已满（淘汰后仍满）({Count}/{Max})，跳过添加",
+                    "Cache is full (still full after eviction) ({Count}/{Max}), skipping addition",
                     _vectorStore.Count,
                     _options.MaxEntries
                 );
                 return;
             }
 
-            // 构建元数据
+            // Build metadata
             var chunkMetadata = new Dictionary<string, string>
             {
                 ["response"] = response,
@@ -195,7 +195,7 @@ public sealed class SemanticCache : ISemanticCache
                 }
             }
 
-            // 创建缓存条目
+            // Create cache entry
             var chunk = new DocumentChunk
             {
                 Id = $"cache_{_namespace}_{Guid.NewGuid():N}",
@@ -208,7 +208,7 @@ public sealed class SemanticCache : ISemanticCache
             await _vectorStore.AddAsync(chunk, cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug(
-                "缓存已添加: {Id}, 查询长度={QueryLen}, 响应长度={ResponseLen}",
+                "Cache entry added: {Id}, query length={QueryLen}, response length={ResponseLen}",
                 chunk.Id,
                 query.Length,
                 response.Length
@@ -216,12 +216,12 @@ public sealed class SemanticCache : ISemanticCache
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "语义缓存存储失败");
+            _logger.LogWarning(ex, "Semantic cache storage failed");
         }
     }
 
     /// <summary>
-    /// 清除所有缓存
+    /// Clears all cache entries.
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
@@ -230,16 +230,16 @@ public sealed class SemanticCache : ISemanticCache
             await _vectorStore
                 .DeleteByDocumentIdAsync(_namespace, cancellationToken)
                 .ConfigureAwait(false);
-            _logger.LogInformation("语义缓存已清除，命名空间: {Namespace}", _namespace);
+            _logger.LogInformation("Semantic cache cleared, namespace: {Namespace}", _namespace);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "清除语义缓存失败");
+            _logger.LogWarning(ex, "Failed to clear semantic cache");
         }
     }
 
     /// <summary>
-    /// 检查缓存条目是否过期
+    /// Checks whether a cache entry has expired.
     /// </summary>
     private bool IsExpired(DocumentChunk chunk)
     {
@@ -257,7 +257,7 @@ public sealed class SemanticCache : ISemanticCache
     }
 
     /// <summary>
-    /// 淘汰过期的缓存条目
+    /// Evicts expired cache entries.
     /// </summary>
     private async Task EvictExpiredEntriesAsync(
         int embeddingDimension,
@@ -289,12 +289,12 @@ public sealed class SemanticCache : ISemanticCache
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "淘汰过期缓存条目时出错");
+            _logger.LogWarning(ex, "Error evicting expired cache entries");
         }
     }
 
     /// <summary>
-    /// 截断查询用于日志
+    /// Truncates a query string for logging.
     /// </summary>
     private static string TruncateQuery(string query, int maxLength = 50)
     {

@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Memory;
 
 /// <summary>
-/// 自适应记忆 - 根据 token 使用量自动从 BufferMemory 降级到 SummaryMemory
+/// Adaptive memory that automatically downgrades from <see cref="BufferMemory"/> to <see cref="SummaryMemory"/> based on token usage.
 /// </summary>
 /// <remarks>
-/// <para>初始使用 BufferMemory 存储完整消息</para>
-/// <para>当 token 数量超过阈值时，自动切换到 SummaryMemory</para>
-/// <para>切换时会将已有消息迁移到 SummaryMemory 并触发摘要</para>
-/// <para>线程安全</para>
+/// <para>Initially uses <see cref="BufferMemory"/> to store complete messages.</para>
+/// <para>Automatically switches to <see cref="SummaryMemory"/> when the token count exceeds the threshold.</para>
+/// <para>Migrates existing messages to <see cref="SummaryMemory"/> and triggers summarization on switch.</para>
+/// <para>Thread-safe.</para>
 /// </remarks>
 public sealed class AdaptiveMemory : IConversationMemory, IDisposable
 {
@@ -28,24 +28,24 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 获取当前存储的消息数量
+    /// Gets the current stored message count.
     /// </summary>
     public int MessageCount => Volatile.Read(ref _currentMemory).MessageCount;
 
     /// <summary>
-    /// 是否已降级到 SummaryMemory
+    /// Gets a value indicating whether the memory has downgraded to <see cref="SummaryMemory"/>.
     /// </summary>
     public bool HasDowngraded => Volatile.Read(ref _hasDowngraded);
 
     /// <summary>
-    /// 初始化自适应记忆
+    /// Initializes a new instance of the <see cref="AdaptiveMemory"/> class.
     /// </summary>
-    /// <param name="llm">LLM 提供者，用于生成摘要</param>
-    /// <param name="tokenCounter">Token 计数器</param>
-    /// <param name="downgradeThreshold">触发降级的 token 阈值（默认 4000）</param>
-    /// <param name="maxRecentMessages">降级后保留的最近消息数（默认 6）</param>
-    /// <param name="summaryThreshold">降级后触发摘要的消息数阈值（默认 10）</param>
-    /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="llm">The LLM provider used to generate summaries.</param>
+    /// <param name="tokenCounter">The token counter.</param>
+    /// <param name="downgradeThreshold">The token threshold that triggers downgrade. Defaults to 4000.</param>
+    /// <param name="maxRecentMessages">The number of recent messages to retain after downgrade. Defaults to 6.</param>
+    /// <param name="summaryThreshold">The message count threshold that triggers summarization after downgrade. Defaults to 10.</param>
+    /// <param name="logger">An optional logger instance.</param>
     public AdaptiveMemory(
         ILLMProvider llm,
         ITokenCounter tokenCounter,
@@ -60,32 +60,32 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
         _downgradeThreshold =
             downgradeThreshold > 0
                 ? downgradeThreshold
-                : throw new ArgumentException("降级阈值必须为正数", nameof(downgradeThreshold));
+                : throw new ArgumentException("Downgrade threshold must be a positive number.", nameof(downgradeThreshold));
         _maxRecentMessages =
             maxRecentMessages > 0
                 ? maxRecentMessages
-                : throw new ArgumentException("最大消息数必须为正数", nameof(maxRecentMessages));
+                : throw new ArgumentException("Max recent messages must be a positive number.", nameof(maxRecentMessages));
         _summaryThreshold =
             summaryThreshold > maxRecentMessages
                 ? summaryThreshold
                 : throw new ArgumentException(
-                    "摘要阈值必须大于最大保留消息数",
+                    "Summary threshold must be greater than max recent messages.",
                     nameof(summaryThreshold)
                 );
         _logger = logger ?? NullLogger<AdaptiveMemory>.Instance;
 
-        // 初始使用 BufferMemory
+        // Initially use BufferMemory
         _currentMemory = new BufferMemory(tokenCounter);
         _hasDowngraded = false;
 
         _logger.LogDebug(
-            "AdaptiveMemory 初始化，降级阈值: {Threshold} tokens",
+            "AdaptiveMemory initialized, Downgrade threshold: {Threshold} tokens",
             _downgradeThreshold
         );
     }
 
     /// <summary>
-    /// 添加消息，超过阈值时自动降级到 SummaryMemory
+    /// Adds a message and automatically downgrades to <see cref="SummaryMemory"/> when the threshold is exceeded.
     /// </summary>
     public async Task AddMessageAsync(
         ConversationMessage message,
@@ -100,7 +100,7 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
             var currentMemory = _currentMemory;
             await currentMemory.AddMessageAsync(message, cancellationToken).ConfigureAwait(false);
 
-            // 检查是否需要降级
+            // Check if downgrade is needed
             if (!Volatile.Read(ref _hasDowngraded))
             {
                 var totalTokens = await currentMemory
@@ -121,7 +121,7 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 降级到 SummaryMemory（调用方必须持有 _downgradeLock）
+    /// Downgrades to <see cref="SummaryMemory"/> (caller must hold _downgradeLock).
     /// </summary>
     private async Task DowngradeToSummaryMemoryCoreAsync(CancellationToken cancellationToken)
     {
@@ -135,16 +135,16 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
             .ConfigureAwait(false);
 
         _logger.LogInformation(
-            "触发自动降级：从 BufferMemory 切换到 SummaryMemory（当前 token: {Tokens}）",
+            "Automatic downgrade triggered: switching from BufferMemory to SummaryMemory (current tokens: {Tokens})",
             currentTokens
         );
 
-        // 获取现有消息
+        // Get existing messages
         var existingMessages = await _currentMemory
             .GetMessagesAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        // 创建 SummaryMemory（ILogger<AdaptiveMemory> 无法转换为 ILogger<SummaryMemory>，显式传 null 由 SummaryMemory 回退到 NullLogger）
+        // Create SummaryMemory (ILogger<AdaptiveMemory> cannot be converted to ILogger<SummaryMemory>, so pass null explicitly and let SummaryMemory fall back to NullLogger)
         var summaryMemory = new SummaryMemory(
             _llm,
             _tokenCounter,
@@ -152,24 +152,24 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
             _summaryThreshold
         );
 
-        // 迁移消息到 SummaryMemory（这会自动触发摘要）
+        // Migrate messages to SummaryMemory (this automatically triggers summarization)
         foreach (var msg in existingMessages)
         {
             await summaryMemory.AddMessageAsync(msg, cancellationToken).ConfigureAwait(false);
         }
 
-        // 切换到 SummaryMemory
+        // Switch to SummaryMemory
         Volatile.Write(ref _currentMemory, summaryMemory);
         Volatile.Write(ref _hasDowngraded, true);
 
         _logger.LogInformation(
-            "降级完成，新 token 数: {NewTokens}",
+            "Downgrade complete, new token count: {NewTokens}",
             await summaryMemory.GetTokenCountAsync(cancellationToken).ConfigureAwait(false)
         );
     }
 
     /// <summary>
-    /// 获取所有消息
+    /// Gets all messages.
     /// </summary>
     public Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(
         CancellationToken cancellationToken = default
@@ -180,7 +180,7 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 获取用于 LLM 调用的消息上下文
+    /// Gets the message context for LLM calls.
     /// </summary>
     public Task<IReadOnlyList<ChatMessage>> GetContextAsync(
         int? maxTokens = null,
@@ -192,7 +192,7 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 清空所有消息，重置为 BufferMemory
+    /// Clears all messages and resets to <see cref="BufferMemory"/>.
     /// </summary>
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
@@ -203,22 +203,22 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
             var oldMemory = _currentMemory;
             await oldMemory.ClearAsync(cancellationToken).ConfigureAwait(false);
 
-            // 重置为 BufferMemory
+            // Reset to BufferMemory
             Volatile.Write(ref _currentMemory, new BufferMemory(_tokenCounter));
             Volatile.Write(ref _hasDowngraded, false);
 
-            // 不立即 Dispose 旧 memory，避免与并发读取路径竞态（让 GC 回收）
+            // Do not immediately Dispose old memory to avoid races with concurrent read paths (let GC collect it)
         }
         finally
         {
             _downgradeLock.Release();
         }
 
-        _logger.LogDebug("AdaptiveMemory 已清空并重置为 BufferMemory");
+        _logger.LogDebug("AdaptiveMemory cleared and reset to BufferMemory");
     }
 
     /// <summary>
-    /// 获取当前总 token 数
+    /// Gets the current total token count.
     /// </summary>
     public Task<int> GetTokenCountAsync(CancellationToken cancellationToken = default)
     {
@@ -227,7 +227,7 @@ public sealed class AdaptiveMemory : IConversationMemory, IDisposable
     }
 
     /// <summary>
-    /// 释放信号量和内部记忆资源
+    /// Releases the semaphore and internal memory resources.
     /// </summary>
     public void Dispose()
     {

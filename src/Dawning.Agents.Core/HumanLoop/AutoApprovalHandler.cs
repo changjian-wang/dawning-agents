@@ -6,13 +6,13 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
-/// 基于策略的自动审批处理器
+/// Policy-based auto-approval handler.
 /// </summary>
 /// <remarks>
-/// 适用于：
-/// - 测试环境自动批准
-/// - 无人值守场景
-/// - 低风险操作自动处理
+/// Suitable for:
+/// - Auto-approving in test environments
+/// - Unattended scenarios
+/// - Automatic processing of low-risk operations
 /// </remarks>
 public class AutoApprovalHandler : IHumanInteractionHandler
 {
@@ -20,7 +20,7 @@ public class AutoApprovalHandler : IHumanInteractionHandler
     private readonly HumanLoopOptions _options;
 
     /// <summary>
-    /// 创建自动审批处理器实例
+    /// Initializes a new instance of the <see cref="AutoApprovalHandler"/> class.
     /// </summary>
     public AutoApprovalHandler(
         IOptions<HumanLoopOptions>? options = null,
@@ -40,13 +40,13 @@ public class AutoApprovalHandler : IHumanInteractionHandler
         var shouldApprove = ShouldAutoApprove(request);
 
         _logger.LogDebug(
-            "自动处理确认请求 {RequestId}，风险等级={RiskLevel}，结果={Result}",
+            "Auto-processing confirmation request {RequestId}, RiskLevel={RiskLevel}, Result={Result}",
             request.Id,
             request.RiskLevel,
-            shouldApprove ? "批准" : "拒绝"
+            shouldApprove ? "Approved" : "Rejected"
         );
 
-        // 根据确认类型选择合适的响应
+        // Select appropriate response based on confirmation type
         var selectedOption = request.Type switch
         {
             ConfirmationType.Binary => shouldApprove ? "yes" : "no",
@@ -61,7 +61,7 @@ public class AutoApprovalHandler : IHumanInteractionHandler
             {
                 RequestId = request.Id,
                 SelectedOption = selectedOption,
-                Reason = $"自动处理：风险等级 {request.RiskLevel}",
+                Reason = $"Auto-processed: risk level {request.RiskLevel}",
             }
         );
     }
@@ -74,7 +74,7 @@ public class AutoApprovalHandler : IHumanInteractionHandler
     )
     {
         var result = defaultValue ?? "";
-        _logger.LogDebug("自动返回输入默认值：{Input}", result);
+        _logger.LogDebug("Auto-returning default input: {Input}", result);
         return Task.FromResult(result);
     }
 
@@ -85,7 +85,7 @@ public class AutoApprovalHandler : IHumanInteractionHandler
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogInformation("通知 [{Level}]：{Message}", level, message);
+        _logger.LogInformation("Notification [{Level}]: {Message}", level, message);
         return Task.CompletedTask;
     }
 
@@ -96,32 +96,32 @@ public class AutoApprovalHandler : IHumanInteractionHandler
     )
     {
         _logger.LogWarning(
-            "收到升级请求 {RequestId}，严重性={Severity}，原因={Reason}",
+            "Received escalation request {RequestId}, Severity={Severity}, Reason={Reason}",
             request.Id,
             request.Severity,
             request.Reason
         );
 
-        // 对于升级请求，默认跳过
+        // Skip escalation requests by default
         return Task.FromResult(
             new EscalationResult
             {
                 RequestId = request.Id,
                 Action = EscalationAction.Skipped,
-                Resolution = "自动跳过升级请求",
+                Resolution = "Auto-skipped escalation request",
             }
         );
     }
 
     private bool ShouldAutoApprove(ConfirmationRequest request)
     {
-        // 根据风险等级和配置决定是否自动批准
+        // Determine auto-approval based on risk level and configuration
         return request.RiskLevel switch
         {
-            RiskLevel.Low => true, // 低风险总是批准
+            RiskLevel.Low => true, // Low risk: always approve
             RiskLevel.Medium => !_options.RequireApprovalForMediumRisk,
-            RiskLevel.High => false, // 高风险不自动批准
-            RiskLevel.Critical => false, // 关键风险不自动批准
+            RiskLevel.High => false, // High risk: never auto-approve
+            RiskLevel.Critical => false, // Critical risk: never auto-approve
             _ => false,
         };
     }

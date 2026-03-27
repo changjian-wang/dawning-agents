@@ -3,22 +3,22 @@ namespace Dawning.Agents.MCP.Server;
 using Dawning.Agents.MCP.Protocol;
 
 /// <summary>
-/// MCP 资源提供者接口
+/// Defines a provider for MCP resources.
 /// </summary>
 public interface IMCPResourceProvider
 {
     /// <summary>
-    /// 获取所有可用资源
+    /// Gets all available resources.
     /// </summary>
     IEnumerable<MCPResource> GetResources();
 
     /// <summary>
-    /// 获取资源模板
+    /// Gets resource templates.
     /// </summary>
     IEnumerable<MCPResourceTemplate> GetResourceTemplates() => [];
 
     /// <summary>
-    /// 读取资源内容
+    /// Reads the content of a resource.
     /// </summary>
     Task<ResourceContent?> ReadResourceAsync(
         string uri,
@@ -26,23 +26,23 @@ public interface IMCPResourceProvider
     );
 
     /// <summary>
-    /// 是否支持指定 URI
+    /// Determines whether the specified URI is supported.
     /// </summary>
     bool SupportsUri(string uri);
 }
 
 /// <summary>
-/// MCP 提示词提供者接口
+/// Defines a provider for MCP prompts.
 /// </summary>
 public interface IMCPPromptProvider
 {
     /// <summary>
-    /// 获取所有可用提示词
+    /// Gets all available prompts.
     /// </summary>
     IEnumerable<MCPPrompt> GetPrompts();
 
     /// <summary>
-    /// 获取提示词内容
+    /// Gets the content of a prompt.
     /// </summary>
     Task<GetPromptResult?> GetPromptAsync(
         string name,

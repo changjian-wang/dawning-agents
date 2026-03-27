@@ -9,17 +9,17 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Chroma;
 
 /// <summary>
-/// Chroma 向量存储实现
+/// Chroma vector store implementation.
 /// </summary>
 /// <remarks>
-/// Chroma 是一个轻量级的开源向量数据库，适合开发和测试场景。
+/// Chroma is a lightweight open-source vector database suitable for development and testing scenarios.
 ///
-/// 安装 Chroma（Docker）:
+/// Install Chroma (Docker):
 /// <code>
 /// docker run -p 8000:8000 chromadb/chroma
 /// </code>
 ///
-/// 或使用 Python:
+/// Or using Python:
 /// <code>
 /// pip install chromadb
 /// chroma run --host localhost --port 8000
@@ -40,7 +40,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     public int Count => Volatile.Read(ref _count);
 
     /// <summary>
-    /// 创建 Chroma 向量存储
+    /// Initializes a new instance of the <see cref="ChromaVectorStore"/> class.
     /// </summary>
     public ChromaVectorStore(
         HttpClient httpClient,
@@ -218,7 +218,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
         for (int i = 0; i < ids.Count; i++)
         {
-            // Chroma 返回距离，需要转换为相似度分数
+            // Chroma returns distances; convert to similarity scores
             var distance = i < distances.Count ? distances[i] : 0f;
             var score = ConvertDistanceToScore(distance);
 
@@ -394,7 +394,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     {
         await EnsureCollectionAsync(cancellationToken).ConfigureAwait(false);
 
-        // 先查询匹配的 ID 数量（Chroma 删除 API 不返回已删除数量）
+        // Query matching ID count first (Chroma delete API does not return deleted count)
         var countRequest = new
         {
             where = new Dictionary<string, object> { ["document_id"] = documentId },
@@ -469,7 +469,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
                 return;
             }
 
-            // 删除并重新创建集合
+            // Delete and recreate the collection
             using var deleteResponse = await _httpClient
                 .DeleteAsync($"/api/v1/collections/{_collectionId}", cancellationToken)
                 .ConfigureAwait(false);
@@ -501,7 +501,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 确保集合已创建
+    /// Ensures the collection has been created.
     /// </summary>
     private async Task EnsureCollectionAsync(CancellationToken cancellationToken)
     {
@@ -528,7 +528,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
 
     private async Task EnsureCollectionCoreAsync(CancellationToken cancellationToken)
     {
-        // 尝试获取现有集合
+        // Try to get the existing collection
         using var getResponse = await _httpClient
             .GetAsync($"/api/v1/collections/{_options.CollectionName}", cancellationToken)
             .ConfigureAwait(false);
@@ -551,7 +551,7 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
             }
         }
 
-        // 创建新集合
+        // Create a new collection
         var createRequest = new
         {
             name = _options.CollectionName,
@@ -591,17 +591,17 @@ public sealed class ChromaVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 将距离转换为相似度分数
+    /// Converts a distance value to a similarity score.
     /// </summary>
     private float ConvertDistanceToScore(float distance)
     {
         return _options.DistanceMetric switch
         {
-            // 余弦距离：score = 1 - distance (distance 范围 0-2)
+            // Cosine distance: score = 1 - distance (distance range 0-2)
             ChromaDistanceMetric.Cosine => 1f - (distance / 2f),
-            // L2 距离：score = 1 / (1 + distance)
+            // L2 distance: score = 1 / (1 + distance)
             ChromaDistanceMetric.L2 => 1f / (1f + distance),
-            // 内积：直接返回（已经是相似度）
+            // Inner product: return directly (already a similarity score)
             ChromaDistanceMetric.InnerProduct => distance,
             _ => 1f - distance,
         };

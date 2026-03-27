@@ -7,17 +7,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// 简单嵌入提供者 - 基于字符特征的本地向量化
+/// Simple embedding provider using character-based local vectorization.
 /// </summary>
 /// <remarks>
-/// <para>这是一个简化的本地实现，用于测试和演示目的。</para>
-/// <para>生产环境应使用 OpenAI/Azure 的 Embedding API。</para>
+/// <para>This is a simplified local implementation for testing and demonstration purposes.</para>
+/// <para>Production environments should use OpenAI/Azure embedding APIs.</para>
 /// <para>
-/// 实现原理：
-/// 1. 将文本转为小写并分词
-/// 2. 计算每个词的哈希值
-/// 3. 将哈希值映射到向量空间
-/// 4. 归一化向量
+/// Implementation details:
+/// <list type="number">
+///   <item>Convert text to lowercase and tokenize.</item>
+///   <item>Compute a hash for each token.</item>
+///   <item>Map hash values into the vector space.</item>
+///   <item>Normalize the vector.</item>
+/// </list>
 /// </para>
 /// </remarks>
 public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
@@ -26,10 +28,10 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
     private readonly ILogger<SimpleEmbeddingProvider> _logger;
 
     /// <summary>
-    /// 创建简单嵌入提供者
+    /// Initializes a new instance of the <see cref="SimpleEmbeddingProvider"/> class.
     /// </summary>
-    /// <param name="dimensions">向量维度（默认 384）</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="dimensions">The vector dimensions (default: 384).</param>
+    /// <param name="logger">The logger instance.</param>
     public SimpleEmbeddingProvider(
         int dimensions = 384,
         ILogger<SimpleEmbeddingProvider>? logger = null
@@ -69,13 +71,13 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 计算文本的嵌入向量
+    /// Computes the embedding vector for the given text.
     /// </summary>
     private float[] ComputeEmbedding(string text)
     {
         var vector = new float[_dimensions];
 
-        // 预处理文本
+        // Preprocess text
         var normalizedText = text.ToLowerInvariant();
         var tokens = Tokenize(normalizedText);
 
@@ -84,12 +86,12 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
             return vector;
         }
 
-        // 为每个词计算特征并累加到向量
+        // Compute features for each token and accumulate into the vector
         foreach (var token in tokens)
         {
             var tokenHash = ComputeHash(token);
 
-            // 使用哈希值的不同部分映射到向量的不同位置
+            // Map different portions of the hash to different vector positions
             for (var i = 0; i < Math.Min(tokenHash.Length * 8, _dimensions); i++)
             {
                 var byteIndex = i / 8;
@@ -102,7 +104,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
                 }
             }
 
-            // 添加 n-gram 特征
+            // Add n-gram features
             for (var n = 2; n <= Math.Min(3, token.Length); n++)
             {
                 for (var j = 0; j <= token.Length - n; j++)
@@ -115,7 +117,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
             }
         }
 
-        // 归一化向量
+        // Normalize vector
         Normalize(vector);
 
         _logger.LogDebug(
@@ -128,7 +130,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 分词
+    /// Tokenizes the input text.
     /// </summary>
     private static List<string> Tokenize(string text)
     {
@@ -137,7 +139,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
 
         foreach (var c in text)
         {
-            if (char.IsLetterOrDigit(c) || c > 127) // 包含中文字符
+            if (char.IsLetterOrDigit(c) || c > 127) // Include CJK characters
             {
                 currentToken.Append(c);
             }
@@ -157,7 +159,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 计算字符串的 SHA256 哈希
+    /// Computes the SHA-256 hash of a string.
     /// </summary>
     private static byte[] ComputeHash(string input)
     {
@@ -165,7 +167,7 @@ public sealed class SimpleEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 归一化向量（L2 范数）
+    /// Normalizes the vector using L2 norm.
     /// </summary>
     private static void Normalize(float[] vector)
     {

@@ -19,16 +19,16 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis;
 
 /// <summary>
-/// Redis 服务注册扩展
+/// Provides extension methods for registering Redis distributed services.
 /// </summary>
 public static class RedisServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Redis 分布式组件（全部）
+    /// Registers all Redis distributed components.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     /// <example>
     /// <code>
     /// services.AddRedisDistributed(configuration);
@@ -53,11 +53,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 连接
+    /// Registers the Redis connection multiplexer.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisConnection(
         this IServiceCollection services,
         IConfiguration configuration
@@ -97,11 +97,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式缓存
+    /// Registers the Redis distributed cache.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisCache(
         this IServiceCollection services,
         IConfiguration configuration
@@ -114,11 +114,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式队列
+    /// Registers the Redis distributed queue.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisQueue(
         this IServiceCollection services,
         IConfiguration configuration
@@ -144,11 +144,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式锁
+    /// Registers the Redis distributed lock.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisLock(
         this IServiceCollection services,
         IConfiguration configuration
@@ -174,11 +174,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式会话记忆
+    /// Registers the Redis distributed session memory.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisMemory(
         this IServiceCollection services,
         IConfiguration configuration
@@ -204,7 +204,7 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式共享状态
+    /// Registers the Redis distributed shared state.
     /// </summary>
     public static IServiceCollection AddRedisSharedState(this IServiceCollection services)
     {
@@ -214,7 +214,7 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 分布式消息总线
+    /// Registers the Redis distributed message bus.
     /// </summary>
     public static IServiceCollection AddRedisMessageBus(this IServiceCollection services)
     {
@@ -224,7 +224,7 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 工具使用追踪器
+    /// Registers the Redis tool usage tracker.
     /// </summary>
     public static IServiceCollection AddRedisToolUsageTracker(this IServiceCollection services)
     {
@@ -234,7 +234,7 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis Token 使用追踪器
+    /// Registers the Redis token usage tracker.
     /// </summary>
     public static IServiceCollection AddRedisTokenUsageTracker(this IServiceCollection services)
     {
@@ -244,11 +244,11 @@ public static class RedisServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Redis 健康检查
+    /// Registers Redis health checks.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="redisConnectionString">Redis 连接字符串</param>
-    /// <returns>服务集合</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="redisConnectionString">The Redis connection string.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRedisHealthChecks(
         this IServiceCollection services,
         string redisConnectionString

@@ -7,11 +7,11 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Lock;
 
 /// <summary>
-/// 基于 Redis 的分布式锁实现
+/// A distributed lock implementation backed by Redis.
 /// </summary>
 /// <remarks>
-/// <para>使用 Redis SET NX EX 命令实现互斥锁</para>
-/// <para>支持自动续期、可重入等特性</para>
+/// <para>Uses the Redis SET NX EX command for mutual exclusion.</para>
+/// <para>Supports auto-renewal, reentrancy, and other features.</para>
 /// </remarks>
 public sealed class RedisDistributedLock : IDistributedLock
 {
@@ -53,7 +53,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     }
 
     /// <summary>
-    /// 初始化 Redis 分布式锁
+    /// Initializes a new instance of the <see cref="RedisDistributedLock"/> class.
     /// </summary>
     public RedisDistributedLock(
         IDatabase database,
@@ -140,7 +140,7 @@ public sealed class RedisDistributedLock : IDistributedLock
 
         StopRenewalTimer();
 
-        // 使用 Lua 脚本确保只释放自己持有的锁
+        // Use Lua script to ensure only the lock owner can release it
         const string script =
             @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
@@ -198,7 +198,7 @@ public sealed class RedisDistributedLock : IDistributedLock
             return false;
         }
 
-        // 使用 Lua 脚本确保只延长自己持有的锁
+        // Use Lua script to ensure only the lock owner can extend it
         const string script =
             @"
             if redis.call('get', KEYS[1]) == ARGV[1] then
@@ -250,7 +250,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     }
 
     /// <summary>
-    /// 启动自动续期定时器
+    /// Starts the auto-renewal timer.
     /// </summary>
     private void StartRenewalTimer()
     {
@@ -305,7 +305,7 @@ public sealed class RedisDistributedLock : IDistributedLock
     }
 
     /// <summary>
-    /// 停止自动续期定时器
+    /// Stops the auto-renewal timer.
     /// </summary>
     private void StopRenewalTimer()
     {
@@ -341,7 +341,7 @@ public sealed class RedisDistributedLock : IDistributedLock
 }
 
 /// <summary>
-/// Redis 分布式锁工厂
+/// A factory for creating Redis distributed locks.
 /// </summary>
 public sealed class RedisDistributedLockFactory : IDistributedLockFactory
 {
@@ -352,7 +352,7 @@ public sealed class RedisDistributedLockFactory : IDistributedLockFactory
     private readonly ILogger<RedisDistributedLockFactory> _logger;
 
     /// <summary>
-    /// 初始化 Redis 分布式锁工厂
+    /// Initializes a new instance of the <see cref="RedisDistributedLockFactory"/> class.
     /// </summary>
     public RedisDistributedLockFactory(
         IConnectionMultiplexer connection,

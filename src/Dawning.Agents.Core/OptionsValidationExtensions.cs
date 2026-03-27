@@ -7,18 +7,18 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core;
 
 /// <summary>
-/// 选项验证服务注册扩展
+/// Options validation service registration extensions.
 /// </summary>
 public static class OptionsValidationExtensions
 {
     /// <summary>
-    /// 注册选项并启用启动时验证（fail-fast）
+    /// Registers options with startup-time validation (fail-fast).
     /// </summary>
-    /// <typeparam name="T">实现 <see cref="IValidatableOptions"/> 的选项类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="configuration">配置</param>
-    /// <param name="sectionName">配置节名称</param>
-    /// <returns>服务集合</returns>
+    /// <typeparam name="T">An options type that implements <see cref="IValidatableOptions"/>.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="sectionName">The configuration section name.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddValidatedOptions<T>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -34,12 +34,12 @@ public static class OptionsValidationExtensions
     }
 
     /// <summary>
-    /// 注册选项并启用启动时验证（带配置委托）
+    /// Registers options with startup-time validation (using a configuration delegate).
     /// </summary>
-    /// <typeparam name="T">实现 <see cref="IValidatableOptions"/> 的选项类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <param name="configure">配置委托</param>
-    /// <returns>服务集合</returns>
+    /// <typeparam name="T">An options type that implements <see cref="IValidatableOptions"/>.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration delegate.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddValidatedOptions<T>(
         this IServiceCollection services,
         Action<T> configure
@@ -55,10 +55,10 @@ public static class OptionsValidationExtensions
 }
 
 /// <summary>
-/// 通用选项验证器 — 桥接 <see cref="IValidatableOptions.Validate"/> 到
-/// <see cref="IValidateOptions{TOptions}"/>
+/// Generic options validator — bridges <see cref="IValidatableOptions.Validate"/> to
+/// <see cref="IValidateOptions{TOptions}"/>.
 /// </summary>
-/// <typeparam name="T">选项类型</typeparam>
+/// <typeparam name="T">The options type.</typeparam>
 public class ValidatableOptionsValidator<T> : IValidateOptions<T>
     where T : class, IValidatableOptions
 {
@@ -76,7 +76,7 @@ public class ValidatableOptionsValidator<T> : IValidateOptions<T>
         }
         catch (Exception ex)
         {
-            return ValidateOptionsResult.Fail($"{typeof(T).Name} 验证失败: {ex.Message}");
+            return ValidateOptionsResult.Fail($"{typeof(T).Name} validation failed: {ex.Message}");
         }
     }
 }

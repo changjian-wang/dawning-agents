@@ -4,30 +4,30 @@ using System.Text.RegularExpressions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 命令安全分析器 — 检测危险命令、敏感路径访问、权限升级
+/// Command security analyzer — detects dangerous commands, sensitive path access, and privilege escalation.
 /// </summary>
 /// <remarks>
-/// <para>BashTool 在执行命令前调用此分析器进行安全检查</para>
-/// <para>支持可配置的白名单和黑名单</para>
+/// <para>BashTool invokes this analyzer for security checks before executing commands.</para>
+/// <para>Supports configurable allowlists and blocklists.</para>
 /// </remarks>
 public sealed partial class CommandAnalyzer
 {
     private readonly CommandAnalyzerOptions _options;
 
     /// <summary>
-    /// 创建命令分析器
+    /// Creates a command analyzer.
     /// </summary>
-    /// <param name="options">分析器选项（可选）</param>
+    /// <param name="options">Analyzer options (optional).</param>
     public CommandAnalyzer(CommandAnalyzerOptions? options = null)
     {
         _options = options ?? new CommandAnalyzerOptions();
     }
 
     /// <summary>
-    /// 分析命令的安全性
+    /// Analyzes command security.
     /// </summary>
-    /// <param name="command">要分析的命令</param>
-    /// <returns>分析结果</returns>
+    /// <param name="command">The command to analyze.</param>
+    /// <returns>The analysis result.</returns>
     public CommandAnalysisResult Analyze(string command)
     {
         if (string.IsNullOrWhiteSpace(command))
@@ -200,7 +200,7 @@ public sealed partial class CommandAnalyzer
     #region Patterns
 
     /// <summary>
-    /// 破坏性命令模式
+    /// Destructive command patterns.
     /// </summary>
     private static readonly string[] s_destructivePatterns =
     [
@@ -221,7 +221,7 @@ public sealed partial class CommandAnalyzer
     ];
 
     /// <summary>
-    /// 权限升级模式
+    /// Privilege escalation patterns.
     /// </summary>
     private static readonly string[] s_privilegeEscalationPatterns =
     [
@@ -234,7 +234,7 @@ public sealed partial class CommandAnalyzer
     ];
 
     /// <summary>
-    /// 网络工具
+    /// Network tools.
     /// </summary>
     private static readonly string[] s_networkTools =
     [
@@ -270,16 +270,16 @@ public sealed partial class CommandAnalyzer
 }
 
 /// <summary>
-/// 命令分析器配置选项
+/// Command analyzer configuration options.
 /// </summary>
 public class CommandAnalyzerOptions
 {
     /// <summary>
-    /// 白名单命令前缀 — 匹配的命令始终允许执行
+    /// Allowlisted command prefixes — matching commands are always allowed to execute.
     /// </summary>
     /// <remarks>
-    /// 默认包含常用安全命令: echo, ls, pwd, cat, head, tail, wc, grep, find, which,
-    /// git status/log/diff/branch, dotnet --version/--info, date, env
+    /// Defaults include common safe commands: echo, ls, pwd, cat, head, tail, wc, grep, find, which,
+    /// git status/log/diff/branch, dotnet --version/--info, date, env.
     /// </remarks>
     public List<string> WhitelistedPrefixes { get; set; } =
     [
@@ -323,7 +323,7 @@ public class CommandAnalyzerOptions
     ];
 
     /// <summary>
-    /// 敏感路径 — 访问这些路径会产生警告
+    /// Sensitive paths — accessing these paths produces a warning.
     /// </summary>
     public List<string> SensitivePaths { get; set; } =
     [
@@ -341,41 +341,41 @@ public class CommandAnalyzerOptions
 }
 
 /// <summary>
-/// 命令分析结果
+/// Command analysis result.
 /// </summary>
 public record CommandAnalysisResult
 {
     /// <summary>
-    /// 是否允许执行
+    /// Gets a value indicating whether execution is allowed.
     /// </summary>
     public bool IsAllowed { get; init; }
 
     /// <summary>
-    /// 是否有警告（允许但需注意）
+    /// Gets a value indicating whether there is a warning (allowed but requires attention).
     /// </summary>
     public bool HasWarning { get; init; }
 
     /// <summary>
-    /// 描述信息（阻止原因或警告内容）
+    /// Gets the description (block reason or warning content).
     /// </summary>
     public string? Message { get; init; }
 
     /// <summary>
-    /// 创建"允许"结果
+    /// Creates an "allowed" result.
     /// </summary>
     public static CommandAnalysisResult Allowed() => new() { IsAllowed = true };
 
     /// <summary>
-    /// 创建"阻止"结果
+    /// Creates a "blocked" result.
     /// </summary>
-    /// <param name="reason">阻止原因</param>
+    /// <param name="reason">The block reason.</param>
     public static CommandAnalysisResult Blocked(string reason) =>
         new() { IsAllowed = false, Message = reason };
 
     /// <summary>
-    /// 创建"警告"结果（允许但有风险）
+    /// Creates a "warning" result (allowed but risky).
     /// </summary>
-    /// <param name="warning">警告信息</param>
+    /// <param name="warning">The warning message.</param>
     public static CommandAnalysisResult Warning(string warning) =>
         new()
         {

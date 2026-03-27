@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools;
 
 /// <summary>
-/// 默认工具审批处理器 - 基于策略的审批实现
+/// Default tool approval handler — policy-based approval implementation.
 /// </summary>
 public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
 {
@@ -61,10 +61,10 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
     ];
 
     /// <summary>
-    /// 创建默认审批处理器
+    /// Creates the default approval handler.
     /// </summary>
-    /// <param name="strategy">审批策略</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="strategy">The approval strategy.</param>
+    /// <param name="logger">The logger.</param>
     public DefaultToolApprovalHandler(
         ApprovalStrategy strategy = ApprovalStrategy.RiskBased,
         ILogger<DefaultToolApprovalHandler>? logger = null
@@ -77,7 +77,7 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
     }
 
     /// <summary>
-    /// 请求工具执行批准
+    /// Requests approval for tool execution.
     /// </summary>
     public Task<bool> RequestApprovalAsync(
         ITool tool,
@@ -92,12 +92,12 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
             ApprovalStrategy.AlwaysApprove => true,
             ApprovalStrategy.AlwaysDeny => false,
             ApprovalStrategy.RiskBased => ApproveByRisk(tool),
-            ApprovalStrategy.Interactive => false, // 交互式模式默认拒绝，需要 UI 实现
+            ApprovalStrategy.Interactive => false, // Interactive mode defaults to deny; requires UI implementation
             _ => false,
         };
 
         _logger.LogDebug(
-            "工具 {ToolName} 审批结果: {Approved} (策略: {Strategy}, 风险: {RiskLevel})",
+            "Tool {ToolName} approval result: {Approved} (strategy: {Strategy}, risk: {RiskLevel})",
             tool.Name,
             approved,
             _strategy,
@@ -108,7 +108,7 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
     }
 
     /// <summary>
-    /// 请求 URL 访问批准
+    /// Requests approval for URL access.
     /// </summary>
     public Task<bool> RequestUrlApprovalAsync(
         ITool tool,
@@ -119,17 +119,17 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
         ArgumentNullException.ThrowIfNull(tool, nameof(tool));
         ArgumentException.ThrowIfNullOrWhiteSpace(url, nameof(url));
 
-        // 检查是否在自动批准列表中
+        // Check if in auto-approval list
         lock (_lock)
         {
             if (_autoApprovedUrls.Contains(url) || IsAutoApprovedDomain(url))
             {
-                _logger.LogDebug("URL {Url} 在自动批准列表中", url);
+                _logger.LogDebug("URL {Url} is in the auto-approval list", url);
                 return Task.FromResult(true);
             }
         }
 
-        // 根据策略决定
+        // Decide based on strategy
         var approved = _strategy switch
         {
             ApprovalStrategy.AlwaysApprove => true,
@@ -139,12 +139,12 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
             _ => false,
         };
 
-        _logger.LogDebug("URL {Url} 审批结果: {Approved}", url, approved);
+        _logger.LogDebug("URL {Url} approval result: {Approved}", url, approved);
         return Task.FromResult(approved);
     }
 
     /// <summary>
-    /// 请求终端命令执行批准
+    /// Requests approval for terminal command execution.
     /// </summary>
     public Task<bool> RequestCommandApprovalAsync(
         ITool tool,
@@ -155,28 +155,28 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
         ArgumentNullException.ThrowIfNull(tool, nameof(tool));
         ArgumentException.ThrowIfNullOrWhiteSpace(command, nameof(command));
 
-        // 检查是否在自动批准列表中
+        // Check if in auto-approval list
         lock (_lock)
         {
             if (_autoApprovedCommands.Contains(command))
             {
-                _logger.LogDebug("命令 {Command} 在自动批准列表中", command);
+                _logger.LogDebug("Command {Command} is in the auto-approval list", command);
                 return Task.FromResult(true);
             }
         }
 
-        // 检查危险命令
+        // Check for dangerous commands
         if (IsDangerousCommand(command))
         {
             _logger.LogWarning(
-                "检测到危险命令: {CommandName}",
+                "Dangerous command detected: {CommandName}",
                 command.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
                     ?? "unknown"
             );
             return Task.FromResult(false);
         }
 
-        // 根据策略决定
+        // Decide based on strategy
         var approved = _strategy switch
         {
             ApprovalStrategy.AlwaysApprove => true,
@@ -186,12 +186,12 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
             _ => false,
         };
 
-        _logger.LogDebug("命令 {Command} 审批结果: {Approved}", command, approved);
+        _logger.LogDebug("Command {Command} approval result: {Approved}", command, approved);
         return Task.FromResult(approved);
     }
 
     /// <summary>
-    /// 添加自动批准的 URL
+    /// Adds an auto-approved URL.
     /// </summary>
     public void AddAutoApprovedUrl(string url)
     {
@@ -204,7 +204,7 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
     }
 
     /// <summary>
-    /// 添加自动批准的命令
+    /// Adds an auto-approved command.
     /// </summary>
     public void AddAutoApprovedCommand(string command)
     {
@@ -218,7 +218,7 @@ public sealed class DefaultToolApprovalHandler : IToolApprovalHandler
 
     private static bool ApproveByRisk(ITool tool)
     {
-        // Low 风险自动批准，Medium/High 需要确认
+        // Low risk is auto-approved; Medium/High requires confirmation
         return tool.RiskLevel == ToolRiskLevel.Low && !tool.RequiresConfirmation;
     }
 

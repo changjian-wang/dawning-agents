@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Diagnostics;
 
 /// <summary>
-/// 性能分析器实现
+/// Performance profiler implementation.
 /// </summary>
 public sealed class PerformanceProfiler : IPerformanceProfiler
 {
@@ -76,20 +76,20 @@ public sealed class PerformanceProfiler : IPerformanceProfiler
             Metadata = metadata,
         };
 
-        // 添加到追踪队列
+        // Add to trace queue
         _traces.Enqueue(trace);
 
-        // 限制队列大小
+        // Limit queue size
         while (_traces.Count > _maxTraceCount && _traces.TryDequeue(out _)) { }
 
-        // 更新统计信息
+        // Update statistics
         UpdateStatistics(operationName, duration, isSuccess);
 
-        // 慢操作警告
+        // Slow operation warning
         if (duration > _slowOperationThreshold)
         {
             _logger.LogWarning(
-                "慢操作检测: {OperationName} ({Category}) 耗时 {Duration:F2}ms",
+                "Slow operation detected: {OperationName} ({Category}) took {Duration:F2}ms",
                 operationName,
                 category ?? "Unknown",
                 duration.TotalMilliseconds
@@ -195,7 +195,7 @@ public sealed class PerformanceProfiler : IPerformanceProfiler
     }
 
     /// <summary>
-    /// 操作计时作用域
+    /// Operation timing scope.
     /// </summary>
     private sealed class OperationScope : IDisposable
     {
@@ -242,12 +242,12 @@ public sealed class PerformanceProfiler : IPerformanceProfiler
 }
 
 /// <summary>
-/// 性能分析器扩展方法
+/// Performance profiler extension methods.
 /// </summary>
 public static class PerformanceProfilerExtensions
 {
     /// <summary>
-    /// 记录 LLM 调用
+    /// Profiles an LLM call.
     /// </summary>
     public static IDisposable ProfileLLMCall(
         this IPerformanceProfiler profiler,
@@ -260,7 +260,7 @@ public static class PerformanceProfilerExtensions
     }
 
     /// <summary>
-    /// 记录工具执行
+    /// Profiles a tool execution.
     /// </summary>
     public static IDisposable ProfileToolExecution(
         this IPerformanceProfiler profiler,
@@ -272,7 +272,7 @@ public static class PerformanceProfilerExtensions
     }
 
     /// <summary>
-    /// 记录 Agent 执行
+    /// Profiles an agent execution.
     /// </summary>
     public static IDisposable ProfileAgentExecution(
         this IPerformanceProfiler profiler,
@@ -284,7 +284,7 @@ public static class PerformanceProfilerExtensions
     }
 
     /// <summary>
-    /// 记录 RAG 检索
+    /// Profiles a RAG retrieval.
     /// </summary>
     public static IDisposable ProfileRAGRetrieval(
         this IPerformanceProfiler profiler,
@@ -296,7 +296,7 @@ public static class PerformanceProfilerExtensions
     }
 
     /// <summary>
-    /// 获取 LLM 调用统计
+    /// Gets LLM call statistics.
     /// </summary>
     public static IReadOnlyDictionary<string, OperationStatistics> GetLLMStatistics(
         this IPerformanceProfiler profiler
@@ -306,7 +306,7 @@ public static class PerformanceProfilerExtensions
     }
 
     /// <summary>
-    /// 获取工具执行统计
+    /// Gets tool execution statistics.
     /// </summary>
     public static IReadOnlyDictionary<string, OperationStatistics> GetToolStatistics(
         this IPerformanceProfiler profiler

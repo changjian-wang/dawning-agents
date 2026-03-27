@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 工具会话实现 — 管理 session 级别的动态工具，聚合多层级工具解析
+/// Tool session implementation — manages session-level dynamic tools and aggregates multi-level tool resolution.
 /// </summary>
 public sealed class ToolSession : IToolSession
 {
@@ -23,7 +23,7 @@ public sealed class ToolSession : IToolSession
     private volatile bool _disposed;
 
     /// <summary>
-    /// 创建工具会话
+    /// Creates a tool session.
     /// </summary>
     public ToolSession(
         IToolSandbox sandbox,
@@ -198,7 +198,7 @@ public sealed class ToolSession : IToolSession
             return;
         }
 
-        // 会话结束前评估工具演化
+        // Evaluate tool evolution before session ends
         if (_evolutionPolicy != null && _usageTracker != null && _sessionTools.Count > 0)
         {
             await EvaluateToolEvolutionAsync().ConfigureAwait(false);
@@ -208,7 +208,7 @@ public sealed class ToolSession : IToolSession
     }
 
     /// <summary>
-    /// 评估所有 session 工具的演化（提升/淘汰）
+    /// Evaluates evolution (promotion/retirement) of all session tools.
     /// </summary>
     private async Task EvaluateToolEvolutionAsync()
     {
@@ -223,7 +223,7 @@ public sealed class ToolSession : IToolSession
                     continue;
                 }
 
-                // 评估是否应淘汰
+                // Evaluate whether the tool should be retired
                 var shouldRetire = await _evolutionPolicy!
                     .ShouldRetireAsync(name, stats)
                     .ConfigureAwait(false);
@@ -239,7 +239,7 @@ public sealed class ToolSession : IToolSession
                     continue;
                 }
 
-                // 评估是否应提升
+                // Evaluate whether the tool should be promoted
                 var decision = await _evolutionPolicy
                     .EvaluatePromotionAsync(name, stats)
                     .ConfigureAwait(false);

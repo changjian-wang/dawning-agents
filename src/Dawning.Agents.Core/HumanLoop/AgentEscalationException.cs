@@ -1,32 +1,32 @@
 namespace Dawning.Agents.Core.HumanLoop;
 
 /// <summary>
-/// 升级到人工处理的异常
+/// Exception thrown when an agent escalates to human handling.
 /// </summary>
 public class AgentEscalationException : Exception
 {
     /// <summary>
-    /// 升级原因
+    /// Gets the escalation reason.
     /// </summary>
     public string Reason { get; }
 
     /// <summary>
-    /// 详细描述
+    /// Gets the detailed description.
     /// </summary>
     public string Description { get; }
 
     /// <summary>
-    /// 上下文数据
+    /// Gets the context data.
     /// </summary>
     public IReadOnlyDictionary<string, object> Context { get; }
 
     /// <summary>
-    /// 已尝试的解决方案
+    /// Gets the list of attempted solutions.
     /// </summary>
     public IReadOnlyList<string> AttemptedSolutions { get; }
 
     /// <summary>
-    /// 创建升级异常
+    /// Initializes a new instance of the <see cref="AgentEscalationException"/> class.
     /// </summary>
     public AgentEscalationException(
         string reason,
@@ -43,7 +43,7 @@ public class AgentEscalationException : Exception
     }
 
     /// <summary>
-    /// 创建升级异常（带内部异常）
+    /// Initializes a new instance of the <see cref="AgentEscalationException"/> class with an inner exception.
     /// </summary>
     public AgentEscalationException(
         string reason,

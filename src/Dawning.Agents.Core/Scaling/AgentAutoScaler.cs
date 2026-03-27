@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-/// Agent 自动扩展器实现
+/// Agent auto-scaler implementation.
 /// </summary>
 public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 {
@@ -96,7 +96,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
                 if (decision.Action == ScalingAction.None)
                 {
                     _logger.LogDebug(
-                        "扩展评估: 无需操作 (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
+                        "Scaling evaluation: no action needed (CPU: {Cpu}%, Mem: {Mem}%, Queue: {Queue})",
                         metrics.CpuPercent,
                         metrics.MemoryPercent,
                         metrics.QueueLength
@@ -136,7 +136,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     {
         var now = _timeProvider.GetUtcNow();
 
-        // 检查是否需要扩容
+        // Check if scale-up is needed
         if (ShouldScaleUp(metrics, currentInstances))
         {
             var cooldown = TimeSpan.FromSeconds(_options.ScaleUpCooldownSeconds);
@@ -145,13 +145,13 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
                 var delta = CalculateScaleUpDelta(metrics, currentInstances);
                 return ScalingDecision.ScaleUp(
                     delta,
-                    $"CPU: {metrics.CpuPercent:F1}%, 内存: {metrics.MemoryPercent:F1}%, 队列: {metrics.QueueLength}"
+                    $"CPU: {metrics.CpuPercent:F1}%, Memory: {metrics.MemoryPercent:F1}%, Queue: {metrics.QueueLength}"
                 );
             }
-            _logger.LogDebug("扩容冷却中，跳过扩容");
+            _logger.LogDebug("Scale-up cooldown active; skipping scale-up");
         }
 
-        // 检查是否可以缩容
+        // Check if scale-down is possible
         if (ShouldScaleDown(metrics, currentInstances))
         {
             var cooldown = TimeSpan.FromSeconds(_options.ScaleDownCooldownSeconds);
@@ -159,10 +159,10 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
             {
                 return ScalingDecision.ScaleDown(
                     1,
-                    $"低利用率 - CPU: {metrics.CpuPercent:F1}%, 内存: {metrics.MemoryPercent:F1}%"
+                    $"Low utilization - CPU: {metrics.CpuPercent:F1}%, Memory: {metrics.MemoryPercent:F1}%"
                 );
             }
-            _logger.LogDebug("缩容冷却中，跳过缩容");
+            _logger.LogDebug("Scale-down cooldown active; skipping scale-down");
         }
 
         return ScalingDecision.None;
@@ -185,7 +185,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
 
     private int CalculateScaleUpDelta(ScalingMetrics metrics, int currentInstances)
     {
-        // 计算需要多少实例
+        // Calculate required instances
         var cpuRatio = (double)metrics.CpuPercent / _options.TargetCpuPercent;
         var memoryRatio = (double)metrics.MemoryPercent / _options.TargetMemoryPercent;
         var targetRatio = Math.Max(cpuRatio, memoryRatio);
@@ -201,7 +201,7 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
     )
     {
         _logger.LogInformation(
-            "从 {Current} 扩展到 {New} 个实例。原因：{Reason}",
+            "Scaling from {Current} to {New} instances. Reason: {Reason}",
             CurrentInstances,
             newCount,
             decision.Reason
@@ -224,16 +224,16 @@ public sealed class AgentAutoScaler : IAgentAutoScaler, IDisposable
                 _currentInstances = newCount;
             }
 
-            _logger.LogInformation("扩展完成，当前实例数: {Count}", newCount);
+            _logger.LogInformation("Scaling complete, current instance count: {Count}", newCount);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "扩展到 {NewCount} 个实例失败", newCount);
+            _logger.LogError(ex, "Failed to scale to {NewCount} instances", newCount);
         }
     }
 
     /// <summary>
-    /// 设置当前实例数（用于测试）
+    /// Sets the current instance count (for testing).
     /// </summary>
     internal void SetCurrentInstances(int count)
     {

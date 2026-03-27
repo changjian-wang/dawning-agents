@@ -10,24 +10,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// 扩展和配置相关的 DI 扩展方法
+/// Scaling and configuration DI extension methods.
 /// </summary>
 public static class ScalingServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加扩展配置
-    /// </summary>
-    public static IServiceCollection AddScaling(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
-    {
-        services.AddValidatedOptions<ScalingOptions>(configuration, ScalingOptions.SectionName);
-        return services;
-    }
-
-    /// <summary>
-    /// 添加扩展配置
+    /// Adds scaling configuration.
     /// </summary>
     public static IServiceCollection AddScaling(
         this IServiceCollection services,
@@ -39,7 +27,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加请求队列
+    /// Adds the request queue.
     /// </summary>
     public static IServiceCollection AddAgentRequestQueue(
         this IServiceCollection services,
@@ -55,7 +43,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加负载均衡器
+    /// Adds the load balancer.
     /// </summary>
     public static IServiceCollection AddAgentLoadBalancer(this IServiceCollection services)
     {
@@ -68,7 +56,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加分布式负载均衡器（支持一致性哈希、权重路由、故障转移）
+    /// Adds the distributed load balancer with consistent hashing, weighted routing, and failover support.
     /// </summary>
     public static IServiceCollection AddDistributedLoadBalancer(
         this IServiceCollection services,
@@ -96,7 +84,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加熔断器
+    /// Adds the circuit breaker.
     /// </summary>
     public static IServiceCollection AddCircuitBreaker(
         this IServiceCollection services,
@@ -113,7 +101,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加环境变量密钥管理器
+    /// Adds the environment variable secrets manager.
     /// </summary>
     public static IServiceCollection AddEnvironmentSecretsManager(this IServiceCollection services)
     {
@@ -126,7 +114,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加内存密钥管理器
+    /// Adds the in-memory secrets manager.
     /// </summary>
     public static IServiceCollection AddInMemorySecretsManager(this IServiceCollection services)
     {
@@ -139,7 +127,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加部署配置
+    /// Adds deployment configuration.
     /// </summary>
     public static IServiceCollection AddDeploymentConfiguration(
         this IServiceCollection services,
@@ -160,7 +148,7 @@ public static class ScalingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加所有生产部署服务
+    /// Adds all production deployment services.
     /// </summary>
     public static IServiceCollection AddProductionDeployment(
         this IServiceCollection services,
@@ -169,13 +157,13 @@ public static class ScalingServiceCollectionExtensions
         int circuitBreakerThreshold = 5
     )
     {
-        // 配置
+        // Configuration
         services.AddDeploymentConfiguration(configuration);
 
-        // 密钥管理
+        // Secrets management
         services.AddEnvironmentSecretsManager();
 
-        // 扩展组件
+        // Scaling components
         services.AddAgentRequestQueue(queueCapacity);
         services.AddAgentLoadBalancer();
         services.AddCircuitBreaker(circuitBreakerThreshold);

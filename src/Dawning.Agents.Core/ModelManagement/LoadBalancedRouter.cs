@@ -6,14 +6,14 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 负载均衡路由器
+/// Load-balanced router.
 /// </summary>
 /// <remarks>
-/// 支持多种负载均衡策略：
+/// Supports multiple load balancing strategies:
 /// <list type="bullet">
-///   <item>轮询（Round Robin）</item>
-///   <item>加权轮询（Weighted Round Robin）</item>
-///   <item>随机（Random）</item>
+///   <item>Round Robin</item>
+///   <item>Weighted Round Robin</item>
+///   <item>Random</item>
 /// </list>
 /// </remarks>
 public class LoadBalancedRouter : ModelRouterBase
@@ -46,11 +46,11 @@ public class LoadBalancedRouter : ModelRouterBase
 
         if (healthyProviders.Count == 0)
         {
-            _logger.LogError("没有可用的健康提供者");
+            _logger.LogError("No healthy providers available");
             throw new InvalidOperationException("No healthy providers available");
         }
 
-        // 如果只有一个提供者，直接返回
+        // If only one provider, return it directly
         if (healthyProviders.Count == 1)
         {
             return Task.FromResult(healthyProviders[0]);
@@ -64,7 +64,7 @@ public class LoadBalancedRouter : ModelRouterBase
             _ => SelectRoundRobin(healthyProviders),
         };
 
-        _logger.LogDebug("负载均衡选择: {Provider}", selected.Name);
+        _logger.LogDebug("Load-balanced selection: {Provider}", selected.Name);
         return Task.FromResult(selected);
     }
 
@@ -76,17 +76,17 @@ public class LoadBalancedRouter : ModelRouterBase
 
     private ILLMProvider SelectWeightedRoundRobin(IReadOnlyList<ILLMProvider> providers)
     {
-        // 计算总权重
+        // Calculate total weight
         var totalWeight = providers.Sum(p => GetWeight(p.Name));
 
-        // 生成随机数
+        // Generate random number
         int randomValue;
         lock (_randomLock)
         {
             randomValue = _random.Next(totalWeight);
         }
 
-        // 选择提供者
+        // Select provider
         var currentWeight = 0;
         foreach (var provider in providers)
         {
@@ -117,7 +117,7 @@ public class LoadBalancedRouter : ModelRouterBase
 
     private Dictionary<string, int> InitializeWeights()
     {
-        // 默认权重：本地模型权重高（便宜、快），云模型权重低
+        // Default weights: local models have higher weight (cheaper, faster); cloud models have lower weight
         var weights = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var provider in _providers)
@@ -125,7 +125,7 @@ public class LoadBalancedRouter : ModelRouterBase
             var name = provider.Name.ToLowerInvariant();
             weights[provider.Name] = name switch
             {
-                var n when n.Contains("ollama", StringComparison.Ordinal) => 10, // 本地优先
+                var n when n.Contains("ollama", StringComparison.Ordinal) => 10, // Prefer local
                 var n when n.Contains("gpt-4o-mini", StringComparison.Ordinal) => 5,
                 var n when n.Contains("gpt-3.5", StringComparison.Ordinal) => 4,
                 var n when n.Contains("claude-3-haiku", StringComparison.Ordinal) => 4,

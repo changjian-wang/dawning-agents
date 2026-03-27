@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 内存审计日志记录器
+/// In-memory audit logger.
 /// </summary>
 public class InMemoryAuditLogger : IAuditLogger
 {
@@ -33,16 +33,16 @@ public class InMemoryAuditLogger : IAuditLogger
             return Task.CompletedTask;
         }
 
-        // 处理内容截断
+        // Process content truncation
         var processedEntry = ProcessEntry(entry);
 
         _entries.Enqueue(processedEntry);
 
-        // 清理过多的条目
+        // Evict excess entries
         while (_entries.Count > _options.MaxInMemoryEntries && _entries.TryDequeue(out _)) { }
 
         _logger.LogDebug(
-            "审计日志: {EventType} - Session={SessionId}, Agent={AgentName}, Status={Status}",
+            "Audit log: {EventType} - Session={SessionId}, Agent={AgentName}, Status={Status}",
             processedEntry.EventType,
             processedEntry.SessionId,
             processedEntry.AgentName,
@@ -96,12 +96,12 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// 获取所有条目（用于测试）
+    /// Gets all entries (for testing).
     /// </summary>
     public IReadOnlyList<AuditEntry> GetAllEntries() => [.. _entries];
 
     /// <summary>
-    /// 清空所有条目
+    /// Clears all entries.
     /// </summary>
     public void Clear()
     {
@@ -109,7 +109,7 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// 当前条目数
+    /// Gets the current entry count.
     /// </summary>
     public int Count => _entries.Count;
 
@@ -142,12 +142,12 @@ public class InMemoryAuditLogger : IAuditLogger
 }
 
 /// <summary>
-/// 审计日志扩展方法
+/// Audit logger extension methods.
 /// </summary>
 public static class AuditLoggerExtensions
 {
     /// <summary>
-    /// 记录 Agent 运行开始
+    /// Logs the start of an agent run.
     /// </summary>
     public static Task LogAgentRunStartAsync(
         this IAuditLogger logger,
@@ -170,7 +170,7 @@ public static class AuditLoggerExtensions
     }
 
     /// <summary>
-    /// 记录 Agent 运行结束
+    /// Logs the end of an agent run.
     /// </summary>
     public static Task LogAgentRunEndAsync(
         this IAuditLogger logger,
@@ -201,7 +201,7 @@ public static class AuditLoggerExtensions
     }
 
     /// <summary>
-    /// 记录工具调用
+    /// Logs a tool call.
     /// </summary>
     public static Task LogToolCallAsync(
         this IAuditLogger logger,
@@ -232,7 +232,7 @@ public static class AuditLoggerExtensions
     }
 
     /// <summary>
-    /// 记录护栏触发
+    /// Logs a guardrail trigger.
     /// </summary>
     public static Task LogGuardrailTriggeredAsync(
         this IAuditLogger logger,
@@ -258,7 +258,7 @@ public static class AuditLoggerExtensions
     }
 
     /// <summary>
-    /// 记录速率限制
+    /// Logs a rate limit event.
     /// </summary>
     public static Task LogRateLimitedAsync(
         this IAuditLogger logger,

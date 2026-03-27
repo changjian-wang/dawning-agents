@@ -8,11 +8,11 @@ using StackExchange.Redis;
 namespace Dawning.Agents.Redis.Cache;
 
 /// <summary>
-/// 基于 Redis 的分布式缓存实现
+/// A distributed cache implementation backed by Redis.
 /// </summary>
 /// <remarks>
-/// <para>提供高性能的分布式缓存能力</para>
-/// <para>支持序列化、过期时间、批量操作等特性</para>
+/// <para>Provides high-performance distributed caching capabilities.</para>
+/// <para>Supports serialization, expiration, batch operations, and more.</para>
 /// </remarks>
 public sealed class RedisDistributedCache : IDistributedCache, IDisposable
 {
@@ -24,7 +24,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// 初始化 Redis 分布式缓存
+    /// Initializes a new instance of the <see cref="RedisDistributedCache"/> class.
     /// </summary>
     public RedisDistributedCache(
         IConnectionMultiplexer connection,
@@ -255,14 +255,14 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
     }
 
     /// <summary>
-    /// 获取完整的缓存 key
+    /// Gets the full cache key.
     /// </summary>
     private string GetFullKey(string key) => $"{_prefix}cache:{key}";
 
     private static string GetSlidingMetadataKey(string fullKey) => $"{fullKey}:sliding";
 
     /// <summary>
-    /// 从配置中获取过期时间
+    /// Gets the expiration from the cache entry options.
     /// </summary>
     private static TimeSpan? GetExpiry(DistributedCacheEntryOptions options)
     {
@@ -278,7 +278,7 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(options),
-                    "AbsoluteExpiration 必须为将来的时间"
+                    "AbsoluteExpiration must be a future time"
                 );
             }
 
@@ -302,6 +302,6 @@ public sealed class RedisDistributedCache : IDistributedCache, IDisposable
         }
 
         _disposed = true;
-        // IConnectionMultiplexer 是共享的，不在这里释放
+        // IConnectionMultiplexer is shared; do not dispose it here
     }
 }

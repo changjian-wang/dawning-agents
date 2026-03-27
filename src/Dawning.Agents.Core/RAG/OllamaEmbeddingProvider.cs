@@ -9,19 +9,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// Ollama Embedding 提供者
+/// Ollama embedding provider.
 /// </summary>
 /// <remarks>
-/// 使用本地 Ollama 服务生成嵌入向量。
+/// Generates embedding vectors using the local Ollama service.
 ///
-/// 支持的模型：
+/// Supported models:
 /// <list type="bullet">
-///   <item>nomic-embed-text (768 维，推荐)</item>
-///   <item>mxbai-embed-large (1024 维)</item>
-///   <item>all-minilm (384 维)</item>
+///   <item>nomic-embed-text (768 dimensions, recommended)</item>
+///   <item>mxbai-embed-large (1024 dimensions)</item>
+///   <item>all-minilm (384 dimensions)</item>
 /// </list>
 ///
-/// 配置示例:
+/// Configuration example:
 /// <code>
 /// {
 ///   "RAG": {
@@ -33,7 +33,7 @@ namespace Dawning.Agents.Core.RAG;
 /// }
 /// </code>
 ///
-/// 安装模型: ollama pull nomic-embed-text
+/// Install model: <c>ollama pull nomic-embed-text</c>
 /// </remarks>
 public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
 {
@@ -43,7 +43,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
     private readonly ILogger<OllamaEmbeddingProvider> _logger;
 
     /// <summary>
-    /// 模型维度映射
+    /// Model-to-dimension mapping.
     /// </summary>
     private static readonly Dictionary<string, int> s_modelDimensions = new(
         StringComparer.OrdinalIgnoreCase
@@ -61,11 +61,11 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
     public int Dimensions => _dimensions;
 
     /// <summary>
-    /// 创建 Ollama Embedding Provider
+    /// Initializes a new instance of the <see cref="OllamaEmbeddingProvider"/> class.
     /// </summary>
-    /// <param name="httpClient">HTTP 客户端（BaseAddress 应指向 Ollama 端点）</param>
-    /// <param name="model">嵌入模型名称（默认 nomic-embed-text）</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="httpClient">The HTTP client (BaseAddress should point to the Ollama endpoint).</param>
+    /// <param name="model">The embedding model name (default: nomic-embed-text).</param>
+    /// <param name="logger">The logger instance.</param>
     public OllamaEmbeddingProvider(
         HttpClient httpClient,
         string model = "nomic-embed-text",
@@ -81,7 +81,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         _logger = logger ?? NullLogger<OllamaEmbeddingProvider>.Instance;
 
         _logger.LogDebug(
-            "OllamaEmbeddingProvider 已创建，模型: {Model}，维度: {Dimensions}",
+            "OllamaEmbeddingProvider created, model: {Model}, dimensions: {Dimensions}",
             model,
             _dimensions
         );
@@ -102,7 +102,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         var json = JsonSerializer.Serialize(request, JsonOptions.Default);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        _logger.LogDebug("发送嵌入请求到 Ollama，模型: {Model}", _model);
+        _logger.LogDebug("Sending embedding request to Ollama, model: {Model}", _model);
 
         using var response = await _httpClient
             .PostAsync("/api/embed", content, cancellationToken)
@@ -114,7 +114,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
                 .Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
             _logger.LogError(
-                "Ollama 嵌入请求失败: {StatusCode} {Error}",
+                "Ollama embedding request failed: {StatusCode} {Error}",
                 response.StatusCode,
                 errorBody
             );
@@ -127,7 +127,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
 
         if (result?.Embeddings is null || result.Embeddings.Count == 0)
         {
-            _logger.LogWarning("Ollama 返回空嵌入结果");
+            _logger.LogWarning("Ollama returned empty embedding result");
             return new float[_dimensions];
         }
 
@@ -145,7 +145,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             return Array.Empty<float[]>();
         }
 
-        // Ollama 的 /api/embed 支持批量输入
+        // Ollama's /api/embed supports batch input
         var validTexts = new List<(int Index, string Text)>();
         for (int i = 0; i < textList.Count; i++)
         {
@@ -170,7 +170,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         _logger.LogDebug(
-            "发送批量嵌入请求到 Ollama，模型: {Model}，数量: {Count}",
+            "Sending batch embedding request to Ollama, model: {Model}, count: {Count}",
             _model,
             validTexts.Count
         );
@@ -185,7 +185,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
                 .Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
             _logger.LogError(
-                "Ollama 批量嵌入请求失败: {StatusCode} {Error}",
+                "Ollama batch embedding request failed: {StatusCode} {Error}",
                 response.StatusCode,
                 errorBody
             );
@@ -196,14 +196,14 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             .Content.ReadFromJsonAsync<OllamaEmbedResponse>(JsonOptions.Default, cancellationToken)
             .ConfigureAwait(false);
 
-        // 构建结果数组
+        // Build result array
         var embeddings = new float[textList.Count][];
         for (int i = 0; i < textList.Count; i++)
         {
             embeddings[i] = new float[_dimensions];
         }
 
-        // 填充有效结果
+        // Fill in valid results
         if (result?.Embeddings is not null)
         {
             for (int i = 0; i < validTexts.Count && i < result.Embeddings.Count; i++)
@@ -216,11 +216,11 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
     }
 
     /// <summary>
-    /// 获取模型的向量维度
+    /// Gets the vector dimensions for the specified model.
     /// </summary>
     private static int GetModelDimensions(string model)
     {
-        // 移除版本标签（如 nomic-embed-text:latest）
+        // Strip version tag (e.g. nomic-embed-text:latest)
         var baseName = model.Split(':')[0];
 
         if (s_modelDimensions.TryGetValue(baseName, out var dimensions))
@@ -228,7 +228,7 @@ public sealed class OllamaEmbeddingProvider : IEmbeddingProvider
             return dimensions;
         }
 
-        // 未知模型默认使用 768 维
+        // Default to 768 dimensions for unknown models
         return 768;
     }
 

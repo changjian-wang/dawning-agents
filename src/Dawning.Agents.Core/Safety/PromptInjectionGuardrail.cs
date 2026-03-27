@@ -6,17 +6,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// Prompt 注入检测护栏 - 检测并阻止常见的 prompt injection 攻击模式
+/// Prompt injection detection guardrail that detects and blocks common prompt injection attack patterns.
 /// </summary>
 /// <remarks>
-/// <para>可用作输入护栏（检测用户输入）和输出护栏（消毒 tool 输出后再回注 LLM 上下文）。</para>
-/// <para>检测模式包括：</para>
+/// <para>Can be used as both an input guardrail (to detect user input) and an output guardrail (to sanitize tool output before re-injecting into LLM context).</para>
+/// <para>Detection patterns include:</para>
 /// <list type="bullet">
-/// <item>指令覆盖："ignore previous instructions"、"forget your instructions" 等</item>
-/// <item>角色劫持："you are now"、"act as"、"pretend to be" 等</item>
-/// <item>系统提示泄露："show me your system prompt"、"reveal your instructions" 等</item>
-/// <item>越狱尝试："DAN"、"jailbreak"、"do anything now" 等</item>
-/// <item>分隔符注入：伪造 system/user/assistant 消息边界</item>
+/// <item>Instruction override: "ignore previous instructions", "forget your instructions", etc.</item>
+/// <item>Role hijacking: "you are now", "act as", "pretend to be", etc.</item>
+/// <item>System prompt leak: "show me your system prompt", "reveal your instructions", etc.</item>
+/// <item>Jailbreak attempts: "DAN", "jailbreak", "do anything now", etc.</item>
+/// <item>Delimiter injection: forging system/user/assistant message boundaries.</item>
 /// </list>
 /// </remarks>
 public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
@@ -29,16 +29,16 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
     public string Name => "PromptInjectionGuardrail";
 
     /// <inheritdoc />
-    public string Description => "检测并阻止 prompt injection 攻击模式";
+    public string Description => "Detects and blocks prompt injection attack patterns";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.Enabled;
 
     /// <summary>
-    /// 创建 Prompt 注入检测护栏
+    /// Creates a prompt injection detection guardrail.
     /// </summary>
-    /// <param name="options">配置选项（可选，默认使用内置模式集）</param>
-    /// <param name="logger">日志记录器（可选）</param>
+    /// <param name="options">Configuration options (optional; defaults to built-in pattern set).</param>
+    /// <param name="logger">The logger (optional).</param>
     public PromptInjectionGuardrail(
         PromptInjectionOptions? options = null,
         ILogger<PromptInjectionGuardrail>? logger = null
@@ -72,12 +72,12 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             }
             catch (RegexMatchTimeoutException)
             {
-                _logger.LogWarning("Regex 匹配超时: 类别={Category}, 跳过此模式", pattern.Category);
+                _logger.LogWarning("Regex match timed out: Category={Category}, skipping pattern", pattern.Category);
                 issues.Add(
                     new GuardrailIssue
                     {
                         Type = pattern.Category,
-                        Description = $"正则匹配超时 — 可能存在 ReDoS 攻击",
+                        Description = $"Regex match timed out — possible ReDoS attack",
                         Severity = IssueSeverity.Error,
                     }
                 );
@@ -98,7 +98,7 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 issues.Add(issue);
 
                 _logger.LogWarning(
-                    "Prompt injection 检测到: 类别={Category}, 位置={Position}, 匹配={Match}",
+                    "Prompt injection detected: Category={Category}, Position={Position}, Match={Match}",
                     pattern.Category,
                     match.Index,
                     MaskContent(match.Value)
@@ -111,39 +111,39 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             return Task.FromResult(GuardrailResult.Pass(content));
         }
 
-        // 根据严重程度决定是阻止还是警告
+        // Decide whether to block or warn based on severity
         var maxSeverity = issues.Max(i => i.Severity);
         if (maxSeverity >= _options.BlockThreshold)
         {
             return Task.FromResult(
                 GuardrailResult.Fail(
-                    $"检测到 {issues.Count} 个 prompt injection 模式",
+                    $"Detected {issues.Count} prompt injection pattern(s)",
                     Name,
                     issues
                 )
             );
         }
 
-        // 低于阈值的仅警告，放行
+        // Below threshold: warn only, allow through
         _logger.LogInformation(
-            "Prompt injection 检测到 {Count} 个低风险模式，已放行",
+            "Prompt injection detected {Count} low-risk pattern(s), allowed through",
             issues.Count
         );
         return Task.FromResult(GuardrailResult.Pass(content));
     }
 
     /// <summary>
-    /// 构建检测模式
+    /// Builds the detection patterns.
     /// </summary>
     private List<InjectionPattern> BuildPatterns()
     {
         var patterns = new List<InjectionPattern>();
 
-        // 1. 指令覆盖模式
+        // 1. Instruction override patterns
         patterns.Add(
             new InjectionPattern(
                 "InstructionOverride",
-                "尝试覆盖或忽略系统指令",
+                "Attempt to override or ignore system instructions",
                 new Regex(
                     @"(ignore|disregard|forget|override|bypass)\s+(all\s+)?(your\s+)?(previous|prior|above|earlier|original|system)\s+(instructions?|prompts?|rules?|guidelines?|directives?|constraints?)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -153,11 +153,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 2. 角色劫持模式
+        // 2. Role hijacking patterns
         patterns.Add(
             new InjectionPattern(
                 "RoleHijacking",
-                "尝试改变 AI 角色或行为",
+                "Attempt to change AI role or behavior",
                 new Regex(
                     @"(you\s+are\s+now|from\s+now\s+on\s+you\s+are|act\s+as\s+if\s+you\s+are|pretend\s+(to\s+be|you\s+are)|you\s+must\s+now\s+act\s+as)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -167,11 +167,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 3. 系统提示泄露模式
+        // 3. System prompt leak patterns
         patterns.Add(
             new InjectionPattern(
                 "SystemPromptLeak",
-                "尝试提取系统提示内容",
+                "Attempt to extract system prompt content",
                 new Regex(
                     @"(show|reveal|display|print|output|repeat|tell\s+me|what\s+is)\s+(me\s+)?(your|the)\s+(system\s+prompt|instructions?|initial\s+prompt|original\s+prompt|hidden\s+prompt|secret\s+instructions?)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -181,11 +181,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 4. 越狱尝试
+        // 4. Jailbreak attempts
         patterns.Add(
             new InjectionPattern(
                 "Jailbreak",
-                "尝试越狱或绕过安全限制",
+                "Attempt to jailbreak or bypass security restrictions",
                 new Regex(
                     @"\b(DAN\s+mode|do\s+anything\s+now|jailbreak|developer\s+mode\s+(enabled|on|activated)|evil\s+mode|opposite\s+mode)\b",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -195,11 +195,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 5. 分隔符注入（伪造消息边界）
+        // 5. Delimiter injection (forging message boundaries)
         patterns.Add(
             new InjectionPattern(
                 "DelimiterInjection",
-                "尝试注入消息边界分隔符",
+                "Attempt to inject message boundary delimiters",
                 new Regex(
                     @"(\[SYSTEM\]|\[INST\]|<<SYS>>|<\|im_start\|>|<\|system\|>|###\s*(system|user|assistant)\s*:)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -209,11 +209,11 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 6. 编码绕过尝试
+        // 6. Encoding bypass attempts
         patterns.Add(
             new InjectionPattern(
                 "EncodingBypass",
-                "尝试使用编码或变形绕过检测",
+                "Attempt to bypass detection using encoding or obfuscation",
                 new Regex(
                     @"(base64|rot13|hex|unicode|url)\s*(decode|encode)\s+(the\s+following|this)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
@@ -223,7 +223,7 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
             )
         );
 
-        // 添加自定义模式
+        // Add custom patterns
         if (_options.CustomPatterns is { Count: > 0 })
         {
             foreach (var custom in _options.CustomPatterns)
@@ -233,7 +233,7 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                     patterns.Add(
                         new InjectionPattern(
                             custom.Category ?? "CustomPattern",
-                            custom.Description ?? "自定义检测模式",
+                            custom.Description ?? "Custom detection pattern",
                             new Regex(
                                 custom.Pattern,
                                 RegexOptions.IgnoreCase
@@ -247,7 +247,7 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
                 }
                 catch (ArgumentException ex)
                 {
-                    _logger.LogWarning(ex, "自定义模式编译失败: {Pattern}", custom.Pattern);
+                    _logger.LogWarning(ex, "Failed to compile custom pattern: {Pattern}", custom.Pattern);
                 }
             }
         }
@@ -256,7 +256,7 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
     }
 
     /// <summary>
-    /// 遮蔽匹配内容（保留前后各 5 字符，中间用 *** 替代）
+    /// Masks matched content (keeps the first and last 5 characters, replaces the middle with ***).
     /// </summary>
     private static string MaskContent(string content)
     {
@@ -277,34 +277,34 @@ public sealed class PromptInjectionGuardrail : IInputGuardrail, IOutputGuardrail
 }
 
 /// <summary>
-/// Prompt 注入检测配置
+/// Prompt injection detection options.
 /// </summary>
 public class PromptInjectionOptions
 {
-    /// <summary>是否启用检测</summary>
+    /// <summary>Gets or sets a value indicating whether detection is enabled.</summary>
     public bool Enabled { get; set; } = true;
 
-    /// <summary>阻止阈值（达到此严重程度及以上时阻止请求）</summary>
+    /// <summary>Gets or sets the block threshold severity. Requests are blocked at this level and above.</summary>
     public IssueSeverity BlockThreshold { get; set; } = IssueSeverity.Error;
 
-    /// <summary>自定义检测模式</summary>
+    /// <summary>Gets or sets the custom detection patterns.</summary>
     public List<CustomInjectionPattern> CustomPatterns { get; set; } = [];
 }
 
 /// <summary>
-/// 自定义注入检测模式
+/// Custom injection detection pattern.
 /// </summary>
 public class CustomInjectionPattern
 {
-    /// <summary>正则表达式模式</summary>
+    /// <summary>Gets or sets the regular expression pattern.</summary>
     public required string Pattern { get; set; }
 
-    /// <summary>模式分类</summary>
+    /// <summary>Gets or sets the pattern category.</summary>
     public string? Category { get; set; }
 
-    /// <summary>模式描述</summary>
+    /// <summary>Gets or sets the pattern description.</summary>
     public string? Description { get; set; }
 
-    /// <summary>严重程度</summary>
+    /// <summary>Gets or sets the severity level.</summary>
     public IssueSeverity Severity { get; set; } = IssueSeverity.Warning;
 }

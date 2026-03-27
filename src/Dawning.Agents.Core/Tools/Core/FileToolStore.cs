@@ -7,12 +7,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 基于文件系统的工具持久化存储
+/// File system-based persistent tool store.
 /// </summary>
 /// <remarks>
-/// <para>User 工具存储在 ~/.dawning/tools/ 目录</para>
-/// <para>Global 工具存储在 {project}/.dawning/tools/ 目录</para>
-/// <para>工具文件格式: {name}.tool.json</para>
+/// <para>User tools are stored in the ~/.dawning/tools/ directory.</para>
+/// <para>Global tools are stored in the {project}/.dawning/tools/ directory.</para>
+/// <para>Tool file format: {name}.tool.json</para>
 /// </remarks>
 public sealed class FileToolStore : IToolStore
 {
@@ -30,10 +30,10 @@ public sealed class FileToolStore : IToolStore
     };
 
     /// <summary>
-    /// 创建 FileToolStore
+    /// Creates a <see cref="FileToolStore"/>.
     /// </summary>
-    /// <param name="globalToolsBasePath">项目根目录（Global 工具的基准路径）</param>
-    /// <param name="logger">日志</param>
+    /// <param name="globalToolsBasePath">Project root directory (base path for Global tools).</param>
+    /// <param name="logger">The logger.</param>
     public FileToolStore(string? globalToolsBasePath = null, ILogger<FileToolStore>? logger = null)
     {
         _userToolsPath = Path.Combine(

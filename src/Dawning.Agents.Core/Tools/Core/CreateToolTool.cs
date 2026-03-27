@@ -6,11 +6,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 动态工具创建器 — Agent 用来创建新的可复用脚本工具
+/// Dynamic tool creator — used by agents to create new reusable script tools.
 /// </summary>
 /// <remarks>
-/// <para>Risk: High — 创建的工具可执行任意脚本</para>
-/// <para>scope=session: 无需确认；scope=user/global: 需要审批</para>
+/// <para>Risk: High — created tools can execute arbitrary scripts.</para>
+/// <para>scope=session: no confirmation required; scope=user/global: requires approval.</para>
 /// </remarks>
 public sealed class CreateToolTool : ITool
 {
@@ -18,7 +18,7 @@ public sealed class CreateToolTool : ITool
     private readonly ILogger<CreateToolTool> _logger;
 
     /// <summary>
-    /// 创建 CreateToolTool
+    /// Creates a <see cref="CreateToolTool"/>.
     /// </summary>
     public CreateToolTool(IToolSession session, ILogger<CreateToolTool>? logger = null)
     {

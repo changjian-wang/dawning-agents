@@ -12,8 +12,8 @@ using OpenAI.Chat;
 namespace Dawning.Agents.Azure;
 
 /// <summary>
-/// Azure OpenAI / Azure AI Foundry 提供者实现
-/// 支持 Azure OpenAI Service 和 Azure AI Foundry 部署的模型
+/// Azure OpenAI / Azure AI Foundry provider implementation.
+/// Supports models deployed on Azure OpenAI Service and Azure AI Foundry.
 /// </summary>
 public class AzureOpenAIProvider : OpenAIProviderBase
 {
@@ -24,12 +24,12 @@ public class AzureOpenAIProvider : OpenAIProviderBase
     protected override string ModelIdentifier { get; }
 
     /// <summary>
-    /// 创建 Azure OpenAI 提供者
+    /// Initializes a new instance of the <see cref="AzureOpenAIProvider"/> class.
     /// </summary>
-    /// <param name="endpoint">Azure OpenAI 端点，如 https://your-resource.openai.azure.com/</param>
-    /// <param name="apiKey">Azure OpenAI API Key</param>
-    /// <param name="deploymentName">模型部署名称</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint, e.g. <c>https://your-resource.openai.azure.com/</c>.</param>
+    /// <param name="apiKey">The Azure OpenAI API key.</param>
+    /// <param name="deploymentName">The model deployment name.</param>
+    /// <param name="logger">The logger instance.</param>
     public AzureOpenAIProvider(
         string endpoint,
         string apiKey,
@@ -45,12 +45,12 @@ public class AzureOpenAIProvider : OpenAIProviderBase
     }
 
     /// <summary>
-    /// 使用 Azure AD 身份验证创建 Azure OpenAI 提供者
+    /// Initializes a new instance of the <see cref="AzureOpenAIProvider"/> class using Azure AD authentication.
     /// </summary>
-    /// <param name="endpoint">Azure OpenAI 端点</param>
-    /// <param name="credential">Azure 凭据（如 DefaultAzureCredential）</param>
-    /// <param name="deploymentName">模型部署名称</param>
-    /// <param name="logger">日志记录器</param>
+    /// <param name="endpoint">The Azure OpenAI endpoint URL.</param>
+    /// <param name="credential">The Azure credential (e.g. <see cref="DefaultAzureCredential"/>).</param>
+    /// <param name="deploymentName">The model deployment name.</param>
+    /// <param name="logger">The logger instance.</param>
     public AzureOpenAIProvider(
         string endpoint,
         TokenCredential credential,

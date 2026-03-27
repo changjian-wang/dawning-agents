@@ -4,19 +4,19 @@ using FluentValidation;
 namespace Dawning.Agents.Core.Validation;
 
 /// <summary>
-/// LLM 配置选项验证器
+/// Validator for <see cref="LLMOptions"/>.
 /// </summary>
 public class LLMOptionsValidator : AbstractValidator<LLMOptions>
 {
     public LLMOptionsValidator()
     {
-        RuleFor(x => x.Model).NotEmpty().WithMessage("Model 不能为空");
+        RuleFor(x => x.Model).NotEmpty().WithMessage("Model must not be empty.");
 
         When(
             x => x.ProviderType == LLMProviderType.OpenAI,
             () =>
             {
-                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("OpenAI 需要配置 ApiKey");
+                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("ApiKey is required for the OpenAI provider.");
             }
         );
 
@@ -26,11 +26,11 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
             {
                 RuleFor(x => x.Endpoint)
                     .NotEmpty()
-                    .WithMessage("Azure OpenAI 需要配置 Endpoint")
+                    .WithMessage("Endpoint is required for the Azure OpenAI provider.")
                     .Must(BeValidUrl)
-                    .WithMessage("Endpoint 必须是有效的 URL");
+                    .WithMessage("Endpoint must be a valid URL.");
 
-                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("Azure OpenAI 需要配置 ApiKey");
+                RuleFor(x => x.ApiKey).NotEmpty().WithMessage("ApiKey is required for the Azure OpenAI provider.");
             }
         );
 
@@ -40,9 +40,9 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
             {
                 RuleFor(x => x.Endpoint)
                     .NotEmpty()
-                    .WithMessage("Ollama 需要配置 Endpoint")
+                    .WithMessage("Endpoint is required for the Ollama provider.")
                     .Must(BeValidUrl)
-                    .WithMessage("Endpoint 必须是有效的 URL");
+                    .WithMessage("Endpoint must be a valid URL.");
             }
         );
     }

@@ -8,15 +8,15 @@ using Qdrant.Client;
 namespace Dawning.Agents.Qdrant;
 
 /// <summary>
-/// Qdrant 服务的 DI 扩展方法
+/// Dependency injection extension methods for Qdrant services.
 /// </summary>
 public static class QdrantServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Qdrant 向量存储（使用配置）
+    /// Adds the Qdrant vector store using configuration.
     /// </summary>
     /// <remarks>
-    /// appsettings.json 示例:
+    /// appsettings.json example:
     /// <code>
     /// {
     ///   "Qdrant": {
@@ -51,7 +51,7 @@ public static class QdrantServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Qdrant 向量存储（使用配置委托）
+    /// Adds the Qdrant vector store using a configuration delegate.
     /// </summary>
     public static IServiceCollection AddQdrantVectorStore(
         this IServiceCollection services,
@@ -76,14 +76,14 @@ public static class QdrantServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Qdrant 向量存储（快速配置）
+    /// Adds the Qdrant vector store with quick configuration.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="host">Qdrant 主机</param>
-    /// <param name="port">gRPC 端口</param>
-    /// <param name="collectionName">集合名称</param>
-    /// <param name="vectorSize">向量维度</param>
-    /// <param name="apiKey">API Key（可选）</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="host">The Qdrant host.</param>
+    /// <param name="port">The gRPC port.</param>
+    /// <param name="collectionName">The collection name.</param>
+    /// <param name="vectorSize">The vector dimension.</param>
+    /// <param name="apiKey">The API key (optional).</param>
     public static IServiceCollection AddQdrantVectorStore(
         this IServiceCollection services,
         string host = "localhost",
@@ -104,13 +104,13 @@ public static class QdrantServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Qdrant Cloud 向量存储
+    /// Adds the Qdrant Cloud vector store.
     /// </summary>
-    /// <param name="services">服务集合</param>
-    /// <param name="cloudUrl">Qdrant Cloud URL（如 xxx.aws.cloud.qdrant.io）</param>
-    /// <param name="apiKey">Qdrant Cloud API Key</param>
-    /// <param name="collectionName">集合名称</param>
-    /// <param name="vectorSize">向量维度</param>
+    /// <param name="services">The service collection.</param>
+    /// <param name="cloudUrl">The Qdrant Cloud URL (e.g., xxx.aws.cloud.qdrant.io).</param>
+    /// <param name="apiKey">The Qdrant Cloud API key.</param>
+    /// <param name="collectionName">The collection name.</param>
+    /// <param name="vectorSize">The vector dimension.</param>
     public static IServiceCollection AddQdrantCloud(
         this IServiceCollection services,
         string cloudUrl,

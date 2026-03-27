@@ -6,15 +6,15 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.ModelManagement;
 
 /// <summary>
-/// 成本优化路由器
+/// Cost-optimized router.
 /// </summary>
 /// <remarks>
-/// 选择预估成本最低的模型。
-/// 考虑因素：
+/// Selects the model with the lowest estimated cost.
+/// Factors considered:
 /// <list type="bullet">
-///   <item>模型定价（输入/输出 token 价格）</item>
-///   <item>预估 token 数量</item>
-///   <item>提供者健康状态</item>
+///   <item>Model pricing (input/output token prices)</item>
+///   <item>Estimated token counts</item>
+///   <item>Provider health status</item>
 /// </list>
 /// </remarks>
 public class CostOptimizedRouter : ModelRouterBase
@@ -42,14 +42,14 @@ public class CostOptimizedRouter : ModelRouterBase
 
         if (healthyProviders.Count == 0)
         {
-            _logger.LogError("没有可用的健康提供者");
+            _logger.LogError("No healthy providers available");
             throw new InvalidOperationException("No healthy providers available");
         }
 
-        // 如果有首选模型且可用，优先使用
+        // If a preferred model is specified and available, use it
         if (!string.IsNullOrEmpty(context.PreferredModel))
         {
-            // 优先精确匹配，其次部分匹配
+            // Prefer exact match, then partial match
             var preferred =
                 healthyProviders.FirstOrDefault(p =>
                     p.Name.Equals(context.PreferredModel, StringComparison.OrdinalIgnoreCase)
@@ -59,18 +59,18 @@ public class CostOptimizedRouter : ModelRouterBase
                 );
             if (preferred != null)
             {
-                _logger.LogDebug("使用首选模型: {Provider}", preferred.Name);
+                _logger.LogDebug("Using preferred model: {Provider}", preferred.Name);
                 return Task.FromResult(preferred);
             }
         }
 
-        // 计算每个提供者的预估成本
+        // Calculate estimated cost for each provider
         var providerCosts = healthyProviders
             .Select(p => new { Provider = p, Cost = CalculateEstimatedCost(p.Name, context) })
             .OrderBy(x => x.Cost)
             .ToList();
 
-        // 如果有成本限制，过滤超出限制的提供者
+        // If there is a cost limit, filter providers exceeding it
         if (context.MaxCost > 0)
         {
             providerCosts = providerCosts.Where(x => x.Cost <= context.MaxCost).ToList();
@@ -78,7 +78,7 @@ public class CostOptimizedRouter : ModelRouterBase
             if (providerCosts.Count == 0)
             {
                 _logger.LogWarning(
-                    "没有提供者符合成本限制 {MaxCost}，使用最便宜的",
+                    "No provider meets cost limit {MaxCost}; using the cheapest one",
                     context.MaxCost
                 );
                 providerCosts = healthyProviders
@@ -95,7 +95,7 @@ public class CostOptimizedRouter : ModelRouterBase
         var best = providerCosts.First();
         var selected = best.Provider;
         _logger.LogDebug(
-            "成本优化选择: {Provider}，预估成本: ${Cost:F6}",
+            "Cost-optimized selection: {Provider}, estimated cost: ${Cost:F6}",
             selected.Name,
             best.Cost
         );
@@ -107,7 +107,7 @@ public class CostOptimizedRouter : ModelRouterBase
     {
         if (!_pricingMap.TryGetValue(providerName, out var pricing))
         {
-            // 未知提供者使用默认定价
+            // Unknown provider uses default pricing
             pricing = ModelPricing.KnownPricing.GetPricing(providerName);
         }
 
@@ -118,13 +118,13 @@ public class CostOptimizedRouter : ModelRouterBase
     {
         var map = new Dictionary<string, ModelPricing>(StringComparer.OrdinalIgnoreCase);
 
-        // 添加自定义定价配置
+        // Add custom pricing configuration
         foreach (var (name, pricing) in _options.CustomPricing)
         {
             map[name] = pricing;
         }
 
-        // 为每个提供者设置定价
+        // Set pricing for each provider
         foreach (var provider in _providers)
         {
             if (!map.ContainsKey(provider.Name))

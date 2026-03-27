@@ -7,12 +7,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// 内存向量存储实现
+/// In-memory vector store implementation.
 /// </summary>
 /// <remarks>
-/// 适用于小规模数据集或开发测试场景。
-/// 数据存储在内存中，重启后数据丢失。
-/// 使用 SIMD 加速的余弦相似度计算。
+/// Suitable for small datasets or development and testing scenarios.
+/// Data is stored in memory and is lost on restart.
+/// Uses SIMD-accelerated cosine similarity computation.
 /// </remarks>
 public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
 {
@@ -20,7 +20,7 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
     private readonly ILogger<InMemoryVectorStore> _logger;
 
     /// <summary>
-    /// 创建内存向量存储
+    /// Initializes a new instance of the <see cref="InMemoryVectorStore"/> class.
     /// </summary>
     public InMemoryVectorStore(ILogger<InMemoryVectorStore>? logger = null)
     {
@@ -173,11 +173,11 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
     }
 
     /// <summary>
-    /// 计算余弦相似度（使用 SIMD 加速）
+    /// Computes cosine similarity using SIMD acceleration.
     /// </summary>
-    /// <param name="a">向量 A</param>
-    /// <param name="b">向量 B</param>
-    /// <returns>相似度 (0-1)，归一化后的值</returns>
+    /// <param name="a">Vector A.</param>
+    /// <param name="b">Vector B.</param>
+    /// <returns>Similarity score (0-1), normalized.</returns>
     private static float CosineSimilarity(ReadOnlySpan<float> a, ReadOnlySpan<float> b)
     {
         if (a.Length != b.Length)
@@ -185,16 +185,16 @@ public sealed class InMemoryVectorStore : IVectorStore, IAsyncDisposable
             throw new ArgumentException("Vectors must have the same length");
         }
 
-        // 使用 System.Numerics.Tensors 的 SIMD 优化实现
+        // Use System.Numerics.Tensors SIMD-optimized implementation
         var similarity = TensorPrimitives.CosineSimilarity(a, b);
 
-        // 处理 NaN（当向量为零向量时）
+        // Handle NaN (occurs with zero vectors)
         if (float.IsNaN(similarity))
         {
             return 0;
         }
 
-        // 余弦相似度范围是 [-1, 1]，归一化到 [0, 1]
+        // Cosine similarity range is [-1, 1], normalize to [0, 1]
         return (similarity + 1) / 2;
     }
 

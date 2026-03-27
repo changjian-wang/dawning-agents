@@ -3,7 +3,7 @@ namespace Dawning.Agents.MCP.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// MCP JSON-RPC 请求消息
+/// Represents an MCP JSON-RPC request message.
 /// </summary>
 public sealed class MCPRequest
 {
@@ -21,7 +21,7 @@ public sealed class MCPRequest
 }
 
 /// <summary>
-/// MCP JSON-RPC 响应消息
+/// Represents an MCP JSON-RPC response message.
 /// </summary>
 public sealed class MCPResponse
 {
@@ -49,7 +49,7 @@ public sealed class MCPResponse
 }
 
 /// <summary>
-/// MCP 错误对象
+/// Represents an MCP error object.
 /// </summary>
 public sealed class MCPError
 {
@@ -64,7 +64,7 @@ public sealed class MCPError
 }
 
 /// <summary>
-/// MCP JSON-RPC 通知消息（无需响应）
+/// Represents an MCP JSON-RPC notification message (no response expected).
 /// </summary>
 public sealed class MCPNotification
 {
@@ -79,18 +79,18 @@ public sealed class MCPNotification
 }
 
 /// <summary>
-/// MCP 错误代码
+/// Defines MCP error codes.
 /// </summary>
 public static class MCPErrorCodes
 {
-    // JSON-RPC 标准错误
+    // JSON-RPC standard errors
     public const int ParseError = -32700;
     public const int InvalidRequest = -32600;
     public const int MethodNotFound = -32601;
     public const int InvalidParams = -32602;
     public const int InternalError = -32603;
 
-    // MCP 自定义错误
+    // MCP custom errors
     public const int ResourceNotFound = -32001;
     public const int ToolNotFound = -32002;
     public const int ToolExecutionFailed = -32003;

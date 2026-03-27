@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 长度限制护栏 - 检查输入/输出的长度
+/// Length limit guardrail that checks the length of input or output.
 /// </summary>
 public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
 {
@@ -15,7 +15,7 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
     private readonly ILogger<MaxLengthGuardrail> _logger;
 
     /// <summary>
-    /// 创建输入长度护栏
+    /// Creates an input length guardrail.
     /// </summary>
     public static MaxLengthGuardrail ForInput(
         IOptions<SafetyOptions> options,
@@ -23,7 +23,7 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
     ) => new(options.Value.MaxInputLength, true, logger);
 
     /// <summary>
-    /// 创建输出长度护栏
+    /// Creates an output length guardrail.
     /// </summary>
     public static MaxLengthGuardrail ForOutput(
         IOptions<SafetyOptions> options,
@@ -31,7 +31,7 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
     ) => new(options.Value.MaxOutputLength, false, logger);
 
     /// <summary>
-    /// 创建自定义长度护栏
+    /// Creates a custom length guardrail.
     /// </summary>
     public MaxLengthGuardrail(
         int maxLength,
@@ -58,8 +58,8 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
     /// <inheritdoc />
     public string Description =>
         _isInputGuardrail
-            ? $"限制输入长度不超过 {_maxLength} 字符"
-            : $"限制输出长度不超过 {_maxLength} 字符";
+? $"Limits input length to a maximum of {_maxLength} characters"
+        : $"Limits output length to a maximum of {_maxLength} characters";
 
     /// <inheritdoc />
     public bool IsEnabled => true;
@@ -80,7 +80,7 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
         if (length <= _maxLength)
         {
             _logger.LogDebug(
-                "{GuardrailName}: 内容长度 {Length} 在限制 {MaxLength} 内",
+                "{GuardrailName}: Content length {Length} is within limit {MaxLength}",
                 Name,
                 length,
                 _maxLength
@@ -91,19 +91,19 @@ public sealed class MaxLengthGuardrail : IInputGuardrail, IOutputGuardrail
         var issue = new GuardrailIssue
         {
             Type = "LengthExceeded",
-            Description = $"内容长度 {length} 超过最大限制 {_maxLength}",
+            Description = $"Content length {length} exceeds maximum limit {_maxLength}",
             Severity = IssueSeverity.Error,
         };
 
         _logger.LogWarning(
-            "{GuardrailName}: 内容长度 {Length} 超过限制 {MaxLength}",
+            "{GuardrailName}: Content length {Length} exceeds limit {MaxLength}",
             Name,
             length,
             _maxLength
         );
 
         return Task.FromResult(
-            GuardrailResult.Fail($"内容长度 ({length}) 超过最大限制 ({_maxLength})", Name, [issue])
+            GuardrailResult.Fail($"Content length ({length}) exceeds maximum limit ({_maxLength})", Name, [issue])
         );
     }
 }

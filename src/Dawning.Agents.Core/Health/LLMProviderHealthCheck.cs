@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Dawning.Agents.Core.Health;
 
 /// <summary>
-/// LLMProvider 健康检查
+/// LLM provider health check.
 /// </summary>
 public sealed class LLMProviderHealthCheck : IHealthCheck
 {
@@ -36,7 +36,7 @@ public sealed class LLMProviderHealthCheck : IHealthCheck
     {
         try
         {
-            // 发送一个简单的测试请求来验证 LLM 可用性
+            // Send a simple test request to verify LLM availability
             var testMessages = new[] { new ChatMessage("user", "ping") };
 
             var response = await _llmProvider
@@ -49,19 +49,19 @@ public sealed class LLMProviderHealthCheck : IHealthCheck
 
             if (!string.IsNullOrEmpty(response.Content))
             {
-                _logger.LogDebug("LLMProviderHealthCheck: LLM 正常");
-                return HealthCheckResult.Healthy($"LLMProvider ({_llmProvider.Name}) 正常");
+                _logger.LogDebug("LLMProviderHealthCheck: LLM is healthy");
+                return HealthCheckResult.Healthy($"LLMProvider ({_llmProvider.Name}) is healthy");
             }
             else
             {
-                _logger.LogWarning("LLMProviderHealthCheck: LLM 响应为空");
-                return HealthCheckResult.Degraded("LLMProvider 响应异常");
+                _logger.LogWarning("LLMProviderHealthCheck: LLM response is empty");
+                return HealthCheckResult.Degraded("LLMProvider response is abnormal");
             }
         }
         catch (System.Exception ex)
         {
-            _logger.LogError(ex, "LLMProviderHealthCheck: 检查失败");
-            return HealthCheckResult.Unhealthy("LLMProvider 检查失败", ex);
+            _logger.LogError(ex, "LLMProviderHealthCheck: check failed");
+            return HealthCheckResult.Unhealthy("LLMProvider check failed", ex);
         }
     }
 }

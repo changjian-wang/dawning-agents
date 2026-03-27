@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Safety;
 
 /// <summary>
-/// 内容过滤护栏 - 检测并阻止包含禁用关键词的内容
+/// Content filter guardrail that detects and blocks content containing prohibited keywords.
 /// </summary>
 public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 {
@@ -23,7 +23,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
         _options = options.Value;
         _logger = logger ?? NullLogger<ContentFilterGuardrail>.Instance;
 
-        // 预处理关键词为小写，提高匹配效率
+        // Pre-process keywords to lowercase for matching efficiency
         _blockedKeywordsLower = _options
             .BlockedKeywords.Select(k => k.ToLowerInvariant())
             .ToHashSet();
@@ -33,7 +33,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
     public string Name => "ContentFilterGuardrail";
 
     /// <inheritdoc />
-    public string Description => "检测并阻止包含禁用关键词的内容";
+    public string Description => "Detects and blocks content containing prohibited keywords";
 
     /// <inheritdoc />
     public bool IsEnabled => _options.EnableContentFilter && _blockedKeywordsLower.Count > 0;
@@ -63,7 +63,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
                     new GuardrailIssue
                     {
                         Type = "BlockedKeyword",
-                        Description = $"检测到禁用关键词",
+                        Description = $"Blocked keyword detected",
                         Position = index,
                         Length = keyword.Length,
                         MatchedContent = MaskKeyword(keyword),
@@ -71,7 +71,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
                     }
                 );
 
-                _logger.LogWarning("检测到禁用关键词在位置 {Position}", index);
+                _logger.LogWarning("Blocked keyword detected at position {Position}", index);
 
                 index += keyword.Length;
             }
@@ -82,15 +82,15 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
             return Task.FromResult(GuardrailResult.Pass(content));
         }
 
-        _logger.LogWarning("内容包含 {Count} 个禁用关键词", issues.Count);
+        _logger.LogWarning("Content contains {Count} blocked keyword(s)", issues.Count);
 
         return Task.FromResult(
-            GuardrailResult.Fail($"内容包含 {issues.Count} 个禁用关键词", Name, issues)
+            GuardrailResult.Fail($"Content contains {issues.Count} blocked keyword(s)", Name, issues)
         );
     }
 
     /// <summary>
-    /// 遮蔽关键词（只显示首尾字符）
+    /// Masks a keyword (shows only the first and last characters).
     /// </summary>
     private static string MaskKeyword(string keyword)
     {
@@ -104,7 +104,7 @@ public sealed class ContentFilterGuardrail : IInputGuardrail, IOutputGuardrail
 }
 
 /// <summary>
-/// URL 域名检查护栏 - 检查 URL 是否在允许列表中
+/// URL domain check guardrail that verifies URLs against allowed and blocked domain lists.
 /// </summary>
 public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 {
@@ -135,7 +135,7 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
     public string Name => "UrlDomainGuardrail";
 
     /// <inheritdoc />
-    public string Description => "检查 URL 域名是否在允许/阻止列表中";
+    public string Description => "Checks URL domains against allowed/blocked lists";
 
     /// <inheritdoc />
     public bool IsEnabled => _allowedDomains.Count > 0 || _blockedDomains.Count > 0;
@@ -163,14 +163,14 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
 
                 var domain = match.Groups[1].Value.ToLowerInvariant();
 
-                // 检查是否在阻止列表
+                // Check if on blocked list
                 if (_blockedDomains.Count > 0 && IsDomainMatch(domain, _blockedDomains))
                 {
                     issues.Add(
                         new GuardrailIssue
                         {
                             Type = "BlockedDomain",
-                            Description = $"URL 域名 {domain} 在阻止列表中",
+                            Description = $"URL domain {domain} is on the blocked list",
                             Position = match.Index,
                             Length = match.Length,
                             MatchedContent = match.Value,
@@ -178,16 +178,16 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
                         }
                     );
 
-                    _logger.LogWarning("检测到阻止的域名: {Domain}", domain);
+                    _logger.LogWarning("Blocked domain detected: {Domain}", domain);
                 }
-                // 检查是否在允许列表（如果配置了白名单）
+                // Check if on allowed list (if allowlist is configured)
                 else if (_allowedDomains.Count > 0 && !IsDomainMatch(domain, _allowedDomains))
                 {
                     issues.Add(
                         new GuardrailIssue
                         {
                             Type = "UnallowedDomain",
-                            Description = $"URL 域名 {domain} 不在允许列表中",
+                            Description = $"URL domain {domain} is not on the allowed list",
                             Position = match.Index,
                             Length = match.Length,
                             MatchedContent = match.Value,
@@ -195,18 +195,18 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
                         }
                     );
 
-                    _logger.LogWarning("检测到未允许的域名: {Domain}", domain);
+                    _logger.LogWarning("Unallowed domain detected: {Domain}", domain);
                 }
             }
         }
         catch (RegexMatchTimeoutException ex)
         {
-            _logger.LogWarning(ex, "URL 正则匹配超时");
+            _logger.LogWarning(ex, "URL regex match timed out");
             issues.Add(
                 new GuardrailIssue
                 {
                     Type = "RegexTimeout",
-                    Description = "URL 匹配超时，无法完成域名检测",
+                    Description = "URL match timed out; domain check could not be completed",
                     Severity = IssueSeverity.Error,
                 }
             );
@@ -222,34 +222,34 @@ public sealed class UrlDomainGuardrail : IInputGuardrail, IOutputGuardrail
         if (errorCount > 0)
         {
             return Task.FromResult(
-                GuardrailResult.Fail($"检测到 {errorCount} 个阻止的 URL 域名", Name, issues)
+                GuardrailResult.Fail($"Detected {errorCount} blocked URL domain(s)", Name, issues)
             );
         }
 
-        // 只有警告，返回通过但带问题
+        // Warnings only; return pass with issues
         return Task.FromResult(
             new GuardrailResult
             {
                 Passed = true,
                 ProcessedContent = content,
                 Issues = issues,
-                Message = $"检测到 {issues.Count} 个未明确允许的 URL 域名",
+                Message = $"Detected {issues.Count} URL domain(s) not explicitly allowed",
             }
         );
     }
 
     /// <summary>
-    /// 检查域名是否匹配（支持子域名）
+    /// Checks whether a domain matches (supports subdomains).
     /// </summary>
     private static bool IsDomainMatch(string domain, HashSet<string> domains)
     {
-        // 精确匹配
+        // Exact match
         if (domains.Contains(domain))
         {
             return true;
         }
 
-        // 子域名匹配
+        // Subdomain match
         foreach (var d in domains)
         {
             if (domain.EndsWith($".{d}", StringComparison.OrdinalIgnoreCase))

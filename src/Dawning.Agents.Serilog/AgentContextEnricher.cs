@@ -5,12 +5,12 @@ using Serilog.Events;
 namespace Dawning.Agents.Serilog;
 
 /// <summary>
-/// Agent 日志上下文 Enricher - 将 AgentLogContext 信息添加到日志事件
+/// Agent log context enricher that adds <see cref="AgentLogContext"/> information to log events.
 /// </summary>
 public sealed class AgentContextEnricher : ILogEventEnricher
 {
     /// <summary>
-    /// 丰富日志事件
+    /// Enriches the log event with agent context properties.
     /// </summary>
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {

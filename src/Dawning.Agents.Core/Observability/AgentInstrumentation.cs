@@ -4,17 +4,17 @@ using System.Diagnostics.Metrics;
 namespace Dawning.Agents.Core.Observability;
 
 /// <summary>
-/// Agent 可观测性指标和追踪源
+/// Agent observability metrics and trace sources.
 /// </summary>
 public static class AgentInstrumentation
 {
     public const string ServiceName = "Dawning.Agents";
     public const string ServiceVersion = "1.0.0";
 
-    // 追踪源
+    // Trace source
     public static readonly ActivitySource ActivitySource = new(ServiceName, ServiceVersion);
 
-    // 指标源
+    // Metrics source
     public static readonly Meter Meter = new(ServiceName, ServiceVersion);
 
     // Counters — gen_ai.* semantic conventions (experimental, v0.29.0+)
@@ -67,7 +67,7 @@ public static class AgentInstrumentation
         description: "Duration of GenAI client operations in seconds"
     );
 
-    // 仪表盘
+    // Gauges
     public static readonly ObservableGauge<int> QueueDepth = Meter.CreateObservableGauge(
         "agent_queue_depth",
         () => Volatile.Read(ref _queueDepthCallback)?.Invoke() ?? 0,
@@ -91,25 +91,25 @@ public static class AgentInstrumentation
     private static Func<int>? _healthyInstancesCallback;
 
     /// <summary>
-    /// 设置队列深度回调
+    /// Sets the queue depth callback.
     /// </summary>
     public static void SetQueueDepthCallback(Func<int> callback) =>
         Volatile.Write(ref _queueDepthCallback, callback);
 
     /// <summary>
-    /// 设置活跃请求数回调
+    /// Sets the active requests callback.
     /// </summary>
     public static void SetActiveRequestsCallback(Func<int> callback) =>
         Volatile.Write(ref _activeRequestsCallback, callback);
 
     /// <summary>
-    /// 设置健康实例数回调
+    /// Sets the healthy instances callback.
     /// </summary>
     public static void SetHealthyInstancesCallback(Func<int> callback) =>
         Volatile.Write(ref _healthyInstancesCallback, callback);
 
     /// <summary>
-    /// 开始 Agent 请求追踪
+    /// Starts an agent request trace.
     /// </summary>
     public static Activity? StartAgentRequest(string agentName, string input)
     {
@@ -120,7 +120,7 @@ public static class AgentInstrumentation
     }
 
     /// <summary>
-    /// 开始工具执行追踪
+    /// Starts a tool execution trace.
     /// </summary>
     public static Activity? StartToolExecution(string toolName)
     {
@@ -130,7 +130,7 @@ public static class AgentInstrumentation
     }
 
     /// <summary>
-    /// 开始 LLM 调用追踪
+    /// Starts an LLM call trace.
     /// </summary>
     public static Activity? StartLLMCall(
         string provider,
@@ -154,7 +154,7 @@ public static class AgentInstrumentation
     }
 
     /// <summary>
-    /// 记录异常
+    /// Records an exception on the activity.
     /// </summary>
     public static void RecordException(Activity? activity, Exception ex)
     {

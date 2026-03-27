@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.RAG;
 
 /// <summary>
-/// 向量检索器 - 结合 Embedding 和 VectorStore 提供语义搜索
+/// Vector retriever that combines embedding and vector store for semantic search.
 /// </summary>
 public sealed class VectorRetriever : IRetriever
 {
@@ -18,7 +18,7 @@ public sealed class VectorRetriever : IRetriever
     private readonly ILogger<VectorRetriever> _logger;
 
     /// <summary>
-    /// 创建向量检索器
+    /// Initializes a new instance of the <see cref="VectorRetriever"/> class.
     /// </summary>
     public VectorRetriever(
         IEmbeddingProvider embeddingProvider,
@@ -52,12 +52,12 @@ public sealed class VectorRetriever : IRetriever
 
         _logger.LogDebug("Retrieving for query: {Query}", query);
 
-        // 生成查询向量
+        // Generate query embedding
         var queryEmbedding = await _embeddingProvider
             .EmbedAsync(query, cancellationToken)
             .ConfigureAwait(false);
 
-        // 向量搜索
+        // Vector search
         var results = await _vectorStore
             .SearchAsync(queryEmbedding, topK, minScore, cancellationToken)
             .ConfigureAwait(false);

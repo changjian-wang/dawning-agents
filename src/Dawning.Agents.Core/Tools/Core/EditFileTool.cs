@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Dawning.Agents.Core.Tools.Core;
 
 /// <summary>
-/// 文件编辑工具 — 使用精确字符串匹配进行搜索替换
+/// File editing tool — search and replace using exact string matching.
 /// </summary>
 /// <remarks>
-/// <para>Risk: Medium — 修改现有文件内容</para>
-/// <para>算法: exact string match（同 Copilot 方式），要求 oldString 在文件中唯一匹配</para>
+/// <para>Risk: Medium — modifies existing file contents.</para>
+/// <para>Algorithm: exact string match (same as Copilot), requires oldString to match exactly once in the file.</para>
 /// </remarks>
 public sealed class EditFileTool : ITool
 {
@@ -19,10 +19,10 @@ public sealed class EditFileTool : ITool
     private readonly string? _workingDirectory;
 
     /// <summary>
-    /// 创建 EditFileTool
+    /// Creates an <see cref="EditFileTool"/>.
     /// </summary>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="workingDirectory">工作目录（沙箱根目录），设置后将禁止访问此目录外的路径</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="workingDirectory">Working directory (sandbox root); when set, access to paths outside this directory is denied.</param>
     public EditFileTool(ILogger<EditFileTool>? logger = null, string? workingDirectory = null)
     {
         _logger = logger ?? NullLogger<EditFileTool>.Instance;
@@ -228,7 +228,7 @@ public sealed class EditFileTool : ITool
     }
 
     /// <summary>
-    /// 尝试找到相似的上下文，帮助用户定位问题
+    /// Attempts to find similar context to help the user locate the issue.
     /// </summary>
     private static string? FindSimilarContext(string content, string search)
     {

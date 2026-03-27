@@ -7,16 +7,16 @@ using Microsoft.Extensions.Options;
 namespace Dawning.Agents.Core.Validation;
 
 /// <summary>
-/// FluentValidation 的依赖注入扩展
+/// Dependency injection extensions for FluentValidation.
 /// </summary>
 public static class ValidationServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加所有内置验证器
+    /// Adds all built-in validators.
     /// </summary>
     public static IServiceCollection AddValidation(this IServiceCollection services)
     {
-        // 注册所有内置验证器
+        // Register all built-in validators
         services.AddValidatorsFromAssemblyContaining<LLMOptionsValidator>(
             ServiceLifetime.Singleton
         );
@@ -25,9 +25,9 @@ public static class ValidationServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Options 验证支持
+    /// Adds options validation support.
     /// </summary>
-    /// <typeparam name="TOptions">配置类型</typeparam>
+    /// <typeparam name="TOptions">The options type.</typeparam>
     public static IServiceCollection AddOptionsValidation<TOptions>(
         this IServiceCollection services
     )
@@ -46,9 +46,9 @@ public static class ValidationServiceCollectionExtensions
 }
 
 /// <summary>
-/// FluentValidation 的 IValidateOptions 实现
+/// <see cref="IValidateOptions{TOptions}"/> implementation using FluentValidation.
 /// </summary>
-/// <typeparam name="TOptions">配置类型</typeparam>
+/// <typeparam name="TOptions">The options type.</typeparam>
 internal class FluentValidationValidateOptions<TOptions> : IValidateOptions<TOptions>
     where TOptions : class
 {
@@ -74,7 +74,7 @@ internal class FluentValidationValidateOptions<TOptions> : IValidateOptions<TOpt
 }
 
 /// <summary>
-/// 验证异常
+/// Represents a validation exception.
 /// </summary>
 public class OptionsValidationException : Exception
 {
@@ -98,6 +98,6 @@ public class OptionsValidationException : Exception
     private static string FormatMessage(IEnumerable<ValidationFailure> errors)
     {
         var messages = errors.Select(e => $"  - {e.PropertyName}: {e.ErrorMessage}");
-        return $"配置验证失败:\n{string.Join("\n", messages)}";
+        return $"Options validation failed:\n{string.Join("\n", messages)}";
     }
 }
