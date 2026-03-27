@@ -188,7 +188,7 @@ public sealed class EvaluationRunner
     )
     {
         var baselineResults = BuildResultLookup(baseline.Results);
-        var regressions = new List<string>();
+        var regressions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var result in current.Results)
         {
@@ -202,7 +202,7 @@ public sealed class EvaluationRunner
             }
         }
 
-        return regressions;
+        return regressions.ToList();
     }
 
     private static IReadOnlyList<string> FindImprovements(
@@ -211,7 +211,7 @@ public sealed class EvaluationRunner
     )
     {
         var baselineResults = BuildResultLookup(baseline.Results);
-        var improvements = new List<string>();
+        var improvements = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var result in current.Results)
         {
@@ -225,7 +225,7 @@ public sealed class EvaluationRunner
             }
         }
 
-        return improvements;
+        return improvements.ToList();
     }
 
     /// <summary>

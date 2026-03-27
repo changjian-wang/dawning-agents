@@ -238,4 +238,30 @@ public sealed class GradualRolloutAgentTests
         var act = () => options.MinSamplesBeforeRollback = 0;
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+
+    [Fact]
+    public async Task RunAsync_WhenFeatureFlagThrows_FallsBackToStable()
+    {
+        _featureFlag
+            .Setup(f =>
+                f.IsEnabledAsync(
+                    "canary-feature",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("flag service down"));
+        _stableAgent
+            .Setup(a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SuccessResponse("stable fallback"));
+
+        var agent = CreateAgent();
+        var result = await agent.RunAsync("test input");
+
+        result.FinalAnswer.Should().Be("stable fallback");
+        _canaryAgent.Verify(
+            a => a.RunAsync(It.IsAny<AgentContext>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
 }

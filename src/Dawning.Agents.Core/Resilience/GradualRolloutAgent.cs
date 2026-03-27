@@ -75,11 +75,24 @@ public sealed class GradualRolloutAgent : IAgent
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var useCanary =
-            !Volatile.Read(ref _rolledBack)
-            && await _featureFlag
-                .IsEnabledAsync(_featureName, context.UserInput, cancellationToken)
-                .ConfigureAwait(false);
+        bool useCanary;
+        try
+        {
+            useCanary =
+                !Volatile.Read(ref _rolledBack)
+                && await _featureFlag
+                    .IsEnabledAsync(_featureName, context.UserInput, cancellationToken)
+                    .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Feature flag '{FeatureName}' evaluation failed, defaulting to stable agent",
+                _featureName
+            );
+            useCanary = false;
+        }
 
         if (!useCanary)
         {
