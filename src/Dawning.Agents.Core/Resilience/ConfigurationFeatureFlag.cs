@@ -71,6 +71,15 @@ public sealed class ConfigurationFeatureFlag : IFeatureFlag
             foreach (var child in section.GetChildren())
             {
                 var name = child.Key;
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    _logger.LogWarning(
+                        "Feature flag with empty name found in configuration, skipping"
+                    );
+                    continue;
+                }
+
                 var enabled = child.GetValue<bool>("Enabled");
                 var rollout = child.GetValue("RolloutPercentage", 100);
 
