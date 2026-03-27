@@ -69,7 +69,7 @@ description: |
 
 | 角度 | 描述 | 典型 Bug 示例 |
 |------|------|--------------|
-| 事件与回调模式 | event Invoke 异常传播、Timer 回调无 try/catch | AsyncCallbackHandler 4x Invoke 无保护 |
+| 事件与回调模式 | event Invoke 异常传播、Timer 回调无 try/catch、Meter/Gauge 回调 | AgentInstrumentation 3x ObservableGauge 回调无保护 |
 | 数值溢出与截断 | ulong→int、Convert.ToInt32、Sum 溢出 | QdrantVectorStore ulong→int 截断 |
 | 错误处理与异常类型 | ChannelClosedException 未处理、OCE 吞没 | AgentRequestQueue 写入关闭的 Channel |
 | 重试与 failover 语义 | off-by-one（fencepost error）、最后一次尝试异常丢失 | DistributedLoadBalancer FailoverRetries=0 问题 |
