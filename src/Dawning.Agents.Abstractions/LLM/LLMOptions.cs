@@ -34,8 +34,8 @@ public class LLMOptions : IValidatableOptions
     /// <summary>Provider type.</summary>
     public LLMProviderType ProviderType { get; set; } = LLMProviderType.Ollama;
 
-    /// <summary>Model name or deployment name.</summary>
-    public string Model { get; set; } = "deepseek-coder:1.3b";
+    /// <summary>Model name or deployment name. Empty means not yet configured.</summary>
+    public string Model { get; set; } = string.Empty;
 
     /// <summary>API key (OpenAI / Azure OpenAI).</summary>
     public string? ApiKey { get; set; }
@@ -95,11 +95,6 @@ public class LLMOptions : IValidatableOptions
                     );
                 }
                 break;
-        }
-
-        if (string.IsNullOrWhiteSpace(Model))
-        {
-            throw new InvalidOperationException("Model must be configured.");
         }
     }
 }

@@ -10,7 +10,7 @@ public class LLMOptionsValidator : AbstractValidator<LLMOptions>
 {
     public LLMOptionsValidator()
     {
-        RuleFor(x => x.Model).NotEmpty().WithMessage("Model must not be empty.");
+        // Model is optional at startup — validated at call time by providers
 
         When(
             x => x.ProviderType == LLMProviderType.OpenAI,

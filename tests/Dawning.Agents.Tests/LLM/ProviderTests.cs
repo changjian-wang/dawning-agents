@@ -218,7 +218,7 @@ public class LLMOptionsTests
         var options = new LLMOptions();
 
         options.ProviderType.Should().Be(LLMProviderType.Ollama);
-        options.Model.Should().Be("deepseek-coder:1.3b");
+        options.Model.Should().BeEmpty();
     }
 
     [Fact]

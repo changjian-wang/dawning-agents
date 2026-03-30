@@ -64,17 +64,21 @@ public class LLMOptionsValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptyModel_ShouldFail()
+    public void Validate_WithEmptyModel_ShouldPass()
     {
-        // Arrange
-        var options = new LLMOptions { ProviderType = LLMProviderType.Ollama, Model = "" };
+        // Arrange — Model is optional at startup, validated at call time
+        var options = new LLMOptions
+        {
+            ProviderType = LLMProviderType.Ollama,
+            Model = "",
+            Endpoint = "http://localhost:11434",
+        };
 
         // Act
         var result = _validator.Validate(options);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "Model");
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
