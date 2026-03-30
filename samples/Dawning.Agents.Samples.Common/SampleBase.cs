@@ -2,6 +2,7 @@ using System.Text;
 using Dawning.Agents.Abstractions.LLM;
 using Dawning.Agents.Core.LLM;
 using Dawning.Agents.Core.Tools;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -34,6 +35,18 @@ public abstract class SampleBase
         {
             // 构建 Host
             var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
+
+            // 加载 YAML 配置（优先级高于默认 JSON）
+            builder.Configuration.AddYamlFile(
+                "appsettings.yml",
+                optional: true,
+                reloadOnChange: true
+            );
+            builder.Configuration.AddYamlFile(
+                $"appsettings.{builder.Environment.EnvironmentName}.yml",
+                optional: true,
+                reloadOnChange: true
+            );
 
             // 注册基础服务
             builder.Services.AddLLMProvider(builder.Configuration);

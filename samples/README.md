@@ -21,8 +21,8 @@ samples/
 
 ```bash
 cd samples/Dawning.Agents.Samples.GettingStarted
-cp appsettings.example.json appsettings.json
-# 编辑 appsettings.json 填入你的配置
+cp appsettings.example.yml appsettings.yml
+# 编辑 appsettings.yml 填入你的配置
 ```
 
 或者使用环境变量（无需创建配置文件）：
@@ -116,14 +116,12 @@ dotnet run
 
 ### Ollama（本地，推荐入门）
 
-```json
-{
-  "LLM": {
-    "ProviderType": "Ollama",
-    "Model": "qwen2.5:0.5b",
-    "Endpoint": "http://localhost:11434"
-  }
-}
+```yaml
+# appsettings.yml
+LLM:
+  ProviderType: Ollama
+  Model: qwen2.5:0.5b
+  Endpoint: http://localhost:11434
 ```
 
 **前置条件：**
@@ -139,27 +137,23 @@ ollama pull qwen2.5:0.5b
 
 ### OpenAI
 
-```json
-{
-  "LLM": {
-    "ProviderType": "OpenAI",
-    "Model": "gpt-4o-mini",
-    "ApiKey": "sk-your-api-key"
-  }
-}
+```yaml
+# appsettings.yml
+LLM:
+  ProviderType: OpenAI
+  Model: gpt-4o-mini
+  ApiKey: sk-your-api-key
 ```
 
 ### Azure OpenAI
 
-```json
-{
-  "LLM": {
-    "ProviderType": "AzureOpenAI",
-    "Model": "your-deployment-name",
-    "Endpoint": "https://your-resource.openai.azure.com/",
-    "ApiKey": "your-api-key"
-  }
-}
+```yaml
+# appsettings.yml
+LLM:
+  ProviderType: AzureOpenAI
+  Model: your-deployment-name
+  Endpoint: https://your-resource.openai.azure.com/
+  ApiKey: your-api-key
 ```
 
 ## 环境变量覆盖
@@ -214,11 +208,11 @@ ollama list
 ollama pull qwen2.5:0.5b
 ```
 
-### appsettings.json 被 gitignore
+### appsettings.yml 被 gitignore
 
-这是正常的，`appsettings.json` 包含 API Key 等敏感信息，不应提交到 Git。
+这是正常的，`appsettings.yml` 包含 API Key 等敏感信息，不应提交到 Git。
 
-使用 `appsettings.example.json` 作为模板创建你自己的配置。
+使用 `appsettings.example.yml` 作为模板创建你自己的配置。
 
 ## 更多资源
 

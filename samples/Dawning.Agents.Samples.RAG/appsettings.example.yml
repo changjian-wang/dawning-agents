@@ -1,0 +1,23 @@
+# Dawning.Agents - RAG 配置
+# 复制此文件为 appsettings.yml 并填入你的配置
+
+LLM:
+  ProviderType: Ollama
+  Model: qwen2.5:0.5b
+  Endpoint: http://localhost:11434
+  ApiKey: ""
+
+VectorStore:
+  Type: InMemory
+  Endpoint: http://localhost:6333
+  CollectionName: dawning_agents
+  ApiKey: ""
+
+Embedding:
+  ProviderType: Ollama
+  Model: nomic-embed-text
+  ApiKey: ""
+
+Logging:
+  LogLevel:
+    Default: Information

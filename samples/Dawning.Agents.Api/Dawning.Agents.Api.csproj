@@ -8,4 +8,7 @@
         <ProjectReference Include="..\..\src\Dawning.Agents.Core\Dawning.Agents.Core.csproj" />
         <ProjectReference Include="..\..\src\Dawning.Agents.OpenTelemetry\Dawning.Agents.OpenTelemetry.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
+    </ItemGroup>
 </Project>

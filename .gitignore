@@ -69,10 +69,12 @@ coverage/
 TestResult.xml
 nunit-*.xml
 
-# Sensitive configuration files (use appsettings.example.json as template)
+# Sensitive configuration files (use appsettings.example.yml as template)
+**/appsettings.yml
+**/appsettings.*.yml
+!**/appsettings.example.yml
 **/appsettings.json
 **/appsettings.*.json
-!**/appsettings.example.json
 
 # Environment files (use .env.example as template)
 .env
