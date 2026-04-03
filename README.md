@@ -2,6 +2,17 @@
 
 > 企业级 .NET AI Agent 框架，设计灵感来自 OpenAI Agents SDK 的极简风格
 
+> [!WARNING]
+> **此仓库已弃用（Deprecated）**
+>
+> 自 **2026-04-03** 起，`dawning-agents` 不再作为 Agent Framework 的主开发仓库。
+> - 停止接收新功能开发与架构演进。
+> - 仅在必要时处理阻断级问题（如严重安全或关键稳定性问题）。
+> - 新一代 Agent Framework 将在新的仓库中继续开发（仓库地址待公布）。
+> - 详细说明见 [`DEPRECATION.md`](DEPRECATION.md)。
+>
+> 建议：新项目请勿继续基于本仓库启动；请迁移到新仓库。
+
 [![Build Status](https://github.com/changjian-wang/dawning-agents/actions/workflows/build.yml/badge.svg)](https://github.com/changjian-wang/dawning-agents/actions)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -84,6 +95,10 @@
 - ⚡ **模型路由** - 成本优化、延迟优化、故障转移
 
 ## 📦 安装
+
+> [!WARNING]
+> `Dawning.Agents.*` 系列包已进入弃用状态，不建议在新项目中安装。
+> 如你正在评估或新建项目，请等待并迁移到新仓库中的后继包。
 
 ```bash
 # 核心包

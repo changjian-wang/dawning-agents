@@ -22,6 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageTags>ai;agent;llm;openai;ollama;azure;multi-agent;rag</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>DEPRECATED: This package family is no longer the active agent framework line. Please migrate to the successor repository/package line.</PackageReleaseNotes>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <!-- 缺失 XML 注释暂时不作为错误（Abstractions 包单独覆盖以强制 XML 文档） -->
         <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
