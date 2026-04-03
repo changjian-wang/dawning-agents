@@ -1,0 +1,26 @@
+# Dawning.Agents - Showcase 配置
+# 复制此文件为 appsettings.yml 并填入你的配置
+
+LLM:
+  ProviderType: Ollama
+  Model: deepseek-llm:7b
+  Endpoint: http://localhost:11434
+  ApiKey: ""
+
+Memory:
+  Type: Buffer
+
+Safety:
+  MaxInputLength: 5000
+  MaxOutputLength: 10000
+  BlockedKeywords:
+    - "hack"
+    - "exploit"
+
+HumanLoop:
+  RequireApproval: true
+  TimeoutSeconds: 30
+
+Logging:
+  LogLevel:
+    Default: Information
